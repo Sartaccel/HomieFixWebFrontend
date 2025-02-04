@@ -55,6 +55,7 @@ const Dashboard = () => {
                     <img src={profileIcon} alt="Profile" className="icon" /> {/* Fixed profile icon */}
                 </div>
             </header>
+            
             <div className="dashboard-content" >
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <h4>Manage Service</h4>
