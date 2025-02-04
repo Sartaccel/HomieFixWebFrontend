@@ -19,8 +19,8 @@ const Sidebar = () => {
 
       <nav className="menu-container">
         <Link
-          to="/"
-          className={`menu-item ${location.pathname === '/' ? 'active' : ''}`}
+          to="/dashboard"
+          className={`menu-item dashboard ${location.pathname === '/dashboard' ? 'active' : ''}`}
         >
           <img src={dashboardIcon} alt="Dashboard" className="menu-icon" />
           Dashboard
