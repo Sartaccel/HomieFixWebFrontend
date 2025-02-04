@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { FaClipboardList, FaCheckCircle, FaTimesCircle, FaUsers, FaBell, FaSearch } from "react-icons/fa"; // Added FaSearch
+import { FaClipboardList, FaCheckCircle, FaTimesCircle, FaUsers } from "react-icons/fa"; 
 import "bootstrap/dist/css/bootstrap.min.css";
-import searchIcon from "../assets/search.png"; // Ensure the correct import of the search icon
-import notificationIcon from "../assets/Bell.png"; // Ensure the correct import
-import profileIcon from "../assets/profile.png"; // Ensure the correct import'
+import searchIcon from "../assets/search.png"; 
+import notificationIcon from "../assets/Bell.png"; 
+import profileIcon from "../assets/profile.png"; 
 import "../styles/Dashboard.css";
 
 const Dashboard = () => {
@@ -28,36 +28,30 @@ const Dashboard = () => {
     }
 
     const months = [
-        { name: "January", value: "1" },
-        { name: "February", value: "2" },
-        { name: "March", value: "3" },
-        { name: "April", value: "4" },
-        { name: "May", value: "5" },
-        { name: "June", value: "6" },
-        { name: "July", value: "7" },
-        { name: "August", value: "8" },
-        { name: "September", value: "9" },
-        { name: "October", value: "10" },
-        { name: "November", value: "11" },
-        { name: "December", value: "12" },
+        { name: "January", value: "1" }, { name: "February", value: "2" },
+        { name: "March", value: "3" }, { name: "April", value: "4" },
+        { name: "May", value: "5" }, { name: "June", value: "6" },
+        { name: "July", value: "7" }, { name: "August", value: "8" },
+        { name: "September", value: "9" }, { name: "October", value: "10" },
+        { name: "November", value: "11" }, { name: "December", value: "12" },
     ];
 
     return (
-        <div className="dashboard-page" style={{ marginLeft: "250px" }}>
-            <header className="header">
-                <h2 className="heading">Booking Details</h2>
-                <div className="header-right">
-                    <div className="search-bar">
-                        <input type="text" placeholder="Search" />
-                        <img src={searchIcon} alt="Search" className="search-icon" /> {/* Fixed search icon */}
+        <div className="dashboard-page container-fluid">
+            <header className="d-flex flex-wrap justify-content-between align-items-center p-3 bg-light border-bottom">
+                <h2 className="heading mb-0">Dashboard</h2>
+                <div className="d-flex align-items-center">
+                    <div className="search-bar d-flex align-items-center me-3">
+                        <input type="text" className="form-control" placeholder="Search" />
+                        <img src={searchIcon} alt="Search" className="search-icon ms-2" />
                     </div>
-                    <img src={notificationIcon} alt="Notifications" className="icon" /> {/* Fixed notification icon */}
-                    <img src={profileIcon} alt="Profile" className="icon" /> {/* Fixed profile icon */}
+                    <img src={notificationIcon} alt="Notifications" className="icon mx-2" />
+                    <img src={profileIcon} alt="Profile" className="icon mx-2" />
                 </div>
             </header>
-            
-            <div className="dashboard-content" >
-                <div className="d-flex justify-content-between align-items-center mb-4">
+
+            <div className="dashboard-content mt-4">
+                <div className="d-flex flex-wrap justify-content-between align-items-center mb-4">
                     <h4>Manage Service</h4>
                     <select className="form-select w-auto" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
                         {years.map((year) => (
@@ -68,9 +62,9 @@ const Dashboard = () => {
 
                 <div className="row">
                     {stats.map((stat, index) => (
-                        <div key={index} className="col-md-3">
+                        <div key={index} className="col-lg-3 col-md-6 col-sm-12">
                             <div className="card mb-3 shadow" style={{ borderTop: `4px solid ${stat.borderColor}` }}>
-                                <div className="card-body">
+                                <div className="card-body text-center">
                                     <div className="display-6 mb-2">{stat.icon}</div>
                                     <h3 className="mb-1">{stat.count}</h3>
                                     <h5 className="card-title">{stat.title}</h5>
@@ -81,7 +75,7 @@ const Dashboard = () => {
                 </div>
 
                 <div className="row mt-4">
-                    <div className="col-md-6">
+                    <div className="col-lg-6 col-sm-12">
                         <div className="d-flex justify-content-between align-items-center mb-3">
                             <h4>Analytics</h4>
                             <select className="form-select w-auto" value={analyticsYear} onChange={(e) => setAnalyticsYear(e.target.value)}>
@@ -95,7 +89,7 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    <div className="col-md-6">
+                    <div className="col-lg-6 col-sm-12">
                         <div className="d-flex justify-content-between align-items-center mb-3">
                             <h4>Most Booking Services</h4>
                             <div className="d-flex">
