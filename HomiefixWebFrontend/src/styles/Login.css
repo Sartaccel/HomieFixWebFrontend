@@ -1,0 +1,189 @@
+
+
+.logo-container {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 274px;
+  height: 80px;
+}
+
+.logo {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  margin-top: -50px;
+}
+
+.login-container-main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background: linear-gradient(to right, white 50%, #0075ce36 50%);
+  position: relative;
+}
+
+.login-form {
+  width: 400px;
+  height: 300px;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid #FAFAFA;
+  background: #FFFFFF;
+  box-shadow: 
+      -8px 8px 24px 0px #0000001A,
+      -30px 30px 55px 0px #00000017;
+}
+
+.form-title-container {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.form-title {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.input-fields {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.input-field-container {
+  width: 350px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  background-color: #F5F5F5;
+  border-radius: 6px;
+  position: relative;
+}
+
+.input-field {
+  width: 100%;
+  height: 100%;
+  padding-left: 30px;
+  font-size: 12px;
+  outline: none;
+  border: none;
+  background: transparent;
+}
+
+.username-icon,
+.password-icon {
+  width: 18px;
+  height: 18px;
+  position: absolute;
+  left: 8px;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.username-icon {
+  background-image: url('../assets/Username.png');
+}
+
+.password-icon {
+  background-image: url('../assets/Password.png');
+}
+
+.login-button {
+  width: 350px;
+  height: 45px;
+  border-radius: 6px;
+  background-color: #007bff;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  margin-top: 8px;
+}
+
+.visit-homiefix {
+  display: block;
+  text-align: center;
+  margin-top: 12px;
+  font-size: 14px;
+  color: #000000;
+  text-decoration: underline;
+}
+
+.visit-homiefix:hover {
+  text-decoration: underline;
+  color: #007bff;
+}
+
+/* Tablet & Mobile Responsive Design */
+@media (max-width: 768px) {
+  .login-form {
+    width: 90%; /* Make the form take up 90% of the screen */
+    height: auto;
+  }
+
+  .form-title {
+    font-size: 18px;
+  }
+
+  .input-field-container {
+    width: 100%; /* Ensure the input fields take up full width */
+  }
+
+  .input-field {
+    font-size: 14px;
+  }
+
+  .login-button {
+    width: 100%;
+    font-size: 16px;
+  }
+
+  .visit-homiefix {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-container {
+    left: 10px; /* Slightly adjust logo position for small screens */
+    top: 10px;
+    width: 200px;
+    height: 60px;
+    margin-top: 50px;
+  }
+
+  .logo {
+    width: 100%;
+    height: auto;
+  }
+
+  .login-form {
+    width: 90%; /* Form should occupy 90% of the screen width */
+    height: auto;
+  }
+
+  .form-title {
+    font-size: 16px;
+  }
+
+  .input-field-container {
+    width: 100%;
+  }
+
+  .login-button {
+    width: 100%;
+    font-size: 14px;
+  }
+
+  .visit-homiefix {
+    font-size: 14px;
+  }
+}
