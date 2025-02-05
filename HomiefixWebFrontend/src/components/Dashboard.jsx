@@ -88,7 +88,7 @@ const Dashboard = () => {
                         <input type="text" className="form-control me-3" placeholder="Search..." style={{ width: "250px" }} />
                         <FaBell className="text-dark me-3" size={24} />
                         <img
-                            src="https://m.media-amazon.com/images/I/61Vr0kW-YtL._AC_UF1000,1000_QL80_.jpg"
+                            src="https://logodix.com/logo/355787.png"
                             alt="Profile"
                             className="rounded-circle"
                             width="40"
@@ -119,7 +119,7 @@ const Dashboard = () => {
                     {stats.map((stat, index) => (
                         <div key={index} className="col-md-3">
                             <div
-                                className="card mb-3 shadow"
+                                className="card mb-3"
                                 style={{ borderTop: `4px solid ${stat.borderColor}` }}
                             >
                                 <div className="card-body">
@@ -149,7 +149,7 @@ const Dashboard = () => {
                             </select>
                         </div>
                         {/* Area Chart */}
-                        <div className="card shadow p-3">
+                        <div className="card p-3">
                             <h6 className="mb-3 text-muted ms-5">Highest Service Month: <strong>Oct - Nov 86%, 26 Services</strong></h6>
                             <ResponsiveContainer width="100%" height={381}>
                                 <AreaChart data={areaData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
@@ -198,7 +198,7 @@ const Dashboard = () => {
                             </div>
                         </div>
                         {/* Table for Most Booking Services */}
-                        <div className="card shadow p-2" style={{ height: '450px'}}>
+                        <div className="card  p-2" style={{ height: '450px'}}>
                             <table className="table table-borderless">
                                 <thead>
                                     <tr>
