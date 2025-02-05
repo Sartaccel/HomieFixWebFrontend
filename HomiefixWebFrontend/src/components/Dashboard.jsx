@@ -48,7 +48,7 @@ const Dashboard = () => {
     ];
 
     return (
-        <div style={{ marginLeft: "250px" }}>
+        <div >
             {/* ✅ Navbar */}
             <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom p-4">
                 <div className="container-fluid">
