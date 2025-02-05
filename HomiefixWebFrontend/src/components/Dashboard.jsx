@@ -52,11 +52,11 @@ const Dashboard = () => {
         if (active && payload && payload.length) {
             const currentData = payload[0].payload;
             const index = areaData.findIndex((data) => data.month === label);
-    
+
             let previousPercentage = index > 0 ? areaData[index - 1].percentage : currentData.percentage;
             let isUp = currentData.percentage >= previousPercentage;
             let arrowColor = isUp ? "#22EC07" : "#F00";
-    
+
             return (
                 <div className="custom-tooltip p-2" style={{ backgroundColor: "white", border: "1px solid #ddd", borderRadius: "5px" }}>
                     <div>
@@ -74,11 +74,9 @@ const Dashboard = () => {
                 </div>
             );
         }
-    
+
         return null;
     };
-    
-    
 
     return (
         <div style={{ marginLeft: "250px" }}>
@@ -153,7 +151,7 @@ const Dashboard = () => {
                         {/* Area Chart */}
                         <div className="card shadow p-3">
                             <h6 className="mb-3 text-muted ms-5">Highest Service Month: <strong>Oct - Nov 86%, 26 Services</strong></h6>
-                            <ResponsiveContainer width="100%" height={400}>
+                            <ResponsiveContainer width="100%" height={381}>
                                 <AreaChart data={areaData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
                                     <defs>
                                         <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
@@ -199,10 +197,73 @@ const Dashboard = () => {
                                 </select>
                             </div>
                         </div>
-                        <div className="card shadow p-3">
-                            <p>📅 Most booking services data for {months[mostBookingMonth - 1]}, {mostBookingYear} will be displayed here...</p>
+                        {/* Table for Most Booking Services */}
+                        <div className="card shadow p-2" style={{ height: '450px'}}>
+                            <table className="table table-borderless">
+                                <thead>
+                                    <tr>
+                                        <th className="text-muted">Service Name</th>
+                                        <th className="text-muted">Services</th>
+                                        <th className="text-muted">Booking (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1. Plumbing</td>
+                                        <td>35</td>
+                                        <td>78%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2. Electrical</td>
+                                        <td>26</td>
+                                        <td>82%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3. Cleaning</td>
+                                        <td>18</td>
+                                        <td>65%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4. Painting</td>
+                                        <td>15</td>
+                                        <td>90%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>5. Painting</td>
+                                        <td>15</td>
+                                        <td>90%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>6. Painting</td>
+                                        <td>15</td>
+                                        <td>90%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>7. Painting</td>
+                                        <td>15</td>
+                                        <td>90%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>8. Painting</td>
+                                        <td>15</td>
+                                        <td>90%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>9. Painting</td>
+                                        <td>15</td>
+                                        <td>90%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>10. Painting</td>
+                                        <td>15</td>
+                                        <td>90%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
+
+
                 </div>
 
             </div>
