@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { FaClipboardList, FaCheckCircle, FaTimesCircle, FaUsers, FaBell } from "react-icons/fa";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+
 
 const Dashboard = () => {
     const currentYear = new Date().getFullYear();
@@ -85,8 +87,29 @@ const Dashboard = () => {
                 <div className="container-fluid">
                     <h4 className="navbar-brand">Dashboard</h4>
                     <div className="d-flex align-items-center">
-                        <input type="text" className="form-control me-3" placeholder="Search..." style={{ width: "250px" }} />
-                        <FaBell className="text-dark me-3" size={24} />
+                        {/* <input type="text" className="form-control me-3" placeholder="Search"  style={{ width: "250px" }}  /> */}
+                        <div style={{ position: "relative", width: "250px" }}>
+                            <input
+                                type="text"
+                                className="form-control me-3"
+                                placeholder="Search"
+                            // Add space for the icon
+                            />
+                            <span
+                                style={{
+                                    position: "absolute",
+                                    left: "220px",
+                                    top: "50%",
+                                    transform: "translateY(-50%)",
+                                    color: "#aaa",
+                                }}
+                            >
+                                <i className="fa fa-search"></i>
+                            </span>
+                        </div>
+                        {/* <FaBell className="text-dark me-3" size={24} /> */}
+                        <FaBell className="me-3 ms-3" size={24} stroke="black" strokeWidth={35} fill="none" />
+
                         <img
                             src="https://logodix.com/logo/355787.png"
                             alt="Profile"
@@ -198,7 +221,7 @@ const Dashboard = () => {
                             </div>
                         </div>
                         {/* Table for Most Booking Services */}
-                        <div className="card  p-2" style={{ height: '450px'}}>
+                        <div className="card  p-2" style={{ height: '450px' }}>
                             <table className="table table-borderless">
                                 <thead>
                                     <tr>
