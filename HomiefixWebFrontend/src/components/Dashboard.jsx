@@ -33,7 +33,7 @@ const Dashboard = () => {
 
     // Sample data for Area Chart
     const areaData = [
-        { month: "Jan", percentage: 40 },
+        { month: "Jan", percentage: 10 },
         { month: "Feb", percentage: 55 },
         { month: "Mar", percentage: 35 },
         { month: "Apr", percentage: 65 },
@@ -42,10 +42,43 @@ const Dashboard = () => {
         { month: "Jul", percentage: 60 },
         { month: "Aug", percentage: 80 },
         { month: "Sep", percentage: 45 },
-        { month: "Oct", percentage: 86 },
-        { month: "Nov", percentage: 86 },
-        { month: "Dec", percentage: 75 },
+        { month: "Oct", percentage: 78 },
+        { month: "Nov", percentage: 65 },
+        { month: "Dec", percentage: 90 },
     ];
+
+    // Custom Tooltip for Area Chart
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            const currentData = payload[0].payload;
+            const index = areaData.findIndex((data) => data.month === label);
+    
+            let previousPercentage = index > 0 ? areaData[index - 1].percentage : currentData.percentage;
+            let isUp = currentData.percentage >= previousPercentage;
+            let arrowColor = isUp ? "#22EC07" : "#F00";
+    
+            return (
+                <div className="custom-tooltip p-2" style={{ backgroundColor: "white", border: "1px solid #ddd", borderRadius: "5px" }}>
+                    <div>
+                        {isUp ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="8" height="15" viewBox="0 0 8 15" fill="none">
+                                <path d="M3.64645 0.646446C3.84171 0.451184 4.15829 0.451184 4.35355 0.646446L7.53553 3.82843C7.7308 4.02369 7.7308 4.34027 7.53553 4.53553C7.34027 4.7308 7.02369 4.7308 6.82843 4.53553L4 1.70711L1.17157 4.53553C0.97631 4.7308 0.659728 4.7308 0.464466 4.53553C0.269203 4.34027 0.269203 4.02369 0.464466 3.82843L3.64645 0.646446ZM3.5 15L3.5 1L4.5 1L4.5 15L3.5 15Z" fill={arrowColor} />
+                            </svg>
+                        ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="8" height="15" viewBox="0 0 8 15" fill="none">
+                                <path d="M3.64645 14.3536C3.84171 14.5488 4.15829 14.5488 4.35355 14.3536L7.53553 11.1716C7.7308 10.9763 7.7308 10.6597 7.53553 10.4645C7.34027 10.2692 7.02369 10.2692 6.82843 10.4645L4 13.2929L1.17157 10.4645C0.97631 10.2692 0.659728 10.2692 0.464466 10.4645C0.269203 10.6597 0.269203 10.9763 0.464466 11.1716L3.64645 14.3536ZM3.5 0L3.5 14L4.5 14L4.5 0L3.5 0Z" fill={arrowColor} />
+                            </svg>
+                        )}
+                        <span className="ms-2">{currentData.percentage}%</span>, <span>{currentData.services} Services</span>
+                    </div>
+                </div>
+            );
+        }
+    
+        return null;
+    };
+    
+    
 
     return (
         <div style={{ marginLeft: "250px" }}>
@@ -106,7 +139,7 @@ const Dashboard = () => {
                     {/* 🔹 Analytics Section */}
                     <div className="col-md-7">
                         <div className="d-flex justify-content-between align-items-center mb-3">
-                            <h4>Analytics</h4>
+                            <h4 className="fs-5">Analytics</h4>
                             <select
                                 className="form-select w-auto"
                                 value={analyticsYear}
@@ -117,10 +150,10 @@ const Dashboard = () => {
                                 ))}
                             </select>
                         </div>
-                        
+                        {/* Area Chart */}
                         <div className="card shadow p-3">
-                            <h6 className="mb-3">Highest Service Month: <strong>Oct - Nov 86%, 26 Services</strong></h6>
-                            <ResponsiveContainer width="100%" height={250}>
+                            <h6 className="mb-3 text-muted ms-5">Highest Service Month: <strong>Oct - Nov 86%, 26 Services</strong></h6>
+                            <ResponsiveContainer width="100%" height={400}>
                                 <AreaChart data={areaData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
                                     <defs>
                                         <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
@@ -129,9 +162,12 @@ const Dashboard = () => {
                                         </linearGradient>
                                     </defs>
                                     <XAxis dataKey="month" />
-                                    <YAxis domain={[0, 100]} />
-                                    <Tooltip />
-                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <YAxis
+                                        domain={[0, 100]}
+                                        ticks={[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}
+                                        interval={0}
+                                    />
+                                    <Tooltip content={<CustomTooltip />} />
                                     <Area type="linear" dataKey="percentage" stroke="#1782D2" fillOpacity={1} fill="url(#colorUv)" />
                                 </AreaChart>
                             </ResponsiveContainer>
@@ -141,7 +177,7 @@ const Dashboard = () => {
                     {/* 🔹 Most Booking Services Section */}
                     <div className="col-md-5">
                         <div className="d-flex justify-content-between align-items-center mb-3">
-                            <h4>Most Booking Services</h4>
+                            <h4 className="fs-5">Most Booking Services</h4>
                             <div className="d-flex">
                                 <select
                                     className="form-select me-2 w-auto"
