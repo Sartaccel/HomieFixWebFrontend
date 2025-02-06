@@ -1,0 +1,26 @@
+.tab-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    padding: 10px;
+    cursor: pointer;
+    color: #333;
+    transition: all 0.3s ease-in-out;
+    position: relative;
+}
+
+.tab-btn.active-tab {
+    font-weight: normal;
+    color: black;
+}
+
+.tab-btn.active-tab::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 3px;
+    background: black;
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+}
