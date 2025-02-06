@@ -48,7 +48,7 @@ const BookingDetails = () => {
       date: "2025-02-09",
     },
     {
-      id: 1,
+      id: 6,
       service: "AC Repair",
       name: "John Doe",
       contact: "1234567890",
@@ -56,7 +56,7 @@ const BookingDetails = () => {
       date: "2025-02-05",
     },
     {
-      id: 2,
+      id: 7,
       service: "Plumbing Service",
       name: "Jane Smith",
       contact: "0987654321",
@@ -64,7 +64,7 @@ const BookingDetails = () => {
       date: "2025-02-06",
     },
     {
-      id: 3,
+      id: 8,
       service: "House Cleaning",
       name: "Alice Johnson",
       contact: "1122334455",
@@ -72,7 +72,7 @@ const BookingDetails = () => {
       date: "2025-02-07",
     },
     {
-      id: 4,
+      id: 9,
       service: "Vehicle Service",
       name: "Bob Brown",
       contact: "2233445566",
@@ -80,7 +80,7 @@ const BookingDetails = () => {
       date: "2025-02-08",
     },
     {
-      id: 5,
+      id: 10,
       service: "Home Demolition",
       name: "Charlie Davis",
       contact: "3344556677",
