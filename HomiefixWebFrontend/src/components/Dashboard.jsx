@@ -89,23 +89,23 @@ const Dashboard = () => {
         <div >
             {/* ✅ Navbar */}
             <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
-                        <h2 className="heading align-items-center mb-0">Dashboard</h2>
-                        <div className="header-right d-flex align-items-center gap-3">
-                          <div className="input-group" style={{ width: "300px" }}>
-                            <input type="text" className="form-control search-bar" placeholder="Search" />
-                            <span className="input-group-text">
-                              <img src={search} alt="Search" width="20" />
-                            </span>
-                          </div>
-                          <img src={notification} alt="Notifications" width="40" className="cursor-pointer" />
-                          <img src={profile} alt="Profile" width="40" className="cursor-pointer" />
-                        </div>
-                      </header>
+                <h2 className="heading align-items-center mb-0">Dashboard</h2>
+                <div className="header-right d-flex align-items-center gap-3">
+                    <div className="input-group" style={{ width: "300px" }}>
+                        <input type="text" className="form-control search-bar" placeholder="Search" />
+                        <span className="input-group-text">
+                            <img src={search} alt="Search" width="20" />
+                        </span>
+                    </div>
+                    <img src={notification} alt="Notifications" width="40" className="cursor-pointer" />
+                    <img src={profile} alt="Profile" width="40" className="cursor-pointer" />
+                </div>
+            </header>
 
             {/* ✅ Dashboard Content */}
             <div className="container p-5" >
                 {/* ✅ Manage Service Header with Year Dropdown */}
-                <div className="d-flex justify-content-between align-items-center mb-4"style={{ marginTop: "50px" }}>
+                <div className="d-flex justify-content-between align-items-center mb-4" style={{ marginTop: "50px" }}>
                     <h4>Manage Service</h4>
                     <select
                         className="form-select w-auto"
@@ -136,10 +136,10 @@ const Dashboard = () => {
                 </div>
 
                 {/* ✅ Two Column Row: Analytics & Most Booking Services */}
-                <div className="row mt-4">
+                <div className="row mt-2">
                     {/* 🔹 Analytics Section */}
                     <div className="col-md-7">
-                        <div className="d-flex justify-content-between align-items-center mb-3">
+                        <div className="d-flex justify-content-between align-items-center mb-2">
                             <h4 className="fs-5">Analytics</h4>
                             <select
                                 className="form-select w-auto"
@@ -154,7 +154,7 @@ const Dashboard = () => {
                         {/* Area Chart */}
                         <div className="card p-3">
                             <h6 className="mb-3 text-muted ms-5">Highest Service Month: <strong>Oct - Nov 86%, 26 Services</strong></h6>
-                            <ResponsiveContainer width="100%" height={381}>
+                            <ResponsiveContainer width="100%" height={340}>
                                 <AreaChart data={areaData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
                                     <defs>
                                         <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
@@ -177,7 +177,7 @@ const Dashboard = () => {
 
                     {/* 🔹 Most Booking Services Section */}
                     <div className="col-md-5">
-                        <div className="d-flex justify-content-between align-items-center mb-3">
+                        <div className="d-flex justify-content-between align-items-center mb-2">
                             <h4 className="fs-5">Most Booking Services</h4>
                             <div className="d-flex">
                                 <select
@@ -201,7 +201,7 @@ const Dashboard = () => {
                             </div>
                         </div>
                         {/* Table for Most Booking Services */}
-                        <div className="card  p-2" style={{ height: '450px' }}>
+                        <div className="card  p-2" style={{ height: '409px' }}>
                             <table className="table table-borderless">
                                 <thead>
                                     <tr>
@@ -211,7 +211,7 @@ const Dashboard = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
+                                    <tr >
                                         <td>1. Plumbing</td>
                                         <td>35</td>
                                         <td>78%</td>
@@ -265,10 +265,7 @@ const Dashboard = () => {
                             </table>
                         </div>
                     </div>
-
-
                 </div>
-
             </div>
         </div>
     );
