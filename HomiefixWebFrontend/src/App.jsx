@@ -1,27 +1,23 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "./components/Login"; 
+import Login from "./components/Login";
 import BookingDetails from "./components/BookingDetails";
-import Sidebar from "./components/Sidebar";
+import Dashboard from "./components/Dashboard";
+import Layout from "./components/Layout";
 
 const App = () => {
   return (
     <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route 
-            path="/booking-details" 
-            element={
-              <>
-                <Sidebar /> {/* Sidebar will appear on this page */}
-                <BookingDetails />
-              </>
-            }
-          />
-          {/* Add other routes similarly */}
-        </Routes>
-      </div>
+      <Routes>
+        {/* Public Route (No Sidebar) */}
+        <Route path="/" element={<Login />} />
+
+        {/* Protected Routes (With Sidebar) */}
+        <Route path="/" element={<Layout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/booking-details" element={<BookingDetails />} />
+        </Route>
+      </Routes>
     </Router>
   );
 };

@@ -1,0 +1,33 @@
+.header {
+    height: 70px;
+    position: fixed;
+    z-index: 999;
+}
+
+
+.heading {
+    font-size: 25px;
+    font-weight: 500;
+    text-align: left;
+}
+
+.header-right {
+    margin-right: 300px;
+    
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    background: white;
+    height: 40px;
+}
+
+.search-bar input {
+    border: none;
+    outline: none;
+    font-size: 16px;
+}
