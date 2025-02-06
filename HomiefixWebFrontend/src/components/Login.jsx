@@ -37,7 +37,7 @@ const Login = () => {
         </div>
 
         {/* Demo Login Button */}
-        <button className="btn btn-primary mt-3" onClick={() => navigate("/booking-details")}>
+        <button className="btn btn-primary mt-3" onClick={() => navigate("/dashboard")}>
           Demo Login
         </button>
       </div>

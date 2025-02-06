@@ -69,6 +69,7 @@
     margin-left: 30px;
     background: #fff;
     margin-top: 145px;
+    min-height: 300px;
     
     
 }
@@ -100,7 +101,7 @@
 .booking-table tbody {
     display: block;
     overflow-y: auto;
-    max-height: 500px;
+    max-height: 490px;
 }
 
 .booking-table tr {
@@ -124,10 +125,5 @@
     background: #0056b3;
 }
 
-.date-filter {
-    margin-left: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    cursor: pointer;
-    height: 25px;
-}
+
+
