@@ -89,7 +89,7 @@ const Dashboard = () => {
         <div >
             {/* ✅ Navbar */}
             <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
-                <h2 className="heading align-items-center mb-0">Dashboard</h2>
+                <h2 className="heading align-items-center mb-0" style={{marginLeft:"30px"}}>Dashboard</h2>
                 <div className="header-right d-flex align-items-center gap-3">
                     <div className="input-group" style={{ width: "300px" }}>
                         <input type="text" className="form-control search-bar" placeholder="Search" />
@@ -105,7 +105,7 @@ const Dashboard = () => {
             {/* ✅ Dashboard Content */}
             <div className="container p-5" >
                 {/* ✅ Manage Service Header with Year Dropdown */}
-                <div className="d-flex justify-content-between align-items-center mb-4" style={{ marginTop: "50px" }}>
+                <div className="d-flex justify-content-between align-items-center mb-3" style={{ marginTop: "50px" }}>
                     <h4>Manage Service</h4>
                     <select
                         className="form-select w-auto"
@@ -128,7 +128,7 @@ const Dashboard = () => {
                                 <div className="card-body">
                                     <div className="display-6 mb-2">{stat.icon}</div>
                                     <h3 className="mb-1">{stat.count}</h3>
-                                    <h5 className="card-title">{stat.title}</h5>
+                                    <h5 className="card-title fw-normal">{stat.title}</h5>
                                 </div>
                             </div>
                         </div>
