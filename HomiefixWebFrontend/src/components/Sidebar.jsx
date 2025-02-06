@@ -46,7 +46,7 @@ const Sidebar = () => {
             <img src={workersIcon} alt="Workers" className="menu-icon" />
             Workers Details
           </Link>
-          <Link to="#" className="menu-item">
+          <Link to="/reviews" className={`menu-item ${location.pathname === "/reviews" ? "active" : ""}`}>
             <img src={reviewsIcon} alt="Reviews" className="menu-icon" />
             Reviews
           </Link>
