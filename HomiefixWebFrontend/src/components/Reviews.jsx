@@ -70,9 +70,20 @@ const Reviews = () => {
             (selectedStar ? review.rating === Number(selectedStar) : true) &&
             (selectedMonth ? monthNumber === Number(selectedMonth) : true) &&
             (selectedYear ? year === String(selectedYear) : true) &&
-            (activeTab === "recent" ? reviewDate >= oneMonthAgo : true) // Show recent reviews if tab is "recent"
+            (activeTab === "recent" ? reviewDate >= oneMonthAgo : true)
         );
     });
+
+    // Get the count of recent reviews based on current filters
+    const recentReviewCount = reviews.filter((review) => {
+        const reviewDate = parseDate(review.date);
+        return (
+            reviewDate >= oneMonthAgo &&
+            (selectedStar ? review.rating === Number(selectedStar) : true) &&
+            (selectedMonth ? getMonthNumber(getMonthYear(review.date).month) === Number(selectedMonth) : true) &&
+            (selectedYear ? getMonthYear(review.date).year === String(selectedYear) : true)
+        );
+    }).length;
 
     return (
         <div>
@@ -100,7 +111,7 @@ const Reviews = () => {
                             className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
                             onClick={() => setActiveTab("recent")}
                         >
-                            Recent Reviews
+                            Recent Reviews <span className="badge bg-dark ">{recentReviewCount}</span>
                         </button>
                         <button
                             className={`tab-btn ${activeTab === "all" ? "active-tab" : ""}`}
