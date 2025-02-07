@@ -52,7 +52,34 @@ const Reviews = () => {
             service: "Electrical Repair",
             rating: 3,
             review: "Okay service, but took longer than expected.",
-            date: "15 Jan 2024",
+            date: "15 Jan 2025",
+            profilePic: userProfile
+        },
+        {
+            id: 4,
+            user: "Sophia Martinez",
+            service: "Plumbing Service",
+            rating: 5,
+            review: "Excellent service! Quick and professional.",
+            date: "20 Dec 2024",
+            profilePic: userProfile
+        },
+        {
+            id: 5,
+            user: "James Anderson",
+            service: "Home Cleaning",
+            rating: 4,
+            review: "Good cleaning service, but missed a few spots.",
+            date: "25 Nov 2024",
+            profilePic: userProfile
+        },
+        {
+            id: 6,
+            user: "Emily Carter",
+            service: "AC Maintenance",
+            rating: 2,
+            review: "Not satisfied, had to call them again to fix the issue.",
+            date: "30 Jan 2025",
             profilePic: userProfile
         }
     ];
@@ -158,39 +185,40 @@ const Reviews = () => {
                 </div>
 
                 {/* Review Content */}
-                <div className="mt-4">
-                    <div className="row">
-                        {filteredReviews.length > 0 ? (
-                            filteredReviews.map((review) => (
-                                <div key={review.id} className="col-12 mb-4">
-                                    <div className="card p-2">
-                                        <div className="d-flex align-items-center">
-                                            {/* Profile Image */}
-                                            <img src={review.profilePic} alt="User" width="50" className="rounded-circle me-3" />
+<div className="mt-4">
+    <div className="row scrollable-reviews">
+        {filteredReviews.length > 0 ? (
+            filteredReviews.map((review) => (
+                <div key={review.id} className="col-12 mb-4">
+                    <div className="card p-2">
+                        <div className="d-flex align-items-center">
+                            {/* Profile Image */}
+                            <img src={review.profilePic} alt="User" width="50" className="rounded-circle me-3" />
 
-                                            {/* Service, User, Rating & Date */}
-                                            <div className="d-flex justify-content-between align-items-center w-100 border-bottom pb-2">
-                                                <div>
-                                                    <small className="text-muted">{review.service}</small>
-                                                    <h6 className="mb-0">{review.user}</h6>
-                                                </div>
-                                                <div>
-                                                    <span className="text-dark px-2">{`⭐️ ${review.rating}`}</span>
-                                                    <small className="ms-2">{review.date}</small>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Review Message */}
-                                        <p className="mt-2 text-muted" style={{ marginLeft: "65px" }}>{review.review}</p>
-                                    </div>
+                            {/* Service, User, Rating & Date */}
+                            <div className="d-flex justify-content-between align-items-center w-100 border-bottom pb-2">
+                                <div>
+                                    <small className="text-muted">{review.service}</small>
+                                    <h6 className="mb-0">{review.user}</h6>
                                 </div>
-                            ))
-                        ) : (
-                            <p className="text-center text-muted">No reviews found for the selected filters.</p>
-                        )}
+                                <div>
+                                    <span className="text-dark px-2">{`⭐️ ${review.rating}`}</span>
+                                    <small className="ms-2">{review.date}</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Review Message */}
+                        <p className="mt-2 text-muted" style={{ marginLeft: "65px" }}>{review.review}</p>
                     </div>
                 </div>
+            ))
+        ) : (
+            <p className="text-center text-muted">No reviews found for the selected filters.</p>
+        )}
+    </div>
+</div>
+
             </div>
         </div>
     );

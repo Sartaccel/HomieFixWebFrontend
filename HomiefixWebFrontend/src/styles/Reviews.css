@@ -24,3 +24,25 @@
     bottom: -2px;
     left: 0;
 }
+
+/* Make review content scrollable */
+.scrollable-reviews {
+    max-height: 630px; /* Adjust the height as needed */
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Hide scrollbar for webkit browsers */
+.scrollable-reviews::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scrollable-reviews::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
+.scrollable-reviews::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
