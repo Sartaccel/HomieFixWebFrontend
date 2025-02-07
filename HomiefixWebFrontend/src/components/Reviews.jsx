@@ -12,6 +12,10 @@ const Reviews = () => {
     const [selectedMonth, setSelectedMonth] = useState("");
     const [selectedYear, setSelectedYear] = useState("");
 
+    const currentDate = new Date();
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(currentDate.getMonth() - 1);
+
     // Get current year dynamically
     const currentYear = new Date().getFullYear();
 
@@ -28,82 +32,45 @@ const Reviews = () => {
     ];
 
     const reviews = [
-        {
-            id: 1,
-            user: "John Doe",
-            service: "Home Cleaning",
-            rating: 5,
-            review: "Great service, highly recommended!",
-            date: "02 Feb 2025",
-            profilePic: userProfile
-        },
-        {
-            id: 2,
-            user: "Emma Smith",
-            service: "Plumbing",
-            rating: 4,
-            review: "Fixed my leak quickly. Good job!",
-            date: "28 Jan 2025",
-            profilePic: userProfile
-        },
-        {
-            id: 3,
-            user: "David Johnson",
-            service: "Electrical Repair",
-            rating: 3,
-            review: "Okay service, but took longer than expected.",
-            date: "15 Jan 2025",
-            profilePic: userProfile
-        },
-        {
-            id: 4,
-            user: "Sophia Martinez",
-            service: "Plumbing Service",
-            rating: 5,
-            review: "Excellent service! Quick and professional.",
-            date: "20 Dec 2024",
-            profilePic: userProfile
-        },
-        {
-            id: 5,
-            user: "James Anderson",
-            service: "Home Cleaning",
-            rating: 4,
-            review: "Good cleaning service, but missed a few spots.",
-            date: "25 Nov 2024",
-            profilePic: userProfile
-        },
-        {
-            id: 6,
-            user: "Emily Carter",
-            service: "AC Maintenance",
-            rating: 2,
-            review: "Not satisfied, had to call them again to fix the issue.",
-            date: "30 Jan 2025",
-            profilePic: userProfile
-        }
+        { id: 1, user: "John Doe", service: "Home Cleaning", rating: 5, review: "Great service, highly recommended!", date: "02 Feb 2025", profilePic: userProfile },
+        { id: 2, user: "Emma Smith", service: "Plumbing", rating: 4, review: "Fixed my leak quickly. Good job!", date: "28 Jan 2025", profilePic: userProfile },
+        { id: 3, user: "David Johnson", service: "Electrical Repair", rating: 3, review: "Okay service, but took longer than expected.", date: "15 Jan 2025", profilePic: userProfile },
+        { id: 4, user: "Sophia Martinez", service: "Plumbing Service", rating: 5, review: "Excellent service! Quick and professional.", date: "20 Dec 2024", profilePic: userProfile },
+        { id: 5, user: "James Anderson", service: "Home Cleaning", rating: 4, review: "Good cleaning service, but missed a few spots.", date: "25 Nov 2024", profilePic: userProfile },
+        { id: 6, user: "Emily Carter", service: "AC Maintenance", rating: 2, review: "Not satisfied, had to call them again to fix the issue.", date: "30 Jan 2025", profilePic: userProfile }
     ];
 
-    // Convert date format from "02 Feb 2024" to { month: "February", year: "2024" }
+    // Convert date format from "02 Feb 2025" to Date object
+    const parseDate = (dateString) => {
+        const parts = dateString.split(" ");
+        const day = parseInt(parts[0], 10);
+        const month = months.findIndex((m) => m.startsWith(parts[1])) + 1;
+        const year = parseInt(parts[2], 10);
+        return new Date(year, month - 1, day);
+    };
+
+    // Get month & year from date string
     const getMonthYear = (date) => {
         const parts = date.split(" ");
         return { month: parts[1], year: parts[2] };
     };
 
-    // Convert month name to month number (1-12)
+    // Convert month name to number
     const getMonthNumber = (monthName) => {
         return months.findIndex((m) => m.startsWith(monthName)) + 1;
     };
 
-    // Filter logic - each filter works independently
+    // Filter logic - works based on selected filters
     const filteredReviews = reviews.filter((review) => {
         const { month, year } = getMonthYear(review.date);
-        const monthNumber = getMonthNumber(month); // Convert month name to number
+        const monthNumber = getMonthNumber(month);
+        const reviewDate = parseDate(review.date);
 
         return (
             (selectedStar ? review.rating === Number(selectedStar) : true) &&
             (selectedMonth ? monthNumber === Number(selectedMonth) : true) &&
-            (selectedYear ? year === String(selectedYear) : true)
+            (selectedYear ? year === String(selectedYear) : true) &&
+            (activeTab === "recent" ? reviewDate >= oneMonthAgo : true) // Show recent reviews if tab is "recent"
         );
     });
 
@@ -146,41 +113,29 @@ const Reviews = () => {
                     {/* Filters */}
                     <div className="d-flex gap-3 p-2">
                         {/* Star Rating Filter */}
-                        <div className="d-flex">
-                            <select className="form-select me-2 w-auto" value={selectedStar} onChange={(e) => setSelectedStar(e.target.value)}>
-                                <option value="">All Ratings</option>
-                                <option value="5">⭐️ 5</option>
-                                <option value="4">⭐️ 4</option>
-                                <option value="3">⭐️ 3</option>
-                                <option value="2">⭐️ 2</option>
-                                <option value="1">⭐️ 1</option>
-                            </select>
-                        </div>
+                        <select className="form-select me-2 w-auto" value={selectedStar} onChange={(e) => setSelectedStar(e.target.value)}>
+                            <option value="">All Ratings</option>
+                            <option value="5">⭐️ 5</option>
+                            <option value="4">⭐️ 4</option>
+                            <option value="3">⭐️ 3</option>
+                            <option value="2">⭐️ 2</option>
+                            <option value="1">⭐️ 1</option>
+                        </select>
 
                         {/* Month & Year Filters */}
-                        <div className="d-flex">
-                            <select
-                                className="form-select me-2 w-auto"
-                                value={selectedMonth}
-                                onChange={(e) => setSelectedMonth(e.target.value)}
-                            >
-                                <option value="">All Months</option>
-                                {months.map((month, index) => (
-                                    <option key={index + 1} value={index + 1}>{month}</option>
-                                ))}
-                            </select>
+                        <select className="form-select me-2 w-auto" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)}>
+                            <option value="">All Months</option>
+                            {months.map((month, index) => (
+                                <option key={index + 1} value={index + 1}>{month}</option>
+                            ))}
+                        </select>
 
-                            <select
-                                className="form-select w-auto"
-                                value={selectedYear}
-                                onChange={(e) => setSelectedYear(e.target.value)}
-                            >
-                                <option value="">All Years</option>
-                                {years.map((year) => (
-                                    <option key={year} value={year}>{year}</option>
-                                ))}
-                            </select>
-                        </div>
+                        <select className="form-select w-auto" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
+                            <option value="">All Years</option>
+                            {years.map((year) => (
+                                <option key={year} value={year}>{year}</option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 
@@ -190,12 +145,9 @@ const Reviews = () => {
                         {filteredReviews.length > 0 ? (
                             filteredReviews.map((review) => (
                                 <div key={review.id} className="col-12 mb-4">
-                                    <div className="card p-2" style={{marginBottom:"-15px"}}>
+                                    <div className="card p-2" style={{ marginBottom: "-15px" }}>
                                         <div className="d-flex align-items-center">
-                                            {/* Profile Image */}
                                             <img src={review.profilePic} alt="User" width="50" className="rounded-circle me-3" />
-
-                                            {/* Service, User, Rating & Date */}
                                             <div className="d-flex justify-content-between align-items-center w-100 border-bottom pb-2">
                                                 <div>
                                                     <small className="text-muted">{review.service}</small>
@@ -207,8 +159,6 @@ const Reviews = () => {
                                                 </div>
                                             </div>
                                         </div>
-
-                                        {/* Review Message */}
                                         <p className="mt-2 text-muted" style={{ marginLeft: "65px" }}>{review.review}</p>
                                     </div>
                                 </div>
