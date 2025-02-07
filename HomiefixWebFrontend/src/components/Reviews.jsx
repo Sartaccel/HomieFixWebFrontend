@@ -126,7 +126,7 @@ const Reviews = () => {
 
             {/* Main Content */}
             <div className="container pt-5">
-                <div className="d-flex justify-content-between border-bottom" style={{ marginTop: "50px", marginBottom: "5px",marginLeft:"-12px",marginRight:"-12px" }}>
+                <div className="d-flex justify-content-between border-bottom" style={{ marginTop: "50px", marginBottom: "5px", marginLeft: "-12px", marginRight: "-12px" }}>
                     {/* Tabs */}
                     <div className="d-flex gap-4 mx-4">
                         <button
@@ -185,39 +185,39 @@ const Reviews = () => {
                 </div>
 
                 {/* Review Content */}
-<div className="mt-4">
-    <div className="row scrollable-reviews">
-        {filteredReviews.length > 0 ? (
-            filteredReviews.map((review) => (
-                <div key={review.id} className="col-12 mb-4">
-                    <div className="card p-2">
-                        <div className="d-flex align-items-center">
-                            {/* Profile Image */}
-                            <img src={review.profilePic} alt="User" width="50" className="rounded-circle me-3" />
+                <div className="mt-4">
+                    <div className="row scrollable-reviews">
+                        {filteredReviews.length > 0 ? (
+                            filteredReviews.map((review) => (
+                                <div key={review.id} className="col-12 mb-4">
+                                    <div className="card p-2" style={{marginBottom:"-15px"}}>
+                                        <div className="d-flex align-items-center">
+                                            {/* Profile Image */}
+                                            <img src={review.profilePic} alt="User" width="50" className="rounded-circle me-3" />
 
-                            {/* Service, User, Rating & Date */}
-                            <div className="d-flex justify-content-between align-items-center w-100 border-bottom pb-2">
-                                <div>
-                                    <small className="text-muted">{review.service}</small>
-                                    <h6 className="mb-0">{review.user}</h6>
-                                </div>
-                                <div>
-                                    <span className="text-dark px-2">{`⭐️ ${review.rating}`}</span>
-                                    <small className="ms-2">{review.date}</small>
-                                </div>
-                            </div>
-                        </div>
+                                            {/* Service, User, Rating & Date */}
+                                            <div className="d-flex justify-content-between align-items-center w-100 border-bottom pb-2">
+                                                <div>
+                                                    <small className="text-muted">{review.service}</small>
+                                                    <h6 className="mb-0">{review.user}</h6>
+                                                </div>
+                                                <div>
+                                                    <span className="text-dark px-2">{`⭐️ ${review.rating}`}</span>
+                                                    <small className="ms-2 px-2">{review.date}</small>
+                                                </div>
+                                            </div>
+                                        </div>
 
-                        {/* Review Message */}
-                        <p className="mt-2 text-muted" style={{ marginLeft: "65px" }}>{review.review}</p>
+                                        {/* Review Message */}
+                                        <p className="mt-2 text-muted" style={{ marginLeft: "65px" }}>{review.review}</p>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-center text-muted">No reviews found for the selected filters.</p>
+                        )}
                     </div>
                 </div>
-            ))
-        ) : (
-            <p className="text-center text-muted">No reviews found for the selected filters.</p>
-        )}
-    </div>
-</div>
 
             </div>
         </div>
