@@ -106,7 +106,7 @@ const Reviews = () => {
             <div className="container pt-5">
                 <div className="d-flex justify-content-between border-bottom" style={{ marginTop: "50px", marginBottom: "5px", marginLeft: "-12px", marginRight: "-12px" }}>
                     {/* Tabs */}
-                    <div className="d-flex gap-4 mx-4">
+                    <div className="d-flex gap-4 mx-4" >
                         <button
                             className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
                             onClick={() => setActiveTab("recent")}
@@ -122,7 +122,7 @@ const Reviews = () => {
                     </div>
 
                     {/* Filters */}
-                    <div className="d-flex gap-3 p-2">
+                    <div className="d-flex gap-2 p-2" style={{ marginLeft: "10px" }}>
                         {/* Star Rating Filter */}
                         <select className="form-select me-2 w-auto" value={selectedStar} onChange={(e) => setSelectedStar(e.target.value)}>
                             <option value="">All Ratings</option>
