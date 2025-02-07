@@ -4,6 +4,7 @@ import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
 import "../styles/Reviews.css";
+import userProfile from "../assets/user.png";
 
 const Reviews = () => {
     const [activeTab, setActiveTab] = useState("recent");
@@ -35,6 +36,36 @@ const Reviews = () => {
     const months = [
         "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December"
+    ];
+
+    const reviews = [
+        {
+            id: 1,
+            user: "John Doe",
+            service: "Home Cleaning",
+            rating: 5,
+            review: "Great service, highly recommended!",
+            date: "02 Feb 2024",
+            profilePic: userProfile
+        },
+        {
+            id: 2,
+            user: "Emma Smith",
+            service: "Plumbing",
+            rating: 4,
+            review: "Fixed my leak quickly. Good job!",
+            date: "28 Jan 2024",
+            profilePic: userProfile
+        },
+        {
+            id: 3,
+            user: "David Johnson",
+            service: "Electrical Repair",
+            rating: 3,
+            review: "Okay service, but took longer than expected.",
+            date: "15 Jan 2024",
+            profilePic: userProfile
+        }
     ];
 
     return (
@@ -76,14 +107,16 @@ const Reviews = () => {
                     {/* Filters */}
                     <div className="d-flex gap-3 p-2">
                         {/* Star Rating Filter */}
-                        <select className="form-select" value={selectedStar} onChange={(e) => setSelectedStar(e.target.value)}>
-                            <option value="">Filter by Stars</option>
-                            <option value="5">★★★★★ (5 Stars)</option>
-                            <option value="4">★★★★☆ (4 Stars)</option>
-                            <option value="3">★★★☆☆ (3 Stars)</option>
-                            <option value="2">★★☆☆☆ (2 Stars)</option>
-                            <option value="1">★☆☆☆☆ (1 Star)</option>
-                        </select>
+                        <div className="d-flex">
+                            <select className="form-select me-2 w-auto" value={selectedStar} onChange={(e) => setSelectedStar(e.target.value)}>
+                                <option value="5">⭐️ 5</option>
+                                <option value="4">⭐️ 4</option>
+                                <option value="3">⭐️ 3</option>
+                                <option value="2">⭐️ 2</option>
+                                <option value="1">⭐️ 1</option>
+                            </select>
+                        </div>
+
 
                         {/* Month & Year Filters - Now default to previous month and year */}
                         <div className="d-flex">
@@ -112,18 +145,36 @@ const Reviews = () => {
 
                 {/* Review Content */}
                 <div className="mt-4">
-                    {activeTab === "recent" ? (
-                        <div className="card p-3">
-                            <h5>Recent Reviews</h5>
-                            <p>Displaying recent reviews...</p>
-                        </div>
-                    ) : (
-                        <div className="card p-3">
-                            <h5>All Reviews</h5>
-                            <p>Displaying all reviews...</p>
-                        </div>
-                    )}
+                    <div className="row">
+                        {reviews.map((review) => (
+                            <div key={review.id} className="col-12 mb-4">
+                                <div className="card p-3">
+                                    <div className="d-flex align-items-center">
+                                        {/* Profile Image (No border here) */}
+                                        <img src={review.profilePic} alt="User" width="50" className="rounded-circle me-3" />
+
+                                        {/* Service, User, Rating & Date (Border applied here) */}
+                                        <div className="d-flex justify-content-between align-items-center w-100 border-bottom pb-2">
+                                            <div>
+                                            <small className="text-muted">{review.service}</small>
+                                                <h6 className="mb-0 ">{review.user}</h6>
+                                                
+                                            </div>
+                                            <div>
+                                                <span className="text-dark px-2">{`⭐️ ${review.rating}`}</span>
+                                                <small className="ms-2">{review.date}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Row 2: Review Message */}
+                                    <p className="mt-2" style={{ marginLeft: "65px" }}>{review.review}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
+
             </div>
         </div>
     );
