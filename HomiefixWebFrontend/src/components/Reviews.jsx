@@ -8,11 +8,34 @@ import "../styles/Reviews.css";
 const Reviews = () => {
     const [activeTab, setActiveTab] = useState("recent");
     const [selectedStar, setSelectedStar] = useState("");
-    const [selectedMonth, setSelectedMonth] = useState("");
-    const [selectedYear, setSelectedYear] = useState("");
 
-    const years = Array.from({ length: new Date().getFullYear() - 2019 + 1 }, (_, i) => 2020 + i);
-    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    // Get current year and month
+    const currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth() + 1; // Months are 0-based, so adding 1
+
+    // Set previous month and year
+    let defaultYear = currentYear;
+    let defaultMonth = currentMonth - 1;
+
+    if (currentMonth === 1) { // If it's January, previous month should be December and year should decrease
+        defaultMonth = 12;
+        defaultYear = currentYear - 1;
+    }
+
+    const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
+    const [selectedYear, setSelectedYear] = useState(defaultYear);
+
+    // Generate years dynamically from 2020 to the current year
+    const years = [];
+    for (let year = 2020; year <= currentYear; year++) {
+        years.push(year);
+    }
+
+    // Months array
+    const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
 
     return (
         <div>
@@ -33,7 +56,7 @@ const Reviews = () => {
 
             {/* Main Content */}
             <div className="container pt-5 ">
-                <div className="d-flex justify-content-between border-bottom " style={{ marginTop: "50px",marginBottom:"5px" }}>
+                <div className="d-flex justify-content-between border-bottom " style={{ marginTop: "50px", marginBottom: "5px" }}>
                     {/* Tabs */}
                     <div className="d-flex gap-4 ">
                         <button
@@ -62,21 +85,28 @@ const Reviews = () => {
                             <option value="1">★☆☆☆☆ (1 Star)</option>
                         </select>
 
-                        {/* Month Filter */}
-                        <select className="form-select" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)}>
-                            <option value="">Filter by Month</option>
-                            {months.map((month, index) => (
-                                <option key={index} value={month}>{month}</option>
-                            ))}
-                        </select>
+                        {/* Month & Year Filters - Now default to previous month and year */}
+                        <div className="d-flex">
+                            <select
+                                className="form-select me-2 w-auto"
+                                value={selectedMonth}
+                                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                            >
+                                {months.map((month, index) => (
+                                    <option key={index + 1} value={index + 1}>{month}</option>
+                                ))}
+                            </select>
 
-                        {/* Year Filter */}
-                        <select className="form-select" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
-                            <option value="">Filter by Year</option>
-                            {years.map((year) => (
-                                <option key={year} value={year}>{year}</option>
-                            ))}
-                        </select>
+                            <select
+                                className="form-select w-auto"
+                                value={selectedYear}
+                                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                            >
+                                {years.map((year) => (
+                                    <option key={year} value={year}>{year}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                 </div>
 
