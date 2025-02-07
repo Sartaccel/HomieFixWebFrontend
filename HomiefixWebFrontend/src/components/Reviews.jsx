@@ -148,7 +148,7 @@ const Reviews = () => {
                     <div className="row">
                         {reviews.map((review) => (
                             <div key={review.id} className="col-12 mb-4">
-                                <div className="card p-3">
+                                <div className="card p-2">
                                     <div className="d-flex align-items-center">
                                         {/* Profile Image (No border here) */}
                                         <img src={review.profilePic} alt="User" width="50" className="rounded-circle me-3" />
