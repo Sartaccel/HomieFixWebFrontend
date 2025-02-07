@@ -34,7 +34,7 @@ const Reviews = () => {
             service: "Home Cleaning",
             rating: 5,
             review: "Great service, highly recommended!",
-            date: "02 Feb 2024",
+            date: "02 Feb 2025",
             profilePic: userProfile
         },
         {
@@ -43,7 +43,7 @@ const Reviews = () => {
             service: "Plumbing",
             rating: 4,
             review: "Fixed my leak quickly. Good job!",
-            date: "28 Jan 2024",
+            date: "28 Jan 2025",
             profilePic: userProfile
         },
         {
@@ -99,9 +99,9 @@ const Reviews = () => {
 
             {/* Main Content */}
             <div className="container pt-5">
-                <div className="d-flex justify-content-between border-bottom" style={{ marginTop: "50px", marginBottom: "5px" }}>
+                <div className="d-flex justify-content-between border-bottom" style={{ marginTop: "50px", marginBottom: "5px",marginLeft:"-12px",marginRight:"-12px" }}>
                     {/* Tabs */}
-                    <div className="d-flex gap-4">
+                    <div className="d-flex gap-4 mx-4">
                         <button
                             className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
                             onClick={() => setActiveTab("recent")}
