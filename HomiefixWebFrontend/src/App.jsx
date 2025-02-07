@@ -4,18 +4,19 @@ import Login from "./components/Login";
 import BookingDetails from "./components/BookingDetails";
 import Dashboard from "./components/Dashboard";
 import Layout from "./components/Layout";
+import AssignBookings from "./components/AssignBookings";
 
 const App = () => {
   return (
     <Router>
       <Routes>
-        {/* Public Route (No Sidebar) */}
         <Route path="/" element={<Login />} />
-
-        {/* Protected Routes (With Sidebar) */}
-        <Route path="/" element={<Layout />}>
+        
+        {/* Protected Routes (inside Layout) */}
+        <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/booking-details" element={<BookingDetails />} />
+          <Route path="/assign-bookings/:id" element={<AssignBookings />} />
         </Route>
       </Routes>
     </Router>

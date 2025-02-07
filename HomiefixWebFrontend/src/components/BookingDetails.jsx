@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
@@ -8,6 +9,7 @@ import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
 
 const BookingDetails = () => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([
     { id: 1, service: "AC Repair", name: "John Doe", contact: "1234567890", address: "123 Street, City, State, 12345", date: "2025-02-05" },
   { id: 2, service: "Plumbing Service", name: "Jane Smith", contact: "0987654321", address: "456 Avenue, City, State, 67890", date: "2025-02-06" },
@@ -147,8 +149,12 @@ const BookingDetails = () => {
                       <td style={{ width: "25%" }}>{booking.address}</td>
                       <td>{booking.date}</td>
                       <td>
-                        <button className="btn btn-primary">Assign</button>
-                      </td>
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => navigate(`/assign-bookings/${booking.id}`, { state: { booking } })}>
+                        Assign
+                      </button>                  
+                    </td>
                     </tr>
                   ))}
                 </tbody>

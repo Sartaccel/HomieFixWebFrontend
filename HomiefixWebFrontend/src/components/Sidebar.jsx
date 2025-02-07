@@ -37,10 +37,15 @@ const Sidebar = () => {
             Dashboard
           </Link>
 
-          <Link to="/booking-details" className={`menu-item ${location.pathname === "/booking-details" ? "active" : ""}`}>
+          <Link 
+            to="/booking-details" 
+            className={`menu-item ${location.pathname.startsWith("/assign-bookings") || location.pathname === "/booking-details" ? "active" : ""}`}
+          >
             <img src={bookingDetails} alt="Booking Details" className="menu-icon" />
             Booking Details
           </Link>
+
+
 
           <Link to="#" className="menu-item">
             <img src={workersIcon} alt="Workers" className="menu-icon" />
@@ -57,8 +62,8 @@ const Sidebar = () => {
         </nav>
 
         {/* Logout Button */}
-        <div className="logout-container mt-auto">
-          <Link to="#" className="logout-button">
+        <div className="logout-container mt-auto" >
+          <Link to="/" className="logout-button" style={{ height: "54px" }}>
             <img src={logoutIcon} alt="Logout" className="menu-icon" />
             Logout
           </Link>
