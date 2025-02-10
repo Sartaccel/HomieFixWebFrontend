@@ -5,6 +5,7 @@ import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
 import "../styles/Reviews.css";
 import userProfile from "../assets/user.png";
+import { Link } from "react-router-dom";
 
 const Reviews = () => {
     const [activeTab, setActiveTab] = useState("recent");
@@ -162,7 +163,12 @@ const Reviews = () => {
                                             <div className="d-flex justify-content-between align-items-center w-100 border-bottom pb-2">
                                                 <div>
                                                     <small className="text-muted">{review.service}</small>
-                                                    <h6 className="mb-0">{review.user}</h6>
+                                                    {/* <h6 className="mb-0">{review.user}</h6> */}
+                                                    <h6 className="mb-0">
+                                                        <Link to={`/reviews/customer-review/${review.id}`} className="text-dark text-decoration-none">
+                                                            {review.user}
+                                                        </Link>
+                                                    </h6>
                                                 </div>
                                                 <div>
                                                     <span className="text-dark px-2">{`⭐️ ${review.rating}`}</span>
