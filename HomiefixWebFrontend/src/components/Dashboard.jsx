@@ -105,7 +105,7 @@ const Dashboard = () => {
             {/* ✅ Dashboard Content */}
             <div className="container p-5" >
                 {/* ✅ Manage Service Header with Year Dropdown */}
-                <div className="navigation-bar d-flex gap-3 py-3 bg-white border-bottom w-100" style={{ marginTop: "50px" }}>
+                <div className="d-flex justify-content-between align-items-center mb-3" style={{ marginTop: "50px" }}>
                     <h4>Manage Service</h4>
                     <select
                         className="form-select w-auto"
