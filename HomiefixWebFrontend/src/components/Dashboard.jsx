@@ -89,23 +89,23 @@ const Dashboard = () => {
         <div >
             {/* ✅ Navbar */}
             <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
-                        <h2 className="heading align-items-center mb-0">Dashboard</h2>
-                        <div className="header-right d-flex align-items-center gap-3">
-                          <div className="input-group" style={{ width: "300px" }}>
-                            <input type="text" className="form-control search-bar" placeholder="Search" />
-                            <span className="input-group-text">
-                              <img src={search} alt="Search" width="20" />
-                            </span>
-                          </div>
-                          <img src={notification} alt="Notifications" width="40" className="cursor-pointer" />
-                          <img src={profile} alt="Profile" width="40" className="cursor-pointer" />
-                        </div>
-                      </header>
+                <h2 className="heading align-items-center mb-0" style={{marginLeft:"31px"}}>Dashboard</h2>
+                <div className="header-right d-flex align-items-center gap-3">
+                    <div className="input-group" style={{ width: "300px" }}>
+                        <input type="text" className="form-control search-bar" placeholder="Search" />
+                        <span className="input-group-text">
+                            <img src={search} alt="Search" width="20" />
+                        </span>
+                    </div>
+                    <img src={notification} alt="Notifications" width="40" className="cursor-pointer" />
+                    <img src={profile} alt="Profile" width="40" className="cursor-pointer" />
+                </div>
+            </header>
 
             {/* ✅ Dashboard Content */}
             <div className="container p-5" >
                 {/* ✅ Manage Service Header with Year Dropdown */}
-                <div className="d-flex justify-content-between align-items-center mb-4"style={{ marginTop: "50px" }}>
+                <div className="navigation-bar d-flex gap-3 py-3 bg-white border-bottom w-100" style={{ marginTop: "50px" }}>
                     <h4>Manage Service</h4>
                     <select
                         className="form-select w-auto"
@@ -119,30 +119,32 @@ const Dashboard = () => {
                 </div>
 
                 {/* ✅ Cards Section */}
-                <div className="row">
+                <div className="row mb-0">
                     {stats.map((stat, index) => (
                         <div key={index} className="col-md-3">
                             <div
-                                className="card mb-3"
-                                style={{ borderTop: `4px solid ${stat.borderColor}` }}>
-                                <div className="card-body">
-                                    <div className="display-6 mb-2">{stat.icon}</div>
+                                className="card mb-2" // Reduced bottom margin slightly
+                                style={{ borderTop: `4px solid ${stat.borderColor}`, height: "140px" }} // Adjust height
+                            >
+                                <div className="card-body p-2"> {/* Reduced padding */}
+                                    <div className="display-6 mb-1">{stat.icon}</div> {/* Reduced margin */}
                                     <h3 className="mb-1">{stat.count}</h3>
-                                    <h5 className="card-title">{stat.title}</h5>
+                                    <h6 className="card-title fw-normal">{stat.title}</h6> {/* Reduced font size */}
                                 </div>
                             </div>
                         </div>
                     ))}
                 </div>
 
+
                 {/* ✅ Two Column Row: Analytics & Most Booking Services */}
-                <div className="row mt-4">
+                <div className="row mt-2">
                     {/* 🔹 Analytics Section */}
                     <div className="col-md-7">
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                            <h4 className="fs-5">Analytics</h4>
+                        <div className="d-flex justify-content-between align-items-center">
+                            <h4 >Analytics</h4>
                             <select
-                                className="form-select w-auto"
+                                className="form-select w-auto mb-2"
                                 value={analyticsYear}
                                 onChange={(e) => setAnalyticsYear(e.target.value)}
                             >
@@ -152,10 +154,10 @@ const Dashboard = () => {
                             </select>
                         </div>
                         {/* Area Chart */}
-                        <div className="card p-3">
+                        <div className="card " style={{height: "325px"}}>
                             <h6 className="mb-3 text-muted ms-5">Highest Service Month: <strong>Oct - Nov 86%, 26 Services</strong></h6>
-                            <ResponsiveContainer width="100%" height={381}>
-                                <AreaChart data={areaData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+                            <ResponsiveContainer width="120%" height={340}>
+                                <AreaChart data={areaData} margin={{ top: 10}} style={{height: "280px", marginLeft: "-70px"}}>
                                     <defs>
                                         <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#1782D2" stopOpacity={0.8} />
@@ -177,7 +179,7 @@ const Dashboard = () => {
 
                     {/* 🔹 Most Booking Services Section */}
                     <div className="col-md-5">
-                        <div className="d-flex justify-content-between align-items-center mb-3">
+                        <div className="d-flex justify-content-between align-items-center mb-2">
                             <h4 className="fs-5">Most Booking Services</h4>
                             <div className="d-flex">
                                 <select
@@ -201,74 +203,76 @@ const Dashboard = () => {
                             </div>
                         </div>
                         {/* Table for Most Booking Services */}
-                        <div className="card  p-2" style={{ height: '450px' }}>
-                            <table className="table table-borderless">
-                                <thead>
-                                    <tr>
-                                        <th className="text-muted">Service Name</th>
-                                        <th className="text-muted">Services</th>
-                                        <th className="text-muted">Booking (%)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>1. Plumbing</td>
-                                        <td>35</td>
-                                        <td>78%</td>
-                                    </tr>
-                                    <tr>
-                                        <td>2. Electrical</td>
-                                        <td>26</td>
-                                        <td>82%</td>
-                                    </tr>
-                                    <tr>
-                                        <td>3. Cleaning</td>
-                                        <td>18</td>
-                                        <td>65%</td>
-                                    </tr>
-                                    <tr>
-                                        <td>4. Painting</td>
-                                        <td>15</td>
-                                        <td>90%</td>
-                                    </tr>
-                                    <tr>
-                                        <td>5. Painting</td>
-                                        <td>15</td>
-                                        <td>90%</td>
-                                    </tr>
-                                    <tr>
-                                        <td>6. Painting</td>
-                                        <td>15</td>
-                                        <td>90%</td>
-                                    </tr>
-                                    <tr>
-                                        <td>7. Painting</td>
-                                        <td>15</td>
-                                        <td>90%</td>
-                                    </tr>
-                                    <tr>
-                                        <td>8. Painting</td>
-                                        <td>15</td>
-                                        <td>90%</td>
-                                    </tr>
-                                    <tr>
-                                        <td>9. Painting</td>
-                                        <td>15</td>
-                                        <td>90%</td>
-                                    </tr>
-                                    <tr>
-                                        <td>10. Painting</td>
-                                        <td>15</td>
-                                        <td>90%</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div className="card p-2" style={{ height: "325px", overflow: "hidden" }}>
+                            <div style={{ height: "290px"}}>
+                                <table className="table table-borderless" style={{ width: "100%" }}>
+                                    <thead style={{ position: "sticky", top: 0, background: "#fff", zIndex: 10 }}>
+                                        <tr style={{ lineHeight: "0.7" }}> {/* Reduced further */}
+                                            <th className="text-muted">Service Name</th>
+                                            <th className="text-muted">Services</th>
+                                            <th className="text-muted">Booking (%)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style={{ lineHeight: "0.9" }}>
+                                            <td>1. Plumbing</td>
+                                            <td>35</td>
+                                            <td>78%</td>
+                                        </tr>
+                                        <tr style={{ lineHeight: "0.9" }}>
+                                            <td>2. Electrical</td>
+                                            <td>26</td>
+                                            <td>82%</td>
+                                        </tr>
+                                        <tr style={{ lineHeight: "0.9" }}>
+                                            <td>3. Cleaning</td>
+                                            <td>18</td>
+                                            <td>65%</td>
+                                        </tr>
+                                        <tr style={{ lineHeight: "0.9" }}>
+                                            <td>4. Painting</td>
+                                            <td>15</td>
+                                            <td>90%</td>
+                                        </tr>
+                                        <tr style={{ lineHeight: "0.9" }}>
+                                            <td>5. Painting</td>
+                                            <td>15</td>
+                                            <td>90%</td>
+                                        </tr>
+                                        <tr style={{ lineHeight: "0.9" }}>
+                                            <td>6. Painting</td>
+                                            <td>15</td>
+                                            <td>90%</td>
+                                        </tr>
+                                        <tr style={{ lineHeight: "0.9" }}>
+                                            <td>7. Painting</td>
+                                            <td>15</td>
+                                            <td>90%</td>
+                                        </tr>
+                                        <tr style={{ lineHeight: "0.9" }}>
+                                            <td>8. Painting</td>
+                                            <td>15</td>
+                                            <td>90%</td>
+                                        </tr>
+                                        <tr style={{ lineHeight: "0.9" }}>
+                                            <td>9. Painting</td>
+                                            <td>15</td>
+                                            <td>90%</td>
+                                        </tr>
+                                        <tr style={{ lineHeight: "0.9" }}>
+                                            <td>10. Painting</td>
+                                            <td>15</td>
+                                            <td>90%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
+
+
+
                     </div>
-
-
                 </div>
-
             </div>
         </div>
     );

@@ -45,16 +45,17 @@ const Sidebar = () => {
             Booking Details
           </Link>
 
-
-
           <Link to="#" className="menu-item">
             <img src={workersIcon} alt="Workers" className="menu-icon" />
             Workers Details
           </Link>
-          <Link to="#" className="menu-item">
+
+          {/* ✅ Fixed className syntax error */}
+          <Link to="/reviews" className={`menu-item ${location.pathname.startsWith("/reviews") ? "active" : ""}`}>
             <img src={reviewsIcon} alt="Reviews" className="menu-icon" />
             Reviews
           </Link>
+
           <Link to="#" className="menu-item">
             <img src={servicesIcon} alt="Services" className="menu-icon" />
             Services
@@ -62,7 +63,7 @@ const Sidebar = () => {
         </nav>
 
         {/* Logout Button */}
-        <div className="logout-container mt-auto" >
+        <div className="logout-container mt-auto">
           <Link to="/" className="logout-button" style={{ height: "54px" }}>
             <img src={logoutIcon} alt="Logout" className="menu-icon" />
             Logout
