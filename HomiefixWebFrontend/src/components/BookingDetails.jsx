@@ -105,7 +105,7 @@ const BookingDetails = () => {
             <div className={`section ${activeTab === "completed" ? "active" : ""}`} onClick={() => setActiveTab("completed")}>
               Completed
             </div>
-            <div className={`section ${activeTab === "canceled" ? "active" : ""}`} onClick={() => setActiveTab("canceled")}>
+            <div className={`section ${activeTab === "canceled" ? "active" : ""}`} onClick={() => setActiveTab("canceleddd")}>
               Canceled
             </div>
           </div>
