@@ -11,23 +11,29 @@ import search from "../assets/Search.png";
 const BookingDetails = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([
-    { id: 1, service: "AC Repair", name: "John Doe", contact: "1234567890", address: "123 Street, City, State, 12345", date: "2025-02-05", status: "In Progress" },
-    { id: 2, service: "Plumbing Service", name: "Jane Smith", contact: "0987654321", address: "456 Avenue, City, State, 67890", date: "2025-02-06", status: "Completed" },
-    { id: 3, service: "House Cleaning", name: "Alice Johnson", contact: "1122334455", address: "789 Road, City, State, 11223", date: "2025-02-07", status: "Canceled" },
-    { id: 4, service: "Electrical Work", name: "Michael Brown", contact: "3344556677", address: "101 Lane, City, State, 33445", date: "2025-02-08", status: "In Progress" },
-    { id: 5, service: "Carpentry Service", name: "Emily Davis", contact: "7788990011", address: "202 Street, City, State, 55667", date: "2025-02-09", status: "Completed" },
-    { id: 6, service: "Sofa Cleaning", name: "William Wilson", contact: "8899001122", address: "303 Avenue, City, State, 66778", date: "2025-02-10", status: "Canceled" },
-    { id: 7, service: "Water Filter Repair", name: "Olivia Martinez", contact: "9900112233", address: "404 Road, City, State, 77889", date: "2025-02-11", status: "In Progress" },
-    { id: 8, service: "Vehicle Service", name: "James Anderson", contact: "1100223344", address: "505 Street, City, State, 88990", date: "2025-02-12", status: "Completed" },
-    { id: 9, service: "Home Demolition", name: "Sophia Thomas", contact: "2200334455", address: "606 Avenue, City, State, 99001", date: "2025-02-13", status: "Canceled" },
-    { id: 10, service: "Interior Works", name: "Benjamin White", contact: "3300445566", address: "707 Road, City, State, 11002", date: "2025-02-14", status: "In Progress" },
-  ]);
+    { id: 1, service: "AC Repair", name: "John Doe", contact: "1234567890", address: "123 Street, City, State, 12345", date: "2025-02-05", timeslot: "9 AM - 11 AM", status: "In Progress" },
+    { id: 2, service: "Plumbing Service", name: "Jane Smith", contact: "0987654321", address: "456 Avenue, City, State, 67890", date: "2025-02-06", timeslot: "11 AM - 1 PM", status: "Completed" },
+    { id: 3, service: "House Cleaning", name: "Alice Johnson", contact: "1122334455", address: "789 Road, City, State, 11223", date: "2025-02-07", timeslot: "2 PM - 4 PM", status: "Canceled" },
+    { id: 4, service: "Electrical Work", name: "Michael Brown", contact: "3344556677", address: "101 Lane, City, State, 33445", date: "2025-02-08", timeslot: "4 PM - 6 PM", status: "In Progress" },
+    { id: 5, service: "Carpentry Service", name: "Emily Davis", contact: "7788990011", address: "202 Street, City, State, 55667", date: "2025-02-09", timeslot: "9 AM - 11 AM", status: "Completed" },
+    { id: 6, service: "Sofa Cleaning", name: "William Wilson", contact: "8899001122", address: "303 Avenue, City, State, 66778", date: "2025-02-10", timeslot: "11 AM - 1 PM", status: "Canceled" },
+    { id: 7, service: "Water Filter Repair", name: "Olivia Martinez", contact: "9900112233", address: "404 Road, City, State, 77889", date: "2025-02-11", timeslot: "2 PM - 4 PM", status: "In Progress" },
+    { id: 8, service: "Vehicle Service", name: "James Anderson", contact: "1100223344", address: "505 Street, City, State, 88990", date: "2025-02-12", timeslot: "4 PM - 6 PM", status: "Completed" },
+    { id: 9, service: "Home Demolition", name: "Sophia Thomas", contact: "2200334455", address: "606 Avenue, City, State, 99001", date: "2025-02-13", timeslot: "9 AM - 11 AM", status: "Canceled" },
+    { id: 10, service: "Interior Works", name: "Benjamin White", contact: "3300445566", address: "707 Road, City, State, 11002", date: "2025-02-14", timeslot: "11 AM - 1 PM", status: "In Progress" }
+  ]
+  );
 
   const [filteredBookings, setFilteredBookings] = useState(bookings);
   const [selectedDate, setSelectedDate] = useState(null);
   const [activeTab, setActiveTab] = useState("bookings");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Calculate the number of bookings for each status
+  const inProgress = bookings.filter(booking => booking.status === "In Progress");
+  const completed = bookings.filter(booking => booking.status === "Completed");
+  const canceled = bookings.filter(booking => booking.status === "Canceled");
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
@@ -49,7 +55,12 @@ const BookingDetails = () => {
 
     // Filter by status based on active tab
     if (activeTab !== "bookings") {
-      filtered = filtered.filter((booking) => booking.status.toLowerCase() === activeTab.toLowerCase());
+      filtered = filtered.filter((booking) => {
+        // Convert both status and activeTab to lowercase and remove spaces for comparison
+        const bookingStatus = booking.status.toLowerCase().replace(/\s+/g, "");
+        const tabStatus = activeTab.toLowerCase();
+        return bookingStatus === tabStatus;
+      });
     }
 
     // Filter by date if selected
@@ -61,6 +72,7 @@ const BookingDetails = () => {
       filtered = filtered.filter((booking) => booking.date === formattedSelectedDate);
     }
 
+    console.log("Filtered Bookings:", filtered); // Debugging line
     setFilteredBookings(filtered);
   }, [activeTab, selectedDate, bookings]);
 
@@ -97,16 +109,16 @@ const BookingDetails = () => {
 
           <div className="navigation-bar d-flex gap-3 py-3 bg-white border-bottom w-100">
             <div className={`section ${activeTab === "bookings" ? "active" : ""}`} onClick={() => setActiveTab("bookings")}>
-              Bookings <span className="badge bg-dark ms-1">{filteredBookings.length}</span>
+              Bookings <span className="badge bg-dark ms-1">{bookings.length}</span>
             </div>
             <div className={`section ${activeTab === "inProgress" ? "active" : ""}`} onClick={() => setActiveTab("inProgress")}>
-              In Progress
+              In Progress <span className="badge bg-dark ms-1">{inProgress.length}</span>
             </div>
             <div className={`section ${activeTab === "completed" ? "active" : ""}`} onClick={() => setActiveTab("completed")}>
-              Completed
+              Completed <span className="badge bg-dark ms-1">{completed.length}</span>
             </div>
             <div className={`section ${activeTab === "canceled" ? "active" : ""}`} onClick={() => setActiveTab("canceled")}>
-              Canceled
+              Canceled <span className="badge bg-dark ms-1">{canceled.length}</span>
             </div>
           </div>
 
@@ -148,7 +160,7 @@ const BookingDetails = () => {
                       )}
                     </div>
                   </th>
-                  <th className="p-3">Status</th>
+                  {activeTab !== "bookings" && <th className="p-3">Status</th>}
                   <th></th>
                 </tr>
               </thead>
@@ -168,7 +180,7 @@ const BookingDetails = () => {
                     <td>{booking.contact}</td>
                     <td style={{ width: "25%" }}>{booking.address}</td>
                     <td>{booking.date}</td>
-                    <td>{booking.status}</td>
+                    {activeTab !== "bookings" && <td>{booking.status}</td>}
                     <td>
                       <button
                         className="btn btn-primary"
