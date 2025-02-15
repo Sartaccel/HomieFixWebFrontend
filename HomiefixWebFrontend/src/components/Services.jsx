@@ -7,6 +7,7 @@ import search from "../assets/Search.png";
 const Services = () => {
  
   return (
+    
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
@@ -25,9 +26,12 @@ const Services = () => {
               <img src={profile} alt="Profile" width="40" className="cursor-pointer" />
             </div>
           </header>
+         
           </main>
           </div>
           </div>
+          
+             
   )
 }
 export default Services;
