@@ -30,3 +30,38 @@
     outline: none;
     font-size: 16px;
 }
+.appliances {
+    border: 1px solid #e5e5e5;
+    border-radius: 16px;
+    margin-left: 30px;
+    background: #fff;
+    margin-top: 180px;
+    height: 100px;
+    width: 500px;
+    border-collapse: separate;  /* Ensures border-radius works */
+    overflow: hidden;  /* Hides content outside rounded corners */
+  }
+  .home{
+    border: 1px solid #e5e5e5;
+    border-radius: 16px;
+    margin-left: 30px;
+    background: #fff;
+    margin-top: 5px;
+    height: 100px;
+    width: 500px;
+    border-collapse: separate;  
+    overflow: hidden;  
+  }
+  .appliances td {
+    border: none; 
+  }
+  .home td {
+    border: none; 
+  }
+  .image{
+    width: 30px;
+    height: 30px;
+   
+    gap:8px
+  }
+  
