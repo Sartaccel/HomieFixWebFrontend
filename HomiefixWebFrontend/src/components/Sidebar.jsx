@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap-icons/font/bootstrap-icons.css"; // ✅ Import Bootstrap Icons
+import "bootstrap-icons/font/bootstrap-icons.css"; 
 import "../styles/Sidebar.css";
 
-// Import assets
 import logo from "../assets/HomiefixLogo.png";
 import dashboardIcon from "../assets/Dashboard.svg";
 import workersIcon from "../assets/WorkerDetails.svg";
@@ -15,18 +14,29 @@ import bookingDetails from "../assets/BookingDetails.png";
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+
+  // ✅ Updated Logout Function
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Clear token
+    sessionStorage.clear(); // Clear session storage (optional)
+    
+    setTimeout(() => {
+      navigate("/", { replace: true });
+      window.location.reload(); // Force redirect to login page
+    }, 500); // Small delay to ensure token is removed
+  };
 
   return (
     <>
-      {/* ✅ Toggle Button with Dynamic Icon */}
+      {/* Toggle Button */}
       <button className="menu-toggle" onClick={() => setIsOpen(!isOpen)}>
         <i className={`bi ${isOpen ? "bi-x" : "bi-list"}`} style={{ fontSize: "30px" }}></i>
       </button>
 
       {/* Sidebar Navigation */}
       <div className={`sidebar ${isOpen ? "show" : ""}`}>
-        {/* Logo */}
         <div className="logo-container">
           <img src={logo} alt="Logo" className="logo" />
         </div>
@@ -37,10 +47,7 @@ const Sidebar = () => {
             Dashboard
           </Link>
 
-          <Link 
-            to="/booking-details" 
-            className={`menu-item ${location.pathname.startsWith("/assign-bookings") || location.pathname === "/booking-details" ? "active" : ""}`}
-          >
+          <Link to="/booking-details" className={`menu-item ${location.pathname.startsWith("/assign-bookings") || location.pathname === "/booking-details" ? "active" : ""}`}>
             <img src={bookingDetails} alt="Booking Details" className="menu-icon" />
             Booking Details
           </Link>
@@ -50,7 +57,6 @@ const Sidebar = () => {
             Workers Details
           </Link>
 
-          {/* ✅ Fixed className syntax error */}
           <Link to="/reviews" className={`menu-item ${location.pathname.startsWith("/reviews") ? "active" : ""}`}>
             <img src={reviewsIcon} alt="Reviews" className="menu-icon" />
             Reviews
@@ -64,10 +70,10 @@ const Sidebar = () => {
 
         {/* Logout Button */}
         <div className="logout-container mt-auto">
-          <Link to="/" className="logout-button" style={{ height: "54px" }}>
+          <button onClick={handleLogout} className="logout-button" style={{ height: "54px", background: "transparent", border: "none" }}>
             <img src={logoutIcon} alt="Logout" className="menu-icon" />
             Logout
-          </Link>
+          </button>
         </div>
       </div>
     </>
