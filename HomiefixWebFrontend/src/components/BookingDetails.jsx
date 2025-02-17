@@ -10,25 +10,54 @@ import search from "../assets/Search.png";
 
 const BookingDetails = () => {
   const navigate = useNavigate();
-  const [bookings, setBookings] = useState([
-    { id: 1, service: "AC Repair", name: "John Doe", contact: "1234567890", address: "123 Street, City, State, 12345", date: "2025-02-05", timeslot: "9 AM - 11 AM", status: "In Progress" },
-    { id: 2, service: "Plumbing Service", name: "Jane Smith", contact: "0987654321", address: "456 Avenue, City, State, 67890", date: "2025-02-06", timeslot: "11 AM - 1 PM", status: "Completed" },
-    { id: 3, service: "House Cleaning", name: "Alice Johnson", contact: "1122334455", address: "789 Road, City, State, 11223", date: "2025-02-07", timeslot: "2 PM - 4 PM", status: "Canceled" },
-    { id: 4, service: "Electrical Work", name: "Michael Brown", contact: "3344556677", address: "101 Lane, City, State, 33445", date: "2025-02-08", timeslot: "4 PM - 6 PM", status: "In Progress" },
-    { id: 5, service: "Carpentry Service", name: "Emily Davis", contact: "7788990011", address: "202 Street, City, State, 55667", date: "2025-02-09", timeslot: "9 AM - 11 AM", status: "Completed" },
-    { id: 6, service: "Sofa Cleaning", name: "William Wilson", contact: "8899001122", address: "303 Avenue, City, State, 66778", date: "2025-02-10", timeslot: "11 AM - 1 PM", status: "Canceled" },
-    { id: 7, service: "Water Filter Repair", name: "Olivia Martinez", contact: "9900112233", address: "404 Road, City, State, 77889", date: "2025-02-11", timeslot: "2 PM - 4 PM", status: "In Progress" },
-    { id: 8, service: "Vehicle Service", name: "James Anderson", contact: "1100223344", address: "505 Street, City, State, 88990", date: "2025-02-12", timeslot: "4 PM - 6 PM", status: "Completed" },
-    { id: 9, service: "Home Demolition", name: "Sophia Thomas", contact: "2200334455", address: "606 Avenue, City, State, 99001", date: "2025-02-13", timeslot: "9 AM - 11 AM", status: "Canceled" },
-    { id: 10, service: "Interior Works", name: "Benjamin White", contact: "3300445566", address: "707 Road, City, State, 11002", date: "2025-02-14", timeslot: "11 AM - 1 PM", status: "In Progress" }
-  ]
-  );
-
-  const [filteredBookings, setFilteredBookings] = useState(bookings);
+  const [bookings, setBookings] = useState([]);
+  const [filteredBookings, setFilteredBookings] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [activeTab, setActiveTab] = useState("bookings");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    // Fetch data from the API
+    const fetchBookings = async () => {
+      try {
+        const response = await fetch("http://localhost:2222/booking/all");
+
+        // Check if response is not JSON
+        const text = await response.text();
+        console.log("Raw Response:", text); // Log raw response for debugging
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        // Try parsing JSON
+        const data = JSON.parse(text);
+        console.log("API Data:", data); // Log data
+
+        const transformedBookings = data.map(booking => ({
+          id: booking.id,
+          service: booking.productName,
+          name: booking.userProfile.fullName,
+          contact: booking.userProfile.mobileNumber.mobileNumber,
+          address: `${booking.deliveryAddress.houseNumber}, ${booking.deliveryAddress.town}, ${booking.deliveryAddress.district}, ${booking.deliveryAddress.state}, ${booking.deliveryAddress.pincode}`,
+          date: booking.bookedDate,
+          timeslot: booking.timeSlot,
+          status: booking.bookingStatus === "COMPLETED" ? "Completed" : 
+                  booking.bookingStatus === "CANCELLED" ? "Canceled" : 
+                  booking.bookingStatus === "ASSIGNED" ? "In Progress" : 
+                  booking.bookingStatus === "PENDING" ? "In Progress" : "Unknown"
+        }));
+
+        setBookings(transformedBookings);
+        setFilteredBookings(transformedBookings);
+      } catch (error) {
+        console.error("Error fetching bookings:", error);
+      }
+    };
+
+    fetchBookings();
+  }, []);
 
   // Calculate the number of bookings for each status
   const inProgress = bookings.filter(booking => booking.status === "In Progress");
@@ -147,14 +176,12 @@ const BookingDetails = () => {
                             inline
                             dateFormat="yyyy-MM-dd"
                             popperPlacement="bottom-start"
-                            popperModifiers={[
-                              {
-                                name: "preventOverflow",
-                                options: {
-                                  boundary: "viewport",
-                                },
+                            popperModifiers={[{
+                              name: "preventOverflow",
+                              options: {
+                                boundary: "viewport",
                               },
-                            ]}
+                            }]}
                           />
                         </div>
                       )}
@@ -169,13 +196,21 @@ const BookingDetails = () => {
                   <tr key={booking.id}>
                     <td style={{ width: "20%" }}>
                       <div className="d-flex align-items-center gap-2">
-                        <div className="rounded-circle bg-secondary" style={{ width: "40px", height: "40px" }}></div>
+                        <div
+                          className="rounded-circle bg-secondary"
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            flexShrink: 0, // Prevent shrinking
+                          }}
+                        ></div>
                         <div>
                           <p className="mb-0">{booking.service}</p>
                           <small style={{ color: "#0076CE" }}>ID: {booking.id}</small>
                         </div>
                       </div>
                     </td>
+
                     <td>{booking.name}</td>
                     <td>{booking.contact}</td>
                     <td style={{ width: "25%" }}>{booking.address}</td>
