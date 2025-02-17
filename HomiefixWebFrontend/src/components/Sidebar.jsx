@@ -37,7 +37,10 @@ const Sidebar = () => {
             Dashboard
           </Link>
 
-          <Link to="/booking-details" className={`menu-item ${location.pathname === "/booking-details" ? "active" : ""}`}>
+          <Link 
+            to="/booking-details" 
+            className={`menu-item ${location.pathname.startsWith("/assign-bookings") || location.pathname === "/booking-details" ? "active" : ""}`}
+          >
             <img src={bookingDetails} alt="Booking Details" className="menu-icon" />
             Booking Details
           </Link>
@@ -46,10 +49,13 @@ const Sidebar = () => {
             <img src={workersIcon} alt="Workers" className="menu-icon" />
             Workers Details
           </Link>
+
+          {/* ✅ Fixed className syntax error */}
           <Link to="/reviews" className={`menu-item ${location.pathname.startsWith("/reviews") ? "active" : ""}`}>
             <img src={reviewsIcon} alt="Reviews" className="menu-icon" />
             Reviews
           </Link>
+
           <Link to="#" className="menu-item">
             <img src={servicesIcon} alt="Services" className="menu-icon" />
             Services
@@ -58,7 +64,7 @@ const Sidebar = () => {
 
         {/* Logout Button */}
         <div className="logout-container mt-auto">
-          <Link to="#" className="logout-button">
+          <Link to="/" className="logout-button" style={{ height: "54px" }}>
             <img src={logoutIcon} alt="Logout" className="menu-icon" />
             Logout
           </Link>

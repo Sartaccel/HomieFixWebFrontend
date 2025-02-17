@@ -17,14 +17,9 @@ const Reviews = () => {
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(currentDate.getMonth() - 1);
 
-    // Get current year dynamically
-    const currentYear = new Date().getFullYear();
-
     // Generate years dynamically from 2020 to the current year
-    const years = [];
-    for (let year = 2020; year <= currentYear; year++) {
-        years.push(year);
-    }
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: currentYear - 2019 }, (_, i) => 2020 + i);
 
     // Months array
     const months = [
@@ -41,48 +36,38 @@ const Reviews = () => {
         { id: 6, user: "Emily Carter", service: "AC Maintenance", rating: 2, review: "Not satisfied, had to call them again to fix the issue.", date: "30 Jan 2025", profilePic: userProfile }
     ];
 
-    // Convert date format from "02 Feb 2025" to Date object
     const parseDate = (dateString) => {
-        const parts = dateString.split(" ");
-        const day = parseInt(parts[0], 10);
-        const month = months.findIndex((m) => m.startsWith(parts[1])) + 1;
-        const year = parseInt(parts[2], 10);
-        return new Date(year, month - 1, day);
+        const [day, month, year] = dateString.split(" ");
+        return new Date(parseInt(year), months.findIndex(m => m.startsWith(month)), parseInt(day));
     };
 
-    // Get month & year from date string
-    const getMonthYear = (date) => {
-        const parts = date.split(" ");
-        return { month: parts[1], year: parts[2] };
+    const getMonthYear = (dateString) => {
+        const [_, month, year] = dateString.split(" ");
+        return { month, year };
     };
 
-    // Convert month name to number
-    const getMonthNumber = (monthName) => {
-        return months.findIndex((m) => m.startsWith(monthName)) + 1;
-    };
+    const getMonthNumber = (monthName) => months.findIndex(m => m.startsWith(monthName)) + 1;
 
-    // Filter logic - works based on selected filters
     const filteredReviews = reviews.filter((review) => {
         const { month, year } = getMonthYear(review.date);
         const monthNumber = getMonthNumber(month);
         const reviewDate = parseDate(review.date);
 
         return (
-            (selectedStar ? review.rating === Number(selectedStar) : true) &&
-            (selectedMonth ? monthNumber === Number(selectedMonth) : true) &&
-            (selectedYear ? year === String(selectedYear) : true) &&
+            (!selectedStar || review.rating === Number(selectedStar)) &&
+            (!selectedMonth || monthNumber === Number(selectedMonth)) &&
+            (!selectedYear || year === String(selectedYear)) &&
             (activeTab === "recent" ? reviewDate >= oneMonthAgo : true)
         );
     });
 
-    // Get the count of recent reviews based on current filters
     const recentReviewCount = reviews.filter((review) => {
         const reviewDate = parseDate(review.date);
         return (
             reviewDate >= oneMonthAgo &&
-            (selectedStar ? review.rating === Number(selectedStar) : true) &&
-            (selectedMonth ? getMonthNumber(getMonthYear(review.date).month) === Number(selectedMonth) : true) &&
-            (selectedYear ? getMonthYear(review.date).year === String(selectedYear) : true)
+            (!selectedStar || review.rating === Number(selectedStar)) &&
+            (!selectedMonth || getMonthNumber(getMonthYear(review.date).month) === Number(selectedMonth)) &&
+            (!selectedYear || getMonthYear(review.date).year === String(selectedYear))
         );
     }).length;
 
@@ -104,38 +89,28 @@ const Reviews = () => {
             </header>
 
             {/* Main Content */}
-            <div className="container pt-5">
-                <div className="d-flex justify-content-between border-bottom" style={{ marginTop: "50px", marginBottom: "5px", marginLeft: "-12px", marginRight: "-12px" }}>
+            <div className="container-fluid p-0 pt-5">
+            <div className="d-flex justify-content-between border-bottom mt-5 mb-2">
                     {/* Tabs */}
-                    <div className="d-flex gap-4 mx-4" >
-                        <button
-                            className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
-                            onClick={() => setActiveTab("recent")}
-                        >
-                            Recent Reviews <span className="badge bg-dark ">{recentReviewCount}</span>
+                    <div className="d-flex gap-4 mx-4">
+                        <button className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`} onClick={() => setActiveTab("recent")}>
+                            Recent Reviews <span className="badge bg-dark">{recentReviewCount}</span>
                         </button>
-                        <button
-                            className={`tab-btn ${activeTab === "all" ? "active-tab" : ""}`}
-                            onClick={() => setActiveTab("all")}
-                        >
+                        <button className={`tab-btn ${activeTab === "all" ? "active-tab" : ""}`} onClick={() => setActiveTab("all")}>
                             All Reviews
                         </button>
                     </div>
 
                     {/* Filters */}
-                    <div className="d-flex gap-2 p-2" style={{ marginLeft: "10px" }}>
-                        {/* Star Rating Filter */}
-                        <select className="form-select me-2 w-auto" value={selectedStar} onChange={(e) => setSelectedStar(e.target.value)}>
+                    <div className="d-flex gap-2 p-2">
+                        <select className="form-select w-auto" value={selectedStar} onChange={(e) => setSelectedStar(e.target.value)}>
                             <option value="">All Ratings</option>
-                            <option value="5">⭐️ 5</option>
-                            <option value="4">⭐️ 4</option>
-                            <option value="3">⭐️ 3</option>
-                            <option value="2">⭐️ 2</option>
-                            <option value="1">⭐️ 1</option>
+                            {[5, 4, 3, 2, 1].map((star) => (
+                                <option key={star} value={star}>⭐ {star}</option>
+                            ))}
                         </select>
 
-                        {/* Month & Year Filters */}
-                        <select className="form-select me-2 w-auto" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)}>
+                        <select className="form-select w-auto" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)}>
                             <option value="">All Months</option>
                             {months.map((month, index) => (
                                 <option key={index + 1} value={index + 1}>{month}</option>
@@ -151,19 +126,18 @@ const Reviews = () => {
                     </div>
                 </div>
 
-                {/* Review Content */}
-                <div className="mt-4">
+                {/* Reviews */}
+                <div className="mt-4 p-3" >
                     <div className="row scrollable-reviews">
                         {filteredReviews.length > 0 ? (
                             filteredReviews.map((review) => (
                                 <div key={review.id} className="col-12 mb-4">
-                                    <div className="card p-2" style={{ marginBottom: "-15px" }}>
+                                    <div className="card p-2">
                                         <div className="d-flex align-items-center">
                                             <img src={review.profilePic} alt="User" width="50" className="rounded-circle me-3" />
-                                            <div className="d-flex justify-content-between align-items-center w-100 border-bottom pb-2">
+                                            <div className="d-flex justify-content-between w-100 border-bottom pb-2">
                                                 <div>
                                                     <small className="text-muted">{review.service}</small>
-                                                    {/* <h6 className="mb-0">{review.user}</h6> */}
                                                     <h6 className="mb-0">
                                                         <Link to={`/reviews/customer-review/${review.id}`} className="text-dark text-decoration-none">
                                                             {review.user}
@@ -171,8 +145,8 @@ const Reviews = () => {
                                                     </h6>
                                                 </div>
                                                 <div>
-                                                    <span className="text-dark px-2">{`⭐️ ${review.rating}`}</span>
-                                                    <small className="ms-2 px-2">{review.date}</small>
+                                                    <span className="text-dark px-2">⭐ {review.rating}</span>
+                                                    <small className="ms-2">{review.date}</small>
                                                 </div>
                                             </div>
                                         </div>
@@ -185,7 +159,6 @@ const Reviews = () => {
                         )}
                     </div>
                 </div>
-
             </div>
         </div>
     );

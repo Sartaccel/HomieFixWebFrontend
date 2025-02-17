@@ -28,9 +28,9 @@
 .logo {
     width: 70%;
     max-width: 200px;
-    margin-top: 50px;
+    margin-top: -70px;
     object-fit: contain;
-    margin-left: -30px;
+    
 }
 .menu-toggle {
     position: fixed;
@@ -51,7 +51,7 @@
     flex-direction: column;
     gap: 10px;
     padding-left: 20px;
-    margin-top: 120px;
+    margin-top: 80px;
     height: 300px;
 }
 
@@ -88,9 +88,7 @@
     filter: brightness(0) invert(1);
 }
 
-.logout-container {
-    margin-top: auto;
-}
+
 
 .logout-button {
     display: flex;
@@ -99,11 +97,12 @@
     font-weight: 500;
     color: #191919;
     text-decoration: none;
-    padding: 10px;
+    padding: 20px;
     width: 220px;
     border-radius: 18px;
     transition: background 0.3s ease-in-out;
     margin-top: -100px;
+    height: 64px;
 
 }
 

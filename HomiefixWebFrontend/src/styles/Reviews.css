@@ -1,3 +1,8 @@
+body, html {
+    height: 100vh;
+    overflow: hidden;
+}
+
 .tab-btn {
     background: none;
     border: none;
@@ -44,5 +49,19 @@
 
 .scrollable-reviews::-webkit-scrollbar-track {
     background: #f1f1f1;
+}
+
+.navigation-bar {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    padding-left: 40px;
+    gap: 15px;
+    background-color: #fff;
+    position: fixed;
+    top: 70px; /* Ensure it appears below the header */
+    width: 100%;
+    z-index: 1000;
+    border-bottom: 1px solid #ddd;
 }
 
