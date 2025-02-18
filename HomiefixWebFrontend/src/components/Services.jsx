@@ -75,7 +75,7 @@ const Services = () => {
             </div>
             <div className="service-list" >
                 {servicesData.map((service) => (
-                 <div key={service.id} className={`service-card ${service.name.includes("Geyser") ? "centered-card" : ""}`}>
+                 <div key={service.id} className="service-card">
     
                    
                         <div className="image-container">
