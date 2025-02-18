@@ -44,8 +44,8 @@
   display: flex;
   flex-direction: column;
   align-items: center; /* Align items center */
-  width: 400px;
-  height: 100px; /* Control width */
+  width: 380px;
+  height: 70px; /* Control width */
  margin-left: 15px;
  
   border: 1px solid #ddd;
@@ -57,8 +57,8 @@
 
 
 .image-container {
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 50px;
  
  
   flex-shrink: 0;
