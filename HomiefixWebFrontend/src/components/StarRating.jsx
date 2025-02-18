@@ -1,5 +1,7 @@
 import React from "react";
 
+
+
 const StarRating = ({ rating }) => {
   return (
     <div style={{ marginTop: "2px", display: "flex", alignItems: "center", gap: "5px" }}>
