@@ -47,7 +47,6 @@
   width: 380px;
   height: 70px; /* Control width */
  margin-left: 15px;
- 
   border: 1px solid #ddd;
   border-radius: 12px;
   padding: 10px;
@@ -59,8 +58,6 @@
 .image-container {
   width: 60px;
   height: 50px;
- 
- 
   flex-shrink: 0;
 
 }
@@ -84,10 +81,9 @@
 /* Service name & price */
 .service-name {
   font-size: 18px;
-  
   color: #333;
-margin-top: -60px;
-margin-left: 20px;
+  margin-top: -60px;
+  margin-left: 20px;
 }
 
 /* Meta details (Rating & Bookings) */
