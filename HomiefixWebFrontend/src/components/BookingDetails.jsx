@@ -45,9 +45,10 @@ const BookingDetails = () => {
           timeslot: booking.timeSlot,
           status: booking.bookingStatus === "COMPLETED" ? "Completed" : 
                   booking.bookingStatus === "CANCELLED" ? "Canceled" : 
-                  booking.bookingStatus === "ASSIGNED" ? "In Progress" : 
+                  booking.bookingStatus === "ASSIGNED" || booking.bookingStatus === "PENDING" ? "In Progress" : 
                   booking.bookingStatus === "PENDING" ? "In Progress" : "Unknown"
-        }));
+        }))
+        .filter(booking => booking.status === "In Progress");
 
         setBookings(transformedBookings);
         setFilteredBookings(transformedBookings);
@@ -117,6 +118,23 @@ const BookingDetails = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+  
+    if (tab === "inProgress") {
+      const updatedInProgress = bookings.filter(booking => booking.status === "In Progress");
+      setFilteredBookings(updatedInProgress);
+    } else if (tab === "completed") {
+      const updatedCompleted = bookings.filter(booking => booking.status === "Completed");
+      setFilteredBookings(updatedCompleted);
+    } else if (tab === "canceled") {
+      const updatedCanceled = bookings.filter(booking => booking.status === "Canceled");
+      setFilteredBookings(updatedCanceled);
+    } else {
+      setFilteredBookings(bookings);
+    }
+  };
+  
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -140,7 +158,7 @@ const BookingDetails = () => {
             <div className={`section ${activeTab === "bookings" ? "active" : ""}`} onClick={() => setActiveTab("bookings")}>
               Bookings <span className="badge bg-dark ms-1">{bookings.length}</span>
             </div>
-            <div className={`section ${activeTab === "inProgress" ? "active" : ""}`} onClick={() => setActiveTab("inProgress")}>
+            <div className={`section ${activeTab === "inProgress" ? "active" : ""}`} onClick={() => handleTabChange("inProgress")}>
               In Progress <span className="badge bg-dark ms-1">{inProgress.length}</span>
             </div>
             <div className={`section ${activeTab === "completed" ? "active" : ""}`} onClick={() => setActiveTab("completed")}>
@@ -219,9 +237,15 @@ const BookingDetails = () => {
                     <td>
                       <button
                         className="btn btn-primary"
-                        onClick={() => navigate(`/assign-bookings/${booking.id}`, { state: { booking } })}
+                        onClick={() => {
+                          if (activeTab === "inProgress") {
+                            navigate(`/view-booking/${booking.id}`, { state: { booking } }); // Change route for View
+                          } else {
+                            navigate(`/assign-bookings/${booking.id}`, { state: { booking } });
+                          }
+                        }}
                       >
-                        Assign
+                        {activeTab === "inProgress" ? "View" : "Assign"}
                       </button>
                     </td>
                   </tr>
