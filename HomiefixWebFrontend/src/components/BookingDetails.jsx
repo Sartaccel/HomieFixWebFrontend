@@ -7,6 +7,9 @@ import "../styles/BookingDetails.css";
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
+import statusRescheduled from "../assets/Status Rescheduled.png"; // Import status icons
+import statusAssigned from "../assets/Status Assigned.png";
+import statusStarted from "../assets/Status Started.png";
 
 const BookingDetails = () => {
   const navigate = useNavigate();
@@ -45,9 +48,12 @@ const BookingDetails = () => {
           timeslot: booking.timeSlot,
           status: booking.bookingStatus === "COMPLETED" ? "Completed" : 
                   booking.bookingStatus === "CANCELLED" ? "Canceled" : 
-                  booking.bookingStatus === "ASSIGNED" ? "In Progress" : 
-                  booking.bookingStatus === "PENDING" ? "In Progress" : "Unknown"
+                  booking.bookingStatus === "ASSIGNED" ? "Assigned" : 
+                  booking.bookingStatus === "STARTED" ? "Started" : 
+                  booking.bookingStatus === "RESCHEDULED" ? "Rescheduled" :
+                  booking.bookingStatus === "PENDING" ? "Pending" : "Unknown"
         }));
+        
 
         setBookings(transformedBookings);
         setFilteredBookings(transformedBookings);
@@ -60,7 +66,8 @@ const BookingDetails = () => {
   }, []);
 
   // Calculate the number of bookings for each status
-  const inProgress = bookings.filter(booking => booking.status === "In Progress");
+  const pendingBookings = bookings.filter(booking => booking.status === "Pending");
+  const inProgress = bookings.filter(booking => booking.status === "Started" || booking.status === "Assigned" || booking.status === "Rescheduled");
   const completed = bookings.filter(booking => booking.status === "Completed");
   const canceled = bookings.filter(booking => booking.status === "Canceled");
 
@@ -81,29 +88,39 @@ const BookingDetails = () => {
 
   useEffect(() => {
     let filtered = bookings;
-
+  
     // Filter by status based on active tab
-    if (activeTab !== "bookings") {
-      filtered = filtered.filter((booking) => {
-        // Convert both status and activeTab to lowercase and remove spaces for comparison
-        const bookingStatus = booking.status.toLowerCase().replace(/\s+/g, "");
-        const tabStatus = activeTab.toLowerCase();
-        return bookingStatus === tabStatus;
-      });
+    if (activeTab === "bookings") {
+      // Show only bookings with status "Pending"
+      filtered = filtered.filter((booking) => booking.status === "Pending");
+    } else if (activeTab === "inProgress") {
+      // Show bookings with status "Started", "Assigned", or "Rescheduled"
+      filtered = filtered.filter((booking) => 
+        booking.status === "Started" || 
+        booking.status === "Assigned" || 
+        booking.status === "Rescheduled"
+      );
+    } else if (activeTab === "completed") {
+      // Show bookings with status "Completed"
+      filtered = filtered.filter((booking) => booking.status === "Completed");
+    } else if (activeTab === "canceled") {
+      // Show bookings with status "Canceled"
+      filtered = filtered.filter((booking) => booking.status === "Canceled");
     }
-
+  
     // Filter by date if selected
     if (selectedDate) {
       const formattedSelectedDate = selectedDate.getFullYear() + "-" +
         String(selectedDate.getMonth() + 1).padStart(2, "0") + "-" +
         String(selectedDate.getDate()).padStart(2, "0");
-
+  
       filtered = filtered.filter((booking) => booking.date === formattedSelectedDate);
     }
-
+  
     console.log("Filtered Bookings:", filtered); // Debugging line
     setFilteredBookings(filtered);
   }, [activeTab, selectedDate, bookings]);
+  
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -117,6 +134,20 @@ const BookingDetails = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // Function to get the status icon based on the status
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "Rescheduled":
+        return statusRescheduled;
+      case "Assigned":
+        return statusAssigned;
+      case "Started":
+        return statusStarted;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -138,7 +169,7 @@ const BookingDetails = () => {
 
           <div className="navigation-bar d-flex gap-3 py-3 bg-white border-bottom w-100">
             <div className={`section ${activeTab === "bookings" ? "active" : ""}`} onClick={() => setActiveTab("bookings")}>
-              Bookings <span className="badge bg-dark ms-1">{bookings.length}</span>
+              Bookings <span className="badge bg-dark ms-1">{pendingBookings.length}</span>
             </div>
             <div className={`section ${activeTab === "inProgress" ? "active" : ""}`} onClick={() => setActiveTab("inProgress")}>
               In Progress <span className="badge bg-dark ms-1">{inProgress.length}</span>
@@ -215,7 +246,20 @@ const BookingDetails = () => {
                     <td>{booking.contact}</td>
                     <td style={{ width: "25%" }}>{booking.address}</td>
                     <td>{booking.date}</td>
-                    {activeTab !== "bookings" && <td>{booking.status}</td>}
+                    {activeTab !== "bookings" && (
+                      <td>
+                        {activeTab === "inProgress" ? (
+                          <img
+                            src={getStatusIcon(booking.status)}
+                            alt={booking.status}
+                            width="100"
+                            height="40"
+                          />
+                        ) : (
+                          booking.status
+                        )}
+                      </td>
+                    )}
                     <td>
                       <button
                         className="btn btn-primary"
