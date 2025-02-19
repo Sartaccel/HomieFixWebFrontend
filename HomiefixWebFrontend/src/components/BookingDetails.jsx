@@ -51,10 +51,13 @@ const BookingDetails = () => {
                   booking.bookingStatus === "ASSIGNED" ? "Assigned" : 
                   booking.bookingStatus === "STARTED" ? "Started" : 
                   booking.bookingStatus === "RESCHEDULED" ? "Rescheduled" :
-                  booking.bookingStatus === "PENDING" ? "Pending" : "Unknown"
+                  booking.bookingStatus === "PENDING" ? "Pending" : "Unknown",
+          worker: booking.worker ? {
+            name: booking.worker.name,
+            contact: booking.worker.contactNumber
+          } : null
         }));
         
-
         setBookings(transformedBookings);
         setFilteredBookings(transformedBookings);
       } catch (error) {
@@ -188,8 +191,14 @@ const BookingDetails = () => {
                 <tr>
                   <th className="p-3" style={{ width: "20%" }}>Service</th>
                   <th className="p-3">Name</th>
-                  <th className="p-3">Contact</th>
-                  <th className="p-3" style={{ width: "25%" }}>Address</th>
+                  {activeTab === "inProgress" ? (
+                    <th className="p-3">Worker</th>
+                  ) : (
+                    <>
+                      <th className="p-3">Contact</th>
+                      <th className="p-3" style={{ width: "25%" }}>Address</th>
+                    </>
+                  )}
                   <th className="p-3">
                     Date
                     <div className="dropdown d-inline ms-2" ref={dropdownRef}>
@@ -242,10 +251,32 @@ const BookingDetails = () => {
                       </div>
                     </td>
 
-                    <td>{booking.name}</td>
-                    <td>{booking.contact}</td>
-                    <td style={{ width: "25%" }}>{booking.address}</td>
-                    <td>{booking.date}</td>
+                    <td>
+                       {booking.name} <br />
+                      <span >{booking.contact}</span>
+                    </td>
+                    {activeTab === "inProgress" ? (
+                    <td>
+                      {booking.worker ? (
+                        <>
+                          <p className="mb-0 ">{booking.worker.name}</p>
+                          <p className="mb-0 text-muted">{booking.worker.contact}</p>
+                        </>
+                      ) : (
+                        <p className="text-muted">Not Assigned</p>
+                      )}
+                    </td>
+                  ) : (
+                    <>
+                      <td>{booking.contact}</td>
+                      <td style={{ width: "25%" }}>{booking.address}</td>
+                    </>
+                  )}
+
+                    <td>
+                    {booking.date} <br />
+                    <span >{booking.timeslot}</span>
+                    </td>
                     {activeTab !== "bookings" && (
                       <td>
                         {activeTab === "inProgress" ? (
