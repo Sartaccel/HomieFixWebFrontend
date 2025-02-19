@@ -92,8 +92,16 @@ const Services = () => {
                 
                
                   ))}
+                 
                   </div>
+                 
                </main>
+               <div className="navigation-bar d-flex gap-3 py-3 bg-white border-bottom w-100">
+              <div className={`section ${activeTab === "Electrician" ? "active" : ""}`} onClick={() => setActiveTab("Electrician")}>
+                Electrician <span className="badge bg-dark ms-1">{servicesData.length}</span>
+              
+              </div>
+            </div>
         </div>
       </div>
     </>
