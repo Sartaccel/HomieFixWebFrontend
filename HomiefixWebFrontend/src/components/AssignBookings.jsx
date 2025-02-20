@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
@@ -9,12 +9,59 @@ const AssignBookings = () => {
   const location = useLocation();
   const booking = location.state?.booking || {};
   const [activeTab, setActiveTab] = useState("serviceDetails");
+  const [workers, setWorkers] = useState([]);
+  const [selectedWorkerId, setSelectedWorkerId] = useState(null);
+
+  const navigate = useNavigate();
+
+  // Fetch workers from the API
+  useEffect(() => {
+    const fetchWorkers = async () => {
+      try {
+        const response = await fetch("http://localhost:2222/workers/view");
+        const data = await response.json();
+        setWorkers(data);
+      } catch (error) {
+        console.error("Error fetching workers:", error);
+      }
+    };
+
+    fetchWorkers();
+  }, []);
+
+  // Assign worker to booking
+  const assignWorker = async () => {
+    if (!selectedWorkerId) {
+      alert("Please select a worker");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:2222/booking/assign-worker/${id}?workerId=${selectedWorkerId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        alert("Worker assigned successfully");
+        navigate(-1); // Navigate back after successful assignment
+      } else {
+        alert("Failed to assign worker");
+      }
+    } catch (error) {
+      console.error("Error assigning worker:", error);
+    }
+  };
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
-          
           {/* Header */}
           <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
             <h2 className="heading align-items-center mb-0">Booking Details</h2>
@@ -32,14 +79,19 @@ const AssignBookings = () => {
 
           {/* Navigation Bar */}
           <div className="navigation-bar d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
-            <div className="d-flex gap-3">
-              <div 
-                className={`section ${activeTab === "serviceDetails" ? "active" : ""}`} 
+            {/* Left side: Back arrow + Service Details */}
+            <div className="d-flex gap-3 align-items-center">
+              <button className="btn btn-light p-2" style={{marginBottom:"-20px"}} onClick={() => navigate(-1)}>
+                <i className="bi bi-arrow-left " style={{ fontSize: "1.5rem", fontWeight: "bold"}}></i>
+              </button>
+              <div
+                className={`section ${activeTab === "serviceDetails" ? "active" : ""}`}
                 onClick={() => setActiveTab("serviceDetails")}
               >
                 Service Details
               </div>
             </div>
+            
             {/* Right side buttons */}
             <div className="d-flex gap-3 p-2" style={{ marginRight: "300px" }}>
               <button className="btn btn-outline-primary">Reschedule</button>
@@ -54,50 +106,116 @@ const AssignBookings = () => {
               {/* Left Card - Booking Information */}
               <div className="col-md-6">
                 <div className="d-flex align-items-center gap-2" style={{ marginTop: "50px" }}>
-                    <div className="rounded-circle bg-secondary" style={{ width: "40px", height: "40px" }}></div>
-                    <div>
+                  <div className="rounded-circle bg-secondary" style={{ width: "40px", height: "40px" }}></div>
+                  <div>
                     <p className="mb-0">{booking.service}</p>
                     <small style={{ color: "#0076CE" }}>ID: {booking.id}</small>
-                    </div>
+                  </div>
                 </div>
 
                 <div className="p-0 m-0">
-                    <div className="mt-4">
+                  <div className="mt-4">
                     <h6>Customer Details</h6>
-                    </div>
-                    <p className="mb-1">
+                  </div>
+                  <p className="mb-1">
                     <i className="bi bi-person-fill me-2"></i> {booking.name}
-                    </p>
-                    <p className="mb-1">
+                  </p>
+                  <p className="mb-1">
                     <i className="bi bi-telephone-fill me-2"></i> {booking.contact}
-                    </p>
-                    <p className="mb-1">
+                  </p>
+                  <p className="mb-1">
                     <i className="bi bi-geo-alt-fill me-2"></i> {booking.address}
-                    </p>
-                    <p className="mb-1">
+                  </p>
+                  <p className="mb-1">
                     <i className="bi bi-calendar-event-fill me-2"></i> {booking.date}
-                    </p>
+                  </p>
                 </div>
 
                 {/* Comment Field (Notes) */}
-                <div className="mt-3 border border-2 rounded " style={{width:"550px"}}>
-                    <textarea 
-                    id="notes" 
-                    className="form-control" 
-                    placeholder="Notes"
-                    rows="9"
-                    ></textarea>
+                <div className="mt-3 border border-2 rounded" style={{ width: "550px" }}>
+                  <textarea id="notes" className="form-control" placeholder="Notes" rows="9"></textarea>
                 </div>
-                </div>
-
+              </div>
 
               {/* Right Card - Service Details */}
-              <div className="col-md-6">
-                <div className="card rounded p-3" style={{ height: "400px" }}>
-                  <h5>Service Details</h5>
-                  <p><strong>Date:</strong> {booking.date || "12th Feb 2025"}</p>
-                  <p><strong>Time:</strong> {booking.time || "3:00 PM"}</p>
-                  <p><strong>Status:</strong> {booking.status || "Confirmed"}</p>
+              <div className="col-md-6" style={{border:"none" }}>
+                <div className="card  p-3" style={{ width: "550px", border:"none" }}>
+                  {/* Heading */}
+                  <div className="d-flex align-items-center justify-content-between" style={{ height: "94px" }}>
+                    <h5 className="mb-0">Workers</h5>
+                  </div>
+
+                  {/* Worker List (Scrollable) */}
+                  <div
+                    style={{
+                      minHeight: "250px", 
+                      maxHeight: "290px", 
+                      overflowY: "auto",  
+                      overflowX: "hidden", 
+                      paddingRight: "10px",
+                      paddingLeft: "20px",
+                    }}
+                  >
+                   <div className="row d-flex flex-wrap" style={{ gap: "8px" }}>
+                    {workers.map((worker, index) => (
+                      <div
+                        key={index}
+                        className="col-6"
+                        style={{
+                          width: "48%", // Ensure two columns fit within the parent
+                          border: selectedWorkerId === worker.id ? "2px solid #0076CE" : "1px solid #ddd",
+                          borderRadius: "8px",
+                          padding: "8px",
+                          background: selectedWorkerId === worker.id ? "#e6f3ff" : "#f9f9f9",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => setSelectedWorkerId(worker.id)}
+                      >
+                        <div className="d-flex align-items-center gap-2">
+                          <div
+                            className="rounded-circle bg-secondary"
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              flexShrink: 0,
+                              backgroundImage: `url(${worker.profilePicUrl})`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                            }}
+                          ></div>
+                          <div>
+                            <p className="mb-0">{worker.name}</p>
+                            <small style={{ color: "#666666" }}>
+                              {worker.town}, {worker.pincode}
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  </div>
+
+                  {/* Bottom Section */}
+                  <div
+                    className="d-flex flex-column align-items-center justify-content-center"
+                    style={{ height: "130px" }}
+                  >
+                    <p className="mb-2">First, select a worker listed above</p>
+                    <hr style={{ width: "80%", margin: "2px 0", borderColor: "#ddd" }} />
+                    <button
+                      className="btn"
+                      style={{
+                        background: selectedWorkerId ? "#0076CE" : "#999999",
+                        color: "white",
+                        width: "350px",
+                        borderRadius: "14px",
+                      }}
+                      onClick={assignWorker}
+                      disabled={!selectedWorkerId}
+                    >
+                      Assign Worker
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
