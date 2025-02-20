@@ -7,6 +7,7 @@ import Layout from "./components/Layout";
 import AssignBookings from "./components/AssignBookings";
 import CustomerReview from "./components/CustomerReview";
 import Reviews from "./components/Reviews";
+import WorkerDetails from "./components/WorkerDetails";
 
 
 const App = () => {
@@ -22,6 +23,8 @@ const App = () => {
           <Route path="/assign-bookings/:id" element={<AssignBookings />} />
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/reviews/customer-review/:id" element={<CustomerReview />} />
+          <Route path="/worker-details" element={<WorkerDetails />} />
+
         </Route>
       </Routes>
     </Router>
