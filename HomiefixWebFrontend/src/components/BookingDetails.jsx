@@ -190,16 +190,16 @@ const BookingDetails = () => {
               <thead className="td-height">
                 <tr>
                   <th className="p-3" style={{ width: "20%" }}>Service</th>
-                  <th className="p-3">Name</th>
+                  <th className="p-3" style={{ width: "15%" }}>Name</th>
                   {activeTab === "inProgress" ? (
-                    <th className="p-3">Worker</th>
+                    <th className="p-3" style={{ width: "16%" }}>Worker</th>
                   ) : (
                     <>
-                      <th className="p-3">Contact</th>
+                      <th className="p-3" >Contact</th>
                       <th className="p-3" style={{ width: "25%" }}>Address</th>
                     </>
                   )}
-                  <th className="p-3">
+                  <th className="p-3" style={{ width: "16%" }}>
                     Date
                     <div className="dropdown d-inline ms-2" ref={dropdownRef}>
                       <button
@@ -226,7 +226,7 @@ const BookingDetails = () => {
                         </div>
                       )}
                     </div>
-                  </th>
+                  </th >
                   {activeTab !== "bookings" && <th className="p-3">Status</th>}
                   <th></th>
                 </tr>
@@ -292,12 +292,22 @@ const BookingDetails = () => {
                       </td>
                     )}
                     <td>
-                      <button
+                      
+                      {activeTab === "inProgress" ? (
+                        <button
                         className="btn btn-primary"
                         onClick={() => navigate(`/assign-bookings/${booking.id}`, { state: { booking } })}
                       >
-                        Assign
+                        View
                       </button>
+                      ) : (
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => navigate(`/assign-bookings/${booking.id}`, { state: { booking } })}
+                          >
+                            Assign
+                          </button>
+                      )}
                     </td>
                   </tr>
                 ))}
