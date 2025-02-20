@@ -12,6 +12,7 @@ const AssignBookings = () => {
   const [workers, setWorkers] = useState([]);
   const [selectedWorkerId, setSelectedWorkerId] = useState(null);
   const [selectedWorkerDetails, setSelectedWorkerDetails] = useState(null);
+  const [notes, setNotes] = useState(""); // State to store notes
 
   const navigate = useNavigate();
 
@@ -53,7 +54,7 @@ const AssignBookings = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:2222/booking/assign-worker/${id}?workerId=${selectedWorkerId}`,
+        `http://localhost:2222/booking/assign-worker/${id}?workerId=${selectedWorkerId}&notes=${encodeURIComponent(notes)}`,
         {
           method: "PUT",
           headers: {
@@ -148,16 +149,26 @@ const AssignBookings = () => {
 
                 {/* Comment Field (Notes) */}
                 <div className="mt-3 border border-2 rounded" style={{ width: "550px" }}>
-                  <textarea id="notes" className="form-control" placeholder="Notes" rows="9"></textarea>
+                  <textarea 
+                    id="notes" 
+                    className="form-control" 
+                    placeholder="Notes" 
+                    rows="9"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)} // Update notes state
+                  ></textarea>
                 </div>
               </div>
 
               {/* Right Card - Service Details */}
-              <div className="col-md-6" style={{ border: "none", position: "relative" }}>
-                <div className="card p-3" style={{ width: "550px", border: "none", height: "520px" }}>
+              <div className="col-md-6" style={{ borderRadius:"8px", position: "relative" }}>
+              <div
+                className="card p-3"
+                style={{ width: "550px", border: "1px solid #D9D9D9", height: "480px", marginTop:"30px", borderRadius:"8px" }}
+              >
                   {/* Heading */}
                   <div className="d-flex align-items-center justify-content-between" style={{ height: "94px" }}>
-                    <h5 className="mb-0">Workers</h5>
+                    <h5 className="mb-0 " style={{marginTop:"-50px"}}>Workers</h5>
                   </div>
 
                   {/* Worker List (Scrollable) */}
@@ -169,6 +180,7 @@ const AssignBookings = () => {
                       overflowX: "hidden",
                       paddingRight: "10px",
                       paddingLeft: "20px",
+                      marginTop:"-40px"
                     }}
                   >
                     <div className="row d-flex flex-wrap" style={{ gap: "8px" }}>
@@ -223,6 +235,7 @@ const AssignBookings = () => {
                         right: "0",
                         background: "white",
                         zIndex: 1,
+                        borderRadius: "8px",
                       }}
                     >
                       <h6>Worker Details</h6>
@@ -243,7 +256,7 @@ const AssignBookings = () => {
                             <i className="bi bi-telephone-fill me-2"></i> {selectedWorkerDetails.contactNumber}
                           </p>
                           <p className="mb-0">
-                            <i className="bi bi-geo-alt-fill me-2"></i> {selectedWorkerDetails.houseNumber}, {selectedWorkerDetails.town}, {selectedWorkerDetails.pincode}
+                            <i className="bi bi-geo-alt-fill me-2"></i> {selectedWorkerDetails.houseNumber}, {selectedWorkerDetails.town}, {selectedWorkerDetails.pincode}, {selectedWorkerDetails.state}
                           </p>
                         </div>
                       </div>
@@ -265,7 +278,7 @@ const AssignBookings = () => {
                   ) : (
                     <div
                       className="d-flex flex-column align-items-center justify-content-center"
-                      style={{ height: "130px" }}
+                      style={{ height: "120px" }}
                     >
                       <p className="mb-2">First, select a worker listed above</p>
                       <hr style={{ width: "80%", margin: "2px 0", borderColor: "#ddd" }} />
