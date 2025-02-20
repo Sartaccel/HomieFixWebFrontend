@@ -239,7 +239,7 @@ const BookingDetails = () => {
                         className="btn btn-primary"
                         onClick={() => {
                           if (activeTab === "inProgress") {
-                            navigate(`/view-booking/${booking.id}`, { state: { booking } }); // Change route for View
+                            navigate(`/view-bookings/${booking.id}`, { state: { booking } }); // Change route for View
                           } else {
                             navigate(`/assign-bookings/${booking.id}`, { state: { booking } });
                           }

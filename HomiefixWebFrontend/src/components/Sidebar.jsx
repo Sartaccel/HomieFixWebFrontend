@@ -52,6 +52,7 @@ const Sidebar = () => {
             Booking Details
           </Link>
 
+         
           <Link to="#" className="menu-item">
             <img src={workersIcon} alt="Workers" className="menu-icon" />
             Workers Details

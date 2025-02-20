@@ -5,6 +5,7 @@ import BookingDetails from "./components/BookingDetails";
 import Dashboard from "./components/Dashboard";
 import Layout from "./components/Layout";
 import AssignBookings from "./components/AssignBookings";
+import ViewBookings from "./components/ViewBookings";
 import CustomerReview from "./components/CustomerReview";
 import Reviews from "./components/Reviews";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -27,6 +28,7 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/booking-details" element={<BookingDetails />} />
             <Route path="/assign-bookings/:id" element={<AssignBookings />} />
+            <Route path="/view-bookings/:id" element={<ViewBookings />} />
             <Route path="/reviews" element={<Reviews />} />
             <Route path="/reviews/customer-review/:id" element={<CustomerReview />} />
           </Route>
