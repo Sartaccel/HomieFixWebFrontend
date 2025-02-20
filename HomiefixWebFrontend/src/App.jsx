@@ -8,6 +8,7 @@ import AssignBookings from "./components/AssignBookings";
 import CustomerReview from "./components/CustomerReview";
 import Reviews from "./components/Reviews";
 import ProtectedRoute from "./components/ProtectedRoute";
+import WorkerDetails from "./components/WorkerDetails";
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem("token") || "");
@@ -29,6 +30,7 @@ const App = () => {
             <Route path="/assign-bookings/:id" element={<AssignBookings />} />
             <Route path="/reviews" element={<Reviews />} />
             <Route path="/reviews/customer-review/:id" element={<CustomerReview />} />
+            <Route path="/worker-details" element={<WorkerDetails/>} />
           </Route>
         </Route>
       </Routes>
