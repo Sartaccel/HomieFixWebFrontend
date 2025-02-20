@@ -47,7 +47,8 @@ const Sidebar = () => {
             Dashboard
           </Link>
 
-          <Link to="/booking-details" className={`menu-item ${location.pathname.startsWith("/assign-bookings") || location.pathname === "/booking-details" ? "active" : ""}`}>
+          <Link to="/booking-details" className={`menu-item ${location.pathname.startsWith("/assign-bookings") ||  location.pathname === "/booking-details" ||
+          location.pathname.startsWith("/view-booking") ? "active" : ""}`}>
             <img src={bookingDetails} alt="Booking Details" className="menu-icon" />
             Booking Details
           </Link>

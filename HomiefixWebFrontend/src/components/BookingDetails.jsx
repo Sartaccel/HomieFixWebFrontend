@@ -296,7 +296,7 @@ const BookingDetails = () => {
                       {activeTab === "inProgress" ? (
                         <button
                         className="btn btn-primary"
-                        onClick={() => navigate(`/assign-bookings/${booking.id}`, { state: { booking } })}
+                        onClick={() => navigate(`/view-bookings/${booking.id}`, { state: { booking } })}
                       >
                         View
                       </button>
