@@ -11,6 +11,7 @@ const AssignBookings = () => {
   const [activeTab, setActiveTab] = useState("serviceDetails");
   const [workers, setWorkers] = useState([]);
   const [selectedWorkerId, setSelectedWorkerId] = useState(null);
+  const [selectedWorkerDetails, setSelectedWorkerDetails] = useState(null);
 
   const navigate = useNavigate();
 
@@ -28,6 +29,20 @@ const AssignBookings = () => {
 
     fetchWorkers();
   }, []);
+
+  // Handle worker selection and deselection
+  const handleWorkerSelection = (workerId) => {
+    if (selectedWorkerId === workerId) {
+      // Deselect the worker if already selected
+      setSelectedWorkerId(null);
+      setSelectedWorkerDetails(null);
+    } else {
+      // Select the worker
+      setSelectedWorkerId(workerId);
+      const worker = workers.find((worker) => worker.id === workerId);
+      setSelectedWorkerDetails(worker);
+    }
+  };
 
   // Assign worker to booking
   const assignWorker = async () => {
@@ -81,8 +96,8 @@ const AssignBookings = () => {
           <div className="navigation-bar d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
             {/* Left side: Back arrow + Service Details */}
             <div className="d-flex gap-3 align-items-center">
-              <button className="btn btn-light p-2" style={{marginBottom:"-20px"}} onClick={() => navigate(-1)}>
-                <i className="bi bi-arrow-left " style={{ fontSize: "1.5rem", fontWeight: "bold"}}></i>
+              <button className="btn btn-light p-2" style={{ marginBottom: "-20px" }} onClick={() => navigate(-1)}>
+                <i className="bi bi-arrow-left" style={{ fontSize: "1.5rem", fontWeight: "bold" }}></i>
               </button>
               <div
                 className={`section ${activeTab === "serviceDetails" ? "active" : ""}`}
@@ -91,7 +106,7 @@ const AssignBookings = () => {
                 Service Details
               </div>
             </div>
-            
+
             {/* Right side buttons */}
             <div className="d-flex gap-3 p-2" style={{ marginRight: "300px" }}>
               <button className="btn btn-outline-primary">Reschedule</button>
@@ -138,8 +153,8 @@ const AssignBookings = () => {
               </div>
 
               {/* Right Card - Service Details */}
-              <div className="col-md-6" style={{border:"none" }}>
-                <div className="card  p-3" style={{ width: "550px", border:"none" }}>
+              <div className="col-md-6" style={{ border: "none", position: "relative" }}>
+                <div className="card p-3" style={{ width: "550px", border: "none", height: "520px" }}>
                   {/* Heading */}
                   <div className="d-flex align-items-center justify-content-between" style={{ height: "94px" }}>
                     <h5 className="mb-0">Workers</h5>
@@ -148,74 +163,127 @@ const AssignBookings = () => {
                   {/* Worker List (Scrollable) */}
                   <div
                     style={{
-                      minHeight: "250px", 
-                      maxHeight: "290px", 
-                      overflowY: "auto",  
-                      overflowX: "hidden", 
+                      minHeight: "250px",
+                      maxHeight: "290px",
+                      overflowY: "auto",
+                      overflowX: "hidden",
                       paddingRight: "10px",
                       paddingLeft: "20px",
                     }}
                   >
-                   <div className="row d-flex flex-wrap" style={{ gap: "8px" }}>
-                    {workers.map((worker, index) => (
-                      <div
-                        key={index}
-                        className="col-6"
-                        style={{
-                          width: "48%", // Ensure two columns fit within the parent
-                          border: selectedWorkerId === worker.id ? "2px solid #0076CE" : "1px solid #ddd",
-                          borderRadius: "8px",
-                          padding: "8px",
-                          background: selectedWorkerId === worker.id ? "#e6f3ff" : "#f9f9f9",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => setSelectedWorkerId(worker.id)}
-                      >
-                        <div className="d-flex align-items-center gap-2">
-                          <div
-                            className="rounded-circle bg-secondary"
-                            style={{
-                              width: "40px",
-                              height: "40px",
-                              flexShrink: 0,
-                              backgroundImage: `url(${worker.profilePicUrl})`,
-                              backgroundSize: "cover",
-                              backgroundPosition: "center",
-                            }}
-                          ></div>
-                          <div>
-                            <p className="mb-0">{worker.name}</p>
-                            <small style={{ color: "#666666" }}>
-                              {worker.town}, {worker.pincode}
-                            </small>
+                    <div className="row d-flex flex-wrap" style={{ gap: "8px" }}>
+                      {workers.map((worker, index) => (
+                        <div
+                          key={index}
+                          className="col-6"
+                          style={{
+                            width: "48%", // Ensure two columns fit within the parent
+                            border: selectedWorkerId === worker.id ? "2px solid #0076CE" : "1px solid #ddd",
+                            borderRadius: "8px",
+                            padding: "8px",
+                            background: selectedWorkerId === worker.id ? "#e6f3ff" : "#f9f9f9",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => handleWorkerSelection(worker.id)}
+                        >
+                          <div className="d-flex align-items-center gap-2">
+                            <div
+                              className="rounded-circle bg-secondary"
+                              style={{
+                                width: "40px",
+                                height: "40px",
+                                flexShrink: 0,
+                                backgroundImage: `url(${worker.profilePicUrl})`,
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                              }}
+                            ></div>
+                            <div>
+                              <p className="mb-0">{worker.name}</p>
+                              <small style={{ color: "#666666" }}>
+                                {worker.town}, {worker.pincode}
+                              </small>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
                   </div>
 
-                  {/* Bottom Section */}
-                  <div
-                    className="d-flex flex-column align-items-center justify-content-center"
-                    style={{ height: "130px" }}
-                  >
-                    <p className="mb-2">First, select a worker listed above</p>
-                    <hr style={{ width: "80%", margin: "2px 0", borderColor: "#ddd" }} />
-                    <button
-                      className="btn"
+                  {/* Worker Details Section */}
+                  {selectedWorkerDetails ? (
+                    <div
+                      className="mt-3 p-3 border-top"
                       style={{
-                        background: selectedWorkerId ? "#0076CE" : "#999999",
-                        color: "white",
-                        width: "350px",
-                        borderRadius: "14px",
+                        height: "190px",
+                        overflowY: "auto",
+                        position: "absolute",
+                        bottom: "0",
+                        left: "0",
+                        right: "0",
+                        background: "white",
+                        zIndex: 1,
                       }}
-                      onClick={assignWorker}
-                      disabled={!selectedWorkerId}
                     >
-                      Assign Worker
-                    </button>
-                  </div>
+                      <h6>Worker Details</h6>
+                      <div className="d-flex gap-3 align-items-center">
+                        <div
+                          className="rounded-circle bg-secondary"
+                          style={{
+                            width: "60px",
+                            height: "60px",
+                            backgroundImage: `url(${selectedWorkerDetails.profilePicUrl})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                          }}
+                        ></div>
+                        <div>
+                          <p className="mb-0 "><i className="bi bi-person-fill me-2"></i>{selectedWorkerDetails.name}</p>
+                          <p className="mb-0">
+                            <i className="bi bi-telephone-fill me-2"></i> {selectedWorkerDetails.contactNumber}
+                          </p>
+                          <p className="mb-0">
+                            <i className="bi bi-geo-alt-fill me-2"></i> {selectedWorkerDetails.houseNumber}, {selectedWorkerDetails.town}, {selectedWorkerDetails.pincode}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="d-flex justify-content-center mt-3">
+                        <button
+                          className="btn"
+                          style={{
+                            background: "#0076CE",
+                            color: "white",
+                            width: "350px",
+                            borderRadius: "14px",
+                          }}
+                          onClick={assignWorker}
+                        >
+                          Assign Worker
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className="d-flex flex-column align-items-center justify-content-center"
+                      style={{ height: "130px" }}
+                    >
+                      <p className="mb-2">First, select a worker listed above</p>
+                      <hr style={{ width: "80%", margin: "2px 0", borderColor: "#ddd" }} />
+                      <button
+                        className="btn"
+                        style={{
+                          background: selectedWorkerId ? "#0076CE" : "#999999",
+                          color: "white",
+                          width: "350px",
+                          borderRadius: "14px",
+                        }}
+                        onClick={assignWorker}
+                        disabled={!selectedWorkerId}
+                      >
+                        Assign Worker
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
