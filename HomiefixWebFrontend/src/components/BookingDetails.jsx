@@ -283,7 +283,7 @@ const BookingDetails = () => {
                           <img
                             src={getStatusIcon(booking.status)}
                             alt={booking.status}
-                            width="100"
+                            width="120"
                             height="40"
                           />
                         ) : (
@@ -295,14 +295,14 @@ const BookingDetails = () => {
                       
                       {activeTab === "inProgress" ? (
                         <button
-                        className="btn btn-primary"
-                        onClick={() => navigate(`/view-bookings/${booking.id}`, { state: { booking } })}
+                        className="btn btn-primary" style={{ backgroundColor: "#0076CE", width: "90px", borderRadius: "12px" }}
+                        onClick={() => navigate(`/assign-bookings/${booking.id}`, { state: { booking } })}
                       >
                         View
                       </button>
                       ) : (
                         <button
-                            className="btn btn-primary"
+                            className="btn btn-primary" style={{ backgroundColor: "#0076CE", width: "100px", borderRadius: "12px" }}
                             onClick={() => navigate(`/assign-bookings/${booking.id}`, { state: { booking } })}
                           >
                             Assign
