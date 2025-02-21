@@ -31,9 +31,9 @@ const ViewBookings = () => {
     fetchWorkers();
   }, [id]); // Added id in dependencies
 
- 
-
   
+
+   
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
@@ -116,8 +116,9 @@ const ViewBookings = () => {
                             <div
                               className="rounded-circle bg-secondary"
                               style={{
-                                width: "40px",
-                                height: "40px",
+                                width: "100px",
+                                height: "100px",
+                                marginTop:"-30px",
                                 flexShrink: 0,
                                 backgroundImage: `url(${worker.profilePicUrl})`,
                                 backgroundSize: "cover",
@@ -152,20 +153,24 @@ Explanation of Icon Choices:
                   <tbody>
     <tr>
       
-        {new Date(booking.successDate || Date.now()).toLocaleDateString("en-US", {
-          month: "short",
-          day: "2-digit",
-          year: "numeric",
-        })} - {new Date(booking.successDate || Date.now()).toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        })}
+    {booking.successDate
+    ? new Date(booking.successDate).toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      }) +
+      " - " +
+      new Date(booking.successDate).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })
+    : "N/A"}
       
     </tr>
     <tr style={{ height: "40px" }}>
       <td>Booking Successful</td>
-      <td className="text-end">{booking.status === "Successful" ? "Yes" : "No"}</td>
+      <td className="text-end">{booking.status === "Successful" }</td>
     </tr>
 
     <tr style={{marginTop:"20px"}}>
