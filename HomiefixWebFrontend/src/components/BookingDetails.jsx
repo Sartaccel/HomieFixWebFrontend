@@ -295,14 +295,14 @@ const BookingDetails = () => {
                       
                       {activeTab === "inProgress" ? (
                         <button
-                        className="btn btn-primary" style={{ backgroundColor: "#0076CE" }}
+                        className="btn btn-primary" style={{ backgroundColor: "#0076CE", width: "90px", borderRadius: "12px" }}
                         onClick={() => navigate(`/assign-bookings/${booking.id}`, { state: { booking } })}
                       >
                         View
                       </button>
                       ) : (
                         <button
-                            className="btn btn-primary" style={{ backgroundColor: "#0076CE" }}
+                            className="btn btn-primary" style={{ backgroundColor: "#0076CE", width: "100px", borderRadius: "12px" }}
                             onClick={() => navigate(`/assign-bookings/${booking.id}`, { state: { booking } })}
                           >
                             Assign
