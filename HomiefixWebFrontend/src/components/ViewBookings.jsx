@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-
+import "../styles/ViewBooking.css";
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
@@ -9,12 +9,17 @@ const ViewBookings = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate(); // Fixed missing import
+  const booking = location.state?.booking || {
+    
+  };
+  const [bookings, setBookings] = useState("");
 
-  const booking = location.state?.booking || {};
+const [bookingDate, setBookingDate] = useState("");
+const [bookedDate, setBookedDate] = useState("");
   const [activeTab, setActiveTab] = useState("serviceDetails");
   const [workers, setWorkers] = useState([]);
-  
-
+  const [serviceStarted, setServiceStarted] = useState("No");
+  const [serviceCompleted, setServiceCompleted] = useState("No");
 
   // Fetch workers from the API
   useEffect(() => {
@@ -31,8 +36,43 @@ const ViewBookings = () => {
     fetchWorkers();
   }, [id]); // Added id in dependencies
 
+  useEffect(() => {
+    const fetchBookingDetails = async () => {
+      try {
+        const response = await fetch("http://localhost:2222/booking/all");
+        const data = await response.json();
   
-
+        const currentBooking = data.find(b => String(b.id) === String(id));
+        if (currentBooking) {
+          setBookings(currentBooking);
+          setBookingDate(currentBooking.bookingDate || "N/A");
+          setBookedDate(currentBooking["bookedDate"] || "N/A");
+          setTimeSlot(currentBooking.timeSlot || "N/A"); // Fix key if needed
+        }
+      } catch (error) {
+        console.error("Error fetching booking details:", error);
+      }
+    };
+  
+    fetchBookingDetails();
+  }, [id]); // Dependency array ensures it runs when `id` changes
+  
+  const formatDateTime = (dateString) => {
+    if (!dateString || dateString === "N/A") return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", { 
+      month: "short", 
+      day: "2-digit", 
+      year: "numeric" 
+    }) + 
+    " - " + 
+    date.toLocaleTimeString("en-US", { 
+      hour: "2-digit", 
+      minute: "2-digit", 
+      hour12: true 
+    });
+  };
+  
    
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -134,7 +174,7 @@ const ViewBookings = () => {
 <p className="mb-1"><i className="bi bi-signpost-fill me-2"></i> {worker.nearbyLandmark}</p>
 <p className="mb-1"><i className="bi bi-map-fill me-2"></i> {worker.district}</p>
 <p className="mb-1"><i className="bi bi-geo-alt-fill me-2"></i> {worker.state}</p>
-Explanation of Icon Choices:
+
         </div>
       </div>
   ))
@@ -148,51 +188,40 @@ Explanation of Icon Choices:
               <div className="col-md-6">
                 <div className="card rounded p-4 shadow-sm" style={{ marginTop: "60px", minHeight: "400px", maxWidth: "550px", border: "1px solid #ddd", borderRadius: "12px" }}>
                   <h5>Status update</h5>
-                  <div className="p-3 mt-3 rounded" style={{ height: "400px", border: "1px solid #ccc", borderRadius: "10px" }}>
-                  <table className="table" style={{ borderSpacing: "0 10px" }}>
+                  <div className="p-3 mt-3 rounded" style={{ height: "350px", border: "1px solid #ccc", borderRadius: "10px" }}>
+                  <table  className="table w-100">
                   <tbody>
-    <tr>
+   
+    
+    <tr style={{ height: "50px" }}>
       
-    {booking.successDate
-    ? new Date(booking.successDate).toLocaleDateString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric",
-      }) +
-      " - " +
-      new Date(booking.successDate).toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      })
-    : "N/A"}
-      
-    </tr>
-    <tr style={{ height: "40px" }}>
-      <td>Booking Successful</td>
-      <td className="text-end">{booking.status === "Successful" }</td>
+      <td className="text-start border-right">Booking Successful on {formatDateTime(bookingDate)}
+        {booking.timeSlot ? ` | ${booking.timeSlot}` : ""}</td>
+        <td className="text-end bg-grey"></td>
     </tr>
 
-    <tr style={{marginTop:"20px"}}>
+    
+    <tr style={{ height: "50px" }}>
       
-        {new Date(booking.assignDate || Date.now()).toLocaleDateString("en-US", {
-          month: "short",
-          day: "2-digit",
-          year: "numeric",
-        })} - {new Date(booking.assignDate || Date.now()).toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        })}
-      
-    </tr>
-    <tr style={{ height: "50px"}}>
-      <td >Worker Assigned</td>
-      <td className="text-end" >{workers.length > 0 ? "Yes" : "No"}</td>
-    </tr>
-
-    <tr>
-     
+    <td className="text-start border-right">
+  <span style={{ color: "grey" }}>{formatDateTime(bookedDate)}</span><br/>
+ 
+  Worker Assigned</td>
+ 
+  <td className="text-end bg-grey" >
+  <div className="custom-dropdown">
+              <select
+                className="no-border"
+                onChange={(e) => formatDateTime(bookedDate)}
+                value={bookedDate}
+              >
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+  </td>
+</tr>
+     <tr style={{ color: "grey" }}>
         {new Date(booking.startDate || Date.now()).toLocaleDateString("en-US", {
           month: "short",
           day: "2-digit",
@@ -204,12 +233,24 @@ Explanation of Icon Choices:
         })}
      
     </tr>
-    <tr style={{ height: "60px" }}>
-      <td>Service Started</td>
-      <td className="text-end">{booking.status === "Started" ? "Yes" : "No"}</td>
+    <tr style={{ height: "50px" }}>
+      <td className="text-start border-right">Service Started</td>
+      <td className="text-end bg-grey">
+            
+      <div className="custom-dropdown">
+              <select
+                className="no-border"
+                onChange={(e) => setServiceStarted(e.target.value)}
+                value={serviceStarted}
+              >
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+          </td>
     </tr>
 
-    <tr>
+    <tr style={{ color: "grey" }}>
      
         {new Date(booking.completeDate || Date.now()).toLocaleDateString("en-US", {
           month: "short",
@@ -222,9 +263,20 @@ Explanation of Icon Choices:
         })}
       
     </tr>
-    <tr style={{ height: "70px" }}>
-      <td>Service Completed</td>
-      <td className="text-end">{booking.status === "Completed" ? "Yes" : "No"}</td>
+    <tr style={{ height: "60px" }}>
+      <td className="text-start border-right">Service Completed</td>
+      <td className="text-end bg-grey">
+      <div className="custom-dropdown">
+              <select
+                className="no-border"
+                 onChange={(e) => setServiceCompleted(e.target.value)}
+                 value={serviceCompleted}
+              >
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+          </td>
     </tr>
   </tbody>
       </table>
