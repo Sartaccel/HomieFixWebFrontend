@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { FaClipboardList, FaCheckCircle, FaTimesCircle, FaUsers, FaBell } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "../styles/Dashboard.css";
@@ -9,7 +8,6 @@ import search from "../assets/Search.png";
 import alenSamImg from "../assets/home1.png";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-
 
 const FilterModal = ({ show, handleClose }) => {
     return (
@@ -49,174 +47,45 @@ const FilterModal = ({ show, handleClose }) => {
     );
 };
 
-
-
 const WorkerDetails = () => {
-
-
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1; // Month is 0-based
-
-
-    const [selectedYear, setSelectedYear] = useState(currentYear.toString());
-    const [analyticsYear, setAnalyticsYear] = useState(currentYear.toString());
-    const [mostBookingYear, setMostBookingYear] = useState(currentYear.toString());
-    const [mostBookingMonth, setMostBookingMonth] = useState(currentMonth.toString());
-
-    const stats = [
-        { title: "Total Booking", count: 120, icon: <FaClipboardList />, borderColor: "#EA6C6E" },
-        { title: "Completed", count: 90, icon: <FaCheckCircle />, borderColor: "#EFA066" },
-        { title: "Cancelled", count: 15, icon: <FaTimesCircle />, borderColor: "#31DDFC" },
-        { title: "Total Workers", count: 25, icon: <FaUsers />, borderColor: "#1FA2FF" },
-    ];
-
-
-
-
-    // Generate years dynamically from 2020 to the current year
-    const years = [];
-    for (let year = 2020; year <= currentYear; year++) {
-        years.push(year);
-    }
-
-    // Months array
-    const months = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-    ];
-
-    // Sample data for Area Chart
-    const areaData = [
-        { month: "Jan", percentage: 10 },
-        { month: "Feb", percentage: 55 },
-        { month: "Mar", percentage: 35 },
-        { month: "Apr", percentage: 65 },
-        { month: "May", percentage: 50 },
-        { month: "Jun", percentage: 70 },
-        { month: "Jul", percentage: 60 },
-        { month: "Aug", percentage: 80 },
-        { month: "Sep", percentage: 45 },
-        { month: "Oct", percentage: 78 },
-        { month: "Nov", percentage: 65 },
-        { month: "Dec", percentage: 90 },
-    ];
-
-
-    // Custom Tooltip for Area Chart
-    const CustomTooltip = ({ active, payload, label }) => {
-        if (active && payload && payload.length) {
-            const currentData = payload[0].payload;
-            const index = areaData.findIndex((data) => data.month === label);
-
-            let previousPercentage = index > 0 ? areaData[index - 1].percentage : currentData.percentage;
-            let isUp = currentData.percentage >= previousPercentage;
-            let arrowColor = isUp ? "#22EC07" : "#F00";
-
-
-
-            return (
-                <div className="custom-tooltip p-2" style={{ backgroundColor: "white", border: "1px solid #ddd", borderRadius: "5px" }}>
-                    <div>
-                        {isUp ? (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="8" height="15" viewBox="0 0 8 15" fill="none">
-                                <path d="M3.64645 0.646446C3.84171 0.451184 4.15829 0.451184 4.35355 0.646446L7.53553 3.82843C7.7308 4.02369 7.7308 4.34027 7.53553 4.53553C7.34027 4.7308 7.02369 4.7308 6.82843 4.53553L4 1.70711L1.17157 4.53553C0.97631 4.7308 0.659728 4.7308 0.464466 4.53553C0.269203 4.34027 0.269203 4.02369 0.464466 3.82843L3.64645 0.646446ZM3.5 15L3.5 1L4.5 1L4.5 15L3.5 15Z" fill={arrowColor} />
-                            </svg>
-                        ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="8" height="15" viewBox="0 0 8 15" fill="none">
-                                <path d="M3.64645 14.3536C3.84171 14.5488 4.15829 14.5488 4.35355 14.3536L7.53553 11.1716C7.7308 10.9763 7.7308 10.6597 7.53553 10.4645C7.34027 10.2692 7.02369 10.2692 6.82843 10.4645L4 13.2929L1.17157 10.4645C0.97631 10.2692 0.659728 10.2692 0.464466 10.4645C0.269203 10.6597 0.269203 10.9763 0.464466 11.1716L3.64645 14.3536ZM3.5 0L3.5 14L4.5 14L4.5 0L3.5 0Z" fill={arrowColor} />
-                            </svg>
-                        )}
-                        <span className="ms-2">{currentData.percentage}%</span>, <span>{currentData.services} Services</span>
-                    </div>
-                </div>
-            );
-        }
-
-        return null;
-    };
-
     const [showFilter, setShowFilter] = useState(false);
     const [selectedWorker, setSelectedWorker] = useState(null);
     const [activeTab, setActiveTab] = useState('service');
-
-
-    const workers = [
-        {
-            name: 'Alen Sam',
-            service: 'Plumber',
-            contact: '9753368997',
-            rating: 4,
-            address: '23 Ocean View Drive, Jambulingam Coral Bay, Kerala, India 695582',
-            aadhaar: '**** **** 4567',
-            languages: ['Tamil', 'Malayalam', 'English'],
-            totalService: 30,
-            joinDate: 'Jan 25, 2025',
-            image: alenSamImg
-
-        },
-        {
-            name: 'John Doe',
-            service: 'Architect',
-            contact: '9887654321',
-            rating: 5,
-            address: 'Beverly Hills, California, USA 90210',
-            joinDate: 'Mar 15, 2023',
-            image: alenSamImg
-        },
-        {
-            name: 'Emma Smith',
-            service: 'teacher',
-            contact: '9234567890',
-            rating: 4.5,
-            address: 'Londan Uk',
-            joinDate: 'Aug 10, 2024',
-            image: alenSamImg
-        },
-        {
-            name: 'Carlos Gonzalez',
-            service: 'Software Engineer',
-            contact: '9556677889',
-            rating: 4,
-            address: 'Madrid, Spain',
-            joinDate: 'Nov 5, 2023',
-            image: alenSamImg
-        },
-        {
-            name: 'Anna Patel',
-            service: 'Doctor',
-            contact: '9442221111',
-            rating: 4.8,
-            address: 'Mumbai, India',
-            joinDate: 'Feb 20, 2024',
-            image: alenSamImg
-        },
-        {
-            name: 'Liam Wilson',
-            service: 'Graphic Designer',
-            contact: '9334455667',
-            rating: 4.2,
-            address: 'New York City, USA 10001',
-            joinDate: 'Jun 30, 2023',
-            image: alenSamImg
-        },
-        {
-            name: 'Sophie Brown',
-            service: 'Chef',
-            contact: '9778889990',
-            rating: 4.7,
-            address: 'Paris, France',
-            joinDate: 'Sep 12, 2024',
-            image: alenSamImg
-        }
-    ];
-
+    const [workers, setWorkers] = useState([]);
     const [showAddWorker, setShowAddWorker] = useState(false);
+
+    // Fetch worker data from the API
+    useEffect(() => {
+        const fetchWorkers = async () => {
+            try {
+                const response = await fetch("http://localhost:2222/workers/view");
+                const data = await response.json();
+                const formattedWorkers = data.map(worker => ({
+                    name: worker.name,
+                    service: worker.role,
+                    contact: worker.contactNumber,
+                    rating: worker.averageRating,
+                    address: `${worker.town}, ${worker.district}, ${worker.state} - ${worker.pincode}`,
+                    joinDate: worker.joiningDate,
+                    image: worker.profilePicUrl || alenSamImg, // Fallback to default image if no URL is provided
+                    aadhaar: worker.aadharNumber,
+                    languages: [], // Add languages if available in the API response
+                    totalService: worker.workExperience, // Assuming workExperience represents total services
+                }));
+                setWorkers(formattedWorkers);
+            } catch (error) {
+                console.error("Error fetching worker data:", error);
+            }
+        };
+
+        fetchWorkers();
+    }, []);
 
     return (
         <div>
-            {/* ✅ Navbar */}
+            {/* Navbar */}
             <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100" style={{ zIndex: 1000 }}>
-                <h2 className="heading align-items-center mb-0" style={{ marginLeft: "31px" }}>Dashboard</h2>
+                <h2 className="heading align-items-center mb-0" style={{ marginLeft: "31px" }}>Worker Details</h2>
                 <div className="header-right d-flex align-items-center gap-3">
                     <div className="input-group" style={{ width: "300px" }}>
                         <input type="text" className="form-control search-bar" placeholder="Search" />
@@ -231,15 +100,13 @@ const WorkerDetails = () => {
 
             {/* Main Content */}
             <div className="container pt-5" style={{ paddingTop: "80px" }}>
-                {/* Header with Filter Button */}
+                {/* Header with Filter and Add Worker Button */}
                 <div className="d-flex justify-content-between align-items-center mb-3 mt-5">
-                    <h4 className="mb-0">Worker Details</h4>
+                    <h4 className="mb-0" style={{ borderBottom: "3px solid #000", paddingBottom: "8px" }}>Worker Details</h4>
                     <div className="d-flex gap-2">
-                        {!showAddWorker && (
-                            <button className="btn btn-primary" onClick={() => setShowAddWorker(true)}>
-                                Add Worker
-                            </button>
-                        )}
+                        <button className="btn btn-primary" onClick={() => setShowAddWorkerForm(true)}>
+                            Add Worker
+                        </button>
                         <button className="btn btn-light" onClick={() => setShowFilter(true)}>
                             Filter <i className="bi bi-funnel" />
                         </button>
@@ -247,78 +114,11 @@ const WorkerDetails = () => {
                 </div>
 
                 <div className="container mt-4">
-
-
                     {/* Worker Form - Shown when Add Worker is clicked */}
                     {showAddWorker ? (
                         <div className="card p-4">
-                            <button className="btn btn-outline-secondary mb-3" onClick={() => setShowAddWorker(false)}>
-                                ← Back
-                            </button>
-
                             {/* Add Worker Heading */}
                             <h5 className="mb-3 text-center">Add Worker</h5>
-
-                            {/* Upload Profile Section BELOW the Heading */}
-                            <div className="col-md-12 text-center mb-3">
-                                <div className="border p-3 d-inline-block">
-                                    <div className="bg-light" style={{ width: "100px", height: "100px", borderRadius: "5px" }}></div>
-                                    <button className="btn btn-sm btn-primary mt-2">Upload Profile</button>
-                                </div>
-                            </div>
-
-                            {/* Worker Form UI */}
-                            <div className="row">
-                                <div className="col-md-6">
-                                    <label className="form-label">Full Name</label>
-                                    <input type="text" className="form-control" placeholder="Enter name" />
-                                </div>
-
-                                <div className="col-md-6">
-                                    <label className="form-label">Email ID</label>
-                                    <input type="email" className="form-control" placeholder="Enter email ID" />
-                                </div>
-
-                                <div className="col-md-6">
-                                    <label className="form-label">Contact Number</label>
-                                    <input type="text" className="form-control" placeholder="Enter contact number" />
-                                </div>
-
-                                <div className="col-md-6">
-                                    <label className="form-label">Emergency Contact Number</label>
-                                    <input type="text" className="form-control" placeholder="Enter emergency contact number" />
-                                </div>
-
-                                <div className="col-md-6">
-                                    <label className="form-label">Work Experience</label>
-                                    <input type="text" className="form-control" placeholder="Enter work experience" />
-                                </div>
-
-                                <div className="col-md-6">
-                                    <label className="form-label">Date of Birth</label>
-                                    <input type="date" className="form-control" />
-                                </div>
-
-                                {/* Gender */}
-                                <div className="col-md-6">
-                                    <label className="form-label">Gender</label>
-                                    <div className="d-flex gap-3">
-                                        <div>
-                                            <input type="radio" id="male" name="gender" className="form-check-input" />
-                                            <label htmlFor="male" className="ms-1">Male</label>
-                                        </div>
-                                        <div>
-                                            <input type="radio" id="female" name="gender" className="form-check-input" />
-                                            <label htmlFor="female" className="ms-1">Female</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Submit Button */}
-                                <div className="col-12 mt-3">
-                                    <button className="btn btn-primary w-100">Submit</button>
-                                </div>
-                            </div>
                         </div>
                     ) : (
                         // Worker List (Placeholder for Existing Content)
@@ -328,7 +128,7 @@ const WorkerDetails = () => {
 
                 {/* Worker Table */}
                 {!selectedWorker ? (
-                    <div style={{ border: '1px solid #ddd', maxHeight: '500px', overflowY: 'auto' }}>
+                    <div style={{ border: '1px solid #ddd', maxHeight: '500px', minHeight: '0', overflow: 'auto' }} className="table-responsive">
                         <table className="table table-hover">
                             <thead className="table-light" style={{ position: 'sticky', top: 0, zIndex: 2 }}>
                                 <tr>
@@ -416,9 +216,8 @@ const WorkerDetails = () => {
                                     </div>
                                 </div>
 
-
                                 {/* Right: Tabs Section */}
-                                <div className="w-50  p-3">
+                                <div className="w-50 p-3">
                                     {/* Section Tabs */}
                                     <div className="d-flex border-bottom mb-3">
                                         <button
@@ -446,7 +245,6 @@ const WorkerDetails = () => {
                                         {/* Service Tab: Table + Details */}
                                         {activeTab === 'service' && (
                                             <div>
-
                                                 <table className="table table-bordered">
                                                     <thead className="table-light">
                                                         <tr>
@@ -471,21 +269,16 @@ const WorkerDetails = () => {
                                                                 </tr>
                                                             ))
                                                         ) : (
-                                                            <tr>
-
-                                                            </tr>
+                                                            <tr></tr>
                                                         )}
                                                     </tbody>
                                                 </table>
-
-
                                             </div>
                                         )}
 
                                         {/* In Progress Tab */}
                                         {activeTab === 'inProgress' && (
                                             <div>
-
                                                 {selectedWorker.inProgress?.length > 0 ? (
                                                     selectedWorker.inProgress.map((task, idx) => (
                                                         <li key={idx}>{task}</li>
@@ -503,10 +296,8 @@ const WorkerDetails = () => {
                                                         </thead>
                                                     </table>
                                                 )}
-
                                             </div>
                                         )}
-
 
                                         {/* Reviews Tab */}
                                         {activeTab === 'reviews' && (
@@ -524,17 +315,14 @@ const WorkerDetails = () => {
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 )}
+
                 {/* Filter Modal */}
                 <FilterModal show={showFilter} handleClose={() => setShowFilter(false)} />
             </div>
-
         </div>
-
     );
-
 };
 
 export default WorkerDetails;

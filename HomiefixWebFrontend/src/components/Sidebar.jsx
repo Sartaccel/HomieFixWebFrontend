@@ -62,7 +62,7 @@ const Sidebar = () => {
             Reviews
           </Link>
 
-          <Link to="#" className="menu-item">
+          <Link to="/add-worker" className="menu-item">
             <img src={servicesIcon} alt="Services" className="menu-icon" />
             Services
           </Link>

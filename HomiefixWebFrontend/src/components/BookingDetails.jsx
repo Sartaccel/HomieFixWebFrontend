@@ -303,7 +303,7 @@ const BookingDetails = () => {
                       ) : (
                         <button
                             className="btn btn-primary" style={{ backgroundColor: "#0076CE" }}
-                            onClick={() => navigate(`/assign-bookings/${booking.id}`, { state: { booking } })}
+                            onClick={() => navigate(`/booking-details/assign-bookings/${booking.id}`, { state: { booking } })}
                           >
                             Assign
                           </button>

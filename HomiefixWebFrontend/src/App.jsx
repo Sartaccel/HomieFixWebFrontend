@@ -9,6 +9,7 @@ import CustomerReview from "./components/CustomerReview";
 import Reviews from "./components/Reviews";
 import ProtectedRoute from "./components/ProtectedRoute";
 import WorkerDetails from "./components/WorkerDetails";
+import AddWorker from "./components/AddWorker";
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem("token") || "");
@@ -27,10 +28,11 @@ const App = () => {
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/booking-details" element={<BookingDetails />} />
-            <Route path="/assign-bookings/:id" element={<AssignBookings />} />
+            <Route path="/booking-details/assign-bookings/:id" element={<AssignBookings />} />
             <Route path="/reviews" element={<Reviews />} />
             <Route path="/reviews/customer-review/:id" element={<CustomerReview />} />
             <Route path="/worker-details" element={<WorkerDetails/>} />
+            <Route path="/add-worker" element={<AddWorker/>} />
           </Route>
         </Route>
       </Routes>

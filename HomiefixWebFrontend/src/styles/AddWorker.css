@@ -1,0 +1,26 @@
+.form-check-input{
+    border: 1px solid black;
+}
+
+
+.btn-outline-secondary {
+    transition: all 0.3s ease-in-out;
+    border-radius: 20px;
+}
+
+.btn-outline-secondary:focus,
+.btn-outline-secondary.active {
+    transform: scale(1.1);
+    border-color: #0076CE;
+    color: #0076CE;
+    background-color: white;
+}
+
+.btn-outline-secondary:hover {
+    background-color: white;
+    color: #0076CE;
+}
+
+.btn-outline-secondary:active {
+    transform: scale(0.95);
+}
