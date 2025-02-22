@@ -8,6 +8,8 @@ import AssignBookings from "./components/AssignBookings";
 import CustomerReview from "./components/CustomerReview";
 import Reviews from "./components/Reviews";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Reschedule from "./components/Reschedule";
+import CancelBooking from "./components/CancelBooking";
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem("token") || "");
@@ -27,6 +29,8 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/booking-details" element={<BookingDetails />} />
             <Route path="/assign-bookings/:id" element={<AssignBookings />} />
+            <Route path="/reschedule/:id" element={<Reschedule />} /> 
+            <Route path="/reschedule/:id" element={<CancelBooking />} /> 
             <Route path="/reviews" element={<Reviews />} />
             <Route path="/reviews/customer-review/:id" element={<CustomerReview />} />
           </Route>

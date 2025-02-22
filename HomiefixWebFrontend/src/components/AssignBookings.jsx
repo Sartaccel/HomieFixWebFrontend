@@ -3,24 +3,20 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
+import Reschedule from "./Reschedule"; // Import the Reschedule component
+import CancelBooking from "./CancelBooking"; // Import the CancelBooking component
+import "../styles/AssignBookings.css";
 
 const AssignBookings = () => {
   const { id } = useParams();
   const location = useLocation();
   const booking = location.state?.booking || {};
-  const [activeTab, setActiveTab] = useState("serviceDetails");
   const [workers, setWorkers] = useState([]);
   const [selectedWorkerId, setSelectedWorkerId] = useState(null);
   const [selectedWorkerDetails, setSelectedWorkerDetails] = useState(null);
   const [notes, setNotes] = useState("");
-  const [showRescheduleSlider, setShowRescheduleSlider] = useState(false);
-  const [availableDates, setAvailableDates] = useState([]);
-  const [availableTimes, setAvailableTimes] = useState([]);
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
-  const [rescheduleReason, setRescheduleReason] = useState("");
-  const [otherReason, setOtherReason] = useState("");
-
+  const [showRescheduleSlider, setShowRescheduleSlider] = useState(false); // State to control Reschedule visibility
+  const [showCancelBookingModal, setShowCancelBookingModal] = useState(false); // State to control CancelBooking visibility
   const navigate = useNavigate();
 
   // Fetch workers from the API
@@ -37,54 +33,6 @@ const AssignBookings = () => {
 
     fetchWorkers();
   }, []);
-
-  // Fetch available dates and times when the reschedule slider is shown
-  useEffect(() => {
-    if (showRescheduleSlider) {
-      const fetchAvailableDates = async () => {
-        try {
-          const response = await fetch("http://localhost:2222/booking/available-dates");
-          const data = await response.json();
-          console.log("Available Dates from API:", data); // Debugging
-  
-          // Transform dates into a valid format
-          const validDates = data
-            .map(date => {
-              // Remove the day of the week (e.g., "Saturday") from the date string
-              const cleanedDate = date.replace(/\s\w+day\s/, " "); // Removes " Saturday", " Sunday", etc.
-              console.log("Cleaned Date:", cleanedDate); // Debugging
-  
-              // Parse the cleaned date
-              const parsedDate = new Date(cleanedDate);
-              if (isNaN(parsedDate.getTime())) {
-                console.warn("Invalid date found:", date); // Log invalid dates
-                return null; // Skip invalid dates
-              }
-              return parsedDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
-            })
-            .filter(date => date !== null); // Remove null values
-  
-          setAvailableDates(validDates);
-        } catch (error) {
-          console.error("Error fetching available dates:", error);
-        }
-      };
-  
-
-      const fetchAvailableTimes = async () => {
-        try {
-          const response = await fetch("http://localhost:2222/booking/available-times");
-          const data = await response.json();
-          setAvailableTimes(data);
-        } catch (error) {
-          console.error("Error fetching available times:", error);
-        }
-      };
-
-      fetchAvailableDates();
-      fetchAvailableTimes();
-    }
-  }, [showRescheduleSlider]);
 
   // Handle worker selection and deselection
   const handleWorkerSelection = (workerId) => {
@@ -129,50 +77,6 @@ const AssignBookings = () => {
     }
   };
 
-  // Handle reschedule button click
-  const handleReschedule = async () => {
-    if (!selectedDate || !selectedTimeSlot || !rescheduleReason) {
-      alert("Please select a date, time slot, and reason for reschedule");
-      return;
-    }
-
-    // Validate selectedDate
-    const parsedDate = new Date(selectedDate);
-    if (isNaN(parsedDate.getTime())) {
-      alert("Please select a valid date");
-      return;
-    }
-
-    const reason = rescheduleReason === "other" ? otherReason : rescheduleReason;
-
-    try {
-      // Format the date as YYYY-MM-DD
-      const formattedDate = parsedDate.toISOString().split('T')[0];
-      const encodedTimeSlot = encodeURIComponent(selectedTimeSlot); // URL encode time
-      const encodedReason = encodeURIComponent(reason); // URL encode reason
-
-      const url = `http://localhost:2222/booking/reschedule/${id}?selectedDate=${formattedDate}&selectedTimeSlot=${encodedTimeSlot}&rescheduleReason=${encodedReason}`;
-
-      console.log("Reschedule URL:", url);
-
-      const response = await fetch(url, {
-        method: "PUT",
-      });
-
-      if (response.ok) {
-        alert("Booking rescheduled successfully");
-        setShowRescheduleSlider(false);
-      } else {
-        const errorData = await response.json();
-        console.error("Reschedule failed:", response.status, errorData);
-        alert(`Failed to reschedule booking: ${response.status} - ${errorData.message || "Unknown error"}`);
-      }
-    } catch (error) {
-      console.error("Error rescheduling booking:", error);
-      alert("An error occurred during reschedule.");
-    }
-  };
-
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
@@ -199,12 +103,7 @@ const AssignBookings = () => {
               <button className="btn btn-light p-2" style={{ marginBottom: "-20px" }} onClick={() => navigate(-1)}>
                 <i className="bi bi-arrow-left" style={{ fontSize: "1.5rem", fontWeight: "bold" }}></i>
               </button>
-              <div
-                className={`section ${activeTab === "serviceDetails" ? "active" : ""}`}
-                onClick={() => setActiveTab("serviceDetails")}
-              >
-                Service Details
-              </div>
+              <div className="section active">Service Details</div>
             </div>
 
             {/* Right side buttons */}
@@ -212,7 +111,9 @@ const AssignBookings = () => {
               <button className="btn btn-outline-primary" onClick={() => setShowRescheduleSlider(true)}>
                 Reschedule
               </button>
-              <button className="btn btn-outline-danger">Cancel Service</button>
+              <button className="btn btn-outline-danger" onClick={() => setShowCancelBookingModal(true)}>
+                Cancel Service
+              </button>
             </div>
           </div>
 
@@ -405,85 +306,20 @@ const AssignBookings = () => {
 
           {/* Reschedule Slider */}
           {showRescheduleSlider && (
-            <div
-              className="reschedule-slider position-fixed top-0 end-0 h-100 bg-white shadow-lg"
-              style={{ width: "700px", zIndex: 1000, transition: "transform 0.3s ease-in-out", transform: "translateX(0)" }}
-            >
-              <div className="p-4">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h4>Reschedule Service</h4>
-                  <button className="btn btn-light" onClick={() => setShowRescheduleSlider(false)}>
-                    <i className="bi bi-x-lg"></i>
-                  </button>
-                </div>
+            <Reschedule
+              id={id}
+              booking={booking}
+              onClose={() => setShowRescheduleSlider(false)}
+            />
+          )}
 
-                {/* Date Selection */}
-                <div className="mb-4">
-                  <h6>Date</h6>
-                  <div className="d-flex flex-wrap gap-2">
-                    {availableDates.map((date, index) => (
-                      <button
-                        key={index}
-                        className={`btn ${selectedDate === date ? "btn-primary" : "btn-outline-primary"}`}
-                        onClick={() => {
-                          console.log("Selected Date:", date); // Debugging
-                          setSelectedDate(date);
-                        }}
-                      >
-                        {date}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Time Slot Selection */}
-                <div className="mb-4">
-                  <h6>Time</h6>
-                  <div className="d-flex flex-wrap gap-2">
-                    {availableTimes.map((time, index) => (
-                      <button
-                        key={index}
-                        className={`btn ${selectedTimeSlot === time ? "btn-primary" : "btn-outline-primary"}`}
-                        onClick={() => setSelectedTimeSlot(time)}
-                      >
-                        {time}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Reason for Reschedule */}
-                <div className="mb-4">
-                  <h6>Reason for Reschedule</h6>
-                  <select
-                    className="form-select mb-3"
-                    value={rescheduleReason}
-                    onChange={(e) => setRescheduleReason(e.target.value)}
-                  >
-                    <option value="">Select a reason</option>
-                    <option value="technician unAvailability">Technician Unavailability</option>
-                    <option value="customer request">Customer Request</option>
-                    <option value="weather conditions">Weather Conditions</option>
-                    <option value="part unavailability">Part Unavailability</option>
-                    <option value="other">Other</option>
-                  </select>
-                  {rescheduleReason === "other" && (
-                    <textarea
-                      className="form-control"
-                      placeholder="Please specify the reason"
-                      rows="3"
-                      value={otherReason}
-                      onChange={(e) => setOtherReason(e.target.value)}
-                    ></textarea>
-                  )}
-                </div>
-
-                {/* Reschedule Button */}
-                <button className="btn btn-primary w-100" onClick={handleReschedule}>
-                  Reschedule
-                </button>
-              </div>
-            </div>
+          {/* Cancel Booking Modal */}
+          {showCancelBookingModal && (
+            <CancelBooking
+              id={id}
+              booking={booking}
+              onClose={() => setShowCancelBookingModal(false)}
+            />
           )}
         </main>
       </div>

@@ -1,0 +1,18 @@
+.custom-radio {
+    appearance: none;
+    
+    border: 2px solid #808080;
+    border-radius: 50%;
+    outline: none;
+    transition: 0.2s;
+    position: relative;
+  }
+
+  
+  .custom-radio:checked::before {
+
+    background-color: #333;
+    border-radius: 50%;
+    position: absolute;
+  }
+  
