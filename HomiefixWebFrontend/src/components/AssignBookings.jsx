@@ -3,17 +3,20 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
+import Reschedule from "./Reschedule"; // Import the Reschedule component
+import CancelBooking from "./CancelBooking"; // Import the CancelBooking component
+import "../styles/AssignBookings.css";
 
 const AssignBookings = () => {
   const { id } = useParams();
   const location = useLocation();
   const booking = location.state?.booking || {};
-  const [activeTab, setActiveTab] = useState("serviceDetails");
   const [workers, setWorkers] = useState([]);
   const [selectedWorkerId, setSelectedWorkerId] = useState(null);
   const [selectedWorkerDetails, setSelectedWorkerDetails] = useState(null);
-  const [notes, setNotes] = useState(""); // State to store notes
-
+  const [notes, setNotes] = useState("");
+  const [showRescheduleSlider, setShowRescheduleSlider] = useState(false); // State to control Reschedule visibility
+  const [showCancelBookingModal, setShowCancelBookingModal] = useState(false); // State to control CancelBooking visibility
   const navigate = useNavigate();
 
   // Fetch workers from the API
@@ -100,18 +103,17 @@ const AssignBookings = () => {
               <button className="btn btn-light p-2" style={{ marginBottom: "-20px" }} onClick={() => navigate(-1)}>
                 <i className="bi bi-arrow-left" style={{ fontSize: "1.5rem", fontWeight: "bold" }}></i>
               </button>
-              <div
-                className={`section ${activeTab === "serviceDetails" ? "active" : ""}`}
-                onClick={() => setActiveTab("serviceDetails")}
-              >
-                Service Details
-              </div>
+              <div className="section active">Service Details</div>
             </div>
 
             {/* Right side buttons */}
             <div className="d-flex gap-3 p-2" style={{ marginRight: "300px" }}>
-              <button className="btn btn-outline-primary">Reschedule</button>
-              <button className="btn btn-outline-danger">Cancel Service</button>
+              <button className="btn btn-outline-primary" onClick={() => setShowRescheduleSlider(true)}>
+                Reschedule
+              </button>
+              <button className="btn btn-outline-danger" onClick={() => setShowCancelBookingModal(true)}>
+                Cancel Service
+              </button>
             </div>
           </div>
 
@@ -149,26 +151,26 @@ const AssignBookings = () => {
 
                 {/* Comment Field (Notes) */}
                 <div className="mt-3 border border-2 rounded" style={{ width: "550px" }}>
-                  <textarea 
-                    id="notes" 
-                    className="form-control" 
-                    placeholder="Notes" 
+                  <textarea
+                    id="notes"
+                    className="form-control"
+                    placeholder="Notes"
                     rows="9"
                     value={notes}
-                    onChange={(e) => setNotes(e.target.value)} // Update notes state
+                    onChange={(e) => setNotes(e.target.value)}
                   ></textarea>
                 </div>
               </div>
 
               {/* Right Card - Service Details */}
-              <div className="col-md-6" style={{ borderRadius:"8px", position: "relative" }}>
-              <div
-                className="card p-3"
-                style={{ width: "550px", border: "1px solid #D9D9D9", height: "480px", marginTop:"30px", borderRadius:"8px" }}
-              >
+              <div className="col-md-6" style={{ borderRadius: "8px", position: "relative" }}>
+                <div
+                  className="card p-3"
+                  style={{ width: "550px", border: "1px solid #D9D9D9", height: "480px", marginTop: "30px", borderRadius: "8px" }}
+                >
                   {/* Heading */}
                   <div className="d-flex align-items-center justify-content-between" style={{ height: "94px" }}>
-                    <h5 className="mb-0 " style={{marginTop:"-50px"}}>Workers</h5>
+                    <h5 className="mb-0" style={{ marginTop: "-50px" }}>Workers</h5>
                   </div>
 
                   {/* Worker List (Scrollable) */}
@@ -180,7 +182,7 @@ const AssignBookings = () => {
                       overflowX: "hidden",
                       paddingRight: "10px",
                       paddingLeft: "20px",
-                      marginTop:"-40px"
+                      marginTop: "-40px",
                     }}
                   >
                     <div className="row d-flex flex-wrap" style={{ gap: "8px" }}>
@@ -251,7 +253,7 @@ const AssignBookings = () => {
                           }}
                         ></div>
                         <div>
-                          <p className="mb-0 "><i className="bi bi-person-fill me-2"></i>{selectedWorkerDetails.name}</p>
+                          <p className="mb-0"><i className="bi bi-person-fill me-2"></i>{selectedWorkerDetails.name}</p>
                           <p className="mb-0">
                             <i className="bi bi-telephone-fill me-2"></i> {selectedWorkerDetails.contactNumber}
                           </p>
@@ -301,6 +303,24 @@ const AssignBookings = () => {
               </div>
             </div>
           </div>
+
+          {/* Reschedule Slider */}
+          {showRescheduleSlider && (
+            <Reschedule
+              id={id}
+              booking={booking}
+              onClose={() => setShowRescheduleSlider(false)}
+            />
+          )}
+
+          {/* Cancel Booking Modal */}
+          {showCancelBookingModal && (
+            <CancelBooking
+              id={id}
+              booking={booking}
+              onClose={() => setShowCancelBookingModal(false)}
+            />
+          )}
         </main>
       </div>
     </div>
