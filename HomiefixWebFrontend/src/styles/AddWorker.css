@@ -10,7 +10,6 @@
 
 .btn-outline-secondary:focus,
 .btn-outline-secondary.active {
-    transform: scale(1.1);
     border-color: #0076CE;
     color: #0076CE;
     background-color: white;

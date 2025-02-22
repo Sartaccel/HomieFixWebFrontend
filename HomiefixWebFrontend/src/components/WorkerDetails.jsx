@@ -96,12 +96,12 @@ const WorkerDetails = () => {
       {/* Main Content */}
       <div className="container pt-5" style={{ paddingTop: "80px" }}>
         {/* Header with Filter Button */}
-        <div className="d-flex justify-content-between align-items-center mb-3 mt-5">
-          <h4 className="mb-0 pb-2 text-black" style={{ borderBottom: "3px solid #000" }}>
+        <div className="d-flex justify-content-between align-items-center mb-3 mt-5" style={{marginRight:"25px"}}>
+          <h5 className=" px-3 pb-2 text-black mx-3" style={{ borderBottom: "4px solid #000" }}>
             Worker Details
-          </h4>
+          </h5>
 
-          <div className="d-flex gap-2">
+          <div className="d-flex gap-3">
             <button
               className="btn text-light"
               onClick={handleAddWorkerClick}
@@ -116,47 +116,51 @@ const WorkerDetails = () => {
         </div>
 
         {/* Worker Table */}
+
         {!selectedWorker ? (
-          <div style={{ maxHeight: '400px', overflow: 'auto' }}>
-            <table className="table table-hover">
-              <thead className="table-light" style={{ position: 'sticky', top: 0, zIndex: 2 }}>
-                <tr>
-                  <th>Name</th>
-                  <th>Service</th>
-                  <th>Contact</th>
-                  <th>Rating</th>
-                  <th>Address</th>
-                  <th>Joining Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {workers.map((worker, index) => (
-                  <tr key={index} onClick={() => setSelectedWorker(worker)} style={{ cursor: 'pointer' }}>
-                    <td>
-                      <img
-                        src={worker.profilePicUrl || alenSamImg} // Use profilePicUrl from API or fallback image
-                        alt={worker.name}
-                        className="square-circle me-2"
-                        width="40"
-                        height="40"
-                      />
-                      {worker.name}
-                    </td>
-                    <td>{worker.role}</td>
-                    <td>{worker.contactNumber}</td>
-                    <td>
-                      <i className="bi bi-star-fill text-warning me-1"></i>
-                      {worker.averageRating || "N/A"}
-                    </td>
-                    <td>
-                      {`${worker.houseNumber}, ${worker.town}, ${worker.nearbyLandmark}, ${worker.district}, ${worker.state}, ${worker.pincode}`}
-                    </td>
-                    <td>{worker.joiningDate}</td>
+          <div style={{ overflow: 'hidden', padding: '10px 15px' }}>
+            <div style={{ maxHeight: '80vh', overflowY: 'auto', border: '1px solid #dee2e6' }}>
+              <table className="table table-hover" style={{ width: '100%', marginBottom: '0', tableLayout: 'fixed' }}>
+                <thead className="table-light" style={{ position: 'sticky', top: 0, zIndex: 2 }}>
+                  <tr>
+                    <th style={{ width: '15%', padding: '12px', verticalAlign: 'middle' }}>Name</th>
+                    <th style={{ width: '15%', padding: '12px', verticalAlign: 'middle' }}>Service</th>
+                    <th style={{ width: '15%', padding: '12px', verticalAlign: 'middle' }}>Contact</th>
+                    <th style={{ width: '10%', padding: '12px', verticalAlign: 'middle' }}>Rating</th>
+                    <th style={{ width: '30%', padding: '12px', verticalAlign: 'middle' }}>Address</th>
+                    <th style={{ width: '15%', padding: '12px', verticalAlign: 'middle' }}>Joining Date</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {workers.map((worker, index) => (
+                    <tr key={index} onClick={() => setSelectedWorker(worker)} style={{ cursor: 'pointer' }}>
+                      <td style={{ padding: '12px', display: 'flex', alignItems: 'center', verticalAlign: 'middle' }}>
+                        <img
+                          src={worker.profilePicUrl || alenSamImg}
+                          alt={worker.name}
+                          className="square-circle me-2"
+                          width="40"
+                          height="40"
+                        />
+                        {worker.name}
+                      </td>
+                      <td style={{ padding: '12px', verticalAlign: 'middle' }}>{worker.role}</td>
+                      <td style={{ padding: '12px', verticalAlign: 'middle' }}>{worker.contactNumber}</td>
+                      <td style={{ padding: '12px', verticalAlign: 'middle' }}>
+                        <i className="bi bi-star-fill text-warning me-1"></i>
+                        {worker.averageRating || "N/A"}
+                      </td>
+                      <td style={{ padding: '12px', verticalAlign: 'middle' }}>
+                        {`${worker.houseNumber}, ${worker.town}, ${worker.nearbyLandmark}, ${worker.district}, ${worker.state}, ${worker.pincode}`}
+                      </td>
+                      <td style={{ padding: '12px', verticalAlign: 'middle' }}>{worker.joiningDate}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
+
         ) : (
           // Worker Details Section
           <div className="card mt-4">
@@ -174,7 +178,7 @@ const WorkerDetails = () => {
                 <div className="w-50 pe-3">
                   <div className="d-flex align-items-center mb-3">
                     <img
-                      src={selectedWorker.profilePicUrl || alenSamImg} // Use profilePicUrl from API or fallback image
+                      src={selectedWorker.profilePicUrl || alenSamImg}
                       alt={selectedWorker.name}
                       className="square-circle me-3"
                       width="100"
@@ -307,7 +311,6 @@ const WorkerDetails = () => {
             </div>
           </div>
         )}
-
         {/* Filter Modal */}
         <FilterModal show={showFilter} handleClose={() => setShowFilter(false)} />
       </div>

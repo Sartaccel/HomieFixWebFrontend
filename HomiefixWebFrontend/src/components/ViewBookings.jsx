@@ -12,14 +12,14 @@ const ViewBookings = () => {
   const booking = location.state?.booking || {};
   const [bookings, setBookings] = useState("");
 
-const [bookingDate, setBookingDate] = useState("");
-const [bookedDate, setBookedDate] = useState("");
+  const [bookingDate, setBookingDate] = useState("");
+  const [bookedDate, setBookedDate] = useState("");
   const [activeTab, setActiveTab] = useState("serviceDetails");
   const [workers, setWorkers] = useState([]);
   const [serviceStarted, setServiceStarted] = useState("No");
   const [serviceCompleted, setServiceCompleted] = useState("No");
   const [endTime, setEndTime] = useState(null);
-;
+  ;
 
   // Fetch workers from the API
   useEffect(() => {
@@ -41,7 +41,7 @@ const [bookedDate, setBookedDate] = useState("");
       try {
         const response = await fetch("http://localhost:2222/booking/all");
         const data = await response.json();
-  
+
         const currentBooking = data.find(b => String(b.id) === String(id));
         if (currentBooking) {
           setBookings(currentBooking);
@@ -53,60 +53,60 @@ const [bookedDate, setBookedDate] = useState("");
         console.error("Error fetching booking details:", error);
       }
     };
-  
+
     fetchBookingDetails();
   }, [id]); // Dependency array ensures it runs when `id` changes
-  
+
   const SetBookedDate = (dateString) => {
     if (!dateString || dateString === "N/A") return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", { 
-      month: "short", 
-      day: "2-digit", 
-      year: "numeric" 
-    }) + 
-    " - " + 
-    date.toLocaleTimeString("en-US", { 
-      hour: "2-digit", 
-      minute: "2-digit", 
-      hour12: true 
-    });
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric"
+    }) +
+      " - " +
+      date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+      });
   };
   const updateBooking = async () => {
     const updatedData = {
       bookingDate: bookingDate !== "Yes" ? bookingDate : null,
-        bookedDate: bookedDate !== "Yes" ? bookedDate : null,
-        serviceStarted: serviceStarted !== "Yes" ? serviceStarted : null,
-        serviceCompleted: serviceCompleted !=="Yes" ? serviceCompleted : null
+      bookedDate: bookedDate !== "Yes" ? bookedDate : null,
+      serviceStarted: serviceStarted !== "Yes" ? serviceStarted : null,
+      serviceCompleted: serviceCompleted !== "Yes" ? serviceCompleted : null
     };
 
     try {
-        const response = await fetch(`http://localhost:2222/booking/update-status/${id}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(updatedData),
-        });
+      const response = await fetch(`http://localhost:2222/booking/update-status/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedData),
+      });
 
-        const responseData = await response.json();  // Try to parse JSON response
+      const responseData = await response.json();  // Try to parse JSON response
 
-        console.log("Server Response:", responseData);
+      console.log("Server Response:", responseData);
 
-        if (response.ok) {
-            alert("Booking updated successfully!");
-        } else {
-            alert(`Failed to update booking. Server responded with: ${responseData.message || response.statusText}`);
-        }
+      if (response.ok) {
+        alert("Booking updated successfully!");
+      } else {
+        alert(`Failed to update booking. Server responded with: ${responseData.message || response.statusText}`);
+      }
     } catch (error) {
-        console.error("Error updating booking:", error);
-        alert("Error updating booking.");
+      console.error("Error updating booking:", error);
+      alert("Error updating booking.");
     }
-};
+  };
 
-  
 
-  
+
+
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
@@ -128,7 +128,7 @@ const [bookedDate, setBookedDate] = useState("");
 
           {/* Navigation Bar */}
           <div className="navigation-bar d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
-          <div className="d-flex gap-3 align-items-center">
+            <div className="d-flex gap-3 align-items-center">
               <button className="btn btn-light p-2" style={{ marginBottom: "-20px" }} onClick={() => navigate(-1)}>
                 <i className="bi bi-arrow-left" style={{ fontSize: "1.5rem", fontWeight: "bold" }}></i>
               </button>
@@ -169,207 +169,207 @@ const [bookedDate, setBookedDate] = useState("");
 
                 {/* Comment Field (Notes) */}
                 <div className="mt-3 position-relative" style={{ width: "500px" }}>
-                  <span 
-                    className="position-absolute" 
+                  <span
+                    className="position-absolute"
                     style={{ top: "5px", right: "10px", fontSize: "14px", color: "#0076CE", cursor: "pointer" }}
                   >
                     Edit
                   </span>
                   <textarea id="notes" className="form-control" placeholder="Notes" rows="4" style={{ resize: "none", height: "150px" }}></textarea>
                 </div>
-               
+
                 {/* Worker Details */}
-                 <div className="mt-4">
+                <div className="mt-4">
                   <h6>Worker Details</h6>
                   {workers.length > 0 ? (
-              workers.map((worker) => (
-                     
-                     <div key={worker.id} className="d-flex align-items-center mb-3">
-                     <div className="d-flex align-items-center gap-2">
-                            <div
-                              className="rounded-circle bg-secondary"
-                              style={{
-                                width: "100px",
-                                height: "100px",
-                                marginTop:"-30px",
-                                flexShrink: 0,
-                                backgroundImage: `url(${worker.profilePicUrl})`,
-                                backgroundSize: "cover",
-                                backgroundPosition: "center",
-                              }}
-                            ></div>
-                            </div>
-              <div className="ms-3">
-              <p className="mb-1"><i className="bi bi-person-fill me-2"></i>{worker.name}</p>
-<p className="mb-1"><i className="bi bi-telephone-fill me-2"></i> {worker.contactNumber}</p>
-<p className="mb-1"><i className="bi bi-house-fill me-2"></i> {worker.houseNumber}</p>
-<p className="mb-1"><i className="bi bi-geo-alt-fill me-2"></i> {worker.pincode}</p>
-<p className="mb-1"><i className="bi bi-signpost-fill me-2"></i> {worker.nearbyLandmark}</p>
-<p className="mb-1"><i className="bi bi-map-fill me-2"></i> {worker.district}</p>
-<p className="mb-1"><i className="bi bi-geo-alt-fill me-2"></i> {worker.state}</p>
+                    workers.map((worker) => (
 
-        </div>
-      </div>
-  ))
-     ) : (
-    <p>No workers assigned</p>
-  )}
-</div>
-</div>
+                      <div key={worker.id} className="d-flex align-items-center mb-3">
+                        <div className="d-flex align-items-center gap-2">
+                          <div
+                            className="rounded-circle bg-secondary"
+                            style={{
+                              width: "100px",
+                              height: "100px",
+                              marginTop: "-30px",
+                              flexShrink: 0,
+                              backgroundImage: `url(${worker.profilePicUrl})`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                            }}
+                          ></div>
+                        </div>
+                        <div className="ms-3">
+                          <p className="mb-1"><i className="bi bi-person-fill me-2"></i>{worker.name}</p>
+                          <p className="mb-1"><i className="bi bi-telephone-fill me-2"></i> {worker.contactNumber}</p>
+                          <p className="mb-1"><i className="bi bi-house-fill me-2"></i> {worker.houseNumber}</p>
+                          <p className="mb-1"><i className="bi bi-geo-alt-fill me-2"></i> {worker.pincode}</p>
+                          <p className="mb-1"><i className="bi bi-signpost-fill me-2"></i> {worker.nearbyLandmark}</p>
+                          <p className="mb-1"><i className="bi bi-map-fill me-2"></i> {worker.district}</p>
+                          <p className="mb-1"><i className="bi bi-geo-alt-fill me-2"></i> {worker.state}</p>
+
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p>No workers assigned</p>
+                  )}
+                </div>
+              </div>
 
               {/* Right Card - Service Details */}
               <div className="col-md-6">
                 <div className="card rounded p-4 shadow-sm" style={{ marginTop: "60px", minHeight: "400px", maxWidth: "550px", border: "1px solid #ddd", borderRadius: "12px" }}>
                   <h5>Status update</h5>
                   <div className="p-3 mt-3 rounded" style={{ height: "350px", border: "1px solid #ccc", borderRadius: "10px" }}>
-                  <table  className="table w-100">
-                  <tbody>
-   
-    
-    <tr style={{ height: "50px" }}>
-      
-      <td className="text-start border-right">
-        <tr style={{ color: "grey" }}>
-      {new Date().toLocaleDateString("en-US", {
-      month: "short",
-      day: "2-digit",
-      year: "numeric",
-    })}{" "}
-    |{" "}
-    {new Date().toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    })}</tr>
-    
-        Booking Successful on  {new Date(bookingDate).toLocaleDateString("en-US", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-  })}
-        {bookings.timeSlot ? ` | ${bookings.timeSlot}` : ""}</td>
-       
-    </tr>
+                    <table className="table w-100">
+                      <tbody>
 
-    
-    <tr style={{ height: "50px" }}>
-    
-    <td className="text-start border-right">
-    <span style={{ color: "grey" }}>
-  {bookedDate !== "No"
-    ? new Date(bookedDate).toLocaleDateString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      })
-    : "Not Assigned"}
-</span><br/>
- 
-  Worker Assigned</td>
-  
-  <td className="text-end bg-grey" >
-  <div className="custom-dropdown">
-              <select
-                className="no-border"
-                onChange={(e)=> {setBookedDate(e.target.value === "Yes" ? new Date().toISOString() : "No");}}
-                value={bookedDate !== "No" ? "Yes" : "No"}
-              >
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
-              </select>
-            </div>
-  </td>
-  
-</tr>
-    
-    <tr style={{ height: "50px" }}>
-    <td className="text-start border-right">
-    <span >
-      {serviceStarted !== "No"
-        ? new Date(serviceStarted).toLocaleDateString("en-US", {
-            month: "short",
-            day: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-          })
-        :  new Date().toLocaleDateString("en-US", {
-          month: "short",
-          day: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        })}
-    </span>
-    <br />
-    Service Started
-  </td>
-  
-      <td className="text-end bg-grey">
-            
-      <div className="custom-dropdown">
-              <select
-                className="no-border"
-                onChange={(e) => setServiceStarted(e.target.value  === "Yes" ? new Date().toISOString() : "No")}
-                value={serviceStarted !== "No" ? "Yes" : "No"}
-              >
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
-              </select>
-            </div>
-            {/* Display Service Started Time */}
-  
 
-          </td>
-          
-    </tr>
- 
-   
-    <tr style={{ height: "60px" }}> 
+                        <tr style={{ height: "50px" }}>
 
-      <td className="text-start border-right"><span style={{ color: "grey" }}>
-      {serviceCompleted !== "No"
-        ? new Date(serviceCompleted).toLocaleDateString("en-US", {
-            month: "short",
-            day: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-          })
-        :  new Date().toLocaleDateString("en-US", {
-          month: "short",
-          day: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        })}
-    </span>
-    <br />
-    Service Completed</td>
-      <td className="text-end bg-grey">
-      <div className="custom-dropdown">
-              <select
-                className="no-border"
-                 onChange={(e) => setServiceCompleted(e.target.value === "Yes" ? new Date().toISOString() : "No")}
-                 value={serviceCompleted !== "No" ? "Yes" : "No"}
-              >
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
-              </select>
-            </div>
-           
-          </td>
-    </tr>
-   
-  </tbody>
-      </table>
+                          <td className="text-start border-right">
+                            <tr style={{ color: "grey" }}>
+                              {new Date().toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "2-digit",
+                                year: "numeric",
+                              })}{" "}
+                              |{" "}
+                              {new Date().toLocaleTimeString("en-US", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              })}</tr>
+
+                            Booking Successful on  {new Date(bookingDate).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "2-digit",
+                              year: "numeric",
+                            })}
+                            {bookings.timeSlot ? ` | ${bookings.timeSlot}` : ""}</td>
+
+                        </tr>
+
+
+                        <tr style={{ height: "50px" }}>
+
+                          <td className="text-start border-right">
+                            <span style={{ color: "grey" }}>
+                              {bookedDate !== "No"
+                                ? new Date(bookedDate).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "2-digit",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                })
+                                : "Not Assigned"}
+                            </span><br />
+
+                            Worker Assigned</td>
+
+                          <td className="text-end bg-grey" >
+                            <div className="custom-dropdown">
+                              <select
+                                className="no-border"
+                                onChange={(e) => { setBookedDate(e.target.value === "Yes" ? new Date().toISOString() : "No"); }}
+                                value={bookedDate !== "No" ? "Yes" : "No"}
+                              >
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                              </select>
+                            </div>
+                          </td>
+
+                        </tr>
+
+                        <tr style={{ height: "50px" }}>
+                          <td className="text-start border-right">
+                            <span >
+                              {serviceStarted !== "No"
+                                ? new Date(serviceStarted).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "2-digit",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                })
+                                : new Date().toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "2-digit",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                })}
+                            </span>
+                            <br />
+                            Service Started
+                          </td>
+
+                          <td className="text-end bg-grey">
+
+                            <div className="custom-dropdown">
+                              <select
+                                className="no-border"
+                                onChange={(e) => setServiceStarted(e.target.value === "Yes" ? new Date().toISOString() : "No")}
+                                value={serviceStarted !== "No" ? "Yes" : "No"}
+                              >
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                              </select>
+                            </div>
+                            {/* Display Service Started Time */}
+
+
+                          </td>
+
+                        </tr>
+
+
+                        <tr style={{ height: "60px" }}>
+
+                          <td className="text-start border-right"><span style={{ color: "grey" }}>
+                            {serviceCompleted !== "No"
+                              ? new Date(serviceCompleted).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "2-digit",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              })
+                              : new Date().toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "2-digit",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              })}
+                          </span>
+                            <br />
+                            Service Completed</td>
+                          <td className="text-end bg-grey">
+                            <div className="custom-dropdown">
+                              <select
+                                className="no-border"
+                                onChange={(e) => setServiceCompleted(e.target.value === "Yes" ? new Date().toISOString() : "No")}
+                                value={serviceCompleted !== "No" ? "Yes" : "No"}
+                              >
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                              </select>
+                            </div>
+
+                          </td>
+                        </tr>
+
+                      </tbody>
+                    </table>
                     <button className="btn btn-primary w-100" onClick={updateBooking}>Update</button>
                   </div>
                 </div>
