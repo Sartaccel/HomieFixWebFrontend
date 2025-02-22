@@ -9,9 +9,7 @@ const ViewBookings = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate(); // Fixed missing import
-  const booking = location.state?.booking || {
-    
-  };
+  const booking = location.state?.booking || {};
   const [bookings, setBookings] = useState("");
 
 const [bookingDate, setBookingDate] = useState("");
@@ -20,6 +18,8 @@ const [bookedDate, setBookedDate] = useState("");
   const [workers, setWorkers] = useState([]);
   const [serviceStarted, setServiceStarted] = useState("No");
   const [serviceCompleted, setServiceCompleted] = useState("No");
+  const [endTime, setEndTime] = useState(null);
+;
 
   // Fetch workers from the API
   useEffect(() => {
@@ -57,7 +57,7 @@ const [bookedDate, setBookedDate] = useState("");
     fetchBookingDetails();
   }, [id]); // Dependency array ensures it runs when `id` changes
   
-  const formatDateTime = (dateString) => {
+  const SetBookedDate = (dateString) => {
     if (!dateString || dateString === "N/A") return "N/A";
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", { 
@@ -72,8 +72,41 @@ const [bookedDate, setBookedDate] = useState("");
       hour12: true 
     });
   };
+  const updateBooking = async () => {
+    const updatedData = {
+      bookingDate: bookingDate !== "Yes" ? bookingDate : null,
+        bookedDate: bookedDate !== "Yes" ? bookedDate : null,
+        serviceStarted: serviceStarted !== "Yes" ? serviceStarted : null,
+        serviceCompleted: serviceCompleted !=="Yes" ? serviceCompleted : null
+    };
+
+    try {
+        const response = await fetch(`http://localhost:2222/booking/update-status/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedData),
+        });
+
+        const responseData = await response.json();  // Try to parse JSON response
+
+        console.log("Server Response:", responseData);
+
+        if (response.ok) {
+            alert("Booking updated successfully!");
+        } else {
+            alert(`Failed to update booking. Server responded with: ${responseData.message || response.statusText}`);
+        }
+    } catch (error) {
+        console.error("Error updating booking:", error);
+        alert("Error updating booking.");
+    }
+};
+
   
-   
+
+  
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
@@ -195,92 +228,149 @@ const [bookedDate, setBookedDate] = useState("");
     
     <tr style={{ height: "50px" }}>
       
-      <td className="text-start border-right">Booking Successful on {formatDateTime(bookingDate)}
-        {booking.timeSlot ? ` | ${booking.timeSlot}` : ""}</td>
-        <td className="text-end bg-grey"></td>
+      <td className="text-start border-right">
+        <tr style={{ color: "grey" }}>
+      {new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    })}{" "}
+    |{" "}
+    {new Date().toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    })}</tr>
+    
+        Booking Successful on  {new Date(bookingDate).toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  })}
+        {bookings.timeSlot ? ` | ${bookings.timeSlot}` : ""}</td>
+       
     </tr>
 
     
     <tr style={{ height: "50px" }}>
-      
+    
     <td className="text-start border-right">
-  <span style={{ color: "grey" }}>{formatDateTime(bookedDate)}</span><br/>
+    <span style={{ color: "grey" }}>
+  {bookedDate !== "No"
+    ? new Date(bookedDate).toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })
+    : "Not Assigned"}
+</span><br/>
  
   Worker Assigned</td>
- 
+  
   <td className="text-end bg-grey" >
   <div className="custom-dropdown">
               <select
                 className="no-border"
-                onChange={(e) => formatDateTime(bookedDate)}
-                value={bookedDate}
+                onChange={(e)=> {setBookedDate(e.target.value === "Yes" ? new Date().toISOString() : "No");}}
+                value={bookedDate !== "No" ? "Yes" : "No"}
               >
                 <option value="No">No</option>
                 <option value="Yes">Yes</option>
               </select>
             </div>
   </td>
+  
 </tr>
-     <tr style={{ color: "grey" }}>
-        {new Date(booking.startDate || Date.now()).toLocaleDateString("en-US", {
+    
+    <tr style={{ height: "50px" }}>
+    <td className="text-start border-right">
+    <span >
+      {serviceStarted !== "No"
+        ? new Date(serviceStarted).toLocaleDateString("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          })
+        :  new Date().toLocaleDateString("en-US", {
           month: "short",
           day: "2-digit",
           year: "numeric",
-        })} - {new Date(booking.startDate || Date.now()).toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
           hour12: true,
         })}
-     
-    </tr>
-    <tr style={{ height: "50px" }}>
-      <td className="text-start border-right">Service Started</td>
+    </span>
+    <br />
+    Service Started
+  </td>
+  
       <td className="text-end bg-grey">
             
       <div className="custom-dropdown">
               <select
                 className="no-border"
-                onChange={(e) => setServiceStarted(e.target.value)}
-                value={serviceStarted}
+                onChange={(e) => setServiceStarted(e.target.value  === "Yes" ? new Date().toISOString() : "No")}
+                value={serviceStarted !== "No" ? "Yes" : "No"}
               >
                 <option value="No">No</option>
                 <option value="Yes">Yes</option>
               </select>
             </div>
-          </td>
-    </tr>
+            {/* Display Service Started Time */}
+  
 
-    <tr style={{ color: "grey" }}>
-     
-        {new Date(booking.completeDate || Date.now()).toLocaleDateString("en-US", {
+          </td>
+          
+    </tr>
+ 
+   
+    <tr style={{ height: "60px" }}> 
+
+      <td className="text-start border-right"><span style={{ color: "grey" }}>
+      {serviceCompleted !== "No"
+        ? new Date(serviceCompleted).toLocaleDateString("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          })
+        :  new Date().toLocaleDateString("en-US", {
           month: "short",
           day: "2-digit",
           year: "numeric",
-        })} - {new Date(booking.completeDate || Date.now()).toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
           hour12: true,
         })}
-      
-    </tr>
-    <tr style={{ height: "60px" }}>
-      <td className="text-start border-right">Service Completed</td>
+    </span>
+    <br />
+    Service Completed</td>
       <td className="text-end bg-grey">
       <div className="custom-dropdown">
               <select
                 className="no-border"
-                 onChange={(e) => setServiceCompleted(e.target.value)}
-                 value={serviceCompleted}
+                 onChange={(e) => setServiceCompleted(e.target.value === "Yes" ? new Date().toISOString() : "No")}
+                 value={serviceCompleted !== "No" ? "Yes" : "No"}
               >
                 <option value="No">No</option>
                 <option value="Yes">Yes</option>
               </select>
             </div>
+           
           </td>
     </tr>
+   
   </tbody>
       </table>
-                    <button className="btn btn-primary w-100">Update</button>
+                    <button className="btn btn-primary w-100" onClick={updateBooking}>Update</button>
                   </div>
                 </div>
               </div>
