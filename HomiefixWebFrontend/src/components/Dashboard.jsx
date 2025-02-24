@@ -9,7 +9,6 @@ import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
 
-
 const Dashboard = () => {
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1; // Month is 0-based
@@ -86,10 +85,10 @@ const Dashboard = () => {
     };
 
     return (
-        <div >
+        <div>
             {/* ✅ Navbar */}
             <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
-                <h2 className="heading align-items-center mb-0" style={{marginLeft:"31px"}}>Dashboard</h2>
+                <h2 className="heading align-items-center mb-0" style={{ marginLeft: "31px" }}>Dashboard</h2>
                 <div className="header-right d-flex align-items-center gap-3">
                     <div className="input-group" style={{ width: "300px" }}>
                         <input type="text" className="form-control search-bar" placeholder="Search" />
@@ -103,7 +102,7 @@ const Dashboard = () => {
             </header>
 
             {/* ✅ Dashboard Content */}
-            <div className="container p-5" >
+            <div className="container p-5">
                 {/* ✅ Manage Service Header with Year Dropdown */}
                 <div className="d-flex justify-content-between align-items-center mb-3" style={{ marginTop: "50px" }}>
                     <h4>Manage Service</h4>
@@ -123,26 +122,25 @@ const Dashboard = () => {
                     {stats.map((stat, index) => (
                         <div key={index} className="col-md-3">
                             <div
-                                className="card mb-2" // Reduced bottom margin slightly
-                                style={{ borderTop: `4px solid ${stat.borderColor}`, height: "140px" }} // Adjust height
+                                className="card mb-2"
+                                style={{ borderTop: `4px solid ${stat.borderColor}`, height: "140px" }}
                             >
-                                <div className="card-body p-2"> {/* Reduced padding */}
-                                    <div className="display-6 mb-1">{stat.icon}</div> {/* Reduced margin */}
+                                <div className="card-body p-2">
+                                    <div className="display-6 mb-1">{stat.icon}</div>
                                     <h3 className="mb-1">{stat.count}</h3>
-                                    <h6 className="card-title fw-normal">{stat.title}</h6> {/* Reduced font size */}
+                                    <h6 className="card-title fw-normal">{stat.title}</h6>
                                 </div>
                             </div>
                         </div>
                     ))}
                 </div>
 
-
                 {/* ✅ Two Column Row: Analytics & Most Booking Services */}
                 <div className="row mt-2">
                     {/* 🔹 Analytics Section */}
                     <div className="col-md-7">
                         <div className="d-flex justify-content-between align-items-center">
-                            <h4 >Analytics</h4>
+                            <h4>Analytics</h4>
                             <select
                                 className="form-select w-auto mb-2"
                                 value={analyticsYear}
@@ -154,10 +152,10 @@ const Dashboard = () => {
                             </select>
                         </div>
                         {/* Area Chart */}
-                        <div className="card " style={{height: "325px"}}>
+                        <div className="card" style={{ height: "325px" }}>
                             <h6 className="mb-3 text-muted ms-5">Highest Service Month: <strong>Oct - Nov 86%, 26 Services</strong></h6>
                             <ResponsiveContainer width="120%" height={340}>
-                                <AreaChart data={areaData} margin={{ top: 10}} style={{height: "280px", marginLeft: "-70px"}}>
+                                <AreaChart data={areaData} margin={{ top: 10 }} style={{ height: "280px", marginLeft: "-70px" }}>
                                     <defs>
                                         <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#1782D2" stopOpacity={0.8} />
@@ -204,73 +202,30 @@ const Dashboard = () => {
                         </div>
                         {/* Table for Most Booking Services */}
                         <div className="card p-2" style={{ height: "325px", overflow: "hidden" }}>
-                            <div style={{ height: "290px"}}>
+                            <div style={{ height: "290px" }}>
                                 <table className="table table-borderless" style={{ width: "100%" }}>
                                     <thead style={{ position: "sticky", top: 0, background: "#fff", zIndex: 10 }}>
-                                        <tr style={{ lineHeight: "0.7" }}> {/* Reduced further */}
+                                        <tr style={{ lineHeight: "0.7" }}>
                                             <th className="text-muted">Service Name</th>
                                             <th className="text-muted">Services</th>
                                             <th className="text-muted">Booking (%)</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr style={{ lineHeight: "0.9" }}>
-                                            <td>1. Plumbing</td>
-                                            <td>35</td>
-                                            <td>78%</td>
-                                        </tr>
-                                        <tr style={{ lineHeight: "0.9" }}>
-                                            <td>2. Electrical</td>
-                                            <td>26</td>
-                                            <td>82%</td>
-                                        </tr>
-                                        <tr style={{ lineHeight: "0.9" }}>
-                                            <td>3. Cleaning</td>
-                                            <td>18</td>
-                                            <td>65%</td>
-                                        </tr>
-                                        <tr style={{ lineHeight: "0.9" }}>
-                                            <td>4. Painting</td>
-                                            <td>15</td>
-                                            <td>90%</td>
-                                        </tr>
-                                        <tr style={{ lineHeight: "0.9" }}>
-                                            <td>5. Painting</td>
-                                            <td>15</td>
-                                            <td>90%</td>
-                                        </tr>
-                                        <tr style={{ lineHeight: "0.9" }}>
-                                            <td>6. Painting</td>
-                                            <td>15</td>
-                                            <td>90%</td>
-                                        </tr>
-                                        <tr style={{ lineHeight: "0.9" }}>
-                                            <td>7. Painting</td>
-                                            <td>15</td>
-                                            <td>90%</td>
-                                        </tr>
-                                        <tr style={{ lineHeight: "0.9" }}>
-                                            <td>8. Painting</td>
-                                            <td>15</td>
-                                            <td>90%</td>
-                                        </tr>
-                                        <tr style={{ lineHeight: "0.9" }}>
-                                            <td>9. Painting</td>
-                                            <td>15</td>
-                                            <td>90%</td>
-                                        </tr>
-                                        <tr style={{ lineHeight: "0.9" }}>
-                                            <td>10. Painting</td>
-                                            <td>15</td>
-                                            <td>90%</td>
-                                        </tr>
+                                        <tr><td>1. Plumbing</td><td>35</td><td>78%</td></tr>
+                                        <tr><td>2. Electrical</td><td>26</td><td>82%</td></tr>
+                                        <tr><td>3. Cleaning</td><td>18</td><td>65%</td></tr>
+                                        <tr><td>4. Painting</td><td>15</td><td>90%</td></tr>
+                                        <tr><td>5. Painting</td><td>15</td><td>90%</td></tr>
+                                        <tr><td>6. Painting</td><td>15</td><td>90%</td></tr>
+                                        <tr><td>7. Painting</td><td>15</td><td>90%</td></tr>
+                                        <tr><td>8. Painting</td><td>15</td><td>90%</td></tr>
+                                        <tr><td>9. Painting</td><td>15</td><td>90%</td></tr>
+                                        <tr><td>10. Painting</td><td>15</td><td>90%</td></tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-
-
-
                     </div>
                 </div>
             </div>
