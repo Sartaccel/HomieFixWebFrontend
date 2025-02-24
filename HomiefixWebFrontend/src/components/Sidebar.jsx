@@ -62,7 +62,7 @@ const Sidebar = () => {
             Reviews
           </Link>
 
-          <Link to="#" className="menu-item">
+          <Link to="/services" className={`menu-item ${location.pathname.startsWith("/services") ? "active" : ""}`}>
             <img src={servicesIcon} alt="Services" className="menu-icon" />
             Services
           </Link>
