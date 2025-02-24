@@ -35,14 +35,12 @@ const App = () => {
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/booking-details" element={<BookingDetails />} />
-<<<<<<< HEAD
+
             <Route path="/assign-bookings/:id" element={<AssignBookings />} />
             <Route path="/view-bookings/:id" element={<ViewBookings />} />
             <Route path="/reschedule/:id" element={<Reschedule />} /> 
             <Route path="/reschedule/:id" element={<CancelBooking />} /> 
-=======
             <Route path="/booking-details/assign-bookings/:id" element={<AssignBookings />} />
->>>>>>> Shajai_Dev
             <Route path="/reviews" element={<Reviews />} />
             <Route path="/reviews/customer-review/:id" element={<CustomerReview />} />
             <Route path="/worker-details" element={<WorkerDetails/>} />

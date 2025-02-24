@@ -18,7 +18,8 @@ const [bookedDate, setBookedDate] = useState("");
   const [workers, setWorkers] = useState([]);
   const [serviceStarted, setServiceStarted] = useState("No");
   const [serviceCompleted, setServiceCompleted] = useState("No");
-  const[timeSlot,setTimeSlot]=useState("")
+  const[timeSlot,setTimeSlot]=useState("");
+  const [notes, setNotes] = useState("");
 ;
 
   // Fetch workers from the API
@@ -48,6 +49,7 @@ const [bookedDate, setBookedDate] = useState("");
           setBookingDate(currentBooking.bookingDate || "N/A");
           setBookedDate(currentBooking["bookedDate"] || "N/A");
           setTimeSlot(currentBooking.timeSlot || "N/A"); // Fix key if needed
+          setNotes(currentBooking.notes || "");
         }
       } catch (error) {
         console.error("Error fetching booking details:", error);
@@ -123,6 +125,7 @@ const updateBooking = async () => {
 };
 
 
+
   
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -192,7 +195,11 @@ const updateBooking = async () => {
                   >
                     Edit
                   </span>
-                  <textarea id="notes" className="form-control" placeholder="Notes" rows="4" style={{ resize: "none", height: "150px" }}></textarea>
+                  <textarea id="notes" className="form-control" placeholder="Notes" rows="4" style={{ resize: "none", height: "150px" }}
+                  value={notes} // Display fetched notes
+                  onChange={(e) => setNotes(e.target.value)} >
+
+                  </textarea>
                 </div>
                
                 {/* Worker Details */}
