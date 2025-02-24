@@ -188,7 +188,7 @@ const BookingDetails = () => {
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
           <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
-            <h2 className="heading align-items-center mb-0">Booking Details</h2>
+            <h2 className="heading align-items-center mb-0 "  style={{ marginLeft: "31px" }}>Booking Details</h2>
             <div className="header-right d-flex align-items-center gap-3">
               <div className="input-group" style={{ width: "300px" }}>
                 <input
@@ -452,7 +452,7 @@ const BookingDetails = () => {
                             borderRadius: "12px",
                           }}
                           onClick={() =>
-                            navigate(`/assign-bookings/${booking.id}`, {
+                            navigate(`/booking-details/assign-bookings/${booking.id}`, {
                               state: { booking },
                             })
                           }
