@@ -86,7 +86,7 @@ const CancelBooking = ({ id, booking, onClose }) => {
             <textarea
               className="form-control"
               placeholder="Other reason"
-              rows="3"
+              rows="6"
               value={otherReason}
               onChange={(e) => setOtherReason(e.target.value)}
             ></textarea>

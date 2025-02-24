@@ -436,7 +436,7 @@ const BookingDetails = () => {
                             borderRadius: "12px",
                           }}
                           onClick={() =>
-                            navigate(`/assign-bookings/${booking.id}`, {
+                            navigate(`/view-bookings/${booking.id}`, {
                               state: { booking },
                             })
                           }
