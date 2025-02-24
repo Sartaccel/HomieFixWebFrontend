@@ -96,7 +96,7 @@ const WorkerDetails = () => {
       {/* Main Content */}
       <div className="container pt-5" style={{ paddingTop: "80px" }}>
         {/* Header with Filter Button */}
-        <div className="d-flex justify-content-between align-items-center mb-3 mt-5" style={{marginRight:"25px"}}>
+        <div className="d-flex justify-content-between align-items-center mb-3 mt-5" style={{ marginRight: "25px" }}>
           <h5 className=" px-3 pb-2 text-black mx-3" style={{ borderBottom: "4px solid #000" }}>
             Worker Details
           </h5>
@@ -134,25 +134,33 @@ const WorkerDetails = () => {
                 <tbody>
                   {workers.map((worker, index) => (
                     <tr key={index} onClick={() => setSelectedWorker(worker)} style={{ cursor: 'pointer' }}>
-                      <td style={{ padding: '12px', display: 'flex', alignItems: 'center', verticalAlign: 'middle' }}>
-                        <img
-                          src={worker.profilePicUrl || alenSamImg}
-                          alt={worker.name}
-                          className="square-circle me-2"
-                          width="40"
-                          height="40"
-                        />
-                        {worker.name}
+                      {/* Name Column */}
+                      <td style={{ padding: '12px', verticalAlign: 'middle' }}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          <img
+                            src={worker.profilePicUrl || alenSamImg}
+                            alt={worker.name}
+                            className="square-circle me-2"
+                            width="40"
+                            height="40"
+                          />
+                          {worker.name}
+                        </div>
                       </td>
+                      {/* Service Column */}
                       <td style={{ padding: '12px', verticalAlign: 'middle' }}>{worker.role}</td>
+                      {/* Contact Column */}
                       <td style={{ padding: '12px', verticalAlign: 'middle' }}>{worker.contactNumber}</td>
+                      {/* Rating Column */}
                       <td style={{ padding: '12px', verticalAlign: 'middle' }}>
                         <i className="bi bi-star-fill text-warning me-1"></i>
                         {worker.averageRating || "N/A"}
                       </td>
+                      {/* Address Column */}
                       <td style={{ padding: '12px', verticalAlign: 'middle' }}>
                         {`${worker.houseNumber}, ${worker.town}, ${worker.nearbyLandmark}, ${worker.district}, ${worker.state}, ${worker.pincode}`}
                       </td>
+                      {/* Joining Date Column */}
                       <td style={{ padding: '12px', verticalAlign: 'middle' }}>{worker.joiningDate}</td>
                     </tr>
                   ))}

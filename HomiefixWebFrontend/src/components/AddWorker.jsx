@@ -29,7 +29,8 @@ const AddWorker = () => {
         joiningDate: "",
         econtactNumber: "",
         role: "", // Role will be determined by the heading (p tag)
-        profilePic: null, // To store the selected image file
+        specification: "",
+        profilePic: null,
     });
     const [previewImage, setPreviewImage] = useState(addWorker); // To display the selected image preview
 
@@ -41,6 +42,7 @@ const AddWorker = () => {
         setFormData((prevState) => ({
             ...prevState,
             role: roleHeading, // Set role to the heading (p tag)
+            specification: item, // Set specification to the selected button text
         }));
     };
 
@@ -82,7 +84,6 @@ const AddWorker = () => {
             console.error("Error:", error);
         }
     };
-
 
     return (
         <>
@@ -149,15 +150,15 @@ const AddWorker = () => {
                         <div className="row" style={{ maxWidth: "100%" }}>
                             <div className="col-md-3">
                                 <label htmlFor="name" className="form-label">Full Name</label>
-                                <input type="text" className="form-control" name="name" id="name" placeholder="Enter Name" onChange={handleChange} />
+                                <input type="text" className="form-control" name="name" id="name" required placeholder="Enter Name" onChange={handleChange} />
                             </div>
                             <div className="col-md-3">
                                 <label htmlFor="email" className="form-label">Email</label>
-                                <input type="email" className="form-control" name="email" id="email" placeholder="Enter Email" onChange={handleChange} />
+                                <input type="email" className="form-control" name="email" id="email" required placeholder="Enter Email" onChange={handleChange} />
                             </div>
                             <div className="col-md-5">
                                 <label htmlFor="contactNumber" className="form-label">Contact Number</label>
-                                <input type="tel" className="form-control" name="contactNumber" id="contactNumber" placeholder="Enter Contact Number" onChange={handleChange} />
+                                <input type="tel" className="form-control" name="contactNumber" id="contactNumber" required placeholder="Enter Contact Number" onChange={handleChange} />
                             </div>
                         </div>
 
@@ -169,11 +170,11 @@ const AddWorker = () => {
                             </div>
                             <div className="col-md-3">
                                 <label htmlFor="workExperience" className="form-label">Work Experience</label>
-                                <input type="text" className="form-control" name="workExperience" id="workExperience" placeholder="Enter Work Experience" onChange={handleChange} />
+                                <input type="text" className="form-control" name="workExperience" id="workExperience" required placeholder="Enter Work Experience" onChange={handleChange} />
                             </div>
                             <div className="col-md-3">
                                 <label htmlFor="dateOfBirth" className="form-label">D.O.B</label>
-                                <input type="date" className="form-control" name="dateOfBirth" id="dateOfBirth" onChange={handleChange} />
+                                <input type="date" className="form-control" name="dateOfBirth" id="dateOfBirth" required onChange={handleChange} />
                             </div>
                             <div className="col-md-2">
                                 <label htmlFor="gender" className="form-label">Gender</label> <br />
@@ -295,15 +296,15 @@ const AddWorker = () => {
                         <div className="row">
                             <div className="col-md-3">
                                 <label htmlFor="houseNumber" className="form-label">House no/ Building name</label>
-                                <input type="text" className="form-control" name="houseNumber" id="houseNumber" placeholder="Enter House no/ Building name" onChange={handleChange} />
+                                <input type="text" className="form-control" name="houseNumber" id="houseNumber" required placeholder="Enter House no/ Building name" onChange={handleChange} />
                             </div>
                             <div className="col-md-3">
                                 <label htmlFor="town" className="form-label">Locality/ Town</label>
-                                <input type="text" className="form-control" name="town" id="town" placeholder="Enter Locality/ Town" onChange={handleChange} />
+                                <input type="text" className="form-control" name="town" id="town" required placeholder="Enter Locality/ Town" onChange={handleChange} />
                             </div>
                             <div className="col-md-3">
                                 <label htmlFor="pincode" className="form-label">Pin code</label>
-                                <input type="text" className="form-control" name="pincode" id="pincode" placeholder="Enter Pin code" onChange={handleChange} />
+                                <input type="text" className="form-control" name="pincode" id="pincode" required placeholder="Enter Pin code" onChange={handleChange} />
                             </div>
                         </div>
 
@@ -311,15 +312,15 @@ const AddWorker = () => {
                         <div className="row mt-4">
                             <div className="col-md-3">
                                 <label htmlFor="nearbyLandmark" className="form-label">Nearby Landmark</label>
-                                <input type="text" className="form-control" name="nearbyLandmark" id="nearbyLandmark" placeholder="Enter Nearby Landmark" onChange={handleChange} />
+                                <input type="text" className="form-control" name="nearbyLandmark" id="nearbyLandmark" required placeholder="Enter Nearby Landmark" onChange={handleChange} />
                             </div>
                             <div className="col-md-3">
                                 <label htmlFor="district" className="form-label">District</label>
-                                <input type="text" className="form-control" name="district" id="district" placeholder="Enter District" onChange={handleChange} />
+                                <input type="text" className="form-control" name="district" id="district" required placeholder="Enter District" onChange={handleChange} />
                             </div>
                             <div className="col-md-3">
                                 <label htmlFor="state" className="form-label">State</label>
-                                <input type="text" className="form-control" name="state" id="state" placeholder="Enter State" onChange={handleChange} />
+                                <input type="text" className="form-control" name="state" id="state" required placeholder="Enter State" onChange={handleChange} />
                             </div>
                         </div>
 
@@ -330,7 +331,7 @@ const AddWorker = () => {
                         <div className="row mb-4">
                             <div className="col-md-3">
                                 <label htmlFor="aadharNumber" className="form-label">Aadhar number</label>
-                                <input type="text" className="form-control" name="aadharNumber" id="aadharNumber" placeholder="Enter Aadhar number" onChange={handleChange} />
+                                <input type="text" className="form-control" name="aadharNumber" id="aadharNumber" required placeholder="Enter Aadhar number" onChange={handleChange} />
                             </div>
                             <div className="col-md-3">
                                 <label htmlFor="drivingLicenseNumber" className="form-label">Driving license number</label>
@@ -338,7 +339,7 @@ const AddWorker = () => {
                             </div>
                             <div className="col-md-3">
                                 <label htmlFor="joiningDate" className="form-label">Joining date</label>
-                                <input type="date" className="form-control" name="joiningDate" id="joiningDate" onChange={handleChange} />
+                                <input type="date" className="form-control" name="joiningDate" id="joiningDate" required onChange={handleChange} />
                             </div>
                         </div>
 
