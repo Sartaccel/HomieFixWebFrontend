@@ -80,7 +80,7 @@ const WorkerDetails = () => {
     <div>
       {/* Navbar */}
       <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100" style={{ zIndex: 1000 }}>
-        <h2 className="heading align-items-center mb-0" style={{ marginLeft: "31px" }}>WorkerDetails</h2>
+        <h2 className="heading align-items-center mb-0" style={{ marginLeft: "31px" }}>Worker Details</h2>
         <div className="header-right d-flex align-items-center gap-3">
           <div className="input-group" style={{ width: "300px" }}>
             <input type="text" className="form-control search-bar" placeholder="Search" />

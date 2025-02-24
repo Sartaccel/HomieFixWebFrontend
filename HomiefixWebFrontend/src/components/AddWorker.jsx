@@ -29,7 +29,7 @@ const AddWorker = () => {
         joiningDate: "",
         econtactNumber: "",
         role: "", // Role will be determined by the heading (p tag)
-        specification: "",
+        specification: [], // Change to an array to store multiple specifications
         profilePic: null,
     });
     const [previewImage, setPreviewImage] = useState(addWorker); // To display the selected image preview
@@ -39,11 +39,18 @@ const AddWorker = () => {
             ...prevState,
             [item]: !prevState[item],
         }));
-        setFormData((prevState) => ({
-            ...prevState,
-            role: roleHeading, // Set role to the heading (p tag)
-            specification: item, // Set specification to the selected button text
-        }));
+
+        setFormData((prevState) => {
+            const updatedSpecifications = prevState.specification.includes(item)
+                ? prevState.specification.filter((spec) => spec !== item) // Remove if already exists
+                : [...prevState.specification, item]; // Add if not exists
+
+            return {
+                ...prevState,
+                role: roleHeading, // Set role to the heading (p tag)
+                specification: updatedSpecifications, // Update the array of specifications
+            };
+        });
     };
 
     const handleChange = (e) => {
@@ -70,7 +77,12 @@ const AddWorker = () => {
         try {
             const formDataToSend = new FormData();
             for (const key in formData) {
-                formDataToSend.append(key, formData[key]);
+                if (key === "specification") {
+                    // Convert the array to a comma-separated string
+                    formDataToSend.append(key, formData[key].join(","));
+                } else {
+                    formDataToSend.append(key, formData[key]);
+                }
             }
 
             const response = await fetch("http://localhost:2222/workers/add", {
