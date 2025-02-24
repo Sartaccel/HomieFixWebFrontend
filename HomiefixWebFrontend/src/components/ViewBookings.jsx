@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import "../styles/ViewBooking.css";
 import notification from "../assets/Bell.png";
@@ -18,7 +18,7 @@ const [bookedDate, setBookedDate] = useState("");
   const [workers, setWorkers] = useState([]);
   const [serviceStarted, setServiceStarted] = useState("No");
   const [serviceCompleted, setServiceCompleted] = useState("No");
-  const [endTime, setEndTime] = useState(null);
+  const[timeSlot,setTimeSlot]=useState("")
 ;
 
   // Fetch workers from the API
@@ -72,39 +72,56 @@ const [bookedDate, setBookedDate] = useState("");
       hour12: true 
     });
   };
-  const updateBooking = async () => {
-    const updatedData = {
-      bookingDate: bookingDate !== "Yes" ? bookingDate : null,
-        bookedDate: bookedDate !== "Yes" ? bookedDate : null,
-        serviceStarted: serviceStarted !== "Yes" ? serviceStarted : null,
-        serviceCompleted: serviceCompleted !=="Yes" ? serviceCompleted : null
-    };
+  
+const updateBooking = async () => {
+  if (!id) {
+      alert("Error: Booking ID is missing.");
+      return;
+  }
+ 
+    console.log("Debug: Type of serviceStarted =", typeof serviceStarted);
+    console.log("Debug: Type of serviceCompleted =", typeof serviceCompleted);
 
-    try {
-        const response = await fetch(`http://localhost:2222/booking/update-status/${id}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(updatedData),
-        });
+  // Determine status dynamically
+  let status = "";
+  if (serviceCompleted !== "No") {
+    status = "COMPLETED";
+  } else if (serviceStarted !== "No") {
+    status = "STARTED";
+  } else {
+    alert("Invalid status update!"); 
+    return;
+  }
 
-        const responseData = await response.json();  // Try to parse JSON response
 
-        console.log("Server Response:", responseData);
+  console.log("Final status being sent:", status);
 
-        if (response.ok) {
-            alert("Booking updated successfully!");
-        } else {
-            alert(`Failed to update booking. Server responded with: ${responseData.message || response.statusText}`);
-        }
-    } catch (error) {
-        console.error("Error updating booking:", error);
-        alert("Error updating booking.");
-    }
+  if (!status) {
+    alert("Invalid status change!"); 
+    return;
+}
+
+  try {
+      const response = await fetch(`http://localhost:2222/booking/update-status/${id}?status=${status}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          
+      });
+
+      const textResponse = await response.text();
+      console.log("Raw Response:", textResponse);
+
+      if (response.ok) {
+          alert(`Booking successfully updated! Status: ${status}`);
+      } else {
+          alert(`Failed to update booking. Server response: ${textResponse}`);
+      }
+  } catch (error) {
+      console.error("Network or API Error:", error);
+      alert("Network error while updating booking.");
+  }
 };
 
-  
 
   
   return (
@@ -222,11 +239,11 @@ const [bookedDate, setBookedDate] = useState("");
                 <div className="card rounded p-4 shadow-sm" style={{ marginTop: "60px", minHeight: "400px", maxWidth: "550px", border: "1px solid #ddd", borderRadius: "12px" }}>
                   <h5>Status update</h5>
                   <div className="p-3 mt-3 rounded" style={{ height: "350px", border: "1px solid #ccc", borderRadius: "10px" }}>
-                  <table  className="table w-100">
+                  <table  className="table w-100" style={{ width: "100%" }}>
                   <tbody>
    
     
-    <tr style={{ height: "50px" }}>
+    <tr style={{ height: "20px" }}>
       
       <td className="text-start border-right">
         <tr style={{ color: "grey" }}>
@@ -247,8 +264,9 @@ const [bookedDate, setBookedDate] = useState("");
     day: "2-digit",
     year: "numeric",
   })}
-        {bookings.timeSlot ? ` | ${bookings.timeSlot}` : ""}</td>
-       
+        {bookings.timeSlot ? ` | ${bookings.timeSlot}` : ""}
+        </td>
+        <td className="text-end" style={{ backgroundColor: "#f0f0f0" }} ></td>
     </tr>
 
     
@@ -270,7 +288,7 @@ const [bookedDate, setBookedDate] = useState("");
  
   Worker Assigned</td>
   
-  <td className="text-end bg-grey" >
+  <td className="text-end" style={{ backgroundColor: "#f0f0f0" }} >
   <div className="custom-dropdown">
               <select
                 className="no-border"
@@ -281,13 +299,14 @@ const [bookedDate, setBookedDate] = useState("");
                 <option value="Yes">Yes</option>
               </select>
             </div>
-  </td>
+            </td>
   
 </tr>
+
     
-    <tr style={{ height: "50px" }}>
+    <tr  style={{ height: "50px" }}>
     <td className="text-start border-right">
-    <span >
+    <span style={{ color: "grey" }}>
       {serviceStarted !== "No"
         ? new Date(serviceStarted).toLocaleDateString("en-US", {
             month: "short",
@@ -310,18 +329,22 @@ const [bookedDate, setBookedDate] = useState("");
     Service Started
   </td>
   
-      <td className="text-end bg-grey">
+      <td className="text-end "style={{ backgroundColor: "#f0f0f0" }}>
             
-      <div className="custom-dropdown">
+      <span className="custom-dropdown">
               <select
                 className="no-border"
-                onChange={(e) => setServiceStarted(e.target.value  === "Yes" ? new Date().toISOString() : "No")}
-                value={serviceStarted !== "No" ? "Yes" : "No"}
+                onChange={(e) => {setServiceStarted(e.target.value  === "Yes" ? new Date().toISOString() : "No");
+                if (e.target.value === "Yes") {
+                  setServiceCompleted("No");
+              }
+            }}
+            value={serviceStarted !== "No" ? "Yes" : "No"}
               >
                 <option value="No">No</option>
                 <option value="Yes">Yes</option>
               </select>
-            </div>
+            </span>
             {/* Display Service Started Time */}
   
 
@@ -353,24 +376,32 @@ const [bookedDate, setBookedDate] = useState("");
     </span>
     <br />
     Service Completed</td>
-      <td className="text-end bg-grey">
-      <div className="custom-dropdown">
+      <td className="text-end"style={{ backgroundColor: "#f0f0f0" }}>
+      <span className="custom-dropdown">
               <select
                 className="no-border"
-                 onChange={(e) => setServiceCompleted(e.target.value === "Yes" ? new Date().toISOString() : "No")}
+                 onChange={(e) => { if (e.target.value === "Yes" ){
+                  const completedTime = new Date().toISOString(); // Get current timestamp
+                  setServiceCompleted(completedTime); // Save it to state
+                } else {
+                  setServiceCompleted("No");
+                }
+              }}
                  value={serviceCompleted !== "No" ? "Yes" : "No"}
               >
                 <option value="No">No</option>
                 <option value="Yes">Yes</option>
               </select>
-            </div>
+            </span>
            
           </td>
     </tr>
    
   </tbody>
       </table>
-                    <button className="btn btn-primary w-100" onClick={updateBooking}>Update</button>
+                    <button className="btn btn-primary w-100" onClick={updateBooking}
+                      
+                    >Update</button>
                   </div>
                 </div>
               </div>
