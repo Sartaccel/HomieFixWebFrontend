@@ -47,14 +47,12 @@ const Sidebar = () => {
             Dashboard
           </Link>
 
-          <Link to="/booking-details" className={`menu-item ${location.pathname.startsWith("/assign-bookings") ||  location.pathname === "/booking-details" ||
-          location.pathname.startsWith("/view-booking") ? "active" : ""}`}>
+          <Link to="/booking-details" className={`menu-item ${location.pathname.startsWith("/booking-details") ? "active" : ""}`}>
             <img src={bookingDetails} alt="Booking Details" className="menu-icon" />
             Booking Details
           </Link>
 
-         
-          <Link to="#" className="menu-item">
+          <Link to="/worker-details" className={`menu-item ${location.pathname.startsWith("/worker-details") ? "active" : ""}`}>
             <img src={workersIcon} alt="Workers" className="menu-icon" />
             Workers Details
           </Link>
@@ -64,7 +62,7 @@ const Sidebar = () => {
             Reviews
           </Link>
 
-          <Link to="services" className={`menu-item ${location.pathname.startsWith("/serviceDetail")|| location.pathname === "/services" ? "active" : ""}`}>
+          <Link to="/services" className={`menu-item ${location.pathname.startsWith("/services") ? "active" : ""}`}>
             <img src={servicesIcon} alt="Services" className="menu-icon" />
             Services
           </Link>

@@ -1,9 +1,8 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import userProfile from "../assets/user.png";
 import search from "../assets/Search.png";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 const reviews = [
     { id: 1, user: "John Doe", service: "Home Cleaning", rating: 5, review: "Great service, highly recommended!", date: "02 Feb 2025", profilePic: userProfile },
@@ -18,16 +17,14 @@ const CustomerReview = () => {
     const { id } = useParams();
     const review = reviews.find((r) => r.id === Number(id));
     const [activeTab, setActiveTab] = useState("recent");
+    const navigate = useNavigate();
 
     if (!review) {
         return <h2 className="text-center text-muted">Review not found</h2>;
     }
 
-    const navigate = useNavigate();
-
     return (
         <div>
-            {/* Navbar */}
             <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
                 <h2 className="heading align-items-center mb-0" style={{ marginLeft: "31px" }}>Customers Review</h2>
                 <div className="header-right d-flex align-items-center gap-3">
@@ -40,21 +37,36 @@ const CustomerReview = () => {
                 </div>
             </header>
 
-            {/* Add top padding so content appears below the header */}
             <div className="container" style={{ paddingTop: "80px" }}>
-                {/* Tabs */}
                 <div className="d-flex gap-4 mx-2 align-items-center">
-                    {/* Back Arrow */}
-                    <button className="btn " onClick={() => navigate(-1)}>
-                        <span style={{ fontSize: "20px"}}>←</span> {/* Unicode Left Arrow */}
+                    <button className="btn" onClick={() => navigate(-1)}>
+                        <span style={{ fontSize: "20px" }}>←</span>
                     </button>
-
                     <button
                         className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
                         onClick={() => setActiveTab("recent")}
                     >
                         Recent Reviews
                     </button>
+                </div>
+
+                <div className="row mt-4">
+                    <div className="col-md-6 p-3 border d-flex justify-content-between">
+                        <div>
+                            <h4>Customer Details</h4>
+                            <img src={review.profilePic} alt={review.user} className="rounded-circle" width="80" height="80" />
+                        </div>
+                        <div className="flex-column">
+                            <p>{review.user}</p>
+                            <p>{review.date}</p>
+                            <p>⭐ 5</p>
+                        </div>
+                    </div>
+                    <div className="col-md-6 p-3 border">
+                        <h4>Service Details</h4>
+                        <p><strong>Service:</strong> {review.service}</p>
+                        <p><strong>Review:</strong> {review.review}</p>
+                    </div>
                 </div>
             </div>
         </div>
