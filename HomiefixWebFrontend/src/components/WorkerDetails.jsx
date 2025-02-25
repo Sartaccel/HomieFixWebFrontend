@@ -49,7 +49,7 @@ const WorkerDetails = () => {
             Add Worker
           </button>
         </div>
-        
+
         {/* Main Content */}
         <div style={{ overflow: "hidden", padding: "10px 15px" }}>
           <div style={{ maxHeight: "77vh", overflowY: "auto", border: "1px solid #dee2e6" }}>
@@ -66,7 +66,7 @@ const WorkerDetails = () => {
               </thead>
               <tbody>
                 {workers.map((worker) => (
-                  <tr key={worker.workerId} onClick={() => navigate(`/worker-details/${worker.workerId}`)} style={{ cursor: "pointer" }}>
+                  <tr key={worker.workerId} onClick={() => navigate("/worker-details/worker")} style={{ cursor: "pointer" }}>
                     <td style={{ verticalAlign: "middle" }}>
                       <div style={{ display: "flex", alignItems: "center" }}>
                         <img src={worker.profilePicUrl || alenSamImg} alt={worker.name} className="square-circle me-2" width="40" height="40" />
