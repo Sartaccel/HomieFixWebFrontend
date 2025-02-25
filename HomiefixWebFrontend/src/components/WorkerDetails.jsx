@@ -119,7 +119,7 @@ const WorkerDetails = () => {
 
         {!selectedWorker ? (
           <div style={{ overflow: 'hidden', padding: '10px 15px' }}>
-            <div style={{ maxHeight: '80vh', overflowY: 'auto', border: '1px solid #dee2e6' }}>
+            <div style={{ maxHeight: '75vh', overflowY: 'auto', border: '1px solid #dee2e6' }}>
               <table className="table table-hover" style={{ width: '100%', marginBottom: '0', tableLayout: 'fixed' }}>
                 <thead className="table-light" style={{ position: 'sticky', top: 0, zIndex: 2 }}>
                   <tr>

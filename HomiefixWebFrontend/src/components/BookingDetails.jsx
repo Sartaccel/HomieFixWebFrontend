@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "react-datepicker/dist/react-datepicker.css";
+import { FaStar } from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import "../styles/BookingDetails.css";
 import notification from "../assets/Bell.png";
@@ -20,7 +21,9 @@ const BookingDetails = () => {
   const [activeTab, setActiveTab] = useState("bookings");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
+  const [ratings, setRatings] = useState({});
   const dropdownRef = useRef(null);
+  const [ratingFilter, setRatingFilter] = useState("All");
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -75,6 +78,31 @@ const BookingDetails = () => {
 
     fetchBookings();
   }, []);
+
+  useEffect(() => {
+    const fetchRatings = async () => {
+      const completedBookings = bookings.filter((booking) => booking.status === "Completed");
+      const ratingsData = {};
+
+      for (const booking of completedBookings) {
+        try {
+          const response = await fetch(`http://localhost:2222/feedback/byBooking/${booking.id}`);
+          const data = await response.json();
+          if (data.length > 0) {
+            ratingsData[booking.id] = data[0].rating;
+          }
+        } catch (error) {
+          console.error("Error fetching rating:", error);
+        }
+      }
+
+      setRatings(ratingsData);
+    };
+
+    if (activeTab === "completed") {
+      fetchRatings();
+    }
+  }, [bookings, activeTab]);
 
   const pendingBookings = bookings.filter(
     (booking) =>
@@ -136,6 +164,13 @@ const BookingDetails = () => {
       }
     } else if (activeTab === "completed") {
       filtered = filtered.filter((booking) => booking.status === "Completed");
+      if (ratingFilter !== "All") {
+        if (ratingFilter === "No Rating") {
+          filtered = filtered.filter((booking) => !ratings[booking.id]);
+        } else {
+          filtered = filtered.filter((booking) => ratings[booking.id] === parseInt(ratingFilter));
+        }
+      }
     } else if (activeTab === "canceled") {
       filtered = filtered.filter((booking) => booking.status === "Canceled");
     }
@@ -155,7 +190,7 @@ const BookingDetails = () => {
 
     console.log("Filtered Bookings:", filtered);
     setFilteredBookings(filtered);
-  }, [activeTab, selectedDate, bookings, statusFilter]);
+  }, [activeTab, selectedDate, bookings, statusFilter, ratingFilter]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -263,6 +298,10 @@ const BookingDetails = () => {
                     <th className="p-3" style={{ width: "16%" }}>
                       Worker
                     </th>
+                  ) : activeTab === "completed" ? (
+                    <th className="p-3" style={{ width: "16%" }}>
+                      Worker
+                    </th>
                   ) : (
                     <>
                       <th className="p-3">Contact</th>
@@ -304,54 +343,105 @@ const BookingDetails = () => {
                     <th className="p-3">
                       {activeTab === "inProgress" ? (
                         <div className="dropdown">
-                        <button
-                          className="btn btn-light dropdown-toggle"
-                          type="button"
-                          id="statusFilterDropdown"
-                          data-bs-toggle="dropdown"
-                          data-bs-placement="bottom" // Force dropdown to open below
-                          aria-expanded="false"
-                        >
-                          Status: {statusFilter}
-                        </button>
-                        <ul
-                          className="dropdown-menu"
-                          aria-labelledby="statusFilterDropdown"
-                        >
-                          <li>
-                            <button
-                              className="dropdown-item"
-                              onClick={() => setStatusFilter("All")}
-                            >
-                              All
-                            </button>
-                          </li>
-                          <li>
-                            <button
-                              className="dropdown-item"
-                              onClick={() => setStatusFilter("Assigned")}
-                            >
-                              Assigned
-                            </button>
-                          </li>
-                          <li>
-                            <button
-                              className="dropdown-item"
-                              onClick={() => setStatusFilter("Rescheduled")}
-                            >
-                              Rescheduled
-                            </button>
-                          </li>
-                          <li>
-                            <button
-                              className="dropdown-item"
-                              onClick={() => setStatusFilter("Started")}
-                            >
-                              Started
-                            </button>
-                          </li>
-                        </ul>
-                      </div>
+                          <button
+                            className="btn btn-light dropdown-toggle"
+                            type="button"
+                            id="statusFilterDropdown"
+                            data-bs-toggle="dropdown"
+                            data-bs-placement="bottom"
+                            aria-expanded="false"
+                          >
+                            Status: {statusFilter}
+                          </button>
+                          <ul
+                            className="dropdown-menu"
+                            aria-labelledby="statusFilterDropdown"
+                          >
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => setStatusFilter("All")}
+                              >
+                                All
+                              </button>
+                            </li>
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => setStatusFilter("Assigned")}
+                              >
+                                Assigned
+                              </button>
+                            </li>
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => setStatusFilter("Rescheduled")}
+                              >
+                                Rescheduled
+                              </button>
+                            </li>
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => setStatusFilter("Started")}
+                              >
+                                Started
+                              </button>
+                            </li>
+                          </ul>
+                        </div>
+                      ) : activeTab === "completed" ? (
+                        <div className="dropdown">
+                          <button
+                            className="btn btn-light dropdown-toggle"
+                            type="button"
+                            id="ratingFilterDropdown"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                          >
+                            Rating:{" "}
+                            <span className="d-inline-flex align-items-center">
+                              <FaStar style={{ color: "gold", marginRight: "4px" }} />
+                              {ratingFilter}
+                            </span>
+                          </button>
+                          <ul
+                            className="dropdown-menu"
+                            aria-labelledby="ratingFilterDropdown"
+                          >
+                            <li>
+                              <button
+                                className="dropdown-item d-flex align-items-center"
+                                onClick={() => setRatingFilter("All")}
+                              >
+                                <FaStar style={{ color: "gold", marginRight: "4px" }} />
+                                All
+                              </button>
+                            </li>
+                            {[5, 4, 3, 2, 1].map((rating) => (
+                              <li key={rating}>
+                                <button
+                                  className="dropdown-item d-flex align-items-center"
+                                  onClick={() => setRatingFilter(rating.toString())}
+                                >
+                                  <FaStar style={{ color: "gold", marginRight: "4px" }} />
+                                  {rating}
+                                </button>
+                              </li>
+                            ))}
+                            <li>
+                              <button
+                                className="dropdown-item d-flex align-items-center"
+                                onClick={() => setRatingFilter("No Rating")}
+                              >
+                                <FaStar style={{ color: "gold" }} />
+                                No Rating
+                              </button>
+                            </li>
+                            
+                          </ul>
+                        </div>
                       ) : (
                         "Status"
                       )}
@@ -401,6 +491,19 @@ const BookingDetails = () => {
                           <p className="text-muted">Not Assigned</p>
                         )}
                       </td>
+                    ) : activeTab === "completed" ? (
+                      <td>
+                        {booking.worker ? (
+                          <>
+                            <p className="mb-0 ">{booking.worker.name}</p>
+                            <p className="mb-0 text-muted">
+                              {booking.worker.contact}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-muted">Not Assigned</p>
+                        )}
+                      </td>
                     ) : (
                       <>
                         <td>{booking.contact}</td>
@@ -421,6 +524,13 @@ const BookingDetails = () => {
                             width="120"
                             height="40"
                           />
+                        ) : activeTab === "completed" ? (
+                          <div className="d-flex align-items-center">
+                            {ratings[booking.id] && <FaStar style={{ color: "gold" }} />}
+                            <span className="ms-1">
+                              {ratings[booking.id] || "No Rating"}
+                            </span>
+                          </div>
                         ) : (
                           booking.status
                         )}
@@ -457,7 +567,7 @@ const BookingDetails = () => {
                             })
                           }
                         >
-                          Assign
+                       Assign
                         </button>
                       )}
                     </td>
