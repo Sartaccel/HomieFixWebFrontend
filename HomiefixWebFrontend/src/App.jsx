@@ -8,6 +8,8 @@ import AssignBookings from "./components/AssignBookings";
 import CustomerReview from "./components/CustomerReview";
 import Reviews from "./components/Reviews";
 import WorkerDetails from "./components/WorkerDetails";
+import AddWorker from "./components/AddWorker";
+// import Worker from "./components/Worker";
 
 
 const App = () => {
@@ -15,7 +17,7 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/" element={<Login />} />
-        
+
         {/* Protected Routes (inside Layout) */}
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
@@ -24,7 +26,8 @@ const App = () => {
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/reviews/customer-review/:id" element={<CustomerReview />} />
           <Route path="/worker-details" element={<WorkerDetails />} />
-
+          
+          <Route path="/worker-details/add-worker" element={<AddWorker />} />
         </Route>
       </Routes>
     </Router>
