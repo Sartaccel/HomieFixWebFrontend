@@ -1,42 +1,111 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
 import "../styles/BookingDetails.css";
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
+import statusRescheduled from "../assets/Status Rescheduled.png";
+import statusAssigned from "../assets/Status Assigned.png";
+import statusStarted from "../assets/Status Started.png";
 
 const BookingDetails = () => {
   const navigate = useNavigate();
-  const [bookings, setBookings] = useState([
-    { id: 1, service: "AC Repair", name: "John Doe", contact: "1234567890", address: "123 Street, City, State, 12345", date: "2025-02-05", status: "In Progress" },
-    { id: 2, service: "Plumbing Service", name: "Jane Smith", contact: "0987654321", address: "456 Avenue, City, State, 67890", date: "2025-02-06", status: "Completed" },
-    { id: 3, service: "House Cleaning", name: "Alice Johnson", contact: "1122334455", address: "789 Road, City, State, 11223", date: "2025-02-07", status: "Canceled" },
-    { id: 4, service: "Electrical Work", name: "Michael Brown", contact: "3344556677", address: "101 Lane, City, State, 33445", date: "2025-02-08", status: "In Progress" },
-    { id: 5, service: "Carpentry Service", name: "Emily Davis", contact: "7788990011", address: "202 Street, City, State, 55667", date: "2025-02-09", status: "Completed" },
-    { id: 6, service: "Sofa Cleaning", name: "William Wilson", contact: "8899001122", address: "303 Avenue, City, State, 66778", date: "2025-02-10", status: "Canceled" },
-    { id: 7, service: "Water Filter Repair", name: "Olivia Martinez", contact: "9900112233", address: "404 Road, City, State, 77889", date: "2025-02-11", status: "In Progress" },
-    { id: 8, service: "Vehicle Service", name: "James Anderson", contact: "1100223344", address: "505 Street, City, State, 88990", date: "2025-02-12", status: "Completed" },
-    { id: 9, service: "Home Demolition", name: "Sophia Thomas", contact: "2200334455", address: "606 Avenue, City, State, 99001", date: "2025-02-13", status: "Canceled" },
-    { id: 10, service: "Interior Works", name: "Benjamin White", contact: "3300445566", address: "707 Road, City, State, 11002", date: "2025-02-14", status: "In Progress" },
-  ]);
-
-  const [filteredBookings, setFilteredBookings] = useState(bookings);
+  const [bookings, setBookings] = useState([]);
+  const [filteredBookings, setFilteredBookings] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [activeTab, setActiveTab] = useState("bookings");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("All");
   const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const response = await fetch("http://localhost:2222/booking/all");
+        const text = await response.text();
+        console.log("Raw Response:", text);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = JSON.parse(text);
+        console.log("API Data:", data);
+
+        const transformedBookings = data.map((booking) => ({
+          id: booking.id,
+          service: booking.productName,
+          name: booking.userProfile.fullName,
+          contact: booking.userProfile.mobileNumber.mobileNumber,
+          address: `${booking.deliveryAddress.houseNumber}, ${booking.deliveryAddress.town}, ${booking.deliveryAddress.district}, ${booking.deliveryAddress.state}, ${booking.deliveryAddress.pincode}`,
+          date: booking.bookedDate,
+          timeslot: booking.timeSlot,
+          status:
+            booking.bookingStatus === "COMPLETED"
+              ? "Completed"
+              : booking.bookingStatus === "CANCELLED"
+              ? "Canceled"
+              : booking.bookingStatus === "ASSIGNED"
+              ? "Assigned"
+              : booking.bookingStatus === "STARTED"
+              ? "Started"
+              : booking.bookingStatus === "RESCHEDULED"
+              ? "Rescheduled"
+              : booking.bookingStatus === "PENDING"
+              ? "Pending"
+              : "Unknown",
+          worker: booking.worker
+            ? {
+                name: booking.worker.name,
+                contact: booking.worker.contactNumber,
+              }
+            : null,
+        }));
+
+        setBookings(transformedBookings);
+        setFilteredBookings(transformedBookings);
+      } catch (error) {
+        console.error("Error fetching bookings:", error);
+      }
+    };
+
+    fetchBookings();
+  }, []);
+
+  const pendingBookings = bookings.filter(
+    (booking) =>
+      booking.status === "Pending" ||
+      (booking.status === "Rescheduled" && !booking.worker)
+  );
+
+  const inProgress = bookings.filter(
+    (booking) =>
+      (booking.status === "Started" ||
+        booking.status === "Assigned" ||
+        booking.status === "Rescheduled") &&
+      booking.worker
+  );
+
+  const completed = bookings.filter((booking) => booking.status === "Completed");
+  const canceled = bookings.filter((booking) => booking.status === "Canceled");
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
     if (date) {
-      const formattedSelectedDate = date.getFullYear() + "-" +
-        String(date.getMonth() + 1).padStart(2, "0") + "-" +
+      const formattedSelectedDate =
+        date.getFullYear() +
+        "-" +
+        String(date.getMonth() + 1).padStart(2, "0") +
+        "-" +
         String(date.getDate()).padStart(2, "0");
 
-      const filtered = bookings.filter((booking) => booking.date === formattedSelectedDate);
+      const filtered = bookings.filter(
+        (booking) => booking.date === formattedSelectedDate
+      );
       setFilteredBookings(filtered);
     } else {
       setFilteredBookings(bookings);
@@ -47,22 +116,46 @@ const BookingDetails = () => {
   useEffect(() => {
     let filtered = bookings;
 
-    // Filter by status based on active tab
-    if (activeTab !== "bookings") {
-      filtered = filtered.filter((booking) => booking.status.toLowerCase() === activeTab.toLowerCase());
+    if (activeTab === "bookings") {
+      filtered = filtered.filter(
+        (booking) =>
+          booking.status === "Pending" ||
+          (booking.status === "Rescheduled" && !booking.worker)
+      );
+    } else if (activeTab === "inProgress") {
+      filtered = filtered.filter(
+        (booking) =>
+          (booking.status === "Started" ||
+            booking.status === "Assigned" ||
+            booking.status === "Rescheduled") &&
+          booking.worker
+      );
+
+      if (statusFilter !== "All") {
+        filtered = filtered.filter((booking) => booking.status === statusFilter);
+      }
+    } else if (activeTab === "completed") {
+      filtered = filtered.filter((booking) => booking.status === "Completed");
+    } else if (activeTab === "canceled") {
+      filtered = filtered.filter((booking) => booking.status === "Canceled");
     }
 
-    // Filter by date if selected
     if (selectedDate) {
-      const formattedSelectedDate = selectedDate.getFullYear() + "-" +
-        String(selectedDate.getMonth() + 1).padStart(2, "0") + "-" +
+      const formattedSelectedDate =
+        selectedDate.getFullYear() +
+        "-" +
+        String(selectedDate.getMonth() + 1).padStart(2, "0") +
+        "-" +
         String(selectedDate.getDate()).padStart(2, "0");
 
-      filtered = filtered.filter((booking) => booking.date === formattedSelectedDate);
+      filtered = filtered.filter(
+        (booking) => booking.date === formattedSelectedDate
+      );
     }
 
+    console.log("Filtered Bookings:", filtered);
     setFilteredBookings(filtered);
-  }, [activeTab, selectedDate, bookings]);
+  }, [activeTab, selectedDate, bookings, statusFilter]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -77,56 +170,115 @@ const BookingDetails = () => {
     };
   }, []);
 
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "Rescheduled":
+        return statusRescheduled;
+      case "Assigned":
+        return statusAssigned;
+      case "Started":
+        return statusStarted;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
           <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
-            <h2 className="heading align-items-center mb-0">Booking Details</h2>
+            <h2 className="heading align-items-center mb-0 "  style={{ marginLeft: "31px" }}>Booking Details</h2>
             <div className="header-right d-flex align-items-center gap-3">
               <div className="input-group" style={{ width: "300px" }}>
-                <input type="text" className="form-control search-bar" placeholder="Search" />
+                <input
+                  type="text"
+                  className="form-control search-bar"
+                  placeholder="Search"
+                />
                 <span className="input-group-text">
                   <img src={search} alt="Search" width="20" />
                 </span>
               </div>
-              <img src={notification} alt="Notifications" width="40" className="cursor-pointer" />
-              <img src={profile} alt="Profile" width="40" className="cursor-pointer" />
+              <img
+                src={notification}
+                alt="Notifications"
+                width="40"
+                className="cursor-pointer"
+              />
+              <img
+                src={profile}
+                alt="Profile"
+                width="40"
+                className="cursor-pointer"
+              />
             </div>
           </header>
 
           <div className="navigation-bar d-flex gap-3 py-3 bg-white border-bottom w-100">
-            <div className={`section ${activeTab === "bookings" ? "active" : ""}`} onClick={() => setActiveTab("bookings")}>
-              Bookings <span className="badge bg-dark ms-1">{filteredBookings.length}</span>
+            <div
+              className={`section ${activeTab === "bookings" ? "active" : ""}`}
+              onClick={() => setActiveTab("bookings")}
+            >
+              Bookings{" "}
+              <span className="badge bg-dark ms-1">{pendingBookings.length}</span>
             </div>
-            <div className={`section ${activeTab === "inProgress" ? "active" : ""}`} onClick={() => setActiveTab("inProgress")}>
-              In Progress
+            <div
+              className={`section ${activeTab === "inProgress" ? "active" : ""}`}
+              onClick={() => setActiveTab("inProgress")}
+            >
+              In Progress{" "}
+              <span className="badge bg-dark ms-1">{inProgress.length}</span>
             </div>
-            <div className={`section ${activeTab === "completed" ? "active" : ""}`} onClick={() => setActiveTab("completed")}>
-              Completed
+            <div
+              className={`section ${activeTab === "completed" ? "active" : ""}`}
+              onClick={() => setActiveTab("completed")}
+            >
+              Completed{" "}
+              <span className="badge bg-dark ms-1">{completed.length}</span>
             </div>
-            <div className={`section ${activeTab === "canceled" ? "active" : ""}`} onClick={() => setActiveTab("canceled")}>
-              Canceled
+            <div
+              className={`section ${activeTab === "canceled" ? "active" : ""}`}
+              onClick={() => setActiveTab("canceled")}
+            >
+              Canceled{" "}
+              <span className="badge bg-dark ms-1">{canceled.length}</span>
             </div>
           </div>
 
-          <div className="table-responsive mt-3 w-100 px-0 overflow-auto" style={{ maxHeight: "100%" }}>
+          <div
+            className="table-responsive mt-3 w-100 px-0 overflow-auto"
+            style={{ maxHeight: "100%", minHeight: "100%" }}
+          >
             <table className="booking-table table table-hover bg-white rounded shadow-sm align-items-center">
               <thead className="td-height">
                 <tr>
-                  <th className="p-3" style={{ width: "20%" }}>Service</th>
-                  <th className="p-3">Name</th>
-                  <th className="p-3">Contact</th>
-                  <th className="p-3" style={{ width: "25%" }}>Address</th>
-                  <th className="p-3">
+                  <th className="p-3" style={{ width: "19.5%" }}>
+                    Service
+                  </th>
+                  <th className="p-3" style={{ width: "15%" }}>
+                    Name
+                  </th>
+                  {activeTab === "inProgress" ? (
+                    <th className="p-3" style={{ width: "16%" }}>
+                      Worker
+                    </th>
+                  ) : (
+                    <>
+                      <th className="p-3">Contact</th>
+                      <th className="p-3" style={{ width: "25%" }}>
+                        Address
+                      </th>
+                    </>
+                  )}
+                  <th className="p-3" style={{ width: "14%" }}>
                     Date
                     <div className="dropdown d-inline ms-2" ref={dropdownRef}>
                       <button
                         className="btn btn-light dropdown-toggle p-0"
                         type="button"
                         onClick={() => setDropdownOpen(!dropdownOpen)}
-                      >
-                      </button>
+                      ></button>
                       {dropdownOpen && (
                         <div className="dropdown-menu show p-2">
                           <DatePicker
@@ -148,7 +300,63 @@ const BookingDetails = () => {
                       )}
                     </div>
                   </th>
-                  <th className="p-3">Status</th>
+                  {activeTab !== "bookings" && (
+                    <th className="p-3">
+                      {activeTab === "inProgress" ? (
+                        <div className="dropdown">
+                        <button
+                          className="btn btn-light dropdown-toggle"
+                          type="button"
+                          id="statusFilterDropdown"
+                          data-bs-toggle="dropdown"
+                          data-bs-placement="bottom" // Force dropdown to open below
+                          aria-expanded="false"
+                        >
+                          Status: {statusFilter}
+                        </button>
+                        <ul
+                          className="dropdown-menu"
+                          aria-labelledby="statusFilterDropdown"
+                        >
+                          <li>
+                            <button
+                              className="dropdown-item"
+                              onClick={() => setStatusFilter("All")}
+                            >
+                              All
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              className="dropdown-item"
+                              onClick={() => setStatusFilter("Assigned")}
+                            >
+                              Assigned
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              className="dropdown-item"
+                              onClick={() => setStatusFilter("Rescheduled")}
+                            >
+                              Rescheduled
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              className="dropdown-item"
+                              onClick={() => setStatusFilter("Started")}
+                            >
+                              Started
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                      ) : (
+                        "Status"
+                      )}
+                    </th>
+                  )}
                   <th></th>
                 </tr>
               </thead>
@@ -157,25 +365,101 @@ const BookingDetails = () => {
                   <tr key={booking.id}>
                     <td style={{ width: "20%" }}>
                       <div className="d-flex align-items-center gap-2">
-                        <div className="rounded-circle bg-secondary" style={{ width: "40px", height: "40px" }}></div>
+                        <div
+                          className="rounded-circle bg-secondary"
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            flexShrink: 0,
+                          }}
+                        ></div>
                         <div>
                           <p className="mb-0">{booking.service}</p>
-                          <small style={{ color: "#0076CE" }}>ID: {booking.id}</small>
+                          <small style={{ color: "#0076CE" }}>
+                            ID: {booking.id}
+                          </small>
                         </div>
                       </div>
                     </td>
-                    <td>{booking.name}</td>
-                    <td>{booking.contact}</td>
-                    <td style={{ width: "25%" }}>{booking.address}</td>
-                    <td>{booking.date}</td>
-                    <td>{booking.status}</td>
+
                     <td>
-                      <button
-                        className="btn btn-primary"
-                        onClick={() => navigate(`/assign-bookings/${booking.id}`, { state: { booking } })}
-                      >
-                        Assign
-                      </button>
+                      {booking.name} <br />
+                      {activeTab === "inProgress" && (
+                        <span>{booking.contact}</span>
+                      )}
+                    </td>
+                    {activeTab === "inProgress" ? (
+                      <td>
+                        {booking.worker ? (
+                          <>
+                            <p className="mb-0 ">{booking.worker.name}</p>
+                            <p className="mb-0 text-muted">
+                              {booking.worker.contact}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-muted">Not Assigned</p>
+                        )}
+                      </td>
+                    ) : (
+                      <>
+                        <td>{booking.contact}</td>
+                        <td style={{ width: "25%" }}>{booking.address}</td>
+                      </>
+                    )}
+
+                    <td>
+                      {booking.date} <br />
+                      <span>{booking.timeslot}</span>
+                    </td>
+                    {activeTab !== "bookings" && (
+                      <td>
+                        {activeTab === "inProgress" ? (
+                          <img
+                            src={getStatusIcon(booking.status)}
+                            alt={booking.status}
+                            width="120"
+                            height="40"
+                          />
+                        ) : (
+                          booking.status
+                        )}
+                      </td>
+                    )}
+                    <td>
+                      {activeTab === "inProgress" ? (
+                        <button
+                          className="btn btn-primary"
+                          style={{
+                            backgroundColor: "#0076CE",
+                            width: "90px",
+                            borderRadius: "12px",
+                          }}
+                          onClick={() =>
+                            navigate(`/assign-bookings/${booking.id}`, {
+                              state: { booking },
+                            })
+                          }
+                        >
+                          View
+                        </button>
+                      ) : (
+                        <button
+                          className="btn btn-primary"
+                          style={{
+                            backgroundColor: "#0076CE",
+                            width: "100px",
+                            borderRadius: "12px",
+                          }}
+                          onClick={() =>
+                            navigate(`/booking-details/assign-bookings/${booking.id}`, {
+                              state: { booking },
+                            })
+                          }
+                        >
+                          Assign
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
