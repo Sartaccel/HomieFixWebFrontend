@@ -39,6 +39,7 @@ const BookingDetails = () => {
         const transformedBookings = data.map((booking) => ({
           id: booking.id,
           service: booking.productName,
+         
           name: booking.userProfile.fullName,
           contact: booking.userProfile.mobileNumber.mobileNumber,
           address: `${booking.deliveryAddress.houseNumber}, ${booking.deliveryAddress.town}, ${booking.deliveryAddress.district}, ${booking.deliveryAddress.state}, ${booking.deliveryAddress.pincode}`,
@@ -375,6 +376,7 @@ const BookingDetails = () => {
                         ></div>
                         <div>
                           <p className="mb-0">{booking.service}</p>
+                          
                           <small style={{ color: "#0076CE" }}>
                             ID: {booking.id}
                           </small>

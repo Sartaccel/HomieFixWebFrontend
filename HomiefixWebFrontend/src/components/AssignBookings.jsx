@@ -127,6 +127,7 @@ const AssignBookings = () => {
                   <div className="rounded-circle bg-secondary" style={{ width: "40px", height: "40px" }}></div>
                   <div>
                     <p className="mb-0">{booking.service}</p>
+                    
                     <small style={{ color: "#0076CE" }}>ID: {booking.id}</small>
                   </div>
                 </div>

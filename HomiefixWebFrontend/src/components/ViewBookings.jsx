@@ -19,9 +19,10 @@ const [bookedDate, setBookedDate] = useState("");
   const [serviceStarted, setServiceStarted] = useState("No");
   const [serviceCompleted, setServiceCompleted] = useState("No");
   const[timeSlot,setTimeSlot]=useState("");
-  const [notes, setNotes] = useState("");
-;
-
+  const [notes, setNotes] = useState("Your initial notes here");
+  const [isEditing, setIsEditing] = useState(false);
+  const [typingTimeout, setTypingTimeout] = useState(null);
+  
   // Fetch workers from the API
   useEffect(() => {
     const fetchWorkers = async () => {
@@ -50,6 +51,8 @@ const [bookedDate, setBookedDate] = useState("");
           setBookedDate(currentBooking["bookedDate"] || "N/A");
           setTimeSlot(currentBooking.timeSlot || "N/A"); // Fix key if needed
           setNotes(currentBooking.notes || "");
+
+          console.log("Fetched Booking:", currentBooking);
         }
       } catch (error) {
         console.error("Error fetching booking details:", error);
@@ -125,8 +128,89 @@ const updateBooking = async () => {
 };
 
 
+const fetchNotes = async () => {
+  try {
+    const response = await fetch(`http://localhost:2222/booking/${id}?_=${new Date().getTime()}`);
+    if (!response.ok) throw new Error("Failed to fetch notes");
 
-  
+    const data = await response.json();
+    console.log("Notes fetched:", data);
+
+    setTimeout(() => {
+      setNotes(data.notes || "");
+    }, 100); // Small delay to ensure state update // ✅ Ensure correct key
+  } catch (error) {
+    console.error("Error fetching notes:", error);
+  }
+};
+
+// ✅ Save Updated Notes
+const saveNote = async (updatedNotes) => {
+  console.log("Sending PATCH request:", {
+    id,
+    url: `http://localhost:2222/booking/update-notes/${id}`,
+    body: { notes: updatedNotes },
+  });
+
+  try {
+    const response = await fetch(`http://localhost:2222/booking/update-notes/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ notes: updatedNotes }), // Use body instead of query params
+    });
+
+    const result = await response.json();
+    console.log("Server response:", result);
+
+    if (!response.ok) throw new Error(`Failed to update note. Status: ${response.status}`);
+
+    console.log("✅ Note updated successfully");
+    setIsEditing(false);
+    fetchNotes(); // ✅ Re-fetch updated notes
+  } catch (error) {
+    console.error("Error saving note:", error);
+  }
+};
+
+
+// ✅ Handle Edit Click
+const handleEditClick = () => {
+  setIsEditing(true);
+
+  setTimeout(() => {
+    textareaRef.current?.focus(); // ✅ Auto-focus the textarea when editing starts
+  }, 50);
+};
+
+// ✅ Handle Note Change with Auto-Save
+const handleNoteChange = (e) => {
+  const updatedNotes = e.target.value;
+  setNotes(updatedNotes);
+
+  // Clear previous timeout if exists
+  if (typingTimeout) clearTimeout(typingTimeout);
+
+  // Set new timeout to auto-save after 1 second
+  const newTimeout = setTimeout(() => {
+    saveNote(updatedNotes);
+  }, 1000);
+
+  setTypingTimeout(newTimeout);
+};
+const getLinePosition = () => {
+  let position = 72; // Initial position for "Booking Successful"
+
+  if (bookedDate !== "No") position = 140; // Move down when "Worker Assigned"
+  if (serviceStarted !== "No") position = 217; // Move down when "Service Started"
+  if (serviceCompleted !== "No") position = 290; // Move down when "Service Completed"
+
+  return `${position}px`;
+};
+
+
+
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
@@ -174,7 +258,8 @@ const updateBooking = async () => {
                 <div className="d-flex align-items-center gap-2" style={{ marginTop: "50px" }}>
                   <div className="rounded-circle bg-secondary" style={{ width: "40px", height: "40px" }}></div>
                   <div>
-                    <p className="mb-0">{booking.service}</p>
+                    <p className="mb-0">{booking.service} - ₹{bookings?.totalPrice ?? "N/A"}</p>
+                    
                     <small style={{ color: "#0076CE" }}>ID: {booking.id}</small>
                   </div>
                 </div>
@@ -192,14 +277,22 @@ const updateBooking = async () => {
                   <span 
                     className="position-absolute" 
                     style={{ top: "5px", right: "10px", fontSize: "14px", color: "#0076CE", cursor: "pointer" }}
+                    onClick={isEditing ? saveNote : handleEditClick}
                   >
-                    Edit
+                     Edit
                   </span>
-                  <textarea id="notes" className="form-control" placeholder="Notes" rows="4" style={{ resize: "none", height: "150px" }}
+                  <textarea id="notes" className="form-control" placeholder="Notes" rows="4" style={{ resize: "none", height: "150px",backgroundColor: "white",
+                    cursor: isEditing ? "text" : "default",
+                   
+                   }}
                   value={notes} // Display fetched notes
-                  onChange={(e) => setNotes(e.target.value)} >
-
-                  </textarea>
+                  
+                  onChange={handleNoteChange}
+                  
+                  disabled={!isEditing}
+                  onBlur={() => setIsEditing(false)}
+                  >
+             </textarea>
                 </div>
                
                 {/* Worker Details */}
@@ -243,16 +336,30 @@ const updateBooking = async () => {
 
               {/* Right Card - Service Details */}
               <div className="col-md-6">
-                <div className="card rounded p-4 shadow-sm" style={{ marginTop: "60px", minHeight: "400px", maxWidth: "550px", border: "1px solid #ddd", borderRadius: "12px" }}>
+                <div className="card rounded p-4 shadow-sm" style={{ marginTop: "60px", minHeight: "480px", maxWidth: "550px", border: "1px solid #ddd", borderRadius: "12px" }}>
                   <h5>Status update</h5>
-                  <div className="p-3 mt-3 rounded" style={{ height: "350px", border: "1px solid #ccc", borderRadius: "10px" }}>
+                  <div className="p-3 mt-3 rounded" style={{ height: "370px", border: "1px solid #ccc", borderRadius: "10px" }}>
+                  <div
+        className="position-absolute"
+        style={{
+             
+              top: getLinePosition(),  // Dynamic height
+              left: "25px",
+              width: "4px",
+              backgroundColor: "black",
+              height: "75px",
+              transition: "height 0.5s ease-in-out",
+        }}
+      ></div>
                   <table  className="table w-100" style={{ width: "100%" }}>
+                 
                   <tbody>
    
     
-    <tr style={{ height: "20px" }}>
+    <tr style={{ height: "40px" }}>
       
       <td className="text-start border-right">
+      
         <tr style={{ color: "grey" }}>
       {new Date().toLocaleDateString("en-US", {
       month: "short",
@@ -277,7 +384,7 @@ const updateBooking = async () => {
     </tr>
 
     
-    <tr style={{ height: "50px" }}>
+    <tr style={{ height: "70px" }}>
     
     <td className="text-start border-right">
     <span style={{ color: "grey" }}>
@@ -311,7 +418,7 @@ const updateBooking = async () => {
 </tr>
 
     
-    <tr  style={{ height: "50px" }}>
+    <tr  style={{ height: "70px" }}>
     <td className="text-start border-right">
     <span style={{ color: "grey" }}>
       {serviceStarted !== "No"
@@ -360,7 +467,7 @@ const updateBooking = async () => {
     </tr>
  
    
-    <tr style={{ height: "60px" }}> 
+    <tr style={{ height: "80px" }}> 
 
       <td className="text-start border-right"><span style={{ color: "grey" }}>
       {serviceCompleted !== "No"
