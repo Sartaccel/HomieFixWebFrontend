@@ -22,21 +22,43 @@ const [bookedDate, setBookedDate] = useState("");
   const [notes, setNotes] = useState("Your initial notes here");
   const [isEditing, setIsEditing] = useState(false);
   const [typingTimeout, setTypingTimeout] = useState(null);
+  const [selectedWorker, setSelectedWorker] = useState(null);
+  const [selectedWorkerId, setSelectedWorkerId] = useState(null);
   
   // Fetch workers from the API
   useEffect(() => {
+    if (!id) return; // Ensure ID exists before making the request
+
     const fetchWorkers = async () => {
       try {
-        const response = await fetch("http://localhost:2222/workers/view");
+        const response = await fetch(`http://localhost:2222/workers/view`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
         const data = await response.json();
         setWorkers(data);
+
+        // Automatically select the first worker (or update logic as needed)
+        if (data.length > 0) {
+          setSelectedWorkerId(data[0].id); // Set the first worker as default
+        }
       } catch (error) {
         console.error("Error fetching workers:", error);
       }
     };
 
     fetchWorkers();
-  }, [id]); // Added id in dependencies
+  }, [id]); // Only fetch when `id` changes
+
+  // Update selected worker when `selectedWorkerId` changes
+  useEffect(() => {
+    if (!selectedWorkerId || workers.length === 0) return;
+
+    const worker = workers.find(worker => worker.id === selectedWorkerId);
+    setSelectedWorker(worker || null);
+  }, [selectedWorkerId, workers]); // Runs when `selectedWorkerId` or `workers` changes
+
+
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
@@ -231,9 +253,9 @@ const getLinePosition = () => {
           </header>
 
           {/* Navigation Bar */}
-          <div className="navigation-bar d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
+          <div className="navigation-bar d-flex justify-content-between align-items-center py-2 px-3 bg-white border-bottom w-100">
           <div className="d-flex gap-3 align-items-center">
-              <button className="btn btn-light p-2" style={{ marginBottom: "-20px" }} onClick={() => navigate(-1)}>
+              <button className="btn btn- p-2" style={{ marginBottom: "-20px" }} onClick={() => navigate(-1)}>
                 <i className="bi bi-arrow-left" style={{ fontSize: "1.5rem", fontWeight: "bold" }}></i>
               </button>
               <div
@@ -273,10 +295,10 @@ const getLinePosition = () => {
                 </div>
 
                 {/* Comment Field (Notes) */}
-                <div className="mt-3 position-relative" style={{ width: "500px" }}>
+                <div className="mt-3 position-relative" style={{ width: "560px" }}>
                   <span 
                     className="position-absolute" 
-                    style={{ top: "5px", right: "10px", fontSize: "14px", color: "#0076CE", cursor: "pointer" }}
+                    style={{ top: "5px", right: "15px", fontSize: "14px", color: "#0076CE", cursor: "pointer" }}
                     onClick={isEditing ? saveNote : handleEditClick}
                   >
                      Edit
@@ -298,45 +320,42 @@ const getLinePosition = () => {
                 {/* Worker Details */}
                  <div className="mt-4">
                   <h6>Worker Details</h6>
-                  {workers.length > 0 ? (
-              workers.map((worker) => (
-                     
-                     <div key={worker.id} className="d-flex align-items-center mb-3">
-                     <div className="d-flex align-items-center gap-2">
-                            <div
-                              className="rounded-circle bg-secondary"
-                              style={{
-                                width: "100px",
-                                height: "100px",
-                                marginTop:"-30px",
-                                flexShrink: 0,
-                                backgroundImage: `url(${worker.profilePicUrl})`,
-                                backgroundSize: "cover",
-                                backgroundPosition: "center",
-                              }}
-                            ></div>
-                            </div>
-              <div className="ms-3">
-              <p className="mb-1"><i className="bi bi-person-fill me-2"></i>{worker.name}</p>
-<p className="mb-1"><i className="bi bi-telephone-fill me-2"></i> {worker.contactNumber}</p>
-<p className="mb-1"><i className="bi bi-house-fill me-2"></i> {worker.houseNumber}</p>
-<p className="mb-1"><i className="bi bi-geo-alt-fill me-2"></i> {worker.pincode}</p>
-<p className="mb-1"><i className="bi bi-signpost-fill me-2"></i> {worker.nearbyLandmark}</p>
-<p className="mb-1"><i className="bi bi-map-fill me-2"></i> {worker.district}</p>
-<p className="mb-1"><i className="bi bi-geo-alt-fill me-2"></i> {worker.state}</p>
-
+                  {selectedWorker ? (
+        <div key={selectedWorker.id} className="d-flex align-items-center mb-3">
+          <div className="d-flex align-items-center gap-2">
+            <div
+              className="rounded-circle bg-secondary"
+              style={{
+                width: "100px",
+                height: "100px",
+                marginTop: "-10px",
+                flexShrink: 0,
+                backgroundImage: selectedWorker.profilePicUrl
+                  ? `url(${selectedWorker.profilePicUrl})`
+                  : "none",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            ></div>
+          </div>
+          <div className="ms-3">
+            <p className="mb-1">
+              <i className="bi bi-person-fill me-2"></i> {selectedWorker.name || "N/A"}
+            </p>
+            <p className="mb-1">
+              <i className="bi bi-telephone-fill me-2"></i> {selectedWorker.contactNumber || "N/A"}
+            </p>
+          </div>
         </div>
-      </div>
-  ))
-     ) : (
-    <p>No workers assigned</p>
-  )}
+      ) : (
+        <p>No worker selected or found.</p>
+      )}
 </div>
 </div>
 
               {/* Right Card - Service Details */}
               <div className="col-md-6">
-                <div className="card rounded p-4 shadow-sm" style={{ marginTop: "60px", minHeight: "480px", maxWidth: "550px", border: "1px solid #ddd", borderRadius: "12px" }}>
+                <div className="card rounded p-4 shadow-sm" style={{ marginTop: "40px", minHeight: "480px", maxWidth: "550px", border: "1px solid #ddd", borderRadius: "12px" }}>
                   <h5>Status update</h5>
                   <div className="p-3 mt-3 rounded" style={{ height: "370px", border: "1px solid #ccc", borderRadius: "10px" }}>
                   <div
