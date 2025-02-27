@@ -43,11 +43,10 @@ const Worker = () => {
                 </div>
             </div>
 
-
             {/* Main content */}
             <div className="container">
                 <div className="row">
-                    <div className="col-4 border p-4 mt-4 mx-5 rounded">
+                <div className="col-4 border p-4 mt-4 mx-5 rounded align-self-start h-auto d-flex flex-column">
                         <div className=" d-flex justify-content-between">
                             <div className="d-flex">
                                 <p>Role:</p>
@@ -83,7 +82,6 @@ const Worker = () => {
                                 <p>23 Ocean View Drive, Jambulingam Coral Bay, Kerala, India 695582</p>
                             </div>
                         </div>
-
                         <div className="row">
                             <div className="col-5">
                                 <p>Joining Date</p>
@@ -99,20 +97,80 @@ const Worker = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="col-7 mt-4">
-                        {/* <div className="row">
-                            <div className="d-flex mt-1 border">
+                    <div className="col-7 mt-4 border">
+                        <div className="row">
+                            <div className="d-flex mt-3">
                                 <p className="border-bottom border-3 border-dark pb-2 px-2">Service Details</p>
                                 <p className="mx-5 pb-2 px-2">In Progress</p>
                                 <p className="pb-2 px-2">Reviews</p>
                             </div>
-                        </div> */}
+                        </div>
+                        <div className="row px-3 pb-3">
+                            <table>
+                                <tbody>
+                                    <tr className="booking-table mt-3">
+                                        <th className="">S.no</th>
+                                        <th>Service</th>
+                                        <th>Name</th>
+                                        <th>Date</th>
+                                        <th>Rating</th>
+                                    </tr>
+                                    <tr className="booking-table">
+                                        <td >1</td>
+                                        <td>Plumber <br /><span style={{ color: "#0076CE" }}>ID: 1</span></td>
+                                        <td>John Doe</td>
+                                        <td>01-01-2023</td>
+                                        <td>4.5</td>
+                                    </tr>
+                                    <tr className="booking-table">
+                                        <td>2</td>
+                                        <td>Electrician <br /><span style={{ color: "#0076CE" }}>ID: 2</span></td>
+                                        <td>Alen Sam</td>
+                                        <td>10-05-2023</td>
+                                        <td>4.2</td>
+                                    </tr>
+                                    <tr className="booking-table">
+                                        <td>3</td>
+                                        <td>Electrician <br /><span style={{ color: "#0076CE" }}>ID: 3</span></td>
+                                        <td>Alen Sam</td>
+                                        <td>10-05-2023</td>
+                                        <td>4.2</td>
+                                    </tr>
+                                    <tr className="booking-table">
+                                        <td>4</td>
+                                        <td>Electrician <br /><span style={{ color: "#0076CE" }}>ID: 4</span></td>
+                                        <td>Alen Sam</td>
+                                        <td>10-05-2023</td>
+                                        <td>4.2</td>
+                                    </tr>
+                                    <tr className="booking-table">
+                                        <td>5</td>
+                                        <td>Electrician <br /><span style={{ color: "#0076CE" }}>ID: 5</span></td>
+                                        <td>Alen Sam</td>
+                                        <td>10-05-2023</td>
+                                        <td>4.2</td>
+                                    </tr>
+                                    <tr className="booking-table">
+                                        <td>6</td>
+                                        <td>Electrician <br /><span style={{ color: "#0076CE" }}>ID: 6</span></td>
+                                        <td>Alen Sam</td>
+                                        <td>10-05-2023</td>
+                                        <td>4.2</td>
+                                    </tr>
+                                    <tr className="booking-table">
+                                        <td>7</td>
+                                        <td>Electrician <br /><span style={{ color: "#0076CE" }}>ID: 7</span></td>
+                                        <td>Alen Sam</td>
+                                        <td>10-05-2023</td>
+                                        <td>4.2</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
     );
 };
-
 export default Worker;
