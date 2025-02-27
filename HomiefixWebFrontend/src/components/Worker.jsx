@@ -28,18 +28,21 @@ const Worker = () => {
             </header>
 
             <div className="container" style={{ paddingTop: "80px", paddingLeft: "0px", paddingRight: "0px", marginLeft: "-10px" }}>
-                <div className="d-flex mx-2 align-items-center border-bottom w-100 mt-3">
-                    <button className="btn" onClick={() => navigate(-1)}>
+                <div className="d-flex border-bottom mx-2 align-items-center w-100 mt-3">
+                    <button className="btn d-flex align-items-center" onClick={() => navigate(-1)}>
                         <span style={{ fontSize: "20px" }}>←</span>
-                    </button>
-                    <button
-                        className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""} `}
-                        onClick={() => setActiveTab("recent")}
-                    >
-                        Worker Details
+                        <h5 className="px-3 pb-2 text-black mx-3"
+                            style={{
+                                borderBottom: "4px solid #000",
+                                position: "relative",
+                                marginBottom: "-11px"
+                            }}>
+                            Worker Details
+                        </h5>
                     </button>
                 </div>
             </div>
+
 
             {/* Main content */}
             <div className="container">
@@ -97,13 +100,13 @@ const Worker = () => {
                         </div>
                     </div>
                     <div className="col-7 mt-4">
-                        <div className="row">
+                        {/* <div className="row">
                             <div className="d-flex mt-1 border">
                                 <p className="border-bottom border-3 border-dark pb-2 px-2">Service Details</p>
                                 <p className="mx-5 pb-2 px-2">In Progress</p>
                                 <p className="pb-2 px-2">Reviews</p>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>
