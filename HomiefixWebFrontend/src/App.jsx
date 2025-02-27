@@ -2,16 +2,17 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
 import BookingDetails from "./components/BookingDetails";
-import Dashboard from "./components/Dashboard";
+// import Dashboard from "./components/Dashboard";
 import Layout from "./components/Layout";
 import AssignBookings from "./components/AssignBookings";
-import CustomerReview from "./components/CustomerReview";
-import Reviews from "./components/Reviews";
+// import CustomerReview from "./components/CustomerReview";
+// import Reviews from "./components/Reviews";
 import ProtectedRoute from "./components/ProtectedRoute";
 import WorkerDetails from "./components/WorkerDetails";
 import AddWorker from "./components/AddWorker";
-import Services from "./components/Services";
+// import Services from "./components/Services";
 import Worker from "./components/Worker";
+import ComingSoon from "./components/ComingSoon";
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem("token") || "");
@@ -28,15 +29,18 @@ const App = () => {
 
         <Route element={<ProtectedRoute token={token} />}>
           <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
+            {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+            <Route path="/dashboard" element={<ComingSoon />} />
             <Route path="/booking-details" element={<BookingDetails />} />
             <Route path="/booking-details/assign-bookings/:id" element={<AssignBookings />} />
-            <Route path="/reviews" element={<Reviews />} />
-            <Route path="/reviews/customer-review/:id" element={<CustomerReview />} />
+            {/* <Route path="/reviews" element={<Reviews />} /> */}
+            <Route path="/reviews" element={<ComingSoon />} />
+            {/* <Route path="/reviews/customer-review/:id" element={<CustomerReview />} /> */}
             <Route path="/worker-details" element={<WorkerDetails/>} />
             <Route path="/worker-details/worker" element={<Worker />} />
             <Route path="/worker-details/add-worker" element={<AddWorker/>} />
-            <Route path="/services" element={<Services />} />
+            {/* <Route path="/services" element={<Services />} /> */}
+            <Route path="/services" element={<ComingSoon />} />
           </Route>
         </Route>
       </Routes>

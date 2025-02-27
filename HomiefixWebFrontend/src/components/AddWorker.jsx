@@ -30,6 +30,7 @@ const AddWorker = () => {
         econtactNumber: "",
         role: "", // Role will be determined by the heading (p tag)
         specification: [], // Change to an array to store multiple specifications
+        language: [],
         profilePic: null,
     });
     const [previewImage, setPreviewImage] = useState(addWorker); // To display the selected image preview
@@ -160,7 +161,7 @@ const AddWorker = () => {
                     <div className="container mt-4" style={{ marginLeft: "60px", maxWidth: "100%" }}>
                         {/* Row 1 */}
                         <div className="row" style={{ maxWidth: "100%" }}>
-                            <div className="col-md-3">
+                            <div className="col-md-2">
                                 <label htmlFor="name" className="form-label">Full Name</label>
                                 <input type="text" className="form-control" name="name" id="name" required placeholder="Enter Name" onChange={handleChange} />
                             </div>
@@ -168,17 +169,21 @@ const AddWorker = () => {
                                 <label htmlFor="email" className="form-label">Email</label>
                                 <input type="email" className="form-control" name="email" id="email" required placeholder="Enter Email" onChange={handleChange} />
                             </div>
-                            <div className="col-md-5">
+                            <div className="col-md-3">
                                 <label htmlFor="contactNumber" className="form-label">Contact Number</label>
                                 <input type="tel" className="form-control" name="contactNumber" id="contactNumber" required placeholder="Enter Contact Number" onChange={handleChange} />
+                            </div>
+                            <div className="col-md-3">
+                                <label htmlFor="eContactNumber" className="form-label">Emergency Contact Number</label>
+                                <input type="tel" className="form-control" name="eContactNumber" id="eContactNumber" placeholder="Enter Emergency Contact Number" onChange={handleChange} />
                             </div>
                         </div>
 
                         {/* Row 2 */}
                         <div className="row mt-4">
-                            <div className="col-md-3">
-                                <label htmlFor="eContactNumber" className="form-label">Emergency Contact Number</label>
-                                <input type="tel" className="form-control" name="eContactNumber" id="eContactNumber" placeholder="Enter Emergency Contact Number" onChange={handleChange} />
+                            <div className="col-md-2">
+                                <label htmlFor="language" className="form-label">Language</label>
+                                <input type="tel" className="form-control" name="language" id="language" placeholder="Enter Language" onChange={handleChange} />
                             </div>
                             <div className="col-md-3">
                                 <label htmlFor="workExperience" className="form-label">Work Experience</label>
