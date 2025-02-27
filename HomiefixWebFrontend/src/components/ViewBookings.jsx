@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import "../styles/ViewBooking.css";
 import notification from "../assets/Bell.png";
@@ -7,82 +7,79 @@ import search from "../assets/Search.png";
 
 const ViewBookings = () => {
   const { id } = useParams();
-  const location = useLocation();
+   const location = useLocation();
   const navigate = useNavigate(); // Fixed missing import
   const booking = location.state?.booking || {};
-  const [bookings, setBookings] = useState("");
-
+ const [bookings,setBookings] = useState({});
 const [bookingDate, setBookingDate] = useState("");
 const [bookedDate, setBookedDate] = useState("");
   const [activeTab, setActiveTab] = useState("serviceDetails");
-  const [workers, setWorkers] = useState([]);
+  const [worker, setWorker] = useState([]);
   const [serviceStarted, setServiceStarted] = useState("No");
   const [serviceCompleted, setServiceCompleted] = useState("No");
   const[timeSlot,setTimeSlot]=useState("");
-  const [notes, setNotes] = useState("Your initial notes here");
+  const [notes, setNotes] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [typingTimeout, setTypingTimeout] = useState(null);
-  const [selectedWorker, setSelectedWorker] = useState(null);
-  const [selectedWorkerId, setSelectedWorkerId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+ 
+
+
   
   // Fetch workers from the API
   useEffect(() => {
-    if (!id) return; // Ensure ID exists before making the request
+    if (!id) return;
 
-    const fetchWorkers = async () => {
-      try {
-        const response = await fetch(`http://localhost:2222/workers/view`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const data = await response.json();
-        setWorkers(data);
-
-        // Automatically select the first worker (or update logic as needed)
-        if (data.length > 0) {
-          setSelectedWorkerId(data[0].id); // Set the first worker as default
-        }
-      } catch (error) {
-        console.error("Error fetching workers:", error);
-      }
-    };
-
-    fetchWorkers();
-  }, [id]); // Only fetch when `id` changes
-
-  // Update selected worker when `selectedWorkerId` changes
-  useEffect(() => {
-    if (!selectedWorkerId || workers.length === 0) return;
-
-    const worker = workers.find(worker => worker.id === selectedWorkerId);
-    setSelectedWorker(worker || null);
-  }, [selectedWorkerId, workers]); // Runs when `selectedWorkerId` or `workers` changes
-
-
-
-  useEffect(() => {
     const fetchBookingDetails = async () => {
-      try {
-        const response = await fetch("http://localhost:2222/booking/all");
-        const data = await response.json();
-  
-        const currentBooking = data.find(b => String(b.id) === String(id));
-        if (currentBooking) {
-          setBookings(currentBooking);
-          setBookingDate(currentBooking.bookingDate || "N/A");
-          setBookedDate(currentBooking["bookedDate"] || "N/A");
-          setTimeSlot(currentBooking.timeSlot || "N/A"); // Fix key if needed
-          setNotes(currentBooking.notes || "");
+        try {
+            setLoading(true);
 
-          console.log("Fetched Booking:", currentBooking);
+            const response = await fetch(`http://localhost:2222/booking/${id}`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch booking details");
+            }
+            const data = await response.json();
+            console.log("Fetched Booking Data:", data);
+           
+            // Set the booking details in state
+          
+            setBookings(data)
+           
+            setBookingDate(data.bookingDate || "N/A");
+            setBookedDate(data.bookedDate || "N/A");
+            setTimeSlot(data.timeSlot || "N/A");
+            setNotes(data.notes || "");
+          
+           
+            
+            
+            // Set worker details
+            if (data.worker) {
+                setWorker(data.worker);
+            } else if (data.workerId) {
+                const workerResponse = await fetch(`http://localhost:2222/workers/view/${data.workerId}`);
+                if (!workerResponse.ok) {
+                    throw new Error("Failed to fetch worker details");
+                }
+                const workerData = await workerResponse.json();
+                console.log("Worker Data:", workerData);
+                setWorker(workerData);
+            }
+        } catch (err) {
+            console.error("Error fetching booking details:", err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
         }
-      } catch (error) {
-        console.error("Error fetching booking details:", error);
-      }
     };
-  
+
     fetchBookingDetails();
-  }, [id]); // Dependency array ensures it runs when `id` changes
+}, [id]);
+useEffect(() => {
+  console.log("Worker Data:", worker);
+}, [worker]);
+
   
   const SetBookedDate = (dateString) => {
     if (!dateString || dateString === "N/A") return "N/A";
@@ -150,29 +147,32 @@ const updateBooking = async () => {
 };
 
 
+
 const fetchNotes = async () => {
   try {
-    const response = await fetch(`http://localhost:2222/booking/${id}?_=${new Date().getTime()}`);
-    if (!response.ok) throw new Error("Failed to fetch notes");
-
+    console.log("Fetching notes for ID:", id);
+    const response = await fetch(`http://localhost:2222/booking/${id}`);
     const data = await response.json();
-    console.log("Notes fetched:", data);
-
-    setTimeout(() => {
-      setNotes(data.notes || "");
-    }, 100); // Small delay to ensure state update // ✅ Ensure correct key
+    
+    console.log("Full API Response:", data); // 🔍 Debugging API Response
+    
+    if (data.notes !== undefined) {
+      setNotes(data.notes);
+    } else {
+      console.warn("No notes found in API response");
+    }
   } catch (error) {
     console.error("Error fetching notes:", error);
   }
 };
 
-// ✅ Save Updated Notes
+
+useEffect(() => {
+  if (id) fetchNotes();
+}, [id]);
+
 const saveNote = async (updatedNotes) => {
-  console.log("Sending PATCH request:", {
-    id,
-    url: `http://localhost:2222/booking/update-notes/${id}`,
-    body: { notes: updatedNotes },
-  });
+  console.log("Saving note:", updatedNotes);
 
   try {
     const response = await fetch(`http://localhost:2222/booking/update-notes/${id}`, {
@@ -180,44 +180,41 @@ const saveNote = async (updatedNotes) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ notes: updatedNotes }), // Use body instead of query params
+      body: JSON.stringify({ notes: updatedNotes }), // ✅ Ensure correct format
     });
 
-    const result = await response.json();
-    console.log("Server response:", result);
+    const result = await response.json(); // ✅ Parse response
+    console.log("Server Response:", result);
 
-    if (!response.ok) throw new Error(`Failed to update note. Status: ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`Failed to update note. Status: ${response.status}`);
+    }
 
     console.log("✅ Note updated successfully");
-    setIsEditing(false);
-    fetchNotes(); // ✅ Re-fetch updated notes
   } catch (error) {
     console.error("Error saving note:", error);
   }
 };
 
-
-// ✅ Handle Edit Click
+// Handle Edit Click
 const handleEditClick = () => {
   setIsEditing(true);
-
   setTimeout(() => {
-    textareaRef.current?.focus(); // ✅ Auto-focus the textarea when editing starts
+    textareaRef.current?.focus(); // Auto-focus on edit
   }, 50);
 };
 
-// ✅ Handle Note Change with Auto-Save
+// Handle Note Change with Auto-Save
 const handleNoteChange = (e) => {
   const updatedNotes = e.target.value;
   setNotes(updatedNotes);
 
-  // Clear previous timeout if exists
-  if (typingTimeout) clearTimeout(typingTimeout);
+  if (typingTimeout) clearTimeout(typingTimeout); // Clear previous timeout
 
-  // Set new timeout to auto-save after 1 second
   const newTimeout = setTimeout(() => {
+    console.log("Auto-saving notes:", updatedNotes);
     saveNote(updatedNotes);
-  }, 1000);
+  }, 2000);
 
   setTypingTimeout(newTimeout);
 };
@@ -287,11 +284,14 @@ const getLinePosition = () => {
                 </div>
 
                 <div className="p-0 m-0 mt-4">
-                  <h6>Customer Details</h6>
-                  <p className="mb-1"><i className="bi bi-person-fill me-2"></i> {booking.name}</p>
-                  <p className="mb-1"><i className="bi bi-telephone-fill me-2"></i> {booking.contact}</p>
-                  <p className="mb-1"><i className="bi bi-geo-alt-fill me-2"></i> {booking.address}</p>
-                  <p className="mb-1"><i className="bi bi-calendar-event-fill me-2"></i> {booking.date}</p>
+                  <h6 style={{ fontWeight: "bold"}}> Customer Details</h6>
+                  
+  
+                  <p className="mb-1"><i className="bi bi-person-fill me-2"></i> {booking?.name ?? "N/A"}</p>
+<p className="mb-1"><i className="bi bi-telephone-fill me-2"></i> {booking?.contact ?? "N/A"}</p>
+<p className="mb-1"><i className="bi bi-geo-alt-fill me-2"></i> {booking?.address ?? "N/A"}</p>
+<p className="mb-1"><i className="bi bi-calendar-event-fill me-2"></i> {booking?.date ?? "N/A"}</p>
+
                 </div>
 
                 {/* Comment Field (Notes) */}
@@ -299,12 +299,12 @@ const getLinePosition = () => {
                   <span 
                     className="position-absolute" 
                     style={{ top: "5px", right: "15px", fontSize: "14px", color: "#0076CE", cursor: "pointer" }}
-                    onClick={isEditing ? saveNote : handleEditClick}
+                    onClick={handleEditClick}
                   >
                      Edit
                   </span>
-                  <textarea id="notes" className="form-control" placeholder="Notes" rows="4" style={{ resize: "none", height: "150px",backgroundColor: "white",
-                    cursor: isEditing ? "text" : "default",
+                  <textarea id="notes" className="form-control" placeholder="Notes not Available" rows="3" style={{ resize: "none", height: "140px",backgroundColor: "white",
+                    
                    
                    }}
                   value={notes} // Display fetched notes
@@ -312,47 +312,56 @@ const getLinePosition = () => {
                   onChange={handleNoteChange}
                   
                   disabled={!isEditing}
-                  onBlur={() => setIsEditing(false)}
+                 
                   >
              </textarea>
                 </div>
                
                 {/* Worker Details */}
                  <div className="mt-4">
-                  <h6>Worker Details</h6>
-                  {selectedWorker ? (
-        <div key={selectedWorker.id} className="d-flex align-items-center mb-3">
-          <div className="d-flex align-items-center gap-2">
-            <div
-              className="rounded-circle bg-secondary"
-              style={{
-                width: "100px",
-                height: "100px",
-                marginTop: "-10px",
-                flexShrink: 0,
-                backgroundImage: selectedWorker.profilePicUrl
-                  ? `url(${selectedWorker.profilePicUrl})`
-                  : "none",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-            ></div>
-          </div>
-          <div className="ms-3">
+                  <h6 style={{ fontWeight: "bold"}}>Worker Details</h6>
+                  {worker ? (
+        <div className="d-flex align-items-center">
+          <div
+            className="rounded-circle bg-secondary"
+            style={{
+              width: "100px",
+              height: "100px",
+              backgroundImage: worker.profilePicUrl
+                ? `url(${worker.profilePicUrl})`
+                : `url("/default-avatar.png")`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          ></div>
+          <div className=" d-flex flex-column mb-1">
             <p className="mb-1">
-              <i className="bi bi-person-fill me-2"></i> {selectedWorker.name || "N/A"}
+              <i className="bi bi-person-fill me-2"></i> {worker.name} <span className="ms-2" style={{  fontSize:"16px" }}> 
+      <i className="bi bi-star-fill"style={{ color: "#FFD700" }}></i> 
+        {worker.rating ?worker.rating.toFixed(1): "4.5"} </span></p>
+            <p className="mb-1">
+              <i className="bi bi-telephone-fill me-2"></i> {worker.contactNumber}
             </p>
             <p className="mb-1">
-              <i className="bi bi-telephone-fill me-2"></i> {selectedWorker.contactNumber || "N/A"}
+              <i className="bi bi-geo-alt-fill me-2"></i> {worker.houseNumber},{worker.nearbyLandmark},{worker.town},{worker.pincode},
+              {worker.state},{worker.district}
             </p>
           </div>
         </div>
       ) : (
-        <p>No worker selected or found.</p>
+        <p>No worker selected or loading...</p>
       )}
-</div>
-</div>
+      <a 
+          href={`/workers/view/${worker.id}`} 
+           
+          style={{ color: "#007bff",marginLeft:"120px",  textDecoration: "none" }}
+        >
+          View full Profile →
+        </a>
+    </div>
 
+  
+        </div>  
               {/* Right Card - Service Details */}
               <div className="col-md-6">
                 <div className="card rounded p-4 shadow-sm" style={{ marginTop: "40px", minHeight: "480px", maxWidth: "550px", border: "1px solid #ddd", borderRadius: "12px" }}>
