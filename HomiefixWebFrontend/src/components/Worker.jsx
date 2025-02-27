@@ -46,7 +46,7 @@ const Worker = () => {
             {/* Main content */}
             <div className="container">
                 <div className="row">
-                <div className="col-4 border p-4 mt-4 mx-5 rounded align-self-start h-auto d-flex flex-column">
+                    <div className="col-4 border p-4 mt-4 mx-5 rounded align-self-start h-auto d-flex flex-column">
                         <div className=" d-flex justify-content-between">
                             <div className="d-flex">
                                 <p>Role:</p>
@@ -97,7 +97,7 @@ const Worker = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="col-7 mt-4 border">
+                    <div className="col-7 mt-4 border" style={{marginLeft: "-25px"}}>
                         <div className="row">
                             <div className="d-flex mt-3">
                                 <p className="border-bottom border-3 border-dark pb-2 px-2">Service Details</p>
@@ -107,14 +107,17 @@ const Worker = () => {
                         </div>
                         <div className="row px-3 pb-3">
                             <table>
-                                <tbody>
-                                    <tr className="booking-table mt-3">
+                                <thead className="">
+                                    <tr className="booking-table mt-3 ">
                                         <th className="">S.no</th>
                                         <th>Service</th>
                                         <th>Name</th>
                                         <th>Date</th>
                                         <th>Rating</th>
                                     </tr>
+                                </thead>
+                                <tbody>
+
                                     <tr className="booking-table">
                                         <td >1</td>
                                         <td>Plumber <br /><span style={{ color: "#0076CE" }}>ID: 1</span></td>
