@@ -35,17 +35,17 @@
 .service-list {
   
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 columns */
-  gap: 10px; /* space between boxes */
-  margin-top: 180px; /* to avoid header overlap */
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 10px; 
+  margin-top: 180px; 
   
 }
 .service-card {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Align items center */
+  align-items: center; 
   width: 380px;
-  height: 70px; /* Control width */
+  height: 70px; 
  margin-left: 15px;
   border: 1px solid #ddd;
   border-radius: 12px;
@@ -65,7 +65,7 @@
    width: 100%;
   height: 100%;
   margin-left: -150px;
-  object-fit: contain; /* Ensures full image fits */
+  object-fit: contain; 
   border-radius: 8px;
 }
 

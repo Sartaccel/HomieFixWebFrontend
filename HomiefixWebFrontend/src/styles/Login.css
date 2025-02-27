@@ -1,0 +1,34 @@
+/* Login Button */
+.login-button {
+    width: 100%;
+    height: 50px;
+    background: #0076ce;
+    border: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 6px;
+    transition: background 0.3s;
+  }
+  
+  .login-button.loading {
+    background: #005899;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .login-button:disabled {
+    cursor: not-allowed;
+  }
+  
+  /* Loader SVG */
+  .loader-icon {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  

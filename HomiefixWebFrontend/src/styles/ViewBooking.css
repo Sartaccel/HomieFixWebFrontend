@@ -11,7 +11,7 @@
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    padding-right: 20px; /* Space for arrow */
+    padding-right: 20px;
     cursor: pointer;
   }
   
@@ -24,7 +24,7 @@
     right: 5px;
     top: 50%;
     transform: translateY(-50%);
-    pointer-events: none; /* Prevent arrow from blocking clicks */
+    pointer-events: none; 
   }
   
   /* Optional: Show darker arrow on hover */
@@ -33,7 +33,7 @@
   }
   .worker-status {
     position: relative;
-    padding-right: 20px; /* Space for arrow */
+    padding-right: 20px;
   }
   
   /* Add dropdown arrow ONLY when worker is assigned (Yes) */
@@ -47,18 +47,16 @@
     transform: translateY(-50%);
   }
   .border-right {
-    border-right: 1px solid #ccc; /* Creates vertical line */
+    border-right: 1px solid #ccc; 
     
   }
   .bg-grey {
-    background-color: #d9d9d9; /* Set background color for Yes/No side */
+    background-color: #d9d9d9; 
   
   }
   
-  .table td {
-    /* Centers content */
-   
-    border-bottom: 1px solid #ccc /* Horizontal line */
+  .table td {   
+    border-bottom: 1px solid #ccc 
   }
   
   /* Aligns the Yes/No to the right */

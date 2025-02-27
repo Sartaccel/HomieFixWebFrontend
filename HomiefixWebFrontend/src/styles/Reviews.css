@@ -32,7 +32,7 @@ body, html {
 
 /* Make review content scrollable */
 .scrollable-reviews {
-    max-height: 630px; /* Adjust the height as needed */
+    max-height: 630px; 
     overflow-y: auto;
     padding-right: 10px;
 }
@@ -59,7 +59,7 @@ body, html {
     gap: 15px;
     background-color: #fff;
     position: fixed;
-    top: 70px; /* Ensure it appears below the header */
+    top: 70px; 
     width: 100%;
     z-index: 1000;
     border-bottom: 1px solid #ddd;
