@@ -8,7 +8,6 @@ import dop from "../assets/addWorker.png"
 const Worker = () => {
 
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState("recent");
 
     return (
         <div>
@@ -97,7 +96,7 @@ const Worker = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="col-7 mt-4 border" style={{marginLeft: "-25px"}}>
+                    <div className="col-7 mt-4 border" style={{ marginLeft: "-25px" }}>
                         <div className="row">
                             <div className="d-flex mt-3">
                                 <p className="border-bottom border-3 border-dark pb-2 px-2">Service Details</p>
@@ -169,6 +168,7 @@ const Worker = () => {
                                     </tr>
                                 </tbody>
                             </table>
+
                         </div>
                     </div>
                 </div>
