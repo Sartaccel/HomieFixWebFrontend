@@ -107,7 +107,7 @@ const Worker = () => {
                         <div className="row px-3 pb-3">
                             <table>
                                 <thead className="">
-                                    <tr className="booking-table mt-3 ">
+                                    <tr className="booking-table mt-3">
                                         <th className="">S.no</th>
                                         <th>Service</th>
                                         <th>Name</th>
