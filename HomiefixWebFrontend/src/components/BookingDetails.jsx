@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "react-datepicker/dist/react-datepicker.css";
+import { FaStar } from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import "../styles/BookingDetails.css";
 import notification from "../assets/Bell.png";
@@ -20,7 +21,9 @@ const BookingDetails = () => {
   const [activeTab, setActiveTab] = useState("bookings");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
+  const [ratings, setRatings] = useState({});
   const dropdownRef = useRef(null);
+  const [ratingFilter, setRatingFilter] = useState("All");
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -45,6 +48,7 @@ const BookingDetails = () => {
           address: `${booking.deliveryAddress.houseNumber}, ${booking.deliveryAddress.town}, ${booking.deliveryAddress.district}, ${booking.deliveryAddress.state}, ${booking.deliveryAddress.pincode}`,
           date: booking.bookedDate,
           timeslot: booking.timeSlot,
+          cancelReason: booking.cancelReason,
           status:
             booking.bookingStatus === "COMPLETED"
               ? "Completed"
@@ -77,6 +81,35 @@ const BookingDetails = () => {
     fetchBookings();
   }, []);
 
+  useEffect(() => {
+    const fetchRatings = async () => {
+      const completedBookings = bookings.filter(
+        (booking) => booking.status === "Completed"
+      );
+      const ratingsData = {};
+
+      for (const booking of completedBookings) {
+        try {
+          const response = await fetch(
+            `http://localhost:2222/feedback/byBooking/${booking.id}`
+          );
+          const data = await response.json();
+          if (data.length > 0) {
+            ratingsData[booking.id] = data[0].rating;
+          }
+        } catch (error) {
+          console.error("Error fetching rating:", error);
+        }
+      }
+
+      setRatings(ratingsData);
+    };
+
+    if (activeTab === "completed") {
+      fetchRatings();
+    }
+  }, [bookings, activeTab]);
+
   const pendingBookings = bookings.filter(
     (booking) =>
       booking.status === "Pending" ||
@@ -91,7 +124,9 @@ const BookingDetails = () => {
       booking.worker
   );
 
-  const completed = bookings.filter((booking) => booking.status === "Completed");
+  const completed = bookings.filter(
+    (booking) => booking.status === "Completed"
+  );
   const canceled = bookings.filter((booking) => booking.status === "Canceled");
 
   const handleDateChange = (date) => {
@@ -133,10 +168,21 @@ const BookingDetails = () => {
       );
 
       if (statusFilter !== "All") {
-        filtered = filtered.filter((booking) => booking.status === statusFilter);
+        filtered = filtered.filter(
+          (booking) => booking.status === statusFilter
+        );
       }
     } else if (activeTab === "completed") {
       filtered = filtered.filter((booking) => booking.status === "Completed");
+      if (ratingFilter !== "All") {
+        if (ratingFilter === "No Rating") {
+          filtered = filtered.filter((booking) => !ratings[booking.id]);
+        } else {
+          filtered = filtered.filter(
+            (booking) => ratings[booking.id] === parseInt(ratingFilter)
+          );
+        }
+      }
     } else if (activeTab === "canceled") {
       filtered = filtered.filter((booking) => booking.status === "Canceled");
     }
@@ -156,7 +202,7 @@ const BookingDetails = () => {
 
     console.log("Filtered Bookings:", filtered);
     setFilteredBookings(filtered);
-  }, [activeTab, selectedDate, bookings, statusFilter]);
+  }, [activeTab, selectedDate, bookings, statusFilter, ratingFilter]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -189,7 +235,12 @@ const BookingDetails = () => {
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
           <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
-            <h2 className="heading align-items-center mb-0 "  style={{ marginLeft: "31px" }}>Booking Details</h2>
+            <h2
+              className="heading align-items-center mb-0 "
+              style={{ marginLeft: "31px" }}
+            >
+              Booking Details
+            </h2>
             <div className="header-right d-flex align-items-center gap-3">
               <div className="input-group" style={{ width: "300px" }}>
                 <input
@@ -222,10 +273,14 @@ const BookingDetails = () => {
               onClick={() => setActiveTab("bookings")}
             >
               Bookings{" "}
-              <span className="badge bg-dark ms-1">{pendingBookings.length}</span>
+              <span className="badge bg-dark ms-1">
+                {pendingBookings.length}
+              </span>
             </div>
             <div
-              className={`section ${activeTab === "inProgress" ? "active" : ""}`}
+              className={`section ${
+                activeTab === "inProgress" ? "active" : ""
+              }`}
               onClick={() => setActiveTab("inProgress")}
             >
               In Progress{" "}
@@ -251,32 +306,98 @@ const BookingDetails = () => {
             className="table-responsive mt-3 w-100 px-0 overflow-auto"
             style={{ maxHeight: "100%", minHeight: "100%" }}
           >
-            <table className="booking-table table table-hover bg-white rounded shadow-sm align-items-center">
+            <table className="booking-table table table-hover bg-white rounded shadow-sm">
               <thead className="td-height">
                 <tr>
-                  <th className="p-3" style={{ width: "19.5%" }}>
+                  {/* Service Column */}
+                  <th
+                    className="p-3 text-left"
+                    style={{
+                      width:
+                        activeTab === "bookings"
+                          ? "20%"
+                          : activeTab === "inProgress"
+                          ? "19.4%"
+                          : activeTab === "completed"
+                          ? "20.6%"
+                          : activeTab === "canceled"
+                          ? "18.7%"
+                          : "20%",
+                    }}
+                  >
                     Service
                   </th>
-                  <th className="p-3" style={{ width: "15%" }}>
+
+                  {/* Name Column */}
+                  <th
+                    className="p-3 text-left"
+                    style={{
+                      width:
+                        activeTab === "bookings"
+                          ? "13.8%"
+                          : activeTab === "completed"
+                          ? "15.3%"
+                          : activeTab === "inProgress"
+                          ? "14.4%"
+                          : activeTab === "canceled"
+                          ? "16.9%"
+                          : "13.8%",
+                    }}
+                  >
                     Name
                   </th>
-                  {activeTab === "inProgress" ? (
-                    <th className="p-3" style={{ width: "16%" }}>
+
+                  {/* Worker, Contact, and Address Columns */}
+                  {activeTab === "inProgress" ||
+                  activeTab === "completed" ||
+                  activeTab === "canceled" ? (
+                    <th
+                      className="p-3 text-left"
+                      style={{
+                        width:
+                          activeTab === "completed"
+                            ? "17%"
+                            : activeTab === "inProgress"
+                            ? "15.5%"
+                            : activeTab === "canceled"
+                            ? "15.3%"
+                            : "16%",
+                      }}
+                    >
                       Worker
                     </th>
                   ) : (
                     <>
-                      <th className="p-3">Contact</th>
-                      <th className="p-3" style={{ width: "25%" }}>
+                      <th className="p-3 text-left" style={{ width: "12%" }}>
+                        Contact
+                      </th>
+                      <th className="p-3 text-left" style={{ width: "25%" }}>
                         Address
                       </th>
                     </>
                   )}
-                  <th className="p-3" style={{ width: "14%" }}>
+
+                  {/* Date Column */}
+                  <th
+                    className="text-left"
+                    style={{
+                      width:
+                        activeTab === "bookings"
+                          ? "14%"
+                          : activeTab === "inProgress"
+                          ? "14%"
+                          : activeTab === "completed"
+                          ? "15%"
+                          : activeTab === "canceled"
+                          ? "14%"
+                          : "14%",
+                      padding: "14px",
+                    }}
+                  >
                     Date
                     <div className="dropdown d-inline ms-2" ref={dropdownRef}>
                       <button
-                        className="btn btn-light dropdown-toggle p-0"
+                        className="btn btn-light btn-sm dropdown-toggle p-0"
                         type="button"
                         onClick={() => setDropdownOpen(!dropdownOpen)}
                       ></button>
@@ -301,70 +422,168 @@ const BookingDetails = () => {
                       )}
                     </div>
                   </th>
+
+                  {/* Status/Reason Column */}
                   {activeTab !== "bookings" && (
-                    <th className="p-3">
+                    <th
+                      className="p-3 text-left"
+                      style={{
+                        width:
+                          activeTab === "inProgress"
+                            ? "15%"
+                            : activeTab === "completed"
+                            ? "15%"
+                            : activeTab === "canceled"
+                            ? "15%"
+                            : "15%",
+                      }}
+                    >
                       {activeTab === "inProgress" ? (
-                        <div className="dropdown">
-                        <button
-                          className="btn btn-light dropdown-toggle"
-                          type="button"
-                          id="statusFilterDropdown"
-                          data-bs-toggle="dropdown"
-                          data-bs-placement="bottom" // Force dropdown to open below
-                          aria-expanded="false"
+                        <div
+                          className="dropdown d-inline"
+                          style={{ marginLeft: "-5px" }}
                         >
-                          Status: {statusFilter}
-                        </button>
-                        <ul
-                          className="dropdown-menu"
-                          aria-labelledby="statusFilterDropdown"
-                        >
-                          <li>
-                            <button
-                              className="dropdown-item"
-                              onClick={() => setStatusFilter("All")}
-                            >
-                              All
-                            </button>
-                          </li>
-                          <li>
-                            <button
-                              className="dropdown-item"
-                              onClick={() => setStatusFilter("Assigned")}
-                            >
-                              Assigned
-                            </button>
-                          </li>
-                          <li>
-                            <button
-                              className="dropdown-item"
-                              onClick={() => setStatusFilter("Rescheduled")}
-                            >
-                              Rescheduled
-                            </button>
-                          </li>
-                          <li>
-                            <button
-                              className="dropdown-item"
-                              onClick={() => setStatusFilter("Started")}
-                            >
-                              Started
-                            </button>
-                          </li>
-                        </ul>
-                      </div>
+                          Status:&nbsp;
+                          <button
+                            className="btn btn-light btn-sm dropdown-toggle"
+                            type="button"
+                            id="statusFilterDropdown"
+                            data-bs-toggle="dropdown"
+                            data-bs-placement="bottom"
+                            aria-expanded="false"
+                            style={{ padding: "0px" }}
+                          >
+                            {statusFilter}
+                          </button>
+                          <ul
+                            className="dropdown-menu"
+                            aria-labelledby="statusFilterDropdown"
+                          >
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => setStatusFilter("All")}
+                              >
+                                All
+                              </button>
+                            </li>
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => setStatusFilter("Assigned")}
+                              >
+                                Assigned
+                              </button>
+                            </li>
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => setStatusFilter("Rescheduled")}
+                              >
+                                Rescheduled
+                              </button>
+                            </li>
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => setStatusFilter("Started")}
+                              >
+                                Started
+                              </button>
+                            </li>
+                          </ul>
+                        </div>
+                      ) : activeTab === "completed" ? (
+                        <div className="dropdown p-0 m-0">
+                          Rating:&nbsp;
+                          <button
+                            className="btn btn-light btn-sm dropdown-toggle"
+                            type="button"
+                            id="ratingFilterDropdown"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            style={{ height: "25px", padding: "0" }}
+                          >
+                            {" "}
+                            <span className="d-inline-flex align-items-center">
+                              <FaStar
+                                style={{ color: "gold", marginRight: "4px" }}
+                              />
+                              {ratingFilter}
+                            </span>
+                          </button>
+                          <ul
+                            className="dropdown-menu"
+                            aria-labelledby="ratingFilterDropdown"
+                          >
+                            <li>
+                              <button
+                                className="dropdown-item d-flex align-items-center"
+                                onClick={() => setRatingFilter("All")}
+                              >
+                                <FaStar
+                                  style={{ color: "gold", marginRight: "4px" }}
+                                />
+                                All
+                              </button>
+                            </li>
+                            {[5, 4, 3, 2, 1].map((rating) => (
+                              <li key={rating}>
+                                <button
+                                  className="dropdown-item d-flex align-items-center"
+                                  onClick={() =>
+                                    setRatingFilter(rating.toString())
+                                  }
+                                >
+                                  <FaStar
+                                    style={{
+                                      color: "gold",
+                                      marginRight: "4px",
+                                    }}
+                                  />
+                                  {rating}
+                                </button>
+                              </li>
+                            ))}
+                            <li>
+                              <button
+                                className="dropdown-item d-flex align-items-center"
+                                onClick={() => setRatingFilter("No Rating")}
+                              >
+                                <FaStar style={{ color: "gold" }} />
+                                No Rating
+                              </button>
+                            </li>
+                          </ul>
+                        </div>
                       ) : (
-                        "Status"
+                        "Reason"
                       )}
                     </th>
                   )}
-                  <th></th>
+
+                  {/* Action Column */}
+                  <th className="p-3 text-left" style={{ width: "10%" }}></th>
                 </tr>
               </thead>
               <tbody>
                 {filteredBookings.map((booking) => (
                   <tr key={booking.id}>
-                    <td style={{ width: "20%" }}>
+                    {/* Service Column */}
+                    <td
+                      className="p-3 text-left"
+                      style={{
+                        width:
+                          activeTab === "bookings"
+                            ? "20%"
+                            : activeTab === "canceled"
+                            ? "18.8%"
+                            : activeTab === "completed" ||
+                              activeTab === "inProgress"
+                            ? "20%"
+                            : "20%",
+                      }}
+                    >
                       <div className="d-flex align-items-center gap-2">
                         <div
                           className="rounded-circle bg-secondary"
@@ -384,20 +603,49 @@ const BookingDetails = () => {
                       </div>
                     </td>
 
-                    <td>
+                    {/* Name Column */}
+                    <td
+                      className="p-3 text-left"
+                      style={{
+                        width:
+                          activeTab === "bookings"
+                            ? "13.8%"
+                            : activeTab === "canceled"
+                            ? "17%"
+                            : activeTab === "completed" ||
+                              activeTab === "inProgress"
+                            ? "15%"
+                            : "13.8%",
+                      }}
+                    >
                       {booking.name} <br />
-                      {activeTab === "inProgress" && (
+                      {(activeTab === "inProgress" ||
+                        activeTab === "completed" ||
+                        activeTab === "canceled") && (
                         <span>{booking.contact}</span>
                       )}
                     </td>
-                    {activeTab === "inProgress" ? (
-                      <td>
+
+                    {/* Worker, Contact, and Address Columns */}
+                    {activeTab === "inProgress" ||
+                    activeTab === "completed" ||
+                    activeTab === "canceled" ? (
+                      <td
+                        className="p-3 text-left"
+                        style={{
+                          width:
+                            activeTab === "canceled"
+                              ? "15%"
+                              : activeTab === "completed" ||
+                                activeTab === "inProgress"
+                              ? "16%"
+                              : "16%",
+                        }}
+                      >
                         {booking.worker ? (
                           <>
                             <p className="mb-0 ">{booking.worker.name}</p>
-                            <p className="mb-0 text-muted">
-                              {booking.worker.contact}
-                            </p>
+                            <p className="mb-0 ">{booking.worker.contact}</p>
                           </>
                         ) : (
                           <p className="text-muted">Not Assigned</p>
@@ -405,17 +653,49 @@ const BookingDetails = () => {
                       </td>
                     ) : (
                       <>
-                        <td>{booking.contact}</td>
-                        <td style={{ width: "25%" }}>{booking.address}</td>
+                        <td className="p-3 text-left" style={{ width: "12%" }}>
+                          {booking.contact}
+                        </td>
+                        <td className="p-3 text-left" style={{ width: "25%" }}>
+                          {booking.address}
+                        </td>
                       </>
                     )}
 
-                    <td>
+                    {/* Date Column */}
+                    <td
+                      className="p-3 text-left"
+                      style={{
+                        width:
+                          activeTab === "bookings"
+                            ? "14%"
+                            : activeTab === "completed"
+                            ? "14%"
+                            : activeTab === "inProgress" ||
+                              activeTab === "canceled"
+                            ? "14%"
+                            : "14%",
+                      }}
+                    >
                       {booking.date} <br />
                       <span>{booking.timeslot}</span>
                     </td>
+
+                    {/* Status/Reason Column */}
                     {activeTab !== "bookings" && (
-                      <td>
+                      <td
+                        className="p-3 text-left"
+                        style={{
+                          width:
+                            activeTab === "inProgress"
+                              ? "15%"
+                              : activeTab === "completed"
+                              ? "15%"
+                              : activeTab === "canceled"
+                              ? "15%"
+                              : "15%",
+                        }}
+                      >
                         {activeTab === "inProgress" ? (
                           <img
                             src={getStatusIcon(booking.status)}
@@ -423,13 +703,29 @@ const BookingDetails = () => {
                             width="120"
                             height="40"
                           />
+                        ) : activeTab === "completed" ? (
+                          <div
+                            className="d-flex align-items-center"
+                            style={{ marginLeft: "10px" }}
+                          >
+                            {ratings[booking.id] && (
+                              <FaStar style={{ color: "gold" }} />
+                            )}
+                            <span className="ms-1">
+                              {ratings[booking.id] || "No Rating"}
+                            </span>
+                          </div>
                         ) : (
-                          booking.status
+                          booking.cancelReason || "No Reason Provided"
                         )}
                       </td>
                     )}
-                    <td>
-                      {activeTab === "inProgress" ? (
+
+                    {/* Action Column */}
+                    <td className="p-3 text-left" style={{ width: "10%" }}>
+                      {activeTab === "inProgress" ||
+                      activeTab === "completed" ||
+                      activeTab === "canceled" ? (
                         <button
                           className="btn btn-primary"
                           style={{
@@ -454,9 +750,12 @@ const BookingDetails = () => {
                             borderRadius: "12px",
                           }}
                           onClick={() =>
-                            navigate(`/booking-details/assign-bookings/${booking.id}`, {
-                              state: { booking },
-                            })
+                            navigate(
+                              `/booking-details/assign-bookings/${booking.id}`,
+                              {
+                                state: { booking },
+                              }
+                            )
                           }
                         >
                           Assign

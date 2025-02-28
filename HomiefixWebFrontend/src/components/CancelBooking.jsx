@@ -96,7 +96,7 @@ const CancelBooking = ({ id, booking, onClose }) => {
 
         {/* Cancel Button */}
         <button className="btn btn-primary w-100 mt-3" style={{ backgroundColor: "#B8141A", border: "none" }} onClick={handleCancel}>
-          Cancel
+          Cancel Service
         </button>
       </div>
     </div>
