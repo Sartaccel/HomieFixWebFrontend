@@ -1,13 +1,36 @@
-import React, { useState } from "react";
+import React from "react";
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
 import { useNavigate } from "react-router-dom";
-import dop from "../assets/addWorker.png"
+import dop from "../assets/addWorker.png";
+import { useState } from "react";
 
 const Worker = () => {
-
     const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState("serviceDetails");
+
+    const serviceDetailsData = [
+        { id: 1, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", rating: 4.5, status: "Completed" },
+        { id: 2, service: "Electrician", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", rating: 4.2, status: "Completed" },
+        { id: 3, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", rating: 4.5, status: "Completed" },
+        { id: 4, service: "Electrician", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", rating: 4.2, status: "Completed" },
+        { id: 5, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", rating: 4.5, status: "Completed" },
+        { id: 6, service: "Electrician", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", rating: 4.2, status: "Completed" },
+        { id: 7, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", rating: 4.5, status: "Completed" },
+        { id: 8, service: "Electrician", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", rating: 4.2, status: "Completed" },
+
+    ];
+
+    const inProgressData = [
+        { id: 1, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", status: "STARTED" },
+        { id: 2, service: "Electrician", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", status: "ASSIGNED" },
+    ];
+
+    const reviewData = [
+        { id: 1, name: "John Doe", service: "Plumber", rating: 4.5, feedback: "Excellent service!", profile: "https://via.placeholder.com/80" }
+    ];
+
 
     return (
         <div>
@@ -63,7 +86,7 @@ const Worker = () => {
                                 </div>
                                 <div className="mx-4">
                                     <p><i className="bi bi-person mx-1"></i>Alen sam</p>
-                                    <p><i className="bi bi-telephone mx-1"></i>9327363763</p>
+                                    <p><i className="bi bi-telephone mx-1"></i>1234567890</p>
                                     <p className="mx-1">Rating:
                                         <i className="bi bi-star-fill text-warning mx-1"></i>
                                         <i className="bi bi-star-fill text-warning"></i>
@@ -96,84 +119,111 @@ const Worker = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="col-7 mt-4 border" style={{ marginLeft: "-25px" }}>
+
+
+                    <div className="col-7 mt-4 border px-3 rounded">
+                        {/* Header Section with Active Border */}
                         <div className="row">
-                            <div className="d-flex mt-3">
-                                <p className="border-bottom border-3 border-dark pb-2 px-2">Service Details</p>
-                                <p className="mx-5 pb-2 px-2">In Progress</p>
-                                <p className="pb-2 px-2">Reviews</p>
+                            <div className="d-flex mt-3 pb-2">
+                                <p
+                                    className={`px-3 ${activeTab === "serviceDetails" ? "border-bottom border-3 border-dark" : ""}`}
+                                    onClick={() => setActiveTab("serviceDetails")}
+                                    style={{ cursor: "pointer" }}
+                                >
+                                    Service Details
+                                </p>
+                                <p
+                                    className={`mx-5 px-3 ${activeTab === "inProgress" ? "border-bottom border-3 border-dark" : ""}`}
+                                    onClick={() => setActiveTab("inProgress")}
+                                    style={{ cursor: "pointer" }}
+                                >
+                                    In Progress
+                                </p>
+                                <p
+                                    className={`px-3 ${activeTab === "reviews" ? "border-bottom border-3 border-dark" : ""}`}
+                                    onClick={() => setActiveTab("reviews")}
+                                    style={{ cursor: "pointer" }}
+                                >
+                                    Reviews
+                                </p>
                             </div>
                         </div>
-                        <div className="row px-3 pb-3">
-                            <table>
-                                <thead className="">
-                                    <tr className="booking-table mt-3">
-                                        <th className="">S.no</th>
-                                        <th>Service</th>
-                                        <th>Name</th>
-                                        <th>Date</th>
-                                        <th>Rating</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
 
-                                    <tr className="booking-table">
-                                        <td >1</td>
-                                        <td>Plumber <br /><span style={{ color: "#0076CE" }}>ID: 1</span></td>
-                                        <td>John Doe</td>
-                                        <td>01-01-2023</td>
-                                        <td>4.5</td>
-                                    </tr>
-                                    <tr className="booking-table">
-                                        <td>2</td>
-                                        <td>Electrician <br /><span style={{ color: "#0076CE" }}>ID: 2</span></td>
-                                        <td>Alen Sam</td>
-                                        <td>10-05-2023</td>
-                                        <td>4.2</td>
-                                    </tr>
-                                    <tr className="booking-table">
-                                        <td>3</td>
-                                        <td>Electrician <br /><span style={{ color: "#0076CE" }}>ID: 3</span></td>
-                                        <td>Alen Sam</td>
-                                        <td>10-05-2023</td>
-                                        <td>4.2</td>
-                                    </tr>
-                                    <tr className="booking-table">
-                                        <td>4</td>
-                                        <td>Electrician <br /><span style={{ color: "#0076CE" }}>ID: 4</span></td>
-                                        <td>Alen Sam</td>
-                                        <td>10-05-2023</td>
-                                        <td>4.2</td>
-                                    </tr>
-                                    <tr className="booking-table">
-                                        <td>5</td>
-                                        <td>Electrician <br /><span style={{ color: "#0076CE" }}>ID: 5</span></td>
-                                        <td>Alen Sam</td>
-                                        <td>10-05-2023</td>
-                                        <td>4.2</td>
-                                    </tr>
-                                    <tr className="booking-table">
-                                        <td>6</td>
-                                        <td>Electrician <br /><span style={{ color: "#0076CE" }}>ID: 6</span></td>
-                                        <td>Alen Sam</td>
-                                        <td>10-05-2023</td>
-                                        <td>4.2</td>
-                                    </tr>
-                                    <tr className="booking-table">
-                                        <td>7</td>
-                                        <td>Electrician <br /><span style={{ color: "#0076CE" }}>ID: 7</span></td>
-                                        <td>Alen Sam</td>
-                                        <td>10-05-2023</td>
-                                        <td>4.2</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        {/* Dynamic Content Section */}
+                        <div className="row pb-3">
+                            <div className="table-responsive" style={{ maxHeight: "550px", overflowY: "auto" }}>
+                                {activeTab === "serviceDetails" && (
+                                    <table className="table table-bordered table-hover">
+                                        <thead className="table-light border" style={{ position: "sticky", top: 0, zIndex: 2 }}>
+                                            <tr>
+                                                <th>S.no</th>
+                                                <th>Service</th>
+                                                <th>Name</th>
+                                                <th>Date</th>
+                                                <th>Rating</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {serviceDetailsData.map((item, index) => (
+                                                <tr key={item.id}>
+                                                    <td>{index + 1}</td>
+                                                    <td>
+                                                        {item.service} <br />
+                                                        <span className="text-primary">ID: {item.id}</span>
+                                                    </td>
+                                                    <td>{item.name} <br /> {item.phone}</td>
+                                                    <td>{item.date} <br /> {item.status}</td>
+                                                    <td>
+                                                        <i className="bi bi-star-fill text-warning"></i> {item.rating}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
 
+                                {activeTab === "inProgress" && (
+                                    <table className="table table-bordered table-hover">
+                                        <thead className="table-light border" style={{ position: "sticky", top: 0, zIndex: 2 }}>
+                                            <tr>
+                                                <th>S.no</th>
+                                                <th>Service</th>
+                                                <th>Name</th>
+                                                <th>Date</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {inProgressData.map((item, index) => (
+                                                <tr key={item.id}>
+                                                    <td>{index + 1}</td>
+                                                    <td>{item.service}</td>
+                                                    <td>{item.name}<br /> {item.phone}</td>
+                                                    <td>{item.date} <br /> Service pending</td>
+                                                    <td>
+                                                        <span className={`badge ${item.status === "STARTED" ? "bg-primary" : "bg-success"}`}>
+                                                            {item.status}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
+
+                                {activeTab === "reviews" && (
+                                    <div className="d-flex flex-wrap">
+                                        <h1 className="text-center w-100">No reviews yet</h1>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
     );
 };
+
 export default Worker;
