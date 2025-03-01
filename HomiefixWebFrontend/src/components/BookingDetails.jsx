@@ -2,9 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-import "react-datepicker/dist/react-datepicker.css";
 import { FaStar } from "react-icons/fa";
-import DatePicker from "react-datepicker";
 import "../styles/BookingDetails.css";
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
@@ -12,18 +10,27 @@ import search from "../assets/Search.png";
 import statusRescheduled from "../assets/Status Rescheduled.png";
 import statusAssigned from "../assets/Status Assigned.png";
 import statusStarted from "../assets/Status Started.png";
+import closeDate from "../assets/close date.png";
+import $ from "jquery";
+import "bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css";
+import "bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js";
 
 const BookingDetails = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(null);
   const [activeTab, setActiveTab] = useState("bookings");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
   const [ratings, setRatings] = useState({});
   const dropdownRef = useRef(null);
   const [ratingFilter, setRatingFilter] = useState("All");
+
+  // Separate selectedDate states for each section
+  const [selectedDateBookings, setSelectedDateBookings] = useState(null);
+  const [selectedDateInProgress, setSelectedDateInProgress] = useState(null);
+  const [selectedDateCompleted, setSelectedDateCompleted] = useState(null);
+  const [selectedDateCanceled, setSelectedDateCanceled] = useState(null);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -129,7 +136,24 @@ const BookingDetails = () => {
   const canceled = bookings.filter((booking) => booking.status === "Canceled");
 
   const handleDateChange = (date) => {
-    setSelectedDate(date);
+    if (activeTab === "bookings") {
+      setSelectedDateBookings(date);
+      filterBookingsByDate(date, pendingBookings);
+    } else if (activeTab === "inProgress") {
+      setSelectedDateInProgress(date);
+      filterBookingsByDate(date, inProgress);
+    } else if (activeTab === "completed") {
+      setSelectedDateCompleted(date);
+      filterBookingsByDate(date, completed);
+    } else if (activeTab === "canceled") {
+      setSelectedDateCanceled(date);
+      filterBookingsByDate(date, canceled);
+    }
+  };
+
+  const filterBookingsByDate = (date, bookingsToFilter) => {
+    let filtered = bookingsToFilter;
+
     if (date) {
       const formattedSelectedDate =
         date.getFullYear() +
@@ -138,70 +162,41 @@ const BookingDetails = () => {
         "-" +
         String(date.getDate()).padStart(2, "0");
 
-      const filtered = bookings.filter(
+      filtered = filtered.filter(
         (booking) => booking.date === formattedSelectedDate
       );
-      setFilteredBookings(filtered);
-    } else {
-      setFilteredBookings(bookings);
     }
-    setDropdownOpen(false);
+
+    setFilteredBookings(filtered);
+  };
+
+  const clearDateFilter = () => {
+    if (activeTab === "bookings") {
+      setSelectedDateBookings(null);
+      setFilteredBookings(pendingBookings);
+    } else if (activeTab === "inProgress") {
+      setSelectedDateInProgress(null);
+      setFilteredBookings(inProgress);
+    } else if (activeTab === "completed") {
+      setSelectedDateCompleted(null);
+      setFilteredBookings(completed);
+    } else if (activeTab === "canceled") {
+      setSelectedDateCanceled(null);
+      setFilteredBookings(canceled);
+    }
   };
 
   useEffect(() => {
-    let filtered = bookings;
-
     if (activeTab === "bookings") {
-      filtered = filtered.filter(
-        (booking) =>
-          booking.status === "Pending" ||
-          (booking.status === "Rescheduled" && !booking.worker)
-      );
+      filterBookingsByDate(selectedDateBookings, pendingBookings);
     } else if (activeTab === "inProgress") {
-      filtered = filtered.filter(
-        (booking) =>
-          (booking.status === "Started" ||
-            booking.status === "Assigned" ||
-            booking.status === "Rescheduled") &&
-          booking.worker
-      );
-
-      if (statusFilter !== "All") {
-        filtered = filtered.filter(
-          (booking) => booking.status === statusFilter
-        );
-      }
+      filterBookingsByDate(selectedDateInProgress, inProgress);
     } else if (activeTab === "completed") {
-      filtered = filtered.filter((booking) => booking.status === "Completed");
-      if (ratingFilter !== "All") {
-        if (ratingFilter === "No Rating") {
-          filtered = filtered.filter((booking) => !ratings[booking.id]);
-        } else {
-          filtered = filtered.filter(
-            (booking) => ratings[booking.id] === parseInt(ratingFilter)
-          );
-        }
-      }
+      filterBookingsByDate(selectedDateCompleted, completed);
     } else if (activeTab === "canceled") {
-      filtered = filtered.filter((booking) => booking.status === "Canceled");
+      filterBookingsByDate(selectedDateCanceled, canceled);
     }
-
-    if (selectedDate) {
-      const formattedSelectedDate =
-        selectedDate.getFullYear() +
-        "-" +
-        String(selectedDate.getMonth() + 1).padStart(2, "0") +
-        "-" +
-        String(selectedDate.getDate()).padStart(2, "0");
-
-      filtered = filtered.filter(
-        (booking) => booking.date === formattedSelectedDate
-      );
-    }
-
-    console.log("Filtered Bookings:", filtered);
-    setFilteredBookings(filtered);
-  }, [activeTab, selectedDate, bookings, statusFilter, ratingFilter]);
+  }, [activeTab, selectedDateBookings, selectedDateInProgress, selectedDateCompleted, selectedDateCanceled]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -227,6 +222,28 @@ const BookingDetails = () => {
       default:
         return null;
     }
+  };
+
+  useEffect(() => {
+    if (dropdownOpen) {
+      $("#sandbox-container div").datepicker({
+        autoclose: true,
+        todayHighlight: true,
+      }).on("changeDate", function (e) {
+        handleDateChange(e.date);
+        setDropdownOpen(false);
+      });
+    }
+  }, [dropdownOpen]);
+
+  // Function to format the date as "Feb 25, 2025"
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   return (
@@ -303,10 +320,10 @@ const BookingDetails = () => {
 
           <div
             className="table-responsive mt-3 w-100 px-0 overflow-auto"
-            style={{ maxHeight: "100%", minHeight: "100%" }}
+            style={{ maxHeight: "100%", minHeight: "100%"}}
           >
-            <table className="booking-table table table-hover bg-white rounded shadow-sm">
-              <thead className="td-height">
+            <table className="booking-table table table-hover bg-white rounded shadow-sm"  style={{borderRadius: "15px" }}>
+              <thead className="td-height" >
                 <tr>
                   {/* Service Column */}
                   <th
@@ -402,24 +419,24 @@ const BookingDetails = () => {
                       ></button>
                       {dropdownOpen && (
                         <div className="dropdown-menu show p-2">
-                          <DatePicker
-                            selected={selectedDate}
-                            onChange={handleDateChange}
-                            inline
-                            dateFormat="yyyy-MM-dd"
-                            popperPlacement="bottom-start"
-                            popperModifiers={[
-                              {
-                                name: "preventOverflow",
-                                options: {
-                                  boundary: "viewport",
-                                },
-                              },
-                            ]}
-                          />
+                          <div id="sandbox-container">
+                            <div></div> {/* This is where the datepicker will be rendered */}
+                          </div>
                         </div>
                       )}
                     </div>
+                    {(activeTab === "bookings" && selectedDateBookings) ||
+                    (activeTab === "inProgress" && selectedDateInProgress) ||
+                    (activeTab === "completed" && selectedDateCompleted) ||
+                    (activeTab === "canceled" && selectedDateCanceled) ? (
+                      <img
+                        src={closeDate}
+                        alt="Close Date Filter"
+                        width="20"
+                        className="cursor-pointer ms-2"
+                        onClick={clearDateFilter}
+                      />
+                    ) : null}
                   </th>
 
                   {/* Status/Reason Column */}
@@ -562,7 +579,7 @@ const BookingDetails = () => {
                   )}
 
                   {/* Action Column */}
-                  <th className="p-3 text-left" style={{ width: "10%" }}></th>
+                  <th className="p-3 text-left" style={{ width: "10%"}}></th>
                 </tr>
               </thead>
               <tbody>
@@ -675,7 +692,7 @@ const BookingDetails = () => {
                             : "14%",
                       }}
                     >
-                      {booking.date} <br />
+                      {formatDate(booking.date)} <br />
                       <span>{booking.timeslot}</span>
                     </td>
 

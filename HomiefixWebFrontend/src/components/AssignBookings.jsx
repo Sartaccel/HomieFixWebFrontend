@@ -3,9 +3,11 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
+import closeDate from "../assets/close date.png"; // Import the close date icon
 import Reschedule from "./Reschedule"; // Import the Reschedule component
 import CancelBooking from "./CancelBooking"; // Import the CancelBooking component
 import "../styles/AssignBookings.css";
+import bookingDetails from "../assets/BookingDetails.png";
 
 const AssignBookings = () => {
   const { id } = useParams();
@@ -14,14 +16,17 @@ const AssignBookings = () => {
   const [workers, setWorkers] = useState([]);
   const [selectedWorkerId, setSelectedWorkerId] = useState(null);
   const [selectedWorkerDetails, setSelectedWorkerDetails] = useState(null);
-  const [notes, setNotes] = useState(booking.notes || ""); // Initialize notes with booking.notes
-  const [showRescheduleSlider, setShowRescheduleSlider] = useState(false); // State to control Reschedule visibility
-  const [showCancelBookingModal, setShowCancelBookingModal] = useState(false); // State to control CancelBooking visibility
-  const navigate = useNavigate();
+  const [notes, setNotes] = useState(booking.notes || "");
+  const [showRescheduleSlider, setShowRescheduleSlider] = useState(false);
+  const [showCancelBookingModal, setShowCancelBookingModal] = useState(false);
   const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
-  const [isCancelHovered, setIsCancelHovered] = useState(false);  
+  const [isCancelHovered, setIsCancelHovered] = useState(false);
   const [isSaveHovered, setIsSaveHovered] = useState(false);
-
+  const [rescheduledDate, setRescheduledDate] = useState(booking.date);
+  const [rescheduledTimeslot, setRescheduledTimeslot] = useState(
+    booking.timeslot
+  );
+  const navigate = useNavigate();
 
   // Helper function to format date
   const formatDate = (dateString) => {
@@ -48,14 +53,22 @@ const AssignBookings = () => {
     fetchWorkers();
   }, []);
 
+  useEffect(() => {
+    const savedDate = localStorage.getItem("rescheduledDate");
+    const savedTimeslot = localStorage.getItem("rescheduledTimeslot");
+
+    if (savedDate && savedTimeslot) {
+      setRescheduledDate(savedDate);
+      setRescheduledTimeslot(savedTimeslot);
+    }
+  }, []);
+
   // Handle worker selection and deselection
   const handleWorkerSelection = (workerId) => {
     if (selectedWorkerId === workerId) {
-      // Deselect the worker if already selected
       setSelectedWorkerId(null);
       setSelectedWorkerDetails(null);
     } else {
-      // Select the worker
       setSelectedWorkerId(workerId);
       const worker = workers.find((worker) => worker.id === workerId);
       setSelectedWorkerDetails(worker);
@@ -84,7 +97,7 @@ const AssignBookings = () => {
 
       if (response.ok) {
         alert("Worker assigned successfully");
-        navigate(-1); // Navigate back after successful assignment
+        navigate(-1);
       } else {
         alert("Failed to assign worker");
       }
@@ -97,13 +110,14 @@ const AssignBookings = () => {
   const saveNotes = async () => {
     try {
       const response = await fetch(
-        `http://localhost:2222/booking/update-notes/${id}`,
+        `http://localhost:2222/booking/update-notes/${id}?notes=${encodeURIComponent(
+          notes
+        )}`,
         {
-          method: "PUT",
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ notes }),
         }
       );
 
@@ -116,6 +130,54 @@ const AssignBookings = () => {
       console.error("Error saving notes:", error);
     }
   };
+
+  const handleReschedule = (newDate, newTimeslot) => {
+    setRescheduledDate(newDate);
+    setRescheduledTimeslot(newTimeslot);
+    localStorage.setItem("rescheduledDate", newDate);
+    localStorage.setItem("rescheduledTimeslot", newTimeslot);
+    setShowRescheduleSlider(false);
+  };
+
+  const undoReschedule = async () => {
+    try {
+      const formattedDate = encodeURIComponent(booking.date);
+      const encodedTimeSlot = encodeURIComponent(booking.timeslot);
+      const encodedReason = encodeURIComponent("Undo rescheduling");
+
+      const response = await fetch(
+        `http://localhost:2222/booking/reschedule/${id}?selectedDate=${formattedDate}&selectedTimeSlot=${encodedTimeSlot}&rescheduleReason=${encodedReason}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        setRescheduledDate(booking.date);
+        setRescheduledTimeslot(booking.timeslot);
+        localStorage.removeItem("rescheduledDate");
+        localStorage.removeItem("rescheduledTimeslot");
+        alert("Rescheduling undone successfully");
+      } else {
+        const errorText = await response.text();
+        console.error("Failed to undo rescheduling:", errorText);
+        alert(`Failed to undo rescheduling: ${errorText}`);
+      }
+    } catch (error) {
+      console.error("Error undoing rescheduling:", error);
+      alert("An error occurred while undoing rescheduling.");
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      localStorage.removeItem("rescheduledDate");
+      localStorage.removeItem("rescheduledTimeslot");
+    };
+  }, []);
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -152,7 +214,6 @@ const AssignBookings = () => {
 
           {/* Navigation Bar */}
           <div className="navigation-bar d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
-            {/* Left side: Back arrow + Service Details */}
             <div className="d-flex gap-3 align-items-center">
               <button
                 className="btn btn-light p-2"
@@ -167,42 +228,42 @@ const AssignBookings = () => {
               <div className="section active">Service Details</div>
             </div>
 
-            {/* Right side buttons */}
             <div className="d-flex gap-3 p-2" style={{ marginRight: "300px" }}>
-            <button
-              className="btn"
-              onClick={() => setShowRescheduleSlider(true)}
-              onMouseEnter={() => setIsRescheduleHovered(true)}
-              onMouseLeave={() => setIsRescheduleHovered(false)}
-              style={{
-                border: "1px solid #0076CE",
-                backgroundColor: isRescheduleHovered ? "#0076CE" : "transparent",
-                color: isRescheduleHovered ? "white" : "#0076CE",
-              }}
-            >
-              Reschedule
-            </button>
+              <button
+                className="btn"
+                onClick={() => setShowRescheduleSlider(true)}
+                onMouseEnter={() => setIsRescheduleHovered(true)}
+                onMouseLeave={() => setIsRescheduleHovered(false)}
+                style={{
+                  border: "1px solid #0076CE",
+                  backgroundColor: isRescheduleHovered
+                    ? "#0076CE"
+                    : "transparent",
+                  color: isRescheduleHovered ? "white" : "#0076CE",
+                }}
+              >
+                Reschedule
+              </button>
 
-            <button
-              className="btn"
-              onClick={() => setShowCancelBookingModal(true)}
-              onMouseEnter={() => setIsCancelHovered(true)}
-              onMouseLeave={() => setIsCancelHovered(false)}
-              style={{
-                border: "1px solid #B8141A",
-                backgroundColor: isCancelHovered ? "#B8141A" : "transparent",
-                color: isCancelHovered ? "white" : "#B8141A",
-                transition: "all 0.3s ease-in-out",
-              }}
-            >
-              Cancel Service
-            </button>
+              <button
+                className="btn"
+                onClick={() => setShowCancelBookingModal(true)}
+                onMouseEnter={() => setIsCancelHovered(true)}
+                onMouseLeave={() => setIsCancelHovered(false)}
+                style={{
+                  border: "1px solid #B8141A",
+                  backgroundColor: isCancelHovered ? "#B8141A" : "transparent",
+                  color: isCancelHovered ? "white" : "#B8141A",
+                  transition: "all 0.3s ease-in-out",
+                }}
+              >
+                Cancel Service
+              </button>
             </div>
           </div>
 
           {/* Content */}
           <div className="container mt-5 pt-4">
-            {/* Two Cards in the Same Row */}
             <div
               className="row justify-content-between"
               style={{ marginTop: "60px", marginLeft: "30px" }}
@@ -228,20 +289,52 @@ const AssignBookings = () => {
                     <h6>Customer Details</h6>
                   </div>
                   <p className="mb-1">
-                    <i className="bi bi-person-fill me-2"></i> {booking.name}
+                    <i className="bi bi-person fw-bold me-2"></i> {booking.name}
                   </p>
                   <p className="mb-1">
-                    <i className="bi bi-telephone-fill me-2"></i>{" "}
-                    {booking.contact}
+                    <i className="bi bi-telephone fw-bold me-2"></i> {booking.contact}
                   </p>
-                  <p className="mb-1">
-                    <i className="bi bi-calendar-event-fill me-2"></i>{" "}
-                    {formatDate(booking.date)} |{" "}
-                    {booking.timeslot || "Not Available"}
+                  <p
+                    className="mb-1"
+                    style={{
+                      backgroundColor:
+                        rescheduledDate !== booking.date
+                          ? "#EDF3F7"
+                          : "transparent",
+                      borderRadius: "5px",
+                      display: "inline-block",  
+                      padding: rescheduledDate !== booking.date ? "0px 10px 0px 0px" : "0",
+                     }}
+                  >
+                    {rescheduledDate !== booking.date ? (
+                      <img
+                        src={closeDate}
+                        alt="Close"
+                        width="25"
+                        style={{
+                          cursor: "pointer",
+                          verticalAlign: "middle",
+                          marginRight: "5px",
+                        }}
+                        onClick={undoReschedule}
+                      />
+                    ) : (
+                      <img
+                        src={bookingDetails}
+                        alt="Booking Details"
+                        className="menu-icon" // Removed `me-2` to prevent right spacing
+                        style={{
+                          width: "17px",
+                          height: "17px",
+                        }}
+                      />
+                    )}
+                    {formatDate(rescheduledDate)} |{" "}
+                    {rescheduledTimeslot || "Not Available"}
                   </p>
+
                   <p className="mb-1">
-                    <i className="bi bi-geo-alt-fill me-2"></i>{" "}
-                    {booking.address}
+                    <i className="bi bi-geo-alt fw-bold me-2"></i> {booking.address}
                   </p>
                 </div>
 
@@ -257,7 +350,7 @@ const AssignBookings = () => {
                     rows="9"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    style={{ paddingBottom: "40px" }} // Space for button
+                    style={{ paddingBottom: "40px" }}
                   ></textarea>
                   <button
                     className="btn position-absolute"
@@ -270,11 +363,14 @@ const AssignBookings = () => {
                       padding: "5px 10px",
                       borderRadius: "5px",
                       color: isSaveHovered ? "white" : "#0076CE",
-                      backgroundColor: isSaveHovered ? "#0076CE" : "transparent",
+                      backgroundColor: isSaveHovered
+                        ? "#0076CE"
+                        : "transparent",
                       border: "1px solid #0076CE",
                       transition: "all 0.3s ease-in-out",
                     }}
-                  >Save
+                  >
+                    Save
                   </button>
                 </div>
               </div>
@@ -325,7 +421,7 @@ const AssignBookings = () => {
                           key={index}
                           className="col-6"
                           style={{
-                            width: "48%", // Ensure two columns fit within the parent
+                            width: "48%",
                             border:
                               selectedWorkerId === worker.id
                                 ? "2px solid #0076CE"
@@ -393,7 +489,6 @@ const AssignBookings = () => {
                           }}
                         ></div>
                         <div>
-                          {/* Name and Rating in the same line */}
                           <div className="d-flex align-items-center gap-2">
                             <p className="mb-0">
                               <i className="bi bi-person-fill me-2"></i>
@@ -486,6 +581,7 @@ const AssignBookings = () => {
               id={id}
               booking={booking}
               onClose={() => setShowRescheduleSlider(false)}
+              onReschedule={handleReschedule}
             />
           )}
 

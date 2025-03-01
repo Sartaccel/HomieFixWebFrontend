@@ -63,12 +63,13 @@
 .booking-table {
     border-collapse: separate; 
     border-spacing: 0;
-    border-radius: 12px;
+    border-radius: 12px!important;
     border: 1px solid #e5e5e5;
     width: 1220px;
     margin-left: 30px;
     background: #fff;
-    margin-top: 145px;    
+    margin-top: 145px;  
+    border-collapse: collapse;  
 }
 
 .table-container {
@@ -76,6 +77,8 @@
     overflow-y: auto; 
     display: block;
     width: 100%;
+    border-radius: 12px!important;
+    overflow: hidden;
 }
 
 .booking-table thead {
@@ -83,6 +86,7 @@
     top: 0;
     background: #fafafa;
     z-index: 10;
+
 }
 
 .booking-table th, .booking-table td {
