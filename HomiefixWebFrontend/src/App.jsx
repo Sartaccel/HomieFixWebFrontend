@@ -16,6 +16,7 @@ import ViewBookings from "./components/ViewBookings";
 import WorkerDetails from "./components/WorkerDetails";
 import AddWorker from "./components/AddWorker";
 import Services from "./components/Services";
+import Worker from "./components/Worker";
 
 
 const App = () => {
@@ -43,6 +44,7 @@ const App = () => {
             <Route path="/reviews" element={<Reviews />} />
             <Route path="/reviews/customer-review/:id" element={<CustomerReview />} />
             <Route path="/worker-details" element={<WorkerDetails/>} />
+            <Route path="/worker-details/worker" element={<Worker/>} />
             <Route path="/worker-details/add-worker" element={<AddWorker/>} />
             <Route path="/services" element={<Services />} />
           </Route>
