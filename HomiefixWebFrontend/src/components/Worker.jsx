@@ -3,28 +3,32 @@ import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
 import { useNavigate } from "react-router-dom";
-import dop from "../assets/addWorker.png";
-import { useState } from "react";
-
+import {useEffect, useState } from "react";
+import axios from "axios";
+import { useParams } from "react-router-dom";
 
 const Worker = () => {
 
-
+    const { id } = useParams();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("serviceDetails");
 
-    const workerData = {
-        roles: ["Plumber", "Electrician"],
-        photo: dop,
-        name: "Alen Sam",
-        phone: "1234567890",
-        rating: 4,
-        address: "23 Ocean View Drive, Jambulingam Coral Bay, Kerala, India 695582",
-        joiningDate: "Jan 25 2025",
-        aadhar: "123456789012",
-        languages: ["Tamil", "Malayalam", "English"],
-        totalServices: 30,
-    };
+    const [workerData, setWorkerData] = useState(null);
+
+    useEffect(() => {
+        axios.get(`http://localhost:2222/workers/view/${id}`)
+            .then(response => {
+                setWorkerData(response.data);
+            })
+            .catch(error => {
+                console.error("Error fetching worker data:", error);
+            });
+    }, []);
+
+    if (!workerData) {
+        return <p>Loading...</p>;
+    }
+
 
     const serviceDetailsData = [
         { id: 1, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", rating: 4.5, status: "Completed" },
@@ -46,7 +50,7 @@ const Worker = () => {
         { id: 4, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", status: "RESCHEDULED" },
         { id: 5, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", status: "RESCHEDULED" },
         { id: 6, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", status: "RESCHEDULED" },
-        
+
 
     ];
 
@@ -91,67 +95,63 @@ const Worker = () => {
             {/* Main content */}
             <div className="container">
                 <div className="row">
-                    <div className="col-4 border p-4 mt-4 rounded align-self-start h-auto d-flex flex-column" style={{marginLeft:"85px",marginRight:"10px"}}>
-                        {/* Role Section */}
-                        <div className="d-flex justify-content-between">
-                            <div className="d-flex">
-                                <p>Role:</p>
-                                {workerData.roles.map((role, index) => (
-                                    <p key={index} className="border border-dark rounded-pill mx-1 px-2">
-                                        {role}
-                                    </p>
-                                ))}
-                            </div>
+                <div className="col-4 border p-4 mt-4 rounded align-self-start h-auto d-flex flex-column" style={{ marginLeft: "85px", marginRight: "10px" }}>
+                    {/* Role Section */}
+                    <div className="d-flex justify-content-between">
+                        <div className="d-flex">
+                            <p>Role:</p>
+                            <p className="border border-dark rounded-pill mx-1 px-2">
+                                {workerData.role}
+                            </p>
+                        </div>
+                        <div>
+                            <a className="text-decoration-none" style={{ color: "#0076CE" }} href="#">Edit</a>
+                        </div>
+                    </div>
+
+                    {/* Profile Section */}
+                    <div className="row">
+                        <div className="d-flex">
                             <div>
-                                <a className="text-decoration-none" style={{ color: "#0076CE" }} href="#">
-                                    Edit
-                                </a>
+                                <img className="rounded" src={workerData.profilePicUrl} alt="workerData" height={100} width={100} />
                             </div>
-                        </div>
-
-                        {/* Profile Section */}
-                        <div className="row">
-                            <div className="d-flex">
-                                <div>
-                                    <img className="rounded" src={workerData.photo} alt="workerData" height={100} width={100} />
-                                </div>
-                                <div className="mx-4">
-                                    <p><i className="bi bi-person mx-1"></i>{workerData.name}</p>
-                                    <p><i className="bi bi-telephone mx-1"></i>{workerData.phone}</p>
-                                    <p className="mx-1">Rating:
-                                        {Array.from({ length: 5 }, (_, i) => (
-                                            <i key={i} className={`bi bi-star-fill ${i < workerData.rating ? "text-warning" : "text-muted"} mx-1`}></i>
-                                        ))}
-                                        {workerData.rating}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Location Section */}
-                        <div className="row">
-                            <div className="d-flex">
-                                <i className="bi bi-geo-alt mx-1"></i>
-                                <p>{workerData.address}</p>
-                            </div>
-                        </div>
-
-                        {/* Additional Details */}
-                        <div className="row">
-                            <div className="col-5">
-                                <p>Joining Date</p>
-                                <p>Aadhar Number</p>
-                                <p>Language</p>
-                                <p>Total Service</p>
-                            </div>
-                            <div className="col-7">
-                                <p>: {workerData.joiningDate}</p>
-                                <p>: **** **** {workerData.aadhar.slice(-4)}</p>
-                                <p>: {workerData.languages.join(", ")}</p>
-                                <p>: {workerData.totalServices}</p>
+                            <div className="mx-4">
+                                <p><i className="bi bi-person mx-1"></i>{workerData.name}</p>
+                                <p><i className="bi bi-telephone mx-1"></i>{workerData.contactNumber}</p>
+                                <p className="mx-1">Rating:
+                                    {Array.from({ length: 5 }, (_, i) => (
+                                        <i key={i} className={`bi bi-star-fill ${i < (workerData.averageRating || 0) ? "text-warning" : "text-muted"} mx-1`}></i>
+                                    ))}
+                                    {workerData.averageRating || "N/A"}
+                                </p>
                             </div>
                         </div>
                     </div>
+
+                    {/* Location Section */}
+                    <div className="row">
+                        <div className="d-flex">
+                            <i className="bi bi-geo-alt mx-1"></i>
+                            <p>{workerData.houseNumber}, {workerData.town}, {workerData.district}, {workerData.state} - {workerData.pincode}</p>
+                        </div>
+                    </div>
+
+                    {/* Additional Details */}
+                    <div className="row">
+                        <div className="col-5">
+                            <p>Joining Date</p>
+                            <p>Aadhar Number</p>
+                            <p>Language</p>
+                            <p>Total Service</p>
+                        </div>
+                        <div className="col-7">
+                            <p>: {workerData.joiningDate}</p>
+                            <p>: **** **** {workerData.aadharNumber.slice(-4)}</p>
+                            <p>: {workerData.language}</p>
+                            <p>: {workerData.totalWorkAssigned}</p>
+                        </div>
+                    </div>
+                </div>
 
 
                     <div className="col-7 mt-4 border px-3 rounded">
@@ -190,11 +190,11 @@ const Worker = () => {
 
                         {/* Dynamic Content Section */}
                         <div className="row">
-                            <div className="table-responsive custom-table" style={{ maxHeight: "550px", overflowY: "auto" }}>
+                            <div className="table-responsive custom-table" style={{ maxHeight: "550px" }}>
                                 {activeTab === "serviceDetails" && (
                                     <table className="table table-bordered table-hover">
-                                        <thead className="table-light border" style={{ position: "sticky", top: 0, zIndex: 2 }}>
-                                            <tr>
+                                        <thead className="table-light" style={{ position: "sticky", top: 0, zIndex: 3, backgroundColor: 'white', borderBottom: '1px solid #dee2e6', boxShadow: '0px 0px 2px 1px rgba(0, 0, 0, 0.1)' }}>
+                                            <tr className="border">
                                                 <th>S.no</th>
                                                 <th>Service</th>
                                                 <th>Name</th>
@@ -202,7 +202,7 @@ const Worker = () => {
                                                 <th>Rating</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody style={{ maxHeight: "500px", overflowY: "auto", display: "table-row-group", backgroundColor: 'white' }}>
                                             {serviceDetailsData.map((item, index) => (
                                                 <tr key={item.id}>
                                                     <td>{index + 1}</td>
@@ -223,7 +223,7 @@ const Worker = () => {
 
                                 {activeTab === "inProgress" && (
                                     <table className="table table-bordered table-hover">
-                                        <thead className="table-light border" style={{ position: "sticky", top: 0, zIndex: 2 }}>
+                                        <thead className="table-light border" style={{ position: "sticky", top: 0, zIndex: 3, backgroundColor: 'white', borderBottom: '1px solid #dee2e6', boxShadow: '0 2px 2px 1px rgba(0, 0, 0, 0.1)' }}>
                                             <tr>
                                                 <th>S.no</th>
                                                 <th>Service</th>
@@ -232,7 +232,7 @@ const Worker = () => {
                                                 <th>Status</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody style={{ maxHeight: "500px", overflowY: "auto", display: "table-row-group", backgroundColor: 'white' }}>
                                             {inProgressData.map((item, index) => (
                                                 <tr key={item.id}>
                                                     <td>{index + 1}</td>
@@ -247,7 +247,6 @@ const Worker = () => {
                                                                 item.status === "ASSIGNED" ? "bg-secondary" : "bg-success"}`}>
                                                             {item.status}
                                                         </span>
-
                                                     </td>
                                                 </tr>
                                             ))}
