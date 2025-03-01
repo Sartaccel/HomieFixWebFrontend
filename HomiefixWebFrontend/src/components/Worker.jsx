@@ -43,6 +43,10 @@ const Worker = () => {
         { id: 1, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", status: "STARTED" },
         { id: 2, service: "Electrician", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", status: "ASSIGNED" },
         { id: 3, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", status: "RESCHEDULED" },
+        { id: 4, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", status: "RESCHEDULED" },
+        { id: 5, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", status: "RESCHEDULED" },
+        { id: 6, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", status: "RESCHEDULED" },
+        
 
     ];
 
@@ -72,7 +76,7 @@ const Worker = () => {
                 <div className="d-flex border-bottom mx-2 align-items-center w-100 mt-3">
                     <button className="btn d-flex align-items-center" onClick={() => navigate(-1)}>
                         <span style={{ fontSize: "20px" }}>←</span>
-                        <h5 className="px-3 pb-2 text-black mx-3"
+                        <h5 className="px-3 pb-2 text-black mx-5"
                             style={{
                                 borderBottom: "4px solid #000",
                                 position: "relative",
@@ -87,7 +91,7 @@ const Worker = () => {
             {/* Main content */}
             <div className="container">
                 <div className="row">
-                    <div className="col-4 border p-4 mt-4 mx-5 rounded align-self-start h-auto d-flex flex-column">
+                    <div className="col-4 border p-4 mt-4 rounded align-self-start h-auto d-flex flex-column" style={{marginLeft:"85px",marginRight:"10px"}}>
                         {/* Role Section */}
                         <div className="d-flex justify-content-between">
                             <div className="d-flex">
@@ -162,7 +166,7 @@ const Worker = () => {
                                     Service Details
                                 </p>
                                 <p
-                                    className={`mx-5 px-4 pb-2 ${activeTab === "inProgress" ? "border-bottom border-3 border-dark" : ""}`}
+                                    className={`mx-1 px-4 pb-2 ${activeTab === "inProgress" ? "border-bottom border-3 border-dark" : ""}`}
                                     onClick={() => setActiveTab("inProgress")}
                                     style={{ cursor: "pointer" }}
                                 >
@@ -175,11 +179,17 @@ const Worker = () => {
                                 >
                                     Reviews
                                 </p>
+
+                                <p
+                                    className="border border-danger rounded px-2" style={{ marginLeft: "100px", paddingTop: "3px", cursor: "pointer" }}>
+                                    <i className="bi bi-trash text-danger mx-1"></i>
+                                    Remove worker
+                                </p>
                             </div>
                         </div>
 
                         {/* Dynamic Content Section */}
-                        <div className="row pb-3">
+                        <div className="row">
                             <div className="table-responsive custom-table" style={{ maxHeight: "550px", overflowY: "auto" }}>
                                 {activeTab === "serviceDetails" && (
                                     <table className="table table-bordered table-hover">
