@@ -5,12 +5,10 @@ import search from "../assets/Search.png";
 import { useState } from "react";
 
 const reviews = [
-    { id: 1, user: "John Doe", service: "Home Cleaning", rating: 5, review: "Great service, highly recommended!", date: "02 Feb 2025", profilePic: userProfile },
-    { id: 2, user: "Emma Smith", service: "Plumbing", rating: 4, review: "Fixed my leak quickly. Good job!", date: "28 Jan 2025", profilePic: userProfile },
-    { id: 3, user: "David Johnson", service: "Electrical Repair", rating: 3, review: "Okay service, but took longer than expected.", date: "15 Jan 2025", profilePic: userProfile },
-    { id: 4, user: "Sophia Martinez", service: "Plumbing Service", rating: 5, review: "Excellent service! Quick and professional.", date: "20 Dec 2024", profilePic: userProfile },
-    { id: 5, user: "James Anderson", service: "Home Cleaning", rating: 4, review: "Good cleaning service, but missed a few spots.", date: "25 Nov 2024", profilePic: userProfile },
-    { id: 6, user: "Emily Carter", service: "AC Maintenance", rating: 2, review: "Not satisfied, had to call them again to fix the issue.", date: "30 Jan 2025", profilePic: userProfile }
+    {
+        id: 1, user: "John Doe", phone: "1234567890", serviceType: "Home Cleaning", rating: 5, review: "BEST Home Service is excellent! They offer subsidies for their services, making it affordable for everyone. I highly recommend them for their great work and commitment to helping the community.",
+        bookingDate: "02 Feb 2025", serviceDate: "05 Feb 2025", serviceTime: "09:00AM - 11:00AM", worker: "John Doe", profilePic: userProfile, address: "23 Ocean View Drive, Jambulingam Coral Bay, Kerala, India 695582", status: "Completed", totalAmout: "$ 500"
+    },
 ];
 
 const CustomerReview = () => {
@@ -50,22 +48,92 @@ const CustomerReview = () => {
                     </button>
                 </div>
 
-                <div className="row mt-4">
-                    <div className="col-md-6 p-3 border d-flex justify-content-between">
-                        <div>
-                            <h4>Customer Details</h4>
-                            <img src={review.profilePic} alt={review.user} className="rounded-circle" width="80" height="80" />
+                <div className="p-2">
+                    {/* Customer Details Section */}
+                    <div className="row mt-4" style={{ marginLeft: "40px", marginRight: "40px" }}>
+                        <div className="col-md-6 p-3 border border-bottom rounded-top">
+                            <h4>Customer</h4>
+                            <div className="d-flex">
+                                <img src={review.profilePic} alt={review.user} className="rounded-circle" width="80" height="80" />
+                                <div className="flex-column mx-3">
+                                    <p> <i className="bi bi-person"></i> {review.user}</p>
+                                    <p> <i className="bi bi-telephone"></i> {review.phone}</p>
+                                    <div className="d-flex">
+                                        <i className="bi bi-geo-alt"></i>
+                                        <p className="mx-1">{review.address}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <h5 className="fw-normal">Customer Review <i className="bi bi-star-fill text-warning mx-3"></i>{review.rating}</h5>
+                            <p className="text-muted">{review.review}</p>
                         </div>
-                        <div className="flex-column">
-                            <p>{review.user}</p>
-                            <p>{review.date}</p>
-                            <p>⭐ 5</p>
+
+                        {/* Service Details */}
+                        <div className="col-md-5 p-3 border-end border-start border-top rounded-top" style={{ marginLeft: "20px" }}  >
+                            <h4>Service Details</h4>
+                            <div className="d-flex justify-content-between">
+                                <p className="text-muted">Booking Date</p>
+                                <p>{review.bookingDate}</p>
+                            </div>
+
+                            <div className="d-flex justify-content-between">
+                                <p className="text-muted">Service Type</p>
+                                <p>{review.serviceType}</p>
+                            </div>
+
+                            <div className="d-flex justify-content-between">
+                                <p className="text-muted">Service Date & Time</p>
+                                <p>{review.serviceDate}, {review.serviceTime}</p>
+                            </div>
+
+                            <div className="d-flex justify-content-between">
+                                <p className="text-muted">Status</p>
+                                <p style={{ color: "#0076CE" }}>{review.status}</p>
+                            </div>
+
+                            <div className="d-flex justify-content-between">
+                                <p className="text-muted">Total Amount</p>
+                                <p>{review.totalAmout}</p>
+                            </div>
                         </div>
                     </div>
-                    <div className="col-md-6 p-3 border">
-                        <h4>Service Details</h4>
-                        <p><strong>Service:</strong> {review.service}</p>
-                        <p><strong>Review:</strong> {review.review}</p>
+
+
+                    {/* Worker Details */}
+                    <div className="row " style={{ marginLeft: "40px", marginRight: "40px" }}>
+                        <div className="col-md-6 p-3 border-bottom border-start border-end rounded-bottom">
+                            <h4 className="mt-4 mb-4">Worker Details</h4>
+                            <div className="d-flex">
+                                <img src={review.profilePic} alt={review.user} className="" width="80" height="80" />
+                                <div className="flex-column mx-3 mb-3">
+                                    <p> <i className="bi bi-person"></i> {review.user}</p>
+                                    <p> <i className="bi bi-telephone"></i> {review.phone}</p>
+                                    <div className="d-flex">
+                                        <i className="bi bi-geo-alt"></i>
+                                        <p className="mx-1">{review.address}</p>
+                                    </div>
+                                    <button className="btn" style={{ backgroundColor: "#0076CE", color: "white", width: "100%" }}>View Details</button>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div className="col-md-5 p-3 border-bottom border-end rounded-bottom border-start" style={{ marginLeft: "20px", marginTop: "-60px" }}>
+                            <div>
+                                <p>{review.bookingDate}</p>
+                                <p className="" style={{ marginTop: "-14px" }}>Your Booking is Confirmed. Our Team will Contact You Soon.</p>
+                            </div>
+
+                            <div className="mt-5">
+                                <p>{review.bookingDate}</p>
+                                <p className="" style={{ marginTop: "-14px" }} >Confirmation Call</p>
+                            </div>
+
+                            <div className="mt-5">
+                                <p>{review.bookingDate}</p>
+                                <p className="" style={{ marginTop: "-14px" }} >Service Completed</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

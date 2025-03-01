@@ -26,7 +26,7 @@ const Services = () => {
 
       <div className="container pt-5" style={{ paddingTop: "100px" }}>
         <div className="d-flex justify-content-between align-items-center mb-3 mt-5" style={{ marginRight: "25px" }}>
-          <h1 className=" px-3 pb-2 text-danger mx-3 fw-bold" style={{ position: "relative", top: "300px", left: "450px" }}>
+          <h1 className=" px-3 pb-2 text-danger mx-3 fw-bold" style={{ position: "relative", top: "300px", left: "400px" }}>
             Coming soon 🐣
           </h1>
         </div>
