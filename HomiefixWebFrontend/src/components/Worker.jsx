@@ -6,7 +6,10 @@ import { useNavigate } from "react-router-dom";
 import dop from "../assets/addWorker.png";
 import { useState } from "react";
 
+
 const Worker = () => {
+
+
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("serviceDetails");
 
@@ -32,6 +35,7 @@ const Worker = () => {
         { id: 6, service: "Electrician", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", rating: 4.2, status: "Completed" },
         { id: 7, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", rating: 4.5, status: "Completed" },
         { id: 8, service: "Electrician", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", rating: 4.2, status: "Completed" },
+        { id: 9, service: "Electrician", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", rating: 4.2, status: "Completed" },
 
     ];
 
@@ -89,7 +93,7 @@ const Worker = () => {
                             <div className="d-flex">
                                 <p>Role:</p>
                                 {workerData.roles.map((role, index) => (
-                                    <p key={index} className="border border-dark rounded-pill mx-2 px-2">
+                                    <p key={index} className="border border-dark rounded-pill mx-1 px-2">
                                         {role}
                                     </p>
                                 ))}
@@ -176,7 +180,7 @@ const Worker = () => {
 
                         {/* Dynamic Content Section */}
                         <div className="row pb-3">
-                            <div className="table-responsive" style={{ maxHeight: "550px", overflowY: "auto" }}>
+                            <div className="table-responsive custom-table" style={{ maxHeight: "550px", overflowY: "auto" }}>
                                 {activeTab === "serviceDetails" && (
                                     <table className="table table-bordered table-hover">
                                         <thead className="table-light border" style={{ position: "sticky", top: 0, zIndex: 2 }}>
