@@ -10,6 +10,19 @@ const Worker = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("serviceDetails");
 
+    const workerData = {
+        roles: ["Plumber", "Electrician"],
+        photo: dop,
+        name: "Alen Sam",
+        phone: "1234567890",
+        rating: 4,
+        address: "23 Ocean View Drive, Jambulingam Coral Bay, Kerala, India 695582",
+        joiningDate: "Jan 25 2025",
+        aadhar: "123456789012",
+        languages: ["Tamil", "Malayalam", "English"],
+        totalServices: 30,
+    };
+
     const serviceDetailsData = [
         { id: 1, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", rating: 4.5, status: "Completed" },
         { id: 2, service: "Electrician", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", rating: 4.2, status: "Completed" },
@@ -25,6 +38,8 @@ const Worker = () => {
     const inProgressData = [
         { id: 1, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", status: "STARTED" },
         { id: 2, service: "Electrician", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", status: "ASSIGNED" },
+        { id: 3, service: "Plumber", name: "John Doe", phone: "1234567890", date: "Jan 25, 2023", status: "RESCHEDULED" },
+
     ];
 
     const reviewData = [
@@ -69,41 +84,51 @@ const Worker = () => {
             <div className="container">
                 <div className="row">
                     <div className="col-4 border p-4 mt-4 mx-5 rounded align-self-start h-auto d-flex flex-column">
-                        <div className=" d-flex justify-content-between">
+                        {/* Role Section */}
+                        <div className="d-flex justify-content-between">
                             <div className="d-flex">
                                 <p>Role:</p>
-                                <p className="border border-dark rounded-pill mx-2 px-2">Plumber</p>
-                                <p className="border border-dark rounded-pill px-2">Electrician</p>
+                                {workerData.roles.map((role, index) => (
+                                    <p key={index} className="border border-dark rounded-pill mx-2 px-2">
+                                        {role}
+                                    </p>
+                                ))}
                             </div>
                             <div>
-                                <a className="text-decoration-none" style={{ color: "#0076CE" }} href="">Edit</a>
+                                <a className="text-decoration-none" style={{ color: "#0076CE" }} href="#">
+                                    Edit
+                                </a>
                             </div>
                         </div>
+
+                        {/* Profile Section */}
                         <div className="row">
-                            <div className="d-flex ">
+                            <div className="d-flex">
                                 <div>
-                                    <img className="rounded" src={dop} alt="photo" height={100} width={100} />
+                                    <img className="rounded" src={workerData.photo} alt="workerData" height={100} width={100} />
                                 </div>
                                 <div className="mx-4">
-                                    <p><i className="bi bi-person mx-1"></i>Alen sam</p>
-                                    <p><i className="bi bi-telephone mx-1"></i>1234567890</p>
+                                    <p><i className="bi bi-person mx-1"></i>{workerData.name}</p>
+                                    <p><i className="bi bi-telephone mx-1"></i>{workerData.phone}</p>
                                     <p className="mx-1">Rating:
-                                        <i className="bi bi-star-fill text-warning mx-1"></i>
-                                        <i className="bi bi-star-fill text-warning"></i>
-                                        <i className="bi bi-star-fill text-warning mx-1"></i>
-                                        <i className="bi bi-star-fill text-warning"></i>
-                                        <i className="bi bi-star-fill text-muted mx-1"></i>
-                                        4
+                                        {Array.from({ length: 5 }, (_, i) => (
+                                            <i key={i} className={`bi bi-star-fill ${i < workerData.rating ? "text-warning" : "text-muted"} mx-1`}></i>
+                                        ))}
+                                        {workerData.rating}
                                     </p>
                                 </div>
                             </div>
                         </div>
+
+                        {/* Location Section */}
                         <div className="row">
                             <div className="d-flex">
                                 <i className="bi bi-geo-alt mx-1"></i>
-                                <p>23 Ocean View Drive, Jambulingam Coral Bay, Kerala, India 695582</p>
+                                <p>{workerData.address}</p>
                             </div>
                         </div>
+
+                        {/* Additional Details */}
                         <div className="row">
                             <div className="col-5">
                                 <p>Joining Date</p>
@@ -112,10 +137,10 @@ const Worker = () => {
                                 <p>Total Service</p>
                             </div>
                             <div className="col-7">
-                                <p>: Jan 25 2025</p>
-                                <p>: **** **** 4567</p>
-                                <p>: Tamil, Malayalam, English</p>
-                                <p>: 30</p>
+                                <p>: {workerData.joiningDate}</p>
+                                <p>: **** **** {workerData.aadhar.slice(-4)}</p>
+                                <p>: {workerData.languages.join(", ")}</p>
+                                <p>: {workerData.totalServices}</p>
                             </div>
                         </div>
                     </div>
@@ -126,21 +151,21 @@ const Worker = () => {
                         <div className="row">
                             <div className="d-flex mt-3 pb-2">
                                 <p
-                                    className={`px-3 ${activeTab === "serviceDetails" ? "border-bottom border-3 border-dark" : ""}`}
+                                    className={`px-4 pb-2 ${activeTab === "serviceDetails" ? "border-bottom border-3 border-dark" : ""}`}
                                     onClick={() => setActiveTab("serviceDetails")}
                                     style={{ cursor: "pointer" }}
                                 >
                                     Service Details
                                 </p>
                                 <p
-                                    className={`mx-5 px-3 ${activeTab === "inProgress" ? "border-bottom border-3 border-dark" : ""}`}
+                                    className={`mx-5 px-4 pb-2 ${activeTab === "inProgress" ? "border-bottom border-3 border-dark" : ""}`}
                                     onClick={() => setActiveTab("inProgress")}
                                     style={{ cursor: "pointer" }}
                                 >
                                     In Progress
                                 </p>
                                 <p
-                                    className={`px-3 ${activeTab === "reviews" ? "border-bottom border-3 border-dark" : ""}`}
+                                    className={`px-4 pb-2 ${activeTab === "reviews" ? "border-bottom border-3 border-dark" : ""}`}
                                     onClick={() => setActiveTab("reviews")}
                                     style={{ cursor: "pointer" }}
                                 >
@@ -169,7 +194,7 @@ const Worker = () => {
                                                     <td>{index + 1}</td>
                                                     <td>
                                                         {item.service} <br />
-                                                        <span className="text-primary">ID: {item.id}</span>
+                                                        <span style={{ color: "#0076CE" }}>ID: {item.id}</span>
                                                     </td>
                                                     <td>{item.name} <br /> {item.phone}</td>
                                                     <td>{item.date} <br /> {item.status}</td>
@@ -197,13 +222,18 @@ const Worker = () => {
                                             {inProgressData.map((item, index) => (
                                                 <tr key={item.id}>
                                                     <td>{index + 1}</td>
-                                                    <td>{item.service}</td>
+                                                    <td>{item.service}<br />
+                                                        <span style={{ color: "#0076CE" }}>ID: {item.id}</span>
+                                                    </td>
                                                     <td>{item.name}<br /> {item.phone}</td>
                                                     <td>{item.date} <br /> Service pending</td>
                                                     <td>
-                                                        <span className={`badge ${item.status === "STARTED" ? "bg-primary" : "bg-success"}`}>
+                                                        <span className={`badge ${item.status === "STARTED" ? "bg-warning" :
+                                                            item.status === "RESCHEDULED" ? "bg-danger" :
+                                                                item.status === "ASSIGNED" ? "bg-secondary" : "bg-success"}`}>
                                                             {item.status}
                                                         </span>
+
                                                     </td>
                                                 </tr>
                                             ))}
