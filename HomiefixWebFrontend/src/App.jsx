@@ -40,9 +40,11 @@ const App = () => {
             <Route path="/reschedule/:id" element={<Reschedule />} /> 
             <Route path="/reschedule/:id" element={<CancelBooking />} /> 
             <Route path="/booking-details/assign-bookings/:id" element={<AssignBookings />} />
-            <Route path="/reviews" element={<Reviews />} />
-            <Route path="/reviews/customer-review/:id" element={<CustomerReview />} />
+            {/* <Route path="/reviews" element={<Reviews />} /> */}
+            {/* <Route path="/reviews/customer-review/:id" element={<CustomerReview />} /> */}
+            <Route path="/reviews" element={<ComingSoon />} />
             <Route path="/worker-details" element={<WorkerDetails/>} />
+            <Route path="/worker-details/worker" element={<Worker/>} />
             <Route path="/worker-details/add-worker" element={<AddWorker/>} />
             <Route path="/services" element={<Services />} />
           </Route>
