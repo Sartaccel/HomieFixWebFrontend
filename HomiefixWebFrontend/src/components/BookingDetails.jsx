@@ -32,6 +32,7 @@ const BookingDetails = () => {
   const [selectedDateCompleted, setSelectedDateCompleted] = useState(null);
   const [selectedDateCanceled, setSelectedDateCanceled] = useState(null);
 
+  // Fetch bookings from the API
   useEffect(() => {
     const fetchBookings = async () => {
       try {
@@ -78,7 +79,6 @@ const BookingDetails = () => {
         }));
 
         setBookings(transformedBookings);
-        setFilteredBookings(transformedBookings);
       } catch (error) {
         console.error("Error fetching bookings:", error);
       }
@@ -87,6 +87,7 @@ const BookingDetails = () => {
     fetchBookings();
   }, []);
 
+  // Fetch ratings for completed bookings
   useEffect(() => {
     const fetchRatings = async () => {
       const completedBookings = bookings.filter(
@@ -116,18 +117,18 @@ const BookingDetails = () => {
     }
   }, [bookings, activeTab]);
 
+  // Filter bookings based on status and worker assignment
   const pendingBookings = bookings.filter(
     (booking) =>
-      booking.status === "Pending" ||
-      (booking.status === "Rescheduled" && !booking.worker)
+      booking.status === "Pending" && !booking.worker // Only include bookings without a worker
   );
 
   const inProgress = bookings.filter(
     (booking) =>
-      (booking.status === "Started" ||
-        booking.status === "Assigned" ||
+      (booking.status === "Assigned" ||
+        booking.status === "Started" ||
         booking.status === "Rescheduled") &&
-      booking.worker
+      booking.worker // Only include bookings with a worker
   );
 
   const completed = bookings.filter(
@@ -135,69 +136,94 @@ const BookingDetails = () => {
   );
   const canceled = bookings.filter((booking) => booking.status === "Canceled");
 
+  // Update filteredBookings whenever activeTab or bookings change
+  useEffect(() => {
+    let filtered = [];
+    switch (activeTab) {
+      case "bookings":
+        filtered = pendingBookings;
+        break;
+      case "inProgress":
+        filtered = inProgress;
+        break;
+      case "completed":
+        filtered = completed;
+        break;
+      case "canceled":
+        filtered = canceled;
+        break;
+      default:
+        filtered = [];
+    }
+    setFilteredBookings(filtered);
+  }, [activeTab, bookings]);
+
+  // Handle date filter changes
   const handleDateChange = (date) => {
-    if (activeTab === "bookings") {
-      setSelectedDateBookings(date);
-      filterBookingsByDate(date, pendingBookings);
-    } else if (activeTab === "inProgress") {
-      setSelectedDateInProgress(date);
-      filterBookingsByDate(date, inProgress);
-    } else if (activeTab === "completed") {
-      setSelectedDateCompleted(date);
-      filterBookingsByDate(date, completed);
-    } else if (activeTab === "canceled") {
-      setSelectedDateCanceled(date);
-      filterBookingsByDate(date, canceled);
+    let filtered = [];
+    switch (activeTab) {
+      case "bookings":
+        setSelectedDateBookings(date);
+        filtered = filterBookingsByDate(date, pendingBookings);
+        break;
+      case "inProgress":
+        setSelectedDateInProgress(date);
+        filtered = filterBookingsByDate(date, inProgress);
+        break;
+      case "completed":
+        setSelectedDateCompleted(date);
+        filtered = filterBookingsByDate(date, completed);
+        break;
+      case "canceled":
+        setSelectedDateCanceled(date);
+        filtered = filterBookingsByDate(date, canceled);
+        break;
+      default:
+        filtered = [];
     }
-  };
-
-  const filterBookingsByDate = (date, bookingsToFilter) => {
-    let filtered = bookingsToFilter;
-
-    if (date) {
-      const formattedSelectedDate =
-        date.getFullYear() +
-        "-" +
-        String(date.getMonth() + 1).padStart(2, "0") +
-        "-" +
-        String(date.getDate()).padStart(2, "0");
-
-      filtered = filtered.filter(
-        (booking) => booking.date === formattedSelectedDate
-      );
-    }
-
     setFilteredBookings(filtered);
   };
 
+  const filterBookingsByDate = (date, bookingsToFilter) => {
+    if (!date) return bookingsToFilter;
+
+    const formattedSelectedDate =
+      date.getFullYear() +
+      "-" +
+      String(date.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(date.getDate()).padStart(2, "0");
+
+    return bookingsToFilter.filter(
+      (booking) => booking.date === formattedSelectedDate
+    );
+  };
+
+  // Clear date filter
   const clearDateFilter = () => {
-    if (activeTab === "bookings") {
-      setSelectedDateBookings(null);
-      setFilteredBookings(pendingBookings);
-    } else if (activeTab === "inProgress") {
-      setSelectedDateInProgress(null);
-      setFilteredBookings(inProgress);
-    } else if (activeTab === "completed") {
-      setSelectedDateCompleted(null);
-      setFilteredBookings(completed);
-    } else if (activeTab === "canceled") {
-      setSelectedDateCanceled(null);
-      setFilteredBookings(canceled);
+    switch (activeTab) {
+      case "bookings":
+        setSelectedDateBookings(null);
+        setFilteredBookings(pendingBookings);
+        break;
+      case "inProgress":
+        setSelectedDateInProgress(null);
+        setFilteredBookings(inProgress);
+        break;
+      case "completed":
+        setSelectedDateCompleted(null);
+        setFilteredBookings(completed);
+        break;
+      case "canceled":
+        setSelectedDateCanceled(null);
+        setFilteredBookings(canceled);
+        break;
+      default:
+        setFilteredBookings([]);
     }
   };
 
-  useEffect(() => {
-    if (activeTab === "bookings") {
-      filterBookingsByDate(selectedDateBookings, pendingBookings);
-    } else if (activeTab === "inProgress") {
-      filterBookingsByDate(selectedDateInProgress, inProgress);
-    } else if (activeTab === "completed") {
-      filterBookingsByDate(selectedDateCompleted, completed);
-    } else if (activeTab === "canceled") {
-      filterBookingsByDate(selectedDateCanceled, canceled);
-    }
-  }, [activeTab, selectedDateBookings, selectedDateInProgress, selectedDateCompleted, selectedDateCanceled]);
-
+  // Handle click outside the datepicker dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -211,6 +237,7 @@ const BookingDetails = () => {
     };
   }, []);
 
+  // Get status icon based on booking status
   const getStatusIcon = (status) => {
     switch (status) {
       case "Rescheduled":
@@ -224,6 +251,7 @@ const BookingDetails = () => {
     }
   };
 
+  // Initialize datepicker when dropdown is open
   useEffect(() => {
     if (dropdownOpen) {
       $("#sandbox-container div").datepicker({
@@ -236,7 +264,7 @@ const BookingDetails = () => {
     }
   }, [dropdownOpen]);
 
-  // Function to format the date as "Feb 25, 2025"
+  // Format date as "Feb 25, 2025"
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -335,7 +363,7 @@ const BookingDetails = () => {
                           : activeTab === "inProgress"
                           ? "19.4%"
                           : activeTab === "completed"
-                          ? "20.6%"
+                          ? "19.8%"
                           : activeTab === "canceled"
                           ? "18.7%"
                           : "20%",
@@ -372,7 +400,7 @@ const BookingDetails = () => {
                       style={{
                         width:
                           activeTab === "completed"
-                            ? "17%"
+                            ? "15.8%"
                             : activeTab === "inProgress"
                             ? "15.5%"
                             : activeTab === "canceled"
@@ -596,7 +624,7 @@ const BookingDetails = () => {
                             ? "18.8%"
                             : activeTab === "completed" ||
                               activeTab === "inProgress"
-                            ? "20%"
+                            ? "19.2%"
                             : "20%",
                       }}
                     >
@@ -627,9 +655,9 @@ const BookingDetails = () => {
                             ? "13.8%"
                             : activeTab === "canceled"
                             ? "17%"
-                            : activeTab === "completed" ||
+                            : activeTab === "completed" ? "15%":
                               activeTab === "inProgress"
-                            ? "15%"
+                            ? "14.5%"
                             : "13.8%",
                       }}
                     >
@@ -653,7 +681,7 @@ const BookingDetails = () => {
                               ? "15%"
                               : activeTab === "completed" ||
                                 activeTab === "inProgress"
-                              ? "16%"
+                              ? "15%"
                               : "16%",
                         }}
                       >
