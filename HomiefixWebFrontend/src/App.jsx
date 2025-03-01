@@ -16,6 +16,8 @@ import ViewBookings from "./components/ViewBookings";
 import WorkerDetails from "./components/WorkerDetails";
 import AddWorker from "./components/AddWorker";
 import Services from "./components/Services";
+import ComingSoon from "./components/ComingSoon";
+import Worker from "./components/Worker";
 
 
 const App = () => {

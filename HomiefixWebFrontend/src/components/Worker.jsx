@@ -91,7 +91,7 @@ const Worker = () => {
             {/* Main content */}
             <div className="container">
                 <div className="row">
-                    <div className="col-4 border p-4 mt-4 rounded align-self-start h-auto d-flex flex-column" style={{marginLeft:"85px",marginRight:"10px"}}>
+                    <div className="col-lg-4 border p-4 mt-4 rounded align-self-start h-auto d-flex flex-column" style={{marginLeft:"85px",marginRight:"10px"}}>
                         {/* Role Section */}
                         <div className="d-flex justify-content-between">
                             <div className="d-flex">
@@ -154,7 +154,7 @@ const Worker = () => {
                     </div>
 
 
-                    <div className="col-7 mt-4 border px-3 rounded">
+                    <div className="col-md-7 mt-4 border px-3 rounded">
                         {/* Header Section with Active Border */}
                         <div className="row">
                             <div className="d-flex mt-3 pb-2">
@@ -166,7 +166,7 @@ const Worker = () => {
                                     Service Details
                                 </p>
                                 <p
-                                    className={`mx-1 px-4 pb-2 ${activeTab === "inProgress" ? "border-bottom border-3 border-dark" : ""}`}
+                                    className={`mx-1 px-4 pb-2 ${activeTab === "inProgress" ? "border-bottom border-3 border-dark" : ""}1`}
                                     onClick={() => setActiveTab("inProgress")}
                                     style={{ cursor: "pointer" }}
                                 >
@@ -190,35 +190,57 @@ const Worker = () => {
 
                         {/* Dynamic Content Section */}
                         <div className="row">
-                            <div className="table-responsive custom-table" style={{ maxHeight: "550px", overflowY: "auto" }}>
+                            <div className="table-responsive custom-table" style={{ maxHeight: "550px", overflowY: "auto", overflowX: "hidden" }}>
                                 {activeTab === "serviceDetails" && (
-                                    <table className="table table-bordered table-hover">
-                                        <thead className="table-light border" style={{ position: "sticky", top: 0, zIndex: 2 }}>
-                                            <tr>
-                                                <th>S.no</th>
-                                                <th>Service</th>
-                                                <th>Name</th>
-                                                <th>Date</th>
-                                                <th>Rating</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {serviceDetailsData.map((item, index) => (
-                                                <tr key={item.id}>
-                                                    <td>{index + 1}</td>
-                                                    <td>
-                                                        {item.service} <br />
-                                                        <span style={{ color: "#0076CE" }}>ID: {item.id}</span>
-                                                    </td>
-                                                    <td>{item.name} <br /> {item.phone}</td>
-                                                    <td>{item.date} <br /> {item.status}</td>
-                                                    <td>
-                                                        <i className="bi bi-star-fill text-warning"></i> {item.rating}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                     <table
+                                     className="table table-hover"
+                                     style={{
+                                       position: "relative",
+                                       borderCollapse: "separate",
+                                       borderSpacing: "0",
+                                       border: "none", // Add border to the entire table
+                                     }}
+                                   >
+                                     {/* Table Header */}
+                                     <thead
+                                       className="table-light"
+                                       style={{
+                                         position: "sticky",
+                                         top: "0",
+                                         zIndex: 2,
+                                         backgroundColor: "white",
+                                       }}
+                                     >
+                                       <tr>
+                                         <th style={{ border: "1px solid #dee2e6" }}>S.no</th>
+                                         <th style={{ border: "1px solid #dee2e6" }}>Service</th>
+                                         <th style={{ border: "1px solid #dee2e6" }}>Name</th>
+                                         <th style={{ border: "1px solid #dee2e6" }}>Date</th>
+                                         <th style={{ border: "1px solid #dee2e6" }}>Rating</th>
+                                       </tr>
+                                     </thead>
+                                     {/* Table Body */}
+                                     <tbody>
+                                       {serviceDetailsData.map((item, index) => (
+                                         <tr key={item.id}>
+                                           <td style={{ border: "1px solid #dee2e6" }}>{index + 1}</td>
+                                           <td style={{ border: "1px solid #dee2e6" }}>
+                                             {item.service} <br />
+                                             <span style={{ color: "#0076CE" }}>ID: {item.id}</span>
+                                           </td>
+                                           <td style={{ border: "1px solid #dee2e6" }}>
+                                             {item.name} <br /> {item.phone}
+                                           </td>
+                                           <td style={{ border: "1px solid #dee2e6" }}>
+                                             {item.date} <br /> {item.status}
+                                           </td>
+                                           <td style={{ border: "1px solid #dee2e6" }}>
+                                             <i className="bi bi-star-fill text-warning"></i> {item.rating}
+                                           </td>
+                                         </tr>
+                                       ))}
+                                     </tbody>
+                                   </table>
                                 )}
 
                                 {activeTab === "inProgress" && (
