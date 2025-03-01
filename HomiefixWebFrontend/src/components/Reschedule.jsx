@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../styles/AssignBookings.css";
 
-const Reschedule = ({ id, booking, onClose }) => {
+const Reschedule = ({ id, booking, onClose,onRescheduleSuccess }) => {
   const [availableDates, setAvailableDates] = useState([]);
   const [availableTimes, setAvailableTimes] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
@@ -108,6 +108,10 @@ const Reschedule = ({ id, booking, onClose }) => {
 
       if (response.ok) {
         alert("Booking rescheduled successfully");
+        if (onRescheduleSuccess) {
+          onRescheduleSuccess(selectedDate, selectedTimeSlot, reason);
+        }
+
         onClose(); // Close the Reschedule modal
       } else {
         const errorData = await response.json();

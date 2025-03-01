@@ -3,17 +3,17 @@ import React from "react";
 
 
 const StarRating = ({ rating }) => {
-  return (
-    <div style={{ marginTop: "2px", display: "flex", alignItems: "center", gap: "5px" }}>
-    {/* Single Star */}
-    <span style={{ fontSize: "20px", color: "gold", marginleft:"10px"}}>★</span>
+  if (rating === undefined || rating === null) return null; // Prevent rendering if rating is missing
 
-    {/* Show Numeric Rating */}
-    <span style={{ fontSize: "15px",  color: "#333" }}>
-      {rating.toFixed(1)}
-    </span>
-  </div>
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+      <i className="bi bi-star-fill" style={{ color: "#FFD700", fontSize: "16px" }}></i>
+      <span style={{ fontSize: "15px", color: "#333" }}>{rating.toFixed(1)}</span>
+    </div>
   );
 };
+
+// Usage:
+{worker && <StarRating rating={worker.rating || 4.5} />}
 
 export default StarRating;

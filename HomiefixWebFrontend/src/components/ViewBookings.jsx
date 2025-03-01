@@ -13,7 +13,7 @@ const ViewBookings = () => {
   const location = useLocation();
   const navigate = useNavigate(); // Fixed missing import
   const booking = location.state?.booking || {};
-  const [bookings, setBookings] = useState(booking);
+  const [bookings, setBookings] = useState({});
   const [bookingDate, setBookingDate] = useState("");
   const [bookedDate, setBookedDate] = useState("");
   const [activeTab, setActiveTab] = useState("serviceDetails");
@@ -28,58 +28,27 @@ const ViewBookings = () => {
   const [error, setError] = useState("");
   const [showRescheduleSlider, setShowRescheduleSlider] = useState(false); // State to control Reschedule visibility
   const [showCancelBookingModal, setShowCancelBookingModal] = useState(false); // State to control CancelBooking visibility
- 
- 
-  const handleRescheduleSuccess = (updatedDetails) => {
-    setBookings((prev) => ({
-      ...prev,
-      status: "Rescheduled",
-      reschedule: {
-        selectedDate: updatedDetails.date || prev.reschedule?.selectedDate || "N/A",
-        selectedtimeSlot: updatedDetails.time || prev.reschedule?.selectedtimeSlot || "N/A",
-        rescheduleReason: updatedDetails.reason || prev.reschedule?.rescheduleReason || "N/A",
-      },
-    }));
-  };
-  const handleReschedule = async () => {
-    try {
-      const formattedDate = new Date(selectedDate).toISOString().split("T")[0];
+  const [rescheduledDate, setRescheduledDate] = useState(
+    localStorage.getItem(`rescheduledDate-${id}`) || ""
+  );
+  const [rescheduledTime, setRescheduledTime] = useState(
+    localStorage.getItem(`rescheduledTime-${id}`) || ""
+  );
+  const [rescheduleReason, setRescheduleReason] = useState(
+    localStorage.getItem(`rescheduleReason-${id}`) || ""
+  );
+  const handleRescheduleSuccess = (date, time, reason) => {
+    setRescheduledDate(date);
+    setRescheduledTime(time);
+    setRescheduleReason(reason);
   
-      const updatedDetails = {
-        date: formattedDate,
-        time: selectedTimeSlot,
-        reason: rescheduleReason === "other" ? otherReason : rescheduleReason,
-      };
-  
-      console.log("Sending update:", updatedDetails);
-  
-      const response = await fetch(`http://localhost:2222/booking/reschedule/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(updatedDetails),
-        headers: { "Content-Type": "application/json" },
-      });
-  
-      if (response.ok) {
-        alert("Booking rescheduled successfully");
-  
-        // Log the callback function to check if it runs
-        console.log("Calling onRescheduleSuccess with:", updatedDetails);
-        onRescheduleSuccess(updatedDetails);
-        onClose();
-      } else {
-        alert("Failed to reschedule booking");
-      }
-    } catch (error) {
-      console.error("Reschedule error:", error);
-      alert("An error occurred during reschedule.");
-    }
+    // Store in localStorage
+    localStorage.setItem(`rescheduledDate-${id}`, date);
+    localStorage.setItem(`rescheduledTime-${id}`, time);
+    localStorage.setItem(`rescheduleReason-${id}`, reason);
   };
     
-  const [showReschedule, setShowReschedule] = useState(false);
 
-  
-  
-  // Fetch workers from the API
   useEffect(() => {
     if (!id) return;
 
@@ -94,11 +63,7 @@ const ViewBookings = () => {
         const data = await response.json();
         console.log("Fetched Booking Data:", data);
 
-        setBookings((prev) => ({
-          ...prev,
-          ...data,
-          reschedule: data.reschedule || prev.reschedule, // ✅ Preserve old reschedule details
-        }));
+        setBookings(data)
 
         setBookingDate(data.bookingDate || "N/A");
         setBookedDate(data.bookedDate || "N/A");
@@ -109,15 +74,22 @@ const ViewBookings = () => {
         if (data.worker) {
           setWorker(data.worker);
         } else if (data.workerId) {
-          const workerResponse = await fetch(
-            `http://localhost:2222/workers/view/${data.workerId}`
-          );
-          if (!workerResponse.ok) {
-            throw new Error("Failed to fetch worker details");
+          try {
+            const workerResponse = await fetch(
+              `http://localhost:2222/workers/view/${data.workerId}`
+            );
+            if (!workerResponse.ok) {
+              throw new Error("Failed to fetch worker details");
+            }
+            const workerData = await workerResponse.json();
+            console.log("Worker Data:", workerData);
+            setWorker(workerData);
+          } catch (workerErr) {
+            console.error("Error fetching worker details:", workerErr);
+            setWorker(null); // Ensure UI handles missing worker properly
           }
-          const workerData = await workerResponse.json();
-          console.log("Worker Data:", workerData);
-          setWorker(workerData);
+        } else {
+          setWorker(null); // If no worker, explicitly set null
         }
       } catch (err) {
         console.error("Error fetching booking details:", err);
@@ -159,9 +131,15 @@ const ViewBookings = () => {
 
     console.log("Debug: Type of serviceStarted =", typeof serviceStarted);
     console.log("Debug: Type of serviceCompleted =", typeof serviceCompleted);
-
+    
+   
     // Determine status dynamically
     let status = "";
+
+    if (serviceStarted === "No" && serviceCompleted !== "No") {
+      alert("Error: Service cannot be completed without starting first!");
+      return;
+    }
     if (serviceCompleted !== "No") {
       status = "COMPLETED";
     } else if (serviceStarted !== "No") {
@@ -211,6 +189,9 @@ const ViewBookings = () => {
 
     return `${position}px`;
   };
+ 
+  
+
   
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -387,7 +368,9 @@ const ViewBookings = () => {
                               className="bi bi-star-fill"
                               style={{ color: "#FFD700" }}
                             ></i>
-                            {worker.rating ? worker.rating.toFixed(1) : "4.5"}{" "}
+                            {worker.rating !== undefined && worker.rating !== null 
+        ? worker.rating.toFixed(1) 
+        : "4.5"} 
                           </span>
                         </p>
                         <p className="mb-1">
@@ -403,7 +386,7 @@ const ViewBookings = () => {
                       </div>
                     </div>
                   ) : (
-                    <p>No worker selected or loading...</p>
+                    <p>No worker assigned</p>
                   )}
                   <a
                     href={`/workers/view/${worker.id}`}
@@ -524,7 +507,7 @@ const ViewBookings = () => {
                           </td>
                         </tr>
 
-                        <tr style={{ height: "80px" }}>
+                        <tr style={{ height: "40px" }}>
                           <td colSpan="4" className="text-start border-right">
                             <span style={{ color: "grey" }}>
                               {bookedDate !== "No"
@@ -542,33 +525,17 @@ const ViewBookings = () => {
                                 : "N/A"}
                             </span>
                             <br />
-                            {bookings.status === "Rescheduled" &&
-                            bookings.reschedule?.selectedDate ? (
-                              <div>
-                                <strong style={{ color: "red" }}>
-                                  Rescheduled
-                                </strong>
-                                <div
-                                  style={{ fontSize: "14px", color: "#555" }}
-                                >
-                                  <p>
-                                    Date:{" "}
-                                    {bookings.reschedule.selectedDate || "N/A"}
-                                  </p>
-                                  <p>
-                                    Time:{" "}
-                                    {bookings.reschedule.selectedtimeSlot ||
-                                      "N/A"}
-                                  </p>
-                                  <p>
-                                    Reason:{" "}
-                                    {bookings.reschedule.rescheduleReason ||
-                                      "N/A"}
-                                  </p>
-                                </div>
-                              </div>
-                            ) : null}{" "}
-                            {/* Removes "Scheduled" if not Rescheduled */}
+                            <div className="booking-details" style={{ color: "red", display: "flex", flexDirection: "column", gap: "5px",fontSize:"14px" }}>
+  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+    <span>Rescheduled Service On</span>
+    <span>{rescheduledDate || bookedDate} | {rescheduledTime || timeSlot}</span>
+  </div>
+  <span>{rescheduleReason || "Not Rescheduled"}</span>
+</div>
+
+
+  
+
                           </td>
                         </tr>
 
@@ -691,74 +658,27 @@ const ViewBookings = () => {
               </div>
             </div>
           </div>
-          {/* Animate Reschedule Slider */}
-          <AnimatePresence>
-            {showRescheduleSlider && (
-              <>
-                {/* Backdrop */}
-                <motion.div
-                  className="backdrop"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  onClick={() => setShowRescheduleSlider(false)}
-                />
+           {/* Reschedule Slider */}
+           {showRescheduleSlider && (
+            <Reschedule
+              id={id}
+              booking={bookings}
+              onClose={() => setShowRescheduleSlider(false)}
+              onRescheduleSuccess={handleRescheduleSuccess}
+               
+           
+            />
+           )}
+          
 
-                {/* Sliding Panel */}
-                <motion.div
-                  className="reschedule-slider"
-                  initial={{ x: "100%" }}
-                  animate={{ x: 0 }}
-                  exit={{ x: "100%" }}
-                  transition={{
-                    type: "tween",
-                    duration: 0.5,
-                    ease: "easeInOut",
-                  }}
-                >
-                  <Reschedule
-                    id={id}
-                    booking={bookings}
-                    onClose={() => setShowRescheduleSlider(false)}
-                    onRescheduleSuccess={handleRescheduleSuccess}
-                  />
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>
-
-          {/* Animate Cancel Booking Modal */}
-          <AnimatePresence>
-            {showCancelBookingModal && (
-              <>
-                {/* Backdrop */}
-                <motion.div
-                  className="modal-overlay"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: -3 }}
-                  transition={{ duration: 0.5 }}
-                  onClick={() => setShowCancelBookingModal(false)}
-                />
-
-                {/* Modal */}
-                <motion.div
-                  className="cancel-booking-modal"
-                  initial={{ y: 50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 50, opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 120, damping: 15 }}
-                >
-                  <CancelBooking
-                    id={id}
-                    booking={bookings}
-                    onClose={() => setShowCancelBookingModal(false)}
-                  />
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>
+          {/* Cancel Booking Modal */}
+          {showCancelBookingModal && (
+            <CancelBooking
+              id={id}
+              booking={bookings}
+              onClose={() => setShowCancelBookingModal(false)}
+            />
+          )}
         </main>
       </div>
     </div>
