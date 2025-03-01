@@ -145,7 +145,7 @@ const Reviews = () => {
                                                     </h6>
                                                 </div>
                                                 <div>
-                                                    <span className="text-dark px-2"><i className="bi bi-star-fill text-warning mx-1"></i> {review.rating}</span>
+                                                    <span className="text-dark px-2">⭐ {review.rating}</span>
                                                     <small className="ms-2">{review.date}</small>
                                                 </div>
                                             </div>
