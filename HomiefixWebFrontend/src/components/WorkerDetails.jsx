@@ -11,6 +11,8 @@ import alenSamImg from "../assets/home1.png";
 const WorkerDetails = () => {
   const navigate = useNavigate();
   const [workers, setWorkers] = useState([]);
+  const [showFilter, setShowFilter] = useState(false);
+  const [selectedSpecifications, setSelectedSpecifications] = useState([]);
 
   useEffect(() => {
     const fetchWorkers = async () => {
@@ -24,6 +26,25 @@ const WorkerDetails = () => {
     };
     fetchWorkers();
   }, []);
+
+  const specifications = {
+    "Home Appliances": ["AC", "Geyser", "Microwave", "Inverter & Stabilizers", "Water Purifier", "TV", "Fridge", "Washing Machine", "Fan"],
+    Electrician: ["Switch & Socket", "Wiring", "Doorbell", "Appliance", "MCB & Submeter", "Light and Wall light", "CCTV"],
+    Carpentry: ["Bed", "Cupboard & Drawer", "Door", "Applience", "Windows", "Drill & Hang", "Furniture Repair"],
+    Plumbing: ["Washbasin Installation", "Blockage Removal", "Shower", "Toilet", "Tap, Pipe works", "Water tank & Motor"],
+    "Vehicle service": ["Batteries", "Health checkup", "Wash & Cleaning", "Denting & Painting", "Wheel car", "Vehicle AC"],
+  };
+
+  const handleFilterChange = (spec) => {
+    setSelectedSpecifications((prev) =>
+      prev.includes(spec) ? prev.filter((s) => s !== spec) : [...prev, spec]
+    );
+  };
+
+  const filteredWorkers = workers.filter((worker) =>
+    selectedSpecifications.length === 0 ||
+    selectedSpecifications.some((spec) => worker.specification.includes(spec))
+  );
 
   return (
     <div>
@@ -45,10 +66,48 @@ const WorkerDetails = () => {
       <div className="container pt-5" style={{ paddingTop: "80px" }}>
         <div className="d-flex justify-content-between align-items-center mb-3 mt-5" style={{ marginRight: "25px" }}>
           <h5 className="px-3 pb-2 text-black mx-3" style={{ borderBottom: "4px solid #000" }}>Worker Details</h5>
-          <button className="btn text-light" onClick={() => navigate("/worker-details/add-worker")} style={{ backgroundColor: "#0076CE" }}>
-            Add Worker
-          </button>
+          <div>
+            <button className="btn text-light me-2" onClick={() => navigate("/worker-details/add-worker")} style={{ backgroundColor: "#0076CE" }}>Add Worker</button>
+            <button className="btn border text-black" onClick={() => setShowFilter(true)} style={{}}>Filter <i className="bi bi-funnel"></i></button>
+
+          </div>
         </div>
+
+        {/* Filter Modal */}
+        {showFilter && (
+          <div className="modal d-block bg-dark bg-opacity-50" style={{ zIndex: 1050 }}>
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Filter Workers</h5>
+                  <button className="btn-close" onClick={() => setShowFilter(false)}></button>
+                </div>
+                <div className="modal-body">
+                  {Object.entries(specifications).map(([category, specs]) => (
+                    <div key={category}>
+                      <h6 className="fw-bold">{category}</h6>
+                      {specs.map((spec) => (
+                        <div key={spec} className="form-check">
+                          <input
+                            type="checkbox"
+                            className="form-check-input"
+                            id={spec}
+                            checked={selectedSpecifications.includes(spec)}
+                            onChange={() => handleFilterChange(spec)}
+                          />
+                          <label className="form-check-label" htmlFor={spec}>{spec}</label>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+                <div className="modal-footer">
+                  <button className="btn btn-secondary" onClick={() => setShowFilter(false)}>Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Main Content */}
         <div style={{ overflow: "hidden", padding: "10px 15px" }}>
@@ -65,24 +124,19 @@ const WorkerDetails = () => {
                 </tr>
               </thead>
               <tbody>
-                {workers.map((worker) => (
-                  <tr key={worker.workerId || worker.contactNumber} onClick={() => navigate("/worker-details/worker")} style={{ cursor: "pointer" }}>
-                    <td style={{ verticalAlign: "middle" }}>
+                {filteredWorkers.map((worker) => (
+                  <tr key={worker.workerId || worker.contactNumber} onClick={() => navigate(`/worker-details/worker/${worker.id}`)} style={{ cursor: "pointer" }}>
+                    <td>
                       <div style={{ display: "flex", alignItems: "center" }}>
                         <img src={worker.profilePicUrl || alenSamImg} alt={worker.name} className="square-circle me-2" width="40" height="40" />
                         {worker.name}
                       </div>
                     </td>
-                    <td style={{ verticalAlign: "middle" }}>{worker.role}</td>
-                    <td style={{ verticalAlign: "middle" }}>{worker.contactNumber}</td>
-                    <td style={{ verticalAlign: "middle" }}>
-                      <i className="bi bi-star-fill text-warning me-1"></i>
-                      {worker.averageRating || "N/A"}
-                    </td>
-                    <td style={{ verticalAlign: "middle" }}>
-                      {`${worker.houseNumber}, ${worker.town}, ${worker.nearbyLandmark}, ${worker.district}, ${worker.state}, ${worker.pincode}`}
-                    </td>
-                    <td style={{ verticalAlign: "middle" }}>{worker.joiningDate}</td>
+                    <td>{worker.role}</td>
+                    <td>{worker.contactNumber}</td>
+                    <td><i className="bi bi-star-fill text-warning me-1"></i>{worker.averageRating || "N/A"}</td>
+                    <td>{`${worker.houseNumber}, ${worker.town}, ${worker.nearbyLandmark}, ${worker.district}, ${worker.state}, ${worker.pincode}`}</td>
+                    <td>{worker.joiningDate}</td>
                   </tr>
                 ))}
               </tbody>
