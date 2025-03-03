@@ -122,7 +122,7 @@ const Worker = () => {
             {/* Main content */}
             <div className="container">
                 <div className="row">
-                    <div className="col-4 border p-4 mt-4 rounded align-self-start h-auto d-flex flex-column" style={{ marginLeft: "85px", marginRight: "10px" }}>
+                    <div className="col-4 border p-3 mt-4 rounded align-self-start h-auto d-flex flex-column" style={{ marginLeft: "70px", marginRight: "10px" }}>
                         {/* Role Section */}
                         <div className="d-flex justify-content-between">
                             <div className="d-flex">
@@ -147,7 +147,7 @@ const Worker = () => {
                                     <p><i className="bi bi-telephone mx-1"></i>{workerData.contactNumber}</p>
                                     <p className="mx-1">Rating:
                                         {Array.from({ length: 5 }, (_, i) => (
-                                            <i key={i} className={`bi bi-star-fill ${i < (workerData.averageRating || 0) ? "text-warning" : "text-muted"} mx-1`}></i>
+                                            <i key={i} className={`bi bi-star-fill ${i < (workerData.averageRating || 0) ? "text-warning" : "text-secondary"} mx-1`}></i>
                                         ))}
                                         {workerData.averageRating || "N/A"}
                                     </p>
