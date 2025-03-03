@@ -104,14 +104,16 @@ const AddWorker = () => {
             {/* Scrollable Content */}
             <div className="container" style={{ paddingTop: "80px" }}>
                 <div className="d-flex gap-4 mx-2 align-items-center">
-                    <button className="btn" onClick={() => navigate(-1)}>
+                <button className="btn d-flex align-items-center" onClick={() => navigate(-1)}>
                         <span style={{ fontSize: "20px" }}>←</span>
-                    </button>
-                    <button
-                        className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
-                        onClick={() => setActiveTab("recent")}
-                    >
-                        Worker Details
+                        <h5 className="px-3 pb-2 text-black mx-4"
+                            style={{
+                                borderBottom: "3px solid #000",
+                                position: "relative",
+                                marginBottom: "-11px"
+                            }}>
+                            Worker Details
+                        </h5>
                     </button>
                 </div>
             </div>
