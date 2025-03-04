@@ -153,9 +153,28 @@ const Login = ({ setToken }) => {
             {/* Login Button with Loader */}
             <button type="submit" className={`login-button ${loading ? "loading" : ""}`} disabled={loading}>
               {loading ? (
-                <svg width="24" height="24" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" className="loader-icon">
-                  <path opacity="0.2" d="M37 22C37 30.2843 30.2843 37 22 37C13.7157 37 7 30.2843 7 22C7 13.7157 13.7157 7 22 7C30.2843 7 37 13.7157 37 22ZM11.5 22C11.5 27.799 16.201 32.5 22 32.5C27.799 32.5 32.5 27.799 32.5 22C32.5 16.201 27.799 11.5 22 11.5C16.201 11.5 11.5 16.201 11.5 22Z" fill="white"/>
-                </svg>
+                <svg
+  width="24"
+  height="24"
+  viewBox="0 0 44 44"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+  className="loader-icon"
+  style={{
+    animation: "spin 1s linear infinite",
+    display: "block",
+    margin: "auto",
+  }}
+>
+  <circle cx="22" cy="22" r="20" stroke="white" strokeWidth="4" opacity="0.2" />
+  <path
+    d="M22 2 A 20 20 0 0 1 42 22"
+    stroke="white"
+    strokeWidth="4"
+    strokeLinecap="round"
+  />
+</svg>
+
               ) : "Login"}
             </button>
           </form>

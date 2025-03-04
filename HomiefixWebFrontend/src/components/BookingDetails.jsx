@@ -119,8 +119,7 @@ const BookingDetails = () => {
 
   // Filter bookings based on status and worker assignment
   const pendingBookings = bookings.filter(
-    (booking) =>
-      booking.status === "Pending" && !booking.worker // Only include bookings without a worker
+    (booking) => booking.status === "Pending" && !booking.worker // Only include bookings without a worker
   );
 
   const inProgress = bookings.filter(
@@ -147,7 +146,15 @@ const BookingDetails = () => {
         filtered = inProgress;
         break;
       case "completed":
-        filtered = completed;
+        filtered = completed.filter((booking) => {
+          if (ratingFilter === "All") {
+            return true;
+          } else if (ratingFilter === "No Rating") {
+            return !ratings[booking.id];
+          } else {
+            return ratings[booking.id] === parseInt(ratingFilter, 10);
+          }
+        });
         break;
       case "canceled":
         filtered = canceled;
@@ -156,7 +163,7 @@ const BookingDetails = () => {
         filtered = [];
     }
     setFilteredBookings(filtered);
-  }, [activeTab, bookings]);
+  }, [activeTab, bookings, ratingFilter, ratings]);
 
   // Handle date filter changes
   const handleDateChange = (date) => {
@@ -197,6 +204,13 @@ const BookingDetails = () => {
     return bookingsToFilter.filter(
       (booking) => booking.date === formattedSelectedDate
     );
+  };
+
+  const truncateText = (text, maxLength = 53) => {
+    if (!text) return "No Reason Provided";
+    return text.length > maxLength
+      ? text.substring(0, maxLength) + "..."
+      : text;
   };
 
   // Clear date filter
@@ -241,12 +255,12 @@ const BookingDetails = () => {
   const getStatusIcon = (status) => {
     switch (status) {
       case "Rescheduled":
-        return statusRescheduled;
+        return { icon: statusRescheduled, width: 140 }; // Adjust width as needed
       case "Assigned":
-        return statusAssigned;
+        return { icon: statusAssigned, width: 110 }; // Adjust width as needed
       case "Started":
-        return statusStarted;
-      default:
+        return { icon: statusStarted, width: 110 }; // Adjust width as needed
+            default:
         return null;
     }
   };
@@ -254,13 +268,15 @@ const BookingDetails = () => {
   // Initialize datepicker when dropdown is open
   useEffect(() => {
     if (dropdownOpen) {
-      $("#sandbox-container div").datepicker({
-        autoclose: true,
-        todayHighlight: true,
-      }).on("changeDate", function (e) {
-        handleDateChange(e.date);
-        setDropdownOpen(false);
-      });
+      $("#sandbox-container div")
+        .datepicker({
+          autoclose: true,
+          todayHighlight: true,
+        })
+        .on("changeDate", function (e) {
+          handleDateChange(e.date);
+          setDropdownOpen(false);
+        });
     }
   }, [dropdownOpen]);
 
@@ -348,10 +364,13 @@ const BookingDetails = () => {
 
           <div
             className="table-responsive mt-3 w-100 px-0 overflow-auto"
-            style={{ maxHeight: "100%", minHeight: "100%"}}
+            style={{ maxHeight: "100%", minHeight: "100%" }}
           >
-            <table className="booking-table table table-hover bg-white rounded shadow-sm"  style={{borderRadius: "15px" }}>
-              <thead className="td-height" >
+            <table
+              className="booking-table table table-hover bg-white rounded shadow-sm"
+              style={{ borderRadius: "15px" }}
+            >
+              <thead className="td-height">
                 <tr>
                   {/* Service Column */}
                   <th
@@ -448,7 +467,8 @@ const BookingDetails = () => {
                       {dropdownOpen && (
                         <div className="dropdown-menu show p-2">
                           <div id="sandbox-container">
-                            <div></div> {/* This is where the datepicker will be rendered */}
+                            <div></div>{" "}
+                            {/* This is where the datepicker will be rendered */}
                           </div>
                         </div>
                       )}
@@ -607,7 +627,7 @@ const BookingDetails = () => {
                   )}
 
                   {/* Action Column */}
-                  <th className="p-3 text-left" style={{ width: "10%"}}></th>
+                  <th className="p-3 text-left" style={{ width: "10%" }}></th>
                 </tr>
               </thead>
               <tbody>
@@ -655,8 +675,9 @@ const BookingDetails = () => {
                             ? "13.8%"
                             : activeTab === "canceled"
                             ? "17%"
-                            : activeTab === "completed" ? "15%":
-                              activeTab === "inProgress"
+                            : activeTab === "completed"
+                            ? "15%"
+                            : activeTab === "inProgress"
                             ? "14.5%"
                             : "13.8%",
                       }}
@@ -729,23 +750,26 @@ const BookingDetails = () => {
                       <td
                         className="p-3 text-left"
                         style={{
-                          width:
-                            activeTab === "inProgress"
-                              ? "15%"
-                              : activeTab === "completed"
-                              ? "15%"
-                              : activeTab === "canceled"
-                              ? "15%"
-                              : "15%",
+                          width: "15%",
+                          maxWidth: "200px",
+                          overflow: "hidden",
                         }}
                       >
                         {activeTab === "inProgress" ? (
                           <img
-                            src={getStatusIcon(booking.status)}
-                            alt={booking.status}
-                            width="120"
-                            height="40"
-                          />
+                          src={
+                            getStatusIcon(booking.status)
+                              ? getStatusIcon(booking.status).icon
+                              : null
+                          }
+                          alt={booking.status}
+                          width={
+                            getStatusIcon(booking.status)
+                              ? getStatusIcon(booking.status).width
+                              : 0
+                          }
+                          height="40"
+                        />
                         ) : activeTab === "completed" ? (
                           <div
                             className="d-flex align-items-center"
@@ -759,7 +783,7 @@ const BookingDetails = () => {
                             </span>
                           </div>
                         ) : (
-                          booking.cancelReason || "No Reason Provided"
+                          <span>{truncateText(booking.cancelReason)}</span>
                         )}
                       </td>
                     )}
