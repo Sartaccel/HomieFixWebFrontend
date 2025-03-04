@@ -132,7 +132,7 @@ const Worker = () => {
                                 </p>
                             </div>
                             <div>
-                                <a className="text-decoration-none" style={{ color: "#0076CE" }} href="#">Edit</a>
+                                <a className="text-decoration-none" style={{ color: "#0076CE" }} href={`/worker-details/worker/edit/${id}`}>Edit</a>
                             </div>
                         </div>
 
@@ -250,7 +250,7 @@ const Worker = () => {
 
                                 {activeTab === "inProgress" && (
                                     <table className="table table-bordered table-hover">
-                                        <thead className="table-light border" style={{ position: "sticky", top: 0, zIndex: 3, backgroundColor: 'white', borderBottom: '1px solid #dee2e6', boxShadow: '0 2px 2px 1px rgba(0, 0, 0, 0.1)' }}>
+                                        <thead className="table-light border" style={{ position: "sticky", top: 0, zIndex: 3, backgroundColor: 'white', borderBottom: '1px solid #dee2e6', boxShadow: '0 0px 2px 1px rgba(0, 0, 0, 0.1)' }}>
                                             <tr>
                                                 <th>S.no</th>
                                                 <th>Service</th>
