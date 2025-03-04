@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "../styles/AssignBookings.css";
 
-const CancelBooking = ({ id, booking, onClose }) => {
+const CancelBooking = ({ id, booking, onClose,onCancelSuccess }) => {
   const [cancelReason, setCancelReason] = useState("");
   const [otherReason, setOtherReason] = useState("");
 
@@ -30,6 +30,8 @@ const CancelBooking = ({ id, booking, onClose }) => {
 
       if (response.ok) {
         alert("Booking cancelled successfully");
+        onCancelSuccess(reason);
+
         onClose(); // Close the CancelBooking modal
       } else {
         const errorData = await response.json();

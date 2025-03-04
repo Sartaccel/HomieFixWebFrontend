@@ -109,11 +109,12 @@ const Reschedule = ({ id, booking, onClose,onRescheduleSuccess }) => {
       if (response.ok) {
         alert("Booking rescheduled successfully");
         if (onRescheduleSuccess) {
-          onRescheduleSuccess(selectedDate, selectedTimeSlot, reason);
+          onRescheduleSuccess(formattedDate, selectedTimeSlot, reason); // Pass rescheduled info
         }
-
-        onClose(); // Close the Reschedule modal
-      } else {
+        
+          onClose(); // Ensure this is called to close the modal
+              } 
+              else {
         const errorData = await response.json();
         console.error("Reschedule failed:", response.status, errorData);
         alert(`Failed to reschedule booking: ${response.status} - ${errorData.message || "Unknown error"}`);
@@ -130,7 +131,7 @@ const Reschedule = ({ id, booking, onClose,onRescheduleSuccess }) => {
     const day = date.getDate(); // Get the day (e.g., 21)
     const month = date.toLocaleString("en-US", { month: "short" }); // Get the month (e.g., "Feb")
     const dayOfWeek = date.toLocaleString("en-US", { weekday: "long" }); // Get the day of the week (e.g., "Friday")
-
+   
     return (
       <div>
         <div>{`${day} ${month}`}</div> {/* Output: "21 Feb" */}
@@ -138,7 +139,7 @@ const Reschedule = ({ id, booking, onClose,onRescheduleSuccess }) => {
       </div>
     );
   };
-
+  
   return (
     <div className="reschedule-slider position-fixed top-0 end-0 h-100 bg-white shadow-lg" style={{ width: "550px", zIndex: 1000 }}>
       <div className="p-4">

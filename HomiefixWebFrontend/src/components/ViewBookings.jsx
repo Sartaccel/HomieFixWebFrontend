@@ -6,8 +6,6 @@ import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
 import Reschedule from "./Reschedule"; // Import the Reschedule component
 import CancelBooking from "./CancelBooking"; // Import the CancelBooking component
-import { motion, AnimatePresence } from "framer-motion";
-
 const ViewBookings = () => {
   const { id } = useParams();
   const location = useLocation();
@@ -26,28 +24,16 @@ const ViewBookings = () => {
   const [typingTimeout, setTypingTimeout] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showRescheduleSlider, setShowRescheduleSlider] = useState(false); // State to control Reschedule visibility
+   // State to control Reschedule visibility
   const [showCancelBookingModal, setShowCancelBookingModal] = useState(false); // State to control CancelBooking visibility
-  const [rescheduledDate, setRescheduledDate] = useState(
-    localStorage.getItem(`rescheduledDate-${id}`) || ""
-  );
-  const [rescheduledTime, setRescheduledTime] = useState(
-    localStorage.getItem(`rescheduledTime-${id}`) || ""
-  );
-  const [rescheduleReason, setRescheduleReason] = useState(
-    localStorage.getItem(`rescheduleReason-${id}`) || ""
-  );
-  const handleRescheduleSuccess = (date, time, reason) => {
-    setRescheduledDate(date);
-    setRescheduledTime(time);
-    setRescheduleReason(reason);
-  
-    // Store in localStorage
-    localStorage.setItem(`rescheduledDate-${id}`, date);
-    localStorage.setItem(`rescheduledTime-${id}`, time);
-    localStorage.setItem(`rescheduleReason-${id}`, reason);
-  };
-    
+  const [cancellationReason, setCancellationReason] = useState(null); 
+ const [selectedBookingId, setSelectedBookingId] = useState(null);
+// const [rescheduledDate, setRescheduledDate] = useState(""); // State for the rescheduled date
+//   const [rescheduledTime, setRescheduledTime] = useState(""); // State for the rescheduled time
+const [rescheduledBooking, setRescheduledBooking] = useState(bookings);
+const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useState("");
+// State for the reschedule reason
 
   useEffect(() => {
     if (!id) return;
@@ -101,6 +87,9 @@ const ViewBookings = () => {
 
     fetchBookingDetails();
   }, [id]);
+
+  
+
   useEffect(() => {
     console.log("Worker Data:", worker);
   }, [worker]);
@@ -186,13 +175,47 @@ const ViewBookings = () => {
     if (bookedDate !== "No") position = 140; // Move down when "Worker Assigned"
     if (serviceStarted !== "No") position = 217; // Move down when "Service Started"
     if (serviceCompleted !== "No") position = 290; // Move down when "Service Completed"
-
+    
     return `${position}px`;
   };
  
-  
+  const handleCancelBookingButtonClick = (id) => {
+    setSelectedBookingIdForCancellation(id); // Store the selected booking ID
+    setShowCancelBookingModal(true); // Show the cancel booking modal
+    
+  };
+    
+  const handleCancelBookingSuccess = (reason) => {
+    setCancellationReason(reason);
+    setShowCancelBookingModal(false);
+  };
+ 
+  const openRescheduleModal = () => {
+    setIsRescheduleModalOpen(true);
+  };
 
-  
+  const closeRescheduleModal = () => {
+    setIsRescheduleModalOpen(false);
+  };
+
+  const handleRescheduleSuccess = (newDate, newTime, reason) => {
+    console.log('Reschedule Successful', newDate, newTime, reason);
+
+    // Update only the selected booking, not all bookings
+    setBookings((prevBookings) =>
+      
+        selectedBookingId
+          ? { ...booking, bookedDate: newDate, bookedTimeSlot: newTime, rescheduleReason: reason }
+          : booking
+      )
+    
+
+    closeRescheduleModal(); // Close modal after success
+  };
+  const handleRescheduleButtonClick = (id) => {
+    setSelectedBookingId(id); // This will trigger the modal to open
+    openRescheduleModal();
+  };
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
@@ -252,13 +275,13 @@ const ViewBookings = () => {
             <div className="d-flex gap-3 p-2" style={{ marginRight: "300px" }}>
               <button
                 className="btn btn-outline-primary"
-                onClick={() => setShowRescheduleSlider(true)}
+                onClick={() => handleRescheduleButtonClick(id)}
               >
                 Reschedule
               </button>
               <button
                 className="btn btn-outline-danger"
-                onClick={() => setShowCancelBookingModal(true)}
+                onClick={() => handleCancelBookingButtonClick(bookings.id)}
               >
                 Cancel Service
               </button>
@@ -405,9 +428,11 @@ const ViewBookings = () => {
                 <div
                   className="card rounded p-4 shadow-sm"
                   style={{
-                    marginTop: "40px",
-                    minHeight: "480px",
-                    maxWidth: "550px",
+                    marginTop: "47px",
+                    minHeight: "500px",
+                    maxWidth: "770px",
+                    marginLeft:"-20px",
+                    bottom:"20px",
                     border: "1px solid #ddd",
                     borderRadius: "12px",
                   }}
@@ -416,18 +441,21 @@ const ViewBookings = () => {
                   <div
                     className="p-3 mt-3 rounded"
                     style={{
-                      height: "370px",
+                      height: "450px",
+                      width:"600",
                       border: "1px solid #ccc",
                       borderRadius: "10px",
+                       position: "relative",
                     }}
                   >
                     <div
                       className="position-absolute"
                       style={{
                         top: getLinePosition(), // Dynamic height
-                        left: "25px",
+                        left: "0px",
                         width: "4px",
                         backgroundColor: "black",
+                        
                         height: "75px",
                         transition: "height 0.5s ease-in-out",
                       }}
@@ -462,6 +490,58 @@ const ViewBookings = () => {
                             style={{ backgroundColor: "#f0f0f0" }}
                           ></td>
                         </tr>
+                        {selectedBookingIdForCancellation  === booking.id &&(                 
+  <tr style={{ height: "40px" }}>
+    <td className="text-start border-right">
+      {/* Display booked date only if this booking is selected */}
+      <span style={{ color: "grey" }}>
+        {bookedDate !== "No"
+          ? new Date(bookedDate).toLocaleDateString("en-US", {
+              month: "short",
+              day: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            })
+          : "N/A"}
+      </span>
+
+      <div
+        className="booking-details"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "5px",
+          fontSize: "14px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            fontWeight: "bold",
+          }}
+        >
+          <span style={{ color: "red" }}>Service Cancelled</span>
+        </div>
+
+        {/* Display the cancellation reason below the Service Canceled text */}
+        <div style={{ fontSize: "14px" }}>
+          {cancellationReason ? cancellationReason : "No reason provided"}
+        </div>
+      </div>
+    </td>
+    <td
+                            className="text-end"
+                            style={{ backgroundColor: "#f0f0f0" }}
+                          ></td>
+  </tr>
+
+                        )}
+
+     
+    
 
                         <tr style={{ height: "70px" }}>
                           <td className="text-start border-right">
@@ -488,56 +568,76 @@ const ViewBookings = () => {
                             className="text-end"
                             style={{ backgroundColor: "#f0f0f0" }}
                           >
-                            <div className="custom-dropdown">
-                              <select
-                                className="no-border"
-                                onChange={(e) => {
-                                  setBookedDate(
-                                    e.target.value === "Yes"
-                                      ? new Date().toISOString()
-                                      : "No"
-                                  );
-                                }}
-                                value={bookedDate !== "No" ? "Yes" : "No"}
-                              >
-                                <option value="No">No</option>
-                                <option value="Yes">Yes</option>
-                              </select>
-                            </div>
-                          </td>
+                            </td>
+                            
+                          
                         </tr>
-
+                        
+  {selectedBookingId  && (
                         <tr style={{ height: "40px" }}>
-                          <td colSpan="4" className="text-start border-right">
-                            <span style={{ color: "grey" }}>
-                              {bookedDate !== "No"
-                                ? new Date(bookedDate).toLocaleDateString(
-                                    "en-US",
-                                    {
-                                      month: "short",
-                                      day: "2-digit",
-                                      year: "numeric",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                      hour12: true,
-                                    }
-                                  )
-                                : "N/A"}
-                            </span>
-                            <br />
-                            <div className="booking-details" style={{ color: "red", display: "flex", flexDirection: "column", gap: "5px",fontSize:"14px" }}>
-  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-    <span>Rescheduled Service On</span>
-    <span>{rescheduledDate || bookedDate} | {rescheduledTime || timeSlot}</span>
-  </div>
-  <span>{rescheduleReason || "Not Rescheduled"}</span>
-</div>
+    <td className="text-start border-right">
+      {/* Display booked date only if this booking is selected */}
+      <span style={{ color: "grey" }}>
+        {bookedDate !== "No"
+          ? new Date(bookedDate).toLocaleDateString("en-US", {
+              month: "short",
+              day: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            })
+          : "N/A"}
+      </span>
 
+      <div
+        className="booking-details"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "5px",
+          fontSize: "14px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            fontWeight: "bold",
+            gap:"5px"
+          }}
+        >
+          <span style={{ color: "red" }}>Reschedule Service On 
+          
+        {new Date(bookings.bookedDate).toLocaleDateString("en-US", {
+          month: "short",
+          day: "2-digit",
+          year: "numeric",
+        })}
+        {" | "}  
+         {bookings.bookedTimeSlot}
+        {/* Assuming bookedTimeSlot is in the correct format */}
+      </span>
+        </div>
 
-  
+        {/* Display the cancellation reason below the Service Canceled text */}
+        <div style={{ fontSize: "14px" }}>
+        
+          <td>{bookings.rescheduleReason}</td>
+        </div>
+      </div>
+    </td>
+    <td
+                            className="text-end"
+                            style={{ backgroundColor: "#f0f0f0" }}
+                          ></td>
+  </tr>      
+      
+                        )}
+      
 
-                          </td>
-                        </tr>
+                    
+
 
                         <tr style={{ height: "70px" }}>
                           <td className="text-start border-right">
@@ -659,24 +759,22 @@ const ViewBookings = () => {
             </div>
           </div>
            {/* Reschedule Slider */}
-           {showRescheduleSlider && (
-            <Reschedule
-              id={id}
-              booking={bookings}
-              onClose={() => setShowRescheduleSlider(false)}
-              onRescheduleSuccess={handleRescheduleSuccess}
-               
-           
-            />
-           )}
-          
+           {isRescheduleModalOpen && selectedBookingId && (
+        <Reschedule
+          id={selectedBookingId}
+          booking={bookings} 
+          onClose={closeRescheduleModal}
+          onRescheduleSuccess={handleRescheduleSuccess}
+        />
+      )}
 
           {/* Cancel Booking Modal */}
-          {showCancelBookingModal && (
+          {showCancelBookingModal && selectedBookingIdForCancellation &&(
             <CancelBooking
-              id={id}
+              id={selectedBookingIdForCancellation}
               booking={bookings}
               onClose={() => setShowCancelBookingModal(false)}
+              onCancelSuccess={handleCancelBookingSuccess}
             />
           )}
         </main>
