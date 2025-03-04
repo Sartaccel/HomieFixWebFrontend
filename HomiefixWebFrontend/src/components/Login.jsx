@@ -20,7 +20,10 @@ const Login = ({ setToken }) => {
     e.preventDefault();
     setLoading(true); // Start loading when the button is clicked
     try {
-      const response = await axios.post("http://localhost:2222/auth/login", { username, password });
+      const response = await axios.post("http://localhost:2222/auth/login", {
+        username,
+        password,
+      });
 
       console.log("Login Response:", response.data);
       if (response.data.token) {
@@ -45,7 +48,8 @@ const Login = ({ setToken }) => {
     <div
       className="d-flex vh-100"
       style={{
-        background: "linear-gradient(to right, #f8f9fa 50%, rgba(0, 117, 206, 0.25) 50%)",
+        background:
+          "linear-gradient(to right, #f8f9fa 50%, rgba(0, 117, 206, 0.25) 50%)",
       }}
     >
       <div className="w-100 d-flex justify-content-center align-items-center position-relative">
@@ -54,7 +58,12 @@ const Login = ({ setToken }) => {
             src={logo}
             alt="Logo"
             className="img-fluid"
-            style={{ marginTop: "-40px", width: "200px", height: "200px", objectFit: "contain" }}
+            style={{
+              marginTop: "-40px",
+              width: "200px",
+              height: "200px",
+              objectFit: "contain",
+            }}
           />
         </div>
 
@@ -80,15 +89,27 @@ const Login = ({ setToken }) => {
                   borderRadius: "6px",
                   overflow: "hidden",
                   border: `2px solid ${
-                    isInvalid ? "#B8141A" : focusedField === "username" ? "#0076CE" : "transparent"
+                    isInvalid
+                      ? "#B8141A"
+                      : focusedField === "username"
+                      ? "#0076CE"
+                      : "transparent"
                   }`,
                   display: "flex",
                   alignItems: "center",
                   transition: "border 0.3s",
                 }}
               >
-                <span className="input-group-text border-0 bg-transparent" style={{ width: "auto", padding: "0 12px" }}>
-                  <img src={usernameIcon} alt="User Icon" width="18" height="18" />
+                <span
+                  className="input-group-text border-0 bg-transparent"
+                  style={{ width: "auto", padding: "0 12px" }}
+                >
+                  <img
+                    src={usernameIcon}
+                    alt="User Icon"
+                    width="18"
+                    height="18"
+                  />
                 </span>
                 <input
                   type="text"
@@ -102,7 +123,12 @@ const Login = ({ setToken }) => {
                   onFocus={() => setFocusedField("username")}
                   onBlur={() => setFocusedField(null)}
                   required
-                  style={{ height: "50px", flex: "1", outline: "none", boxShadow: "none" }}
+                  style={{
+                    height: "50px",
+                    flex: "1",
+                    outline: "none",
+                    boxShadow: "none",
+                  }}
                 />
               </div>
             </div>
@@ -116,15 +142,27 @@ const Login = ({ setToken }) => {
                   borderRadius: "6px",
                   overflow: "hidden",
                   border: `2px solid ${
-                    isInvalid ? "#B8141A" : focusedField === "password" ? "#0076CE" : "transparent"
+                    isInvalid
+                      ? "#B8141A"
+                      : focusedField === "password"
+                      ? "#0076CE"
+                      : "transparent"
                   }`,
                   display: "flex",
                   alignItems: "center",
                   transition: "border 0.3s",
                 }}
               >
-                <span className="input-group-text border-0 bg-transparent" style={{ width: "auto", padding: "0 12px" }}>
-                  <img src={passwordIcon} alt="Password Icon" width="18" height="18" />
+                <span
+                  className="input-group-text border-0 bg-transparent"
+                  style={{ width: "auto", padding: "0 12px" }}
+                >
+                  <img
+                    src={passwordIcon}
+                    alt="Password Icon"
+                    width="18"
+                    height="18"
+                  />
                 </span>
                 <input
                   type="password"
@@ -138,48 +176,76 @@ const Login = ({ setToken }) => {
                   onFocus={() => setFocusedField("password")}
                   onBlur={() => setFocusedField(null)}
                   required
-                  style={{ height: "50px", flex: "1", outline: "none", boxShadow: "none" }}
+                  style={{
+                    height: "50px",
+                    flex: "1",
+                    outline: "none",
+                    boxShadow: "none",
+                  }}
                 />
               </div>
             </div>
 
             {/* Error Message Below Password Field */}
             {isInvalid && (
-              <div className="mb-3 text-start" style={{ color: "#B8141A", fontSize: "14px", marginLeft: "12px" }}>
+              <div
+                className="mb-3 text-start"
+                style={{
+                  color: "#B8141A",
+                  fontSize: "14px",
+                  marginLeft: "12px",
+                }}
+              >
                 {errorMessage}
               </div>
             )}
 
             {/* Login Button with Loader */}
-            <button type="submit" className={`login-button ${loading ? "loading" : ""}`} disabled={loading}>
+            <button
+              type="submit"
+              className={`login-button ${loading ? "loading" : ""}`}
+              disabled={loading}
+            >
               {loading ? (
                 <svg
-  width="24"
-  height="24"
-  viewBox="0 0 44 44"
-  fill="none"
-  xmlns="http://www.w3.org/2000/svg"
-  className="loader-icon"
-  style={{
-    animation: "spin 1s linear infinite",
-    display: "block",
-    margin: "auto",
-  }}
->
-  <circle cx="22" cy="22" r="20" stroke="white" strokeWidth="4" opacity="0.2" />
-  <path
-    d="M22 2 A 20 20 0 0 1 42 22"
-    stroke="white"
-    strokeWidth="4"
-    strokeLinecap="round"
-  />
-</svg>
-
-              ) : "Login"}
+                  width="24"
+                  height="24"
+                  viewBox="0 0 44 44"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="loader-icon"
+                  style={{
+                    animation: "spin 1s linear infinite",
+                    display: "block",
+                    margin: "auto",
+                  }}
+                >
+                  <circle
+                    cx="22"
+                    cy="22"
+                    r="20"
+                    stroke="white"
+                    strokeWidth="4"
+                    opacity="0.2"
+                  />
+                  <path
+                    d="M22 2 A 20 20 0 0 1 42 22"
+                    stroke="white"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              ) : (
+                "Login"
+              )}
             </button>
           </form>
-          <a href="https://homiefix.in" className="d-block text-center mt-3 text-decoration-underline text-dark">
-            Visit homiefix.in</a>
+          <a
+            href="https://homiefix.in"
+            className="d-block text-center mt-3 text-decoration-underline text-dark"
+          >
+            Visit homiefix.in
+          </a>
         </div>
       </div>
     </div>
