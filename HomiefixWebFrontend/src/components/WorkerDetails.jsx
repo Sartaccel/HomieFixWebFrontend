@@ -19,23 +19,20 @@ const WorkerDetails = () => {
       try {
         const response = await fetch("http://localhost:2222/workers/view");
 
-        // Check if the response is OK (status code 200-299)
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        // Check if the response has content
         const text = await response.text();
         if (!text) {
           throw new Error("Empty response from server");
         }
 
-        // Try to parse the response as JSON
         const data = JSON.parse(text);
         setWorkers(data);
       } catch (error) {
         console.error("Error fetching worker data:", error);
-        setWorkers([]); // Set workers to an empty array in case of error
+        setWorkers([]);
       }
     };
     fetchWorkers();
@@ -133,11 +130,11 @@ const WorkerDetails = () => {
               <thead className="table-light" style={{ position: "sticky", top: 0, zIndex: 2 }}>
                 <tr>
                   <th style={{ width: "15%", padding: "12px", verticalAlign: "middle" }}>Name</th>
-                  <th style={{ width: "15%", padding: "12px", verticalAlign: "middle" }}>Service</th>
-                  <th style={{ width: "15%", padding: "12px", verticalAlign: "middle" }}>Contact</th>
-                  <th style={{ width: "10%", padding: "12px", verticalAlign: "middle" }}>Rating</th>
+                  <th style={{ width: "28%", padding: "12px", verticalAlign: "middle" }}>Service</th>
+                  <th style={{ width: "11%", padding: "12px", verticalAlign: "middle" }}>Contact</th>
+                  <th style={{ width: "7%", padding: "12px", verticalAlign: "middle" }}>Rating</th>
                   <th style={{ width: "30%", padding: "12px", verticalAlign: "middle" }}>Address</th>
-                  <th style={{ width: "15%", padding: "12px", verticalAlign: "middle" }}>Joining Date</th>
+                  <th style={{ width: "12%", padding: "12px", verticalAlign: "middle" }}>Joining Date</th>
                 </tr>
               </thead>
               <tbody>

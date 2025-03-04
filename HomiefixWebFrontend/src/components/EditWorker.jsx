@@ -28,8 +28,8 @@ const EditWorker = () => {
         drivingLicenseNumber: "",
         joiningDate: "",
         econtactNumber: "",
-        role: "",
-        specification: [],
+        role: [], // Change to an array to store multiple roles
+        specification: [], // Array to store multiple specifications
         language: [],
         profilePic: null,
     });
@@ -48,6 +48,7 @@ const EditWorker = () => {
                 // Initialize formData
                 setFormData({
                     ...data,
+                    role: data.role ? data.role.split(",") : [], // Convert role string to array
                     specification: data.specification ? data.specification.split(",") : [],
                     language: data.language ? data.language.split(",") : [],
                 });
@@ -76,15 +77,32 @@ const EditWorker = () => {
             ...prevState,
             [item]: !prevState[item],
         }));
-
+    
         setFormData((prevState) => {
+            // Update specifications
             const updatedSpecifications = prevState.specification.includes(item)
-                ? prevState.specification.filter((spec) => spec !== item)
+                ? prevState.specification.filter((spec) => spec !== item) // Remove if already exists
                 : [...prevState.specification, item];
-
+    
+            let updatedRoles = [...prevState.role];
+    
+            if (!updatedSpecifications.includes(item)) {
+                const hasOtherSpecsForRole = updatedSpecifications.some(
+                    (spec) => spec.startsWith(roleHeading)
+                );
+    
+                if (!hasOtherSpecsForRole) {
+                    updatedRoles = updatedRoles.filter((role) => role !== roleHeading);
+                }
+            } else {
+                if (!updatedRoles.includes(roleHeading)) {
+                    updatedRoles.push(roleHeading);
+                }
+            }
+    
             return {
                 ...prevState,
-                role: roleHeading,
+                role: updatedRoles,
                 specification: updatedSpecifications,
             };
         });
@@ -114,7 +132,8 @@ const EditWorker = () => {
         try {
             const formDataToSend = new FormData();
             for (const key in formData) {
-                if (key === "specification" || key === "language") {
+                if (key === "specification" || key === "role" || key === "language") {
+                    // Convert the array to a comma-separated string
                     formDataToSend.append(key, formData[key].join(","));
                 } else {
                     formDataToSend.append(key, formData[key]);

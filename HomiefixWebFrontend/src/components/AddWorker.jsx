@@ -28,8 +28,8 @@ const AddWorker = () => {
         drivingLicenseNumber: "",
         joiningDate: "",
         econtactNumber: "",
-        role: "", // Role will be determined by the heading (p tag)
-        specification: [], // Change to an array to store multiple specifications
+        role: [], // Change to an array to store multiple roles
+        specification: [], // Array to store multiple specifications
         language: [],
         profilePic: null,
     });
@@ -40,20 +40,24 @@ const AddWorker = () => {
             ...prevState,
             [item]: !prevState[item],
         }));
-
+    
         setFormData((prevState) => {
             const updatedSpecifications = prevState.specification.includes(item)
                 ? prevState.specification.filter((spec) => spec !== item) // Remove if already exists
                 : [...prevState.specification, item]; // Add if not exists
-
+    
+            // Add the role to the roles array if it doesn't already exist
+            const updatedRoles = prevState.role.includes(roleHeading)
+                ? prevState.role
+                : [...prevState.role, roleHeading];
+    
             return {
                 ...prevState,
-                role: roleHeading, // Set role to the heading (p tag)
+                role: updatedRoles, // Update the array of roles
                 specification: updatedSpecifications, // Update the array of specifications
             };
         });
     };
-
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prevState) => ({
@@ -78,14 +82,14 @@ const AddWorker = () => {
         try {
             const formDataToSend = new FormData();
             for (const key in formData) {
-                if (key === "specification") {
+                if (key === "specification" || key === "role") {
                     // Convert the array to a comma-separated string
                     formDataToSend.append(key, formData[key].join(","));
                 } else {
                     formDataToSend.append(key, formData[key]);
                 }
             }
-
+    
             const response = await fetch("http://localhost:2222/workers/add", {
                 method: "POST",
                 body: formDataToSend,
