@@ -30,7 +30,7 @@ const WorkerDetails = () => {
   const specifications = {
     "Home Appliances": ["AC", "Geyser", "Microwave", "Inverter & Stabilizers", "Water Purifier", "TV", "Fridge", "Washing Machine", "Fan"],
     Electrician: ["Switch & Socket", "Wiring", "Doorbell", "Appliance", "MCB & Submeter", "Light and Wall light", "CCTV"],
-    Carpentry: ["Bed", "Cupboard & Drawer", "Door", "Applience", "Windows", "Drill & Hang", "Furniture Repair"],
+    Carpentry: ["Bed", "Cupboard & Drawer", "Door", "Windows", "Drill & Hang", "Furniture Repair"],
     Plumbing: ["Washbasin Installation", "Blockage Removal", "Shower", "Toilet", "Tap, Pipe works", "Water tank & Motor"],
     "Vehicle service": ["Batteries", "Health checkup", "Wash & Cleaning", "Denting & Painting", "Wheel car", "Vehicle AC"],
   };
@@ -72,43 +72,46 @@ const WorkerDetails = () => {
 
           </div>
         </div>
-
         {/* Filter Modal */}
         {showFilter && (
-          <div className="modal d-block bg-dark bg-opacity-50" style={{ zIndex: 1050 }}>
-            <div className="modal-dialog">
+          <div className="modal d-block" style={{ zIndex: 12111, position: "fixed", top: "150px", left: "250px" }}>
+            <div className="modal-lg-dialog" style={{ width: "81%" }}>
               <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">Filter Workers</h5>
-                  <button className="btn-close" onClick={() => setShowFilter(false)}></button>
-                </div>
                 <div className="modal-body">
-                  {Object.entries(specifications).map(([category, specs]) => (
-                    <div key={category}>
-                      <h6 className="fw-bold">{category}</h6>
-                      {specs.map((spec) => (
-                        <div key={spec} className="form-check">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id={spec}
-                            checked={selectedSpecifications.includes(spec)}
-                            onChange={() => handleFilterChange(spec)}
-                          />
-                          <label className="form-check-label" htmlFor={spec}>{spec}</label>
+                  <div className="row flex-nowrap"> {/* Prevent wrapping and allow horizontal scrolling if needed */}
+                    {Object.entries(specifications).map(([category, specs]) => (
+                      <div key={category} className="col" style={{ minWidth: "200px" }}> {/* Set a minimum width for each column */}
+                        <div className="card h-100"> {/* Card container */}
+                          <div className="card-header"> {/* Card header for category name */}
+                            <h6 className="mb-0">{category}</h6>
+                          </div>
+                          <div className="card-body"> {/* Card body for specifications */}
+                            {specs.map((spec) => (
+                              <div key={spec} className="form-check">
+                                <input
+                                  type="checkbox"
+                                  className="form-check-input"
+                                  id={spec}
+                                  checked={selectedSpecifications.includes(spec)}
+                                  onChange={() => handleFilterChange(spec)}
+                                />
+                                <label className="form-check-label" htmlFor={spec}>{spec}</label>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  ))}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="modal-footer">
-                  <button className="btn btn-secondary" onClick={() => setShowFilter(false)}>Close</button>
+                <div className=" modal-footer">
+                  <button className="btn btn-danger" onClick={() => setShowFilter(false)}>Cancel</button>
+                  <button className="btn" style={{ backgroundColor: "#0076CE", color: "white" }} onClick={() => setShowFilter(false)}>Apply</button>
                 </div>
               </div>
             </div>
           </div>
         )}
-
         {/* Main Content */}
         <div style={{ overflow: "hidden", padding: "10px 15px" }}>
           <div style={{ maxHeight: "77vh", overflowY: "auto", border: "1px solid #dee2e6" }}>

@@ -5,6 +5,8 @@ import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
 
+import Swal from "sweetalert2";
+
 const Worker = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -82,6 +84,28 @@ const Worker = () => {
         fetchWorkerBookings();
     }, [id, workerData]); // Add workerData as a dependency
 
+    const handleDeleteWorker = async () => {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!",
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await axios.delete(`http://localhost:2222/workers/${id}`);
+                    Swal.fire("Deleted!", "Worker has been removed.", "success");
+                    navigate(-1);
+                } catch (error) {
+                    Swal.fire("Error!", "Failed to delete worker.", "error");
+                }
+            }
+        });
+    };
+
     if (!workerData || loading) {
         return <p>Loading...</p>;
     }
@@ -132,7 +156,7 @@ const Worker = () => {
                                 </p>
                             </div>
                             <div>
-                                <a className="text-decoration-none" style={{ color: "#0076CE" }} href="#">Edit</a>
+                                <a className="text-decoration-none" style={{ color: "#0076CE" }} href={`/worker-details/worker/edit/${id}`}>Edit</a>
                             </div>
                         </div>
 
@@ -208,7 +232,7 @@ const Worker = () => {
                                 </p>
 
                                 <p
-                                    className="border border-danger rounded px-2" style={{ marginLeft: "100px", paddingTop: "3px", cursor: "pointer" }}>
+                                    className="border border-danger rounded px-2" style={{ marginLeft: "100px", paddingTop: "3px", cursor: "pointer" }} onClick={handleDeleteWorker}>
                                     <i className="bi bi-trash text-danger mx-1"></i>
                                     Remove worker
                                 </p>
@@ -250,7 +274,7 @@ const Worker = () => {
 
                                 {activeTab === "inProgress" && (
                                     <table className="table table-bordered table-hover">
-                                        <thead className="table-light border" style={{ position: "sticky", top: 0, zIndex: 3, backgroundColor: 'white', borderBottom: '1px solid #dee2e6', boxShadow: '0 2px 2px 1px rgba(0, 0, 0, 0.1)' }}>
+                                        <thead className="table-light border" style={{ position: "sticky", top: 0, zIndex: 3, backgroundColor: 'white', borderBottom: '1px solid #dee2e6', boxShadow: '0 0px 2px 1px rgba(0, 0, 0, 0.1)' }}>
                                             <tr>
                                                 <th>S.no</th>
                                                 <th>Service</th>
