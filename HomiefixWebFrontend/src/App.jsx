@@ -19,7 +19,6 @@ import Services from "./components/Services";
 import ComingSoon from "./components/ComingSoon";
 import Worker from "./components/Worker";
 
-
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem("token") || "");
 
@@ -35,20 +34,23 @@ const App = () => {
 
         <Route element={<ProtectedRoute token={token} />}>
           <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<ComingSoon />} />
             <Route path="/booking-details" element={<BookingDetails />} />
             <Route path="/assign-bookings/:id" element={<AssignBookings />} />
             <Route path="/view-bookings/:id" element={<ViewBookings />} />
-            <Route path="/reschedule/:id" element={<Reschedule />} /> 
-            <Route path="/reschedule/:id" element={<CancelBooking />} /> 
-            <Route path="/booking-details/assign-bookings/:id" element={<AssignBookings />} />
+            <Route path="/reschedule/:id" element={<Reschedule />} />
+            <Route path="/reschedule/:id" element={<CancelBooking />} />
+            <Route
+              path="/booking-details/assign-bookings/:id"
+              element={<AssignBookings />}
+            />
             {/* <Route path="/reviews" element={<Reviews />} /> */}
             {/* <Route path="/reviews/customer-review/:id" element={<CustomerReview />} /> */}
             <Route path="/reviews" element={<ComingSoon />} />
-            <Route path="/worker-details" element={<WorkerDetails/>} />
+            <Route path="/worker-details" element={<WorkerDetails />} />
             <Route path="/worker-details/worker/:id" element={<Worker />} />
-            <Route path="/worker-details/add-worker" element={<AddWorker/>} />
-            <Route path="/services" element={<Services />} />
+            <Route path="/worker-details/add-worker" element={<AddWorker />} />
+            <Route path="/services" element={<ComingSoon />} />
           </Route>
         </Route>
       </Routes>
