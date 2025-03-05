@@ -117,9 +117,10 @@ const BookingDetails = () => {
     }
   }, [bookings, activeTab]);
 
-  // Filter bookings based on status and worker assignment
   const pendingBookings = bookings.filter(
-    (booking) => booking.status === "Pending" && !booking.worker // Only include bookings without a worker
+    (booking) =>
+      booking.status === "Pending" ||
+      (booking.status === "Rescheduled" && !booking.worker) // Rescheduled bookings without workers stay in pending
   );
 
   const inProgress = bookings.filter(
@@ -140,13 +141,25 @@ const BookingDetails = () => {
     let filtered = [];
     switch (activeTab) {
       case "bookings":
-        filtered = pendingBookings;
+        filtered = filterBookingsByDate(selectedDateBookings, pendingBookings);
         break;
       case "inProgress":
-        filtered = inProgress;
+        filtered = filterBookingsByDate(
+          selectedDateInProgress,
+          inProgress
+        ).filter((booking) => {
+          if (statusFilter === "All") {
+            return true;
+          } else {
+            return booking.status === statusFilter;
+          }
+        });
         break;
       case "completed":
-        filtered = completed.filter((booking) => {
+        filtered = filterBookingsByDate(
+          selectedDateCompleted,
+          completed
+        ).filter((booking) => {
           if (ratingFilter === "All") {
             return true;
           } else if (ratingFilter === "No Rating") {
@@ -157,40 +170,65 @@ const BookingDetails = () => {
         });
         break;
       case "canceled":
-        filtered = canceled;
+        filtered = filterBookingsByDate(selectedDateCanceled, canceled);
         break;
       default:
         filtered = [];
     }
     setFilteredBookings(filtered);
-  }, [activeTab, bookings, ratingFilter, ratings]);
+  }, [
+    activeTab,
+    bookings,
+    ratingFilter,
+    ratings,
+    statusFilter,
+    selectedDateBookings,
+    selectedDateInProgress,
+    selectedDateCompleted,
+    selectedDateCanceled,
+  ]); // Add selectedDate states as dependencies
 
   // Handle date filter changes
   const handleDateChange = (date) => {
-    let filtered = [];
     switch (activeTab) {
       case "bookings":
         setSelectedDateBookings(date);
-        filtered = filterBookingsByDate(date, pendingBookings);
+        setFilteredBookings(filterBookingsByDate(date, pendingBookings));
         break;
       case "inProgress":
         setSelectedDateInProgress(date);
-        filtered = filterBookingsByDate(date, inProgress);
+        setFilteredBookings(
+          filterBookingsByDate(date, inProgress).filter((booking) => {
+            if (statusFilter === "All") {
+              return true;
+            } else {
+              return booking.status === statusFilter;
+            }
+          })
+        );
         break;
       case "completed":
         setSelectedDateCompleted(date);
-        filtered = filterBookingsByDate(date, completed);
+        setFilteredBookings(
+          filterBookingsByDate(date, completed).filter((booking) => {
+            if (ratingFilter === "All") {
+              return true;
+            } else if (ratingFilter === "No Rating") {
+              return !ratings[booking.id];
+            } else {
+              return ratings[booking.id] === parseInt(ratingFilter, 10);
+            }
+          })
+        );
         break;
       case "canceled":
         setSelectedDateCanceled(date);
-        filtered = filterBookingsByDate(date, canceled);
+        setFilteredBookings(filterBookingsByDate(date, canceled));
         break;
       default:
-        filtered = [];
+        setFilteredBookings([]);
     }
-    setFilteredBookings(filtered);
   };
-
   const filterBookingsByDate = (date, bookingsToFilter) => {
     if (!date) return bookingsToFilter;
 
@@ -222,11 +260,29 @@ const BookingDetails = () => {
         break;
       case "inProgress":
         setSelectedDateInProgress(null);
-        setFilteredBookings(inProgress);
+        setFilteredBookings(
+          inProgress.filter((booking) => {
+            if (statusFilter === "All") {
+              return true;
+            } else {
+              return booking.status === statusFilter;
+            }
+          })
+        );
         break;
       case "completed":
         setSelectedDateCompleted(null);
-        setFilteredBookings(completed);
+        setFilteredBookings(
+          completed.filter((booking) => {
+            if (ratingFilter === "All") {
+              return true;
+            } else if (ratingFilter === "No Rating") {
+              return !ratings[booking.id];
+            } else {
+              return ratings[booking.id] === parseInt(ratingFilter, 10);
+            }
+          })
+        );
         break;
       case "canceled":
         setSelectedDateCanceled(null);
@@ -237,20 +293,6 @@ const BookingDetails = () => {
     }
   };
 
-  // Handle click outside the datepicker dropdown
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
   // Get status icon based on booking status
   const getStatusIcon = (status) => {
     switch (status) {
@@ -260,7 +302,7 @@ const BookingDetails = () => {
         return { icon: statusAssigned, width: 110 }; // Adjust width as needed
       case "Started":
         return { icon: statusStarted, width: 110 }; // Adjust width as needed
-            default:
+      default:
         return null;
     }
   };
@@ -490,7 +532,7 @@ const BookingDetails = () => {
                   {/* Status/Reason Column */}
                   {activeTab !== "bookings" && (
                     <th
-                      className="p-3 text-left"
+                      className=" text-left"
                       style={{
                         width:
                           activeTab === "inProgress"
@@ -500,6 +542,7 @@ const BookingDetails = () => {
                             : activeTab === "canceled"
                             ? "15%"
                             : "15%",
+                        padding: activeTab == "canceled" ? "16px" : "10px",
                       }}
                     >
                       {activeTab === "inProgress" ? (
@@ -507,7 +550,6 @@ const BookingDetails = () => {
                           className="dropdown d-inline"
                           style={{ marginLeft: "-5px" }}
                         >
-                          Status:&nbsp;
                           <button
                             className="btn btn-light btn-sm dropdown-toggle"
                             type="button"
@@ -515,61 +557,149 @@ const BookingDetails = () => {
                             data-bs-toggle="dropdown"
                             data-bs-placement="bottom"
                             aria-expanded="false"
-                            style={{ padding: "0px" }}
+                            style={{
+                              height: "35px",
+                              padding: "2px 10px",
+                              background: "transparent",
+                              border: "none",
+                              transition: "background 0.2s ease-in-out",
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.target.style.background = "#F0F0F0")
+                            }
+                            onMouseLeave={(e) => {
+                              if (!e.target.classList.contains("show")) {
+                                e.target.style.background = "transparent";
+                              }
+                            }}
+                            onMouseDown={(e) =>
+                              (e.target.style.background = "#F0F0F0")
+                            }
+                            onMouseUp={(e) =>
+                              (e.target.style.background = "#F0F0F0")
+                            }
+                            onFocus={(e) =>
+                              (e.target.style.background = "#F0F0F0")
+                            }
+                            onBlur={(e) =>
+                              setTimeout(
+                                () =>
+                                  (e.target.style.background = "transparent"),
+                                2
+                              )
+                            }
                           >
+                            Status:&nbsp;
                             {statusFilter}
                           </button>
                           <ul
                             className="dropdown-menu"
                             aria-labelledby="statusFilterDropdown"
+                            style={{
+                              minWidth: "unset",
+                              width: "100px",
+                              fontSize: "12px",
+                              background: "white",
+                              borderRadius: "0 0 8px 8px",
+                              padding: "5px",
+                            }}
                           >
-                            <li>
-                              <button
-                                className="dropdown-item"
-                                onClick={() => setStatusFilter("All")}
-                              >
-                                All
-                              </button>
-                            </li>
-                            <li>
-                              <button
-                                className="dropdown-item"
-                                onClick={() => setStatusFilter("Assigned")}
-                              >
-                                Assigned
-                              </button>
-                            </li>
-                            <li>
-                              <button
-                                className="dropdown-item"
-                                onClick={() => setStatusFilter("Rescheduled")}
-                              >
-                                Rescheduled
-                              </button>
-                            </li>
-                            <li>
-                              <button
-                                className="dropdown-item"
-                                onClick={() => setStatusFilter("Started")}
-                              >
-                                Started
-                              </button>
-                            </li>
+                            {["All", "Assigned", "Rescheduled", "Started"].map(
+                              (status) => (
+                                <li key={status}>
+                                  <button
+                                    className="dropdown-item p-2"
+                                    onClick={() => setStatusFilter(status)}
+                                    style={{
+                                      background:
+                                        statusFilter === status
+                                          ? "#0076CE"
+                                          : "transparent",
+                                      color:
+                                        statusFilter === status
+                                          ? "white"
+                                          : "black",
+                                      transition: "background 0.2s ease-in-out",
+                                      padding: "5px",
+                                      borderRadius: "5px",
+                                      marginBottom: "5px",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (statusFilter !== status) {
+                                        e.target.style.background = "#F2F2F2"; // Light gray on hover
+                                        e.target.style.color = "black";
+                                      }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (statusFilter !== status) {
+                                        e.target.style.background =
+                                          "transparent";
+                                        e.target.style.color = "black";
+                                      }
+                                    }}
+                                    onMouseDown={(e) => {
+                                      e.target.style.background = "#0056A6";
+                                      e.target.style.color = "white";
+                                    }}
+                                  >
+                                    {status}
+                                  </button>
+                                </li>
+                              )
+                            )}
                           </ul>
                         </div>
                       ) : activeTab === "completed" ? (
                         <div className="dropdown p-0 m-0">
-                          Rating:&nbsp;
                           <button
-                            className="btn btn-light btn-sm dropdown-toggle"
+                            className="btn btn-light btn-sm dropdown-toggle d-flex align-items-center"
                             type="button"
                             id="ratingFilterDropdown"
                             data-bs-toggle="dropdown"
                             aria-expanded="false"
-                            style={{ height: "25px", padding: "0" }}
+                            style={{
+                              height: "35px",
+                              padding: "2px 10px",
+                              background: "transparent",
+                              border: "none",
+                              transition: "background 0.2s ease-in-out",
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.target.style.background = "#F0F0F0")
+                            }
+                            onMouseLeave={(e) => {
+                              if (!e.target.classList.contains("show")) {
+                                e.target.style.background = "transparent";
+                              }
+                            }}
+                            onMouseDown={(e) =>
+                              (e.target.style.background = "#F0F0F0")
+                            }
+                            onMouseUp={(e) =>
+                              (e.target.style.background = "#F0F0F0")
+                            }
+                            onFocus={(e) =>
+                              (e.target.style.background = "#F0F0F0")
+                            }
+                            onBlur={(e) =>
+                              setTimeout(
+                                () =>
+                                  (e.target.style.background = "transparent"),
+                                2
+                              )
+                            }
                           >
-                            {" "}
-                            <span className="d-inline-flex align-items-center">
+                            Rating:&nbsp;
+                            <span
+                              className="d-inline-flex align-items-center"
+                              onMouseEnter={(e) =>
+                                (e.currentTarget.style.background = "#F0F0F0")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.currentTarget.style.background =
+                                  "transparent")
+                              }
+                            >
                               <FaStar
                                 style={{ color: "gold", marginRight: "4px" }}
                               />
@@ -577,47 +707,73 @@ const BookingDetails = () => {
                             </span>
                           </button>
                           <ul
-                            className="dropdown-menu"
+                            className="dropdown-menu dropdown-menu-end"
                             aria-labelledby="ratingFilterDropdown"
+                            style={{
+                              minWidth: "unset",
+                              width: "110px",
+                              fontSize: "12px",
+                              background: "white",
+                              borderRadius: "0 0 8px 8px",
+                              padding: "5px",
+                              marginBottom: "5px",
+                            }}
                           >
-                            <li>
-                              <button
-                                className="dropdown-item d-flex align-items-center"
-                                onClick={() => setRatingFilter("All")}
-                              >
-                                <FaStar
-                                  style={{ color: "gold", marginRight: "4px" }}
-                                />
-                                All
-                              </button>
-                            </li>
-                            {[5, 4, 3, 2, 1].map((rating) => (
-                              <li key={rating}>
-                                <button
-                                  className="dropdown-item d-flex align-items-center"
-                                  onClick={() =>
-                                    setRatingFilter(rating.toString())
-                                  }
-                                >
-                                  <FaStar
+                            {["All", 5, 4, 3, 2, 1, "No Rating"].map(
+                              (rating) => (
+                                <li key={rating}>
+                                  <button
+                                    className="dropdown-item d-flex align-items-center"
+                                    onClick={() =>
+                                      setRatingFilter(rating.toString())
+                                    }
                                     style={{
-                                      color: "gold",
-                                      marginRight: "4px",
+                                      background:
+                                        ratingFilter === rating.toString()
+                                          ? "#0076CE"
+                                          : "transparent",
+                                      color:
+                                        ratingFilter === rating.toString()
+                                          ? "white"
+                                          : "black",
+                                      transition: "background 0.2s ease-in-out",
+                                      padding: "5px 5px",
+                                      borderRadius: "5px",
+                                      marginBottom: "5px",
                                     }}
-                                  />
-                                  {rating}
-                                </button>
-                              </li>
-                            ))}
-                            <li>
-                              <button
-                                className="dropdown-item d-flex align-items-center"
-                                onClick={() => setRatingFilter("No Rating")}
-                              >
-                                <FaStar style={{ color: "gold" }} />
-                                No Rating
-                              </button>
-                            </li>
+                                    onMouseEnter={(e) => {
+                                      if (ratingFilter !== rating.toString()) {
+                                        e.target.style.background = "#F2F2F2"; // Light gray hover
+                                        e.target.style.color = "black";
+                                      }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (ratingFilter !== rating.toString()) {
+                                        e.target.style.background =
+                                          "transparent";
+                                        e.target.style.color = "black";
+                                      }
+                                    }}
+                                    onMouseDown={(e) => {
+                                      e.target.style.background = "#0056A6";
+                                      e.target.style.color = "white";
+                                    }}
+                                  >
+                                    <FaStar
+                                      style={{
+                                        color: "gold",
+                                        marginRight: "5px",
+                                      }}
+                                    />
+                                    {rating === "No Rating" ? (
+                                      <>&nbsp;No Rating</>
+                                    ) : (
+                                      rating
+                                    )}
+                                  </button>
+                                </li>
+                              )
+                            )}
                           </ul>
                         </div>
                       ) : (
@@ -757,19 +913,19 @@ const BookingDetails = () => {
                       >
                         {activeTab === "inProgress" ? (
                           <img
-                          src={
-                            getStatusIcon(booking.status)
-                              ? getStatusIcon(booking.status).icon
-                              : null
-                          }
-                          alt={booking.status}
-                          width={
-                            getStatusIcon(booking.status)
-                              ? getStatusIcon(booking.status).width
-                              : 0
-                          }
-                          height="40"
-                        />
+                            src={
+                              getStatusIcon(booking.status)
+                                ? getStatusIcon(booking.status).icon
+                                : null
+                            }
+                            alt={booking.status}
+                            width={
+                              getStatusIcon(booking.status)
+                                ? getStatusIcon(booking.status).width
+                                : 0
+                            }
+                            height="40"
+                          />
                         ) : activeTab === "completed" ? (
                           <div
                             className="d-flex align-items-center"

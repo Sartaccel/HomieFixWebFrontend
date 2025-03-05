@@ -89,6 +89,13 @@ const CancelBooking = ({ id, booking, onClose }) => {
               rows="6"
               value={otherReason}
               onChange={(e) => setOtherReason(e.target.value)}
+              style={{
+                height: "200px", // Fixed height
+                resize: "none", // Prevents resizing
+                padding: "10px", // Ensures proper spacing
+                width: "100%", // Ensures it fills the container
+                boxSizing: "border-box", // Prevents overflow issues
+              }}
             ></textarea>
           )}
         </div>

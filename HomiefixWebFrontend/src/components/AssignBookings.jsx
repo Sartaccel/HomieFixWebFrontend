@@ -347,10 +347,16 @@ const AssignBookings = () => {
                     id="notes"
                     className="form-control"
                     placeholder="Notes"
-                    rows="9"
+                    rows="8"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    style={{ paddingBottom: "40px" }}
+                    style={{
+                      height: "237px", // Fixed height
+                      resize: "none", // Prevents resizing
+                      padding: "10px", // Ensures proper spacing
+                      width: "100%", // Ensures it fills the container
+                      boxSizing: "border-box", // Prevents overflow issues
+                    }}
                   ></textarea>
                   <button
                     className="btn position-absolute"

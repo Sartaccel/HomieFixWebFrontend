@@ -18,10 +18,24 @@ const WorkerDetails = () => {
     const fetchWorkers = async () => {
       try {
         const response = await fetch("http://localhost:2222/workers/view");
-        const data = await response.json();
+
+        // Check if the response is OK (status code 200-299)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Check if the response has content
+        const text = await response.text();
+        if (!text) {
+          throw new Error("Empty response from server");
+        }
+
+        // Try to parse the response as JSON
+        const data = JSON.parse(text);
         setWorkers(data);
       } catch (error) {
         console.error("Error fetching worker data:", error);
+        setWorkers([]); // Set workers to an empty array in case of error
       }
     };
     fetchWorkers();
@@ -127,21 +141,27 @@ const WorkerDetails = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredWorkers.map((worker) => (
-                  <tr key={worker.workerId || worker.contactNumber} onClick={() => navigate(`/worker-details/worker/${worker.id}`)} style={{ cursor: "pointer" }}>
-                    <td>
-                      <div style={{ display: "flex", alignItems: "center" }}>
-                        <img src={worker.profilePicUrl || alenSamImg} alt={worker.name} className="square-circle me-2" width="40" height="40" />
-                        {worker.name}
-                      </div>
-                    </td>
-                    <td>{worker.role}</td>
-                    <td>{worker.contactNumber}</td>
-                    <td><i className="bi bi-star-fill text-warning me-1"></i>{worker.averageRating || "N/A"}</td>
-                    <td>{`${worker.houseNumber}, ${worker.town}, ${worker.nearbyLandmark}, ${worker.district}, ${worker.state}, ${worker.pincode}`}</td>
-                    <td>{worker.joiningDate}</td>
+                {filteredWorkers.length > 0 ? (
+                  filteredWorkers.map((worker) => (
+                    <tr key={worker.workerId || worker.contactNumber} onClick={() => navigate(`/worker-details/worker/${worker.id}`)} style={{ cursor: "pointer" }}>
+                      <td>
+                        <div style={{ display: "flex", alignItems: "center" }}>
+                          <img src={worker.profilePicUrl || alenSamImg} alt={worker.name} className="square-circle me-2" width="40" height="40" />
+                          {worker.name}
+                        </div>
+                      </td>
+                      <td>{worker.role}</td>
+                      <td>{worker.contactNumber}</td>
+                      <td><i className="bi bi-star-fill text-warning me-1"></i>{worker.averageRating || "N/A"}</td>
+                      <td>{`${worker.houseNumber}, ${worker.town}, ${worker.nearbyLandmark}, ${worker.district}, ${worker.state}, ${worker.pincode}`}</td>
+                      <td>{worker.joiningDate}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="text-center">No workers found</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

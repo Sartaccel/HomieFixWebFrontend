@@ -232,6 +232,13 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
               rows="3"
               value={otherReason}
               onChange={(e) => setOtherReason(e.target.value)}
+              style={{
+                height: "75px", // Fixed height
+                resize: "none", // Prevents resizing
+                padding: "10px", // Ensures proper spacing
+                width: "100%", // Ensures it fills the container
+                boxSizing: "border-box", // Prevents overflow issues
+              }}
             ></textarea>
           )}
         </div>
