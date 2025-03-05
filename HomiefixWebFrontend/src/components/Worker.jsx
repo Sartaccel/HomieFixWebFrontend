@@ -129,7 +129,7 @@ const Worker = () => {
 
             <div className="container" style={{ paddingTop: "80px", paddingLeft: "0px", paddingRight: "0px", marginLeft: "-10px" }}>
                 <div className="d-flex border-bottom mx-2 align-items-center w-100 mt-3">
-                    <button className="btn d-flex align-items-center" onClick={() => navigate(-1)}>
+                    <button className="btn d-flex align-items-center" onClick={() => navigate( `/worker-details`)}>
                         <span style={{ fontSize: "20px" }}>←</span>
                         <h5 className="px-3 pb-2 text-black mx-5"
                             style={{
@@ -149,11 +149,13 @@ const Worker = () => {
                     <div className="col-4 border p-3 mt-4 rounded align-self-start h-auto d-flex flex-column" style={{ marginLeft: "70px", marginRight: "10px" }}>
                         {/* Role Section */}
                         <div className="d-flex justify-content-between">
-                            <div className="d-flex">
+                            <div className="d-flex flex-wrap">
                                 <p>Role:</p>
-                                <p className="border border-dark rounded-pill mx-1 px-2">
-                                    {workerData.role}
-                                </p>
+                                {workerData.role.split(',').map((role, index) => (
+                                    <p key={index} className="border border-dark rounded-pill mx-1 px-2 ">
+                                        {role.trim()}
+                                    </p>
+                                ))}
                             </div>
                             <div>
                                 <a className="text-decoration-none" style={{ color: "#0076CE" }} href={`/worker-details/worker/edit/${id}`}>Edit</a>

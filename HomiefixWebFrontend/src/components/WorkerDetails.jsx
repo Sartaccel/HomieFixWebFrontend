@@ -54,7 +54,9 @@ const WorkerDetails = () => {
 
   const filteredWorkers = workers.filter((worker) =>
     selectedSpecifications.length === 0 ||
-    selectedSpecifications.some((spec) => worker.specification.includes(spec))
+    selectedSpecifications.some((spec) =>
+      worker.role.split(",").map((role) => role.trim()).includes(spec)
+    )
   );
 
   return (
@@ -89,14 +91,14 @@ const WorkerDetails = () => {
             <div className="modal-lg-dialog" style={{ width: "81%" }}>
               <div className="modal-content">
                 <div className="modal-body">
-                  <div className="row flex-nowrap"> {/* Prevent wrapping and allow horizontal scrolling if needed */}
+                  <div className="row flex-nowrap">
                     {Object.entries(specifications).map(([category, specs]) => (
-                      <div key={category} className="col" style={{ minWidth: "200px" }}> {/* Set a minimum width for each column */}
-                        <div className="card h-100"> {/* Card container */}
-                          <div className="card-header"> {/* Card header for category name */}
+                      <div key={category} className="col" style={{ minWidth: "200px" }}>
+                        <div className="card h-100">
+                          <div className="card-header">
                             <h6 className="mb-0">{category}</h6>
                           </div>
-                          <div className="card-body"> {/* Card body for specifications */}
+                          <div className="card-body">
                             {specs.map((spec) => (
                               <div key={spec} className="form-check">
                                 <input
@@ -147,7 +149,7 @@ const WorkerDetails = () => {
                           {worker.name}
                         </div>
                       </td>
-                      <td>{worker.role}</td>
+                      <td>{worker.role.replace(/,/g, ", ")}</td>
                       <td>{worker.contactNumber}</td>
                       <td><i className="bi bi-star-fill text-warning me-1"></i>{worker.averageRating || "N/A"}</td>
                       <td>{`${worker.houseNumber}, ${worker.town}, ${worker.nearbyLandmark}, ${worker.district}, ${worker.state}, ${worker.pincode}`}</td>
