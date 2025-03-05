@@ -19,6 +19,7 @@ import Services from "./components/Services";
 import ComingSoon from "./components/ComingSoon";
 import Worker from "./components/Worker";
 import EditWorker from "./components/EditWorker";
+import Profile from "./components/Profile";
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem("token") || "");
@@ -37,14 +38,10 @@ const App = () => {
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<ComingSoon />} />
             <Route path="/booking-details" element={<BookingDetails />} />
-            <Route path="/assign-bookings/:id" element={<AssignBookings />} />
-            <Route path="/view-bookings/:id" element={<ViewBookings />} />
-            <Route path="/reschedule/:id" element={<Reschedule />} />
-            <Route path="/reschedule/:id" element={<CancelBooking />} />
-            <Route
-              path="/booking-details/assign-bookings/:id"
-              element={<AssignBookings />}
-            />
+            <Route path="/booking-details/view-bookings/:id" element={<ViewBookings />} />
+            <Route path="/booking-details/reschedule/:id" element={<Reschedule />} />
+            <Route path="/booking-details/reschedule/:id" element={<CancelBooking />} />
+            <Route path="/booking-details/assign-bookings/:id" element={<AssignBookings />} />
             {/* <Route path="/reviews" element={<Reviews />} /> */}
             {/* <Route path="/reviews/customer-review/:id" element={<CustomerReview />} /> */}
             <Route path="/reviews" element={<ComingSoon />} />
@@ -53,6 +50,7 @@ const App = () => {
             <Route path="/worker-details/add-worker" element={<AddWorker />} />
             <Route path="/worker-details/worker/edit/:id" element={<EditWorker/>}/>
             <Route path="/services" element={<ComingSoon />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
         </Route>
       </Routes>

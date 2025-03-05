@@ -8,6 +8,7 @@ import Reschedule from "./Reschedule"; // Import the Reschedule component
 import CancelBooking from "./CancelBooking"; // Import the CancelBooking component
 import "../styles/AssignBookings.css";
 import bookingDetails from "../assets/BookingDetails.png";
+import Header from "./Header";
 
 const AssignBookings = () => {
   const { id } = useParams();
@@ -183,34 +184,8 @@ const AssignBookings = () => {
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
-          {/* Header */}
-          <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
-            <h2 className="heading align-items-center mb-0">Booking Details</h2>
-            <div className="header-right d-flex align-items-center gap-3">
-              <div className="input-group" style={{ width: "300px" }}>
-                <input
-                  type="text"
-                  className="form-control search-bar"
-                  placeholder="Search"
-                />
-                <span className="input-group-text">
-                  <img src={search} alt="Search" width="20" />
-                </span>
-              </div>
-              <img
-                src={notification}
-                alt="Notifications"
-                width="40"
-                className="cursor-pointer"
-              />
-              <img
-                src={profile}
-                alt="Profile"
-                width="40"
-                className="cursor-pointer"
-              />
-            </div>
-          </header>
+
+          <Header/>
 
           {/* Navigation Bar */}
           <div className="navigation-bar d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
@@ -274,10 +249,17 @@ const AssignBookings = () => {
                   className="d-flex align-items-center gap-2"
                   style={{ marginTop: "50px" }}
                 >
-                  <div
-                    className="rounded-circle bg-secondary"
-                    style={{ width: "40px", height: "40px" }}
-                  ></div>
+    <div
+      className="rounded-circle"
+      style={{
+        width: "40px",
+        height: "40px",
+        flexShrink: 0,
+        backgroundImage: `url(${booking.productImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    ></div>
                   <div>
                     <p className="mb-0">{booking.service}</p>
                     <small style={{ color: "#0076CE" }}>ID: {booking.id}</small>

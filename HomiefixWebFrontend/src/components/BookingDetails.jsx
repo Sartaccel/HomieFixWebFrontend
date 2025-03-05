@@ -14,6 +14,7 @@ import closeDate from "../assets/close date.png";
 import $ from "jquery";
 import "bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css";
 import "bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js";
+import Header from "./Header";
 
 const BookingDetails = () => {
   const navigate = useNavigate();
@@ -56,6 +57,7 @@ const BookingDetails = () => {
           date: booking.bookedDate,
           timeslot: booking.timeSlot,
           cancelReason: booking.cancelReason,
+          productImage: booking.productImage, // Add productImage to the transformed booking
           status:
             booking.bookingStatus === "COMPLETED"
               ? "Completed"
@@ -336,38 +338,8 @@ const BookingDetails = () => {
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
-          <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
-            <h2
-              className="heading align-items-center mb-0 "
-              style={{ marginLeft: "31px" }}
-            >
-              Booking Details
-            </h2>
-            <div className="header-right d-flex align-items-center gap-3">
-              <div className="input-group" style={{ width: "300px" }}>
-                <input
-                  type="text"
-                  className="form-control search-bar"
-                  placeholder="Search"
-                />
-                <span className="input-group-text">
-                  <img src={search} alt="Search" width="20" />
-                </span>
-              </div>
-              <img
-                src={notification}
-                alt="Notifications"
-                width="40"
-                className="cursor-pointer"
-              />
-              <img
-                src={profile}
-                alt="Profile"
-                width="40"
-                className="cursor-pointer"
-              />
-            </div>
-          </header>
+          
+          <Header/>
 
           <div className="navigation-bar d-flex gap-3 py-3 bg-white border-bottom w-100">
             <div
@@ -375,7 +347,7 @@ const BookingDetails = () => {
               onClick={() => setActiveTab("bookings")}
             >
               Bookings{" "}
-              <span className="badge bg-dark ms-1">
+              <span className="badge bg-dark ms-1" style={{borderRadius:"45%"}}>
                 {pendingBookings.length}
               </span>
             </div>
@@ -386,21 +358,21 @@ const BookingDetails = () => {
               onClick={() => setActiveTab("inProgress")}
             >
               In Progress{" "}
-              <span className="badge bg-dark ms-1">{inProgress.length}</span>
+              <span className="badge bg-dark ms-1" style={{borderRadius:"45%"}}>{inProgress.length}</span>
             </div>
             <div
               className={`section ${activeTab === "completed" ? "active" : ""}`}
               onClick={() => setActiveTab("completed")}
             >
               Completed{" "}
-              <span className="badge bg-dark ms-1">{completed.length}</span>
+              <span className="badge bg-dark ms-1" style={{borderRadius:"45%"}}>{completed.length}</span>
             </div>
             <div
               className={`section ${activeTab === "canceled" ? "active" : ""}`}
               onClick={() => setActiveTab("canceled")}
             >
               Canceled{" "}
-              <span className="badge bg-dark ms-1">{canceled.length}</span>
+              <span className="badge bg-dark ms-1"style={{borderRadius:"45%"}}>{canceled.length}</span>
             </div>
           </div>
 
@@ -597,8 +569,8 @@ const BookingDetails = () => {
                             aria-labelledby="statusFilterDropdown"
                             style={{
                               minWidth: "unset",
-                              width: "100px",
-                              fontSize: "12px",
+                              width: "110px",
+                              fontSize: "13px",
                               background: "white",
                               borderRadius: "0 0 8px 8px",
                               padding: "5px",
@@ -806,11 +778,14 @@ const BookingDetails = () => {
                     >
                       <div className="d-flex align-items-center gap-2">
                         <div
-                          className="rounded-circle bg-secondary"
+                          className="rounded-circle"
                           style={{
                             width: "40px",
                             height: "40px",
                             flexShrink: 0,
+                            backgroundImage: `url(${booking.productImage})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
                           }}
                         ></div>
                         <div>
@@ -957,7 +932,7 @@ const BookingDetails = () => {
                             borderRadius: "12px",
                           }}
                           onClick={() =>
-                            navigate(`/view-bookings/${booking.id}`, {
+                            navigate(`/booking-details/view-bookings/${booking.id}`, {
                               state: { booking },
                             })
                           }
