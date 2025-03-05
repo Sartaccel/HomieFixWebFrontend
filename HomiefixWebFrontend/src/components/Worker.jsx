@@ -7,6 +7,7 @@ import search from "../assets/Search.png";
 
 
 import Swal from "sweetalert2";
+import Header from "./Header";
 
 
 const Worker = () => {
@@ -126,43 +127,37 @@ const Worker = () => {
 
 
    return (
-       <div>
+       <div className="col-12 p-0 m-0 d-flex flex-column">
            {/* Navbar */}
-           <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100" style={{ zIndex: 1000 }}>
-               <h2 className="heading mb-0" style={{ marginLeft: "31px" }}>Worker Details</h2>
-               <div className="header-right d-flex align-items-center gap-3">
-                   <div className="input-group" style={{ width: "300px" }}>
-                       <input type="text" className="form-control search-bar" placeholder="Search" />
-                       <span className="input-group-text">
-                           <img src={search} alt="Search" width="20" />
-                       </span>
-                   </div>
-                   <img src={notification} alt="Notifications" width="40" className="cursor-pointer" />
-                   <img src={profile} alt="Profile" width="40" className="cursor-pointer" />
-               </div>
-           </header>
+           <Header/>
 
-
-           <div className="container" style={{ paddingTop: "80px", paddingLeft: "0px", paddingRight: "0px", marginLeft: "-10px" }}>
-               <div className="d-flex border-bottom mx-2 align-items-center w-100 mt-3">
-                   <button className="btn d-flex align-items-center" onClick={() => navigate( `/worker-details`)}>
-                       <span style={{ fontSize: "20px" }}>←</span>
-                       <h5 className="px-3 pb-2 text-black mx-5"
+           <div className="navigation-bar d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
+           <div className="d-flex gap-3 align-items-center">
+               <button
+                className="btn btn-light p-2"
+                style={{ marginBottom: "-20px" }}
+                onClick={() => navigate(`/worker-details`)} // Fix: Use navigate function
+              >
+                <i
+                  className="bi bi-arrow-left"
+                  style={{ fontSize: "1.5rem", fontWeight: "bold" }}
+                ></i>
+              </button>
+                   <h5 className="px-3 pb-3 text-black mx-1"
                            style={{
                                borderBottom: "4px solid #000",
                                position: "relative",
-                               marginBottom: "-11px"
+                               marginBottom: "-38px"
                            }}>
                            Worker Details
                        </h5>
-                   </button>
                </div>
            </div>
 
 
            {/* Main content */}
-           <div className="container">
-               <div className="row">
+           <div className="container"  style={{ marginTop: "150px"}}>
+               <div className="row" >
                    <div className="col-4 border p-3 mt-4 rounded align-self-start h-auto d-flex flex-column" style={{ marginLeft: "70px", marginRight: "10px" }}>
                        {/* Role Section */}
                        <div className="d-flex justify-content-between">

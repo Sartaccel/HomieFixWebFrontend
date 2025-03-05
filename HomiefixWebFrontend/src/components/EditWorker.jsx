@@ -6,6 +6,7 @@ import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
 import addWorker from "../assets/addWorker.png";
 import "../styles/AddWorker.css";
+import Header from "./Header";
 
 
 const EditWorker = () => {
@@ -167,32 +168,27 @@ const EditWorker = () => {
    return (
        <>
            {/* Navbar */}
-           <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100" style={{ zIndex: 1000 }}>
-               <h2 className="heading align-items-center mb-0" style={{ marginLeft: "31px" }}>Worker Details</h2>
-               <div className="header-right d-flex align-items-center gap-3">
-                   <div className="input-group" style={{ width: "300px" }}>
-                       <input type="text" className="form-control search-bar" placeholder="Search" />
-                       <span className="input-group-text">
-                           <img src={search} alt="Search" width="20" />
-                       </span>
-                   </div>
-                   <img src={notification} alt="Notifications" width="40" className="cursor-pointer" />
-                   <img src={profile} alt="Profile" width="40" className="cursor-pointer" />
-               </div>
-           </header>
+           <Header/>
 
 
            {/* Scrollable Content */}
            <div className="container" style={{ paddingTop: "80px" }}>
                <div className="d-flex gap-4 mx-2 align-items-center">
-                   <button className="btn" onClick={() => navigate(-1)}>
-                       <span style={{ fontSize: "20px" }}>←</span>
-                   </button>
+               <button
+                className="btn btn-light p-2"
+                style={{ marginBottom: "-20px" }}
+                onClick={() => navigate(-1)} // Fix: Use navigate function
+              >
+                <i
+                  className="bi bi-arrow-left"
+                  style={{ fontSize: "1.5rem", fontWeight: "bold" }}
+                ></i>
+              </button>
                    <h5 className="px-3 pb-2 text-black"
                        style={{
                            borderBottom: "4px solid #000",
                            position: "relative",
-                           marginBottom: "-11px"
+                           marginBottom: "-30px"
                        }}>
                        Edit Worker Details
                    </h5>
@@ -200,7 +196,7 @@ const EditWorker = () => {
            </div>
 
 
-           <div className="container" style={{ height: "80vh", overflowY: "auto", overflowX: "hidden" }}>
+           <div className="container" style={{ height: "80vh", overflowY: "auto", overflowX: "hidden", marginTop: "20px" }}>
                <form onSubmit={handleSubmit}>
                    {/* Profile Photo */}
                    <div className="container mt-4" style={{ marginLeft: "64px", maxWidth: "100%" }}>
