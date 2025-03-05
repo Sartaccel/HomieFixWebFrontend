@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
@@ -58,6 +59,7 @@ const AddWorker = () => {
             };
         });
     };
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prevState) => ({
@@ -77,8 +79,32 @@ const AddWorker = () => {
         }
     };
 
+    const checkContactNumberExists = async (contactNumber) => {
+        try {
+            const response = await fetch(`http://localhost:2222/workers/check-contact?contactNumber=${contactNumber}`);
+            const data = await response.json();
+            return data; // Returns true if contact number exists, false otherwise
+        } catch (error) {
+            console.error("Error checking contact number:", error);
+            return false; // Assume contact number does not exist in case of an error
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+    
+        // Check if the contact number already exists
+        const contactNumberExists = await checkContactNumberExists(formData.contactNumber);
+    
+        if (contactNumberExists) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Contact number already exists. Please use a different contact number.",
+            });
+            return; // Stop the submission if the contact number exists
+        }
+    
         try {
             const formDataToSend = new FormData();
             for (const key in formData) {
@@ -96,9 +122,21 @@ const AddWorker = () => {
             });
             const data = await response.json();
             console.log("Success:", data);
-            navigate("/worker-details");
+    
+            Swal.fire({
+                icon: "success",
+                title: "Success",
+                text: "Worker added successfully!",
+            }).then(() => {
+                navigate("/worker-details");
+            });
         } catch (error) {
             console.error("Error:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Failed to add worker. Please try again.",
+            });
         }
     };
 
