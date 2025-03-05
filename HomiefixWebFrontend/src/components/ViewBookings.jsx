@@ -24,17 +24,18 @@ const ViewBookings = () => {
   const [typingTimeout, setTypingTimeout] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-   // State to control Reschedule visibility
+  const [lineColor, setLineColor] = useState("black"); 
   const [showCancelBookingModal, setShowCancelBookingModal] = useState(false); // State to control CancelBooking visibility
   const [cancellationReason, setCancellationReason] = useState(null); 
  const [selectedBookingId, setSelectedBookingId] = useState(null);
-// const [rescheduledDate, setRescheduledDate] = useState(""); // State for the rescheduled date
-//   const [rescheduledTime, setRescheduledTime] = useState(""); // State for the rescheduled time
+ const [showRescheduledRow, setShowRescheduledRow] = useState(false);
 const [rescheduledBooking, setRescheduledBooking] = useState(bookings);
 const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
 const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useState("");
-// State for the reschedule reason
-
+const [isCancellationConfirmed, setIsCancellationConfirmed] = useState(false);
+const [isRescheduledConfirmed, setIsRescheduledConfirmed] = useState(false); // To track reschedule confirmation
+const [isUpdated, setIsUpdated] = useState(false); // New state to track if the booking was updated
+const [isCancelled, setIsCancelled] = useState(false); // Track cancellation status
   useEffect(() => {
     if (!id) return;
 
@@ -159,7 +160,11 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
       console.log("Raw Response:", textResponse);
 
       if (response.ok) {
-        alert(`Booking successfully updated! Status: ${status}`);
+       alert(`Booking successfully updated! Status: ${status}`);
+     
+      setIsUpdated(true); // Mark the booking as updated
+      
+        
       } else {
         alert(`Failed to update booking. Server response: ${textResponse}`);
       }
@@ -168,26 +173,50 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
       alert("Network error while updating booking.");
     }
   };
-
+ 
   const getLinePosition = () => {
     let position = 72; // Initial position for "Booking Successful"
+    let color = "black"; // Default color (black)
 
-    if (bookedDate !== "No") position = 140; // Move down when "Worker Assigned"
-    if (serviceStarted !== "No") position = 217; // Move down when "Service Started"
-    if (serviceCompleted !== "No") position = 290; // Move down when "Service Completed"
-    
-    return `${position}px`;
-  };
+    // Set position and color based on different conditions
+    if (bookedDate !== "No") {
+        position = 70; // Move down when "Worker Assigned"
+        color = "black"; // Worker Assigned color (Black)
+    }
+    if (selectedBookingId && isRescheduledConfirmed ) {
+      position = 150; // Adjust for rescheduled booking
+      color = "red"; // Reschedule color (Red)
+  }
  
+   
+    if (serviceStarted !== "No" ) {
+    
+      position = 137; // Move down when "Service Started"
+      color = "black"; // Service Started color (Black)
+  }
+    if (serviceCompleted !== "No") {
+        position = 212; // Move down when "Service Completed"
+        color = "green"; // Service Completed color (Green)
+    }
+    if (selectedBookingIdForCancellation && isCancellationConfirmed) {
+        position = 80; // Adjust for cancellation row visibility
+        color = "red"; // Cancellation color (Red)
+    }
+   
+    return { position: `${position}px`, color };
+};
+const { position, color } = getLinePosition();
+
+   const handleCancelBookingSuccess = (reason) => {
+    setCancellationReason(reason);
+    setIsCancellationConfirmed(true)
+    setShowCancelBookingModal(false);
+  };
+
   const handleCancelBookingButtonClick = (id) => {
     setSelectedBookingIdForCancellation(id); // Store the selected booking ID
     setShowCancelBookingModal(true); // Show the cancel booking modal
-    
-  };
-    
-  const handleCancelBookingSuccess = (reason) => {
-    setCancellationReason(reason);
-    setShowCancelBookingModal(false);
+    // setLineColor("red");
   };
  
   const openRescheduleModal = () => {
@@ -200,7 +229,7 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
 
   const handleRescheduleSuccess = (newDate, newTime, reason) => {
     console.log('Reschedule Successful', newDate, newTime, reason);
-
+    setIsRescheduledConfirmed(true);
     // Update only the selected booking, not all bookings
     setBookings((prevBookings) =>
       
@@ -209,12 +238,14 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
           : booking
       )
     
-
+      setShowRescheduledRow(true); 
+     
     closeRescheduleModal(); // Close modal after success
   };
   const handleRescheduleButtonClick = (id) => {
     setSelectedBookingId(id); // This will trigger the modal to open
     openRescheduleModal();
+     
   };
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -249,8 +280,8 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
             </div>
           </header>
 
-          {/* Navigation Bar */}
-          <div className="navigation-bar d-flex justify-content-between align-items-center py-2 px-3 bg-white border-bottom w-100">
+          {/* Navigation Bar */}<div className="navigation-bar d-flex justify-content-between align-items-center py-2 px-3 bg-white border-bottom w-100">
+          
             <div className="d-flex gap-3 align-items-center">
               <button
                 className="btn btn- p-2"
@@ -273,18 +304,22 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
             </div>
             {/* Right side buttons */}
             <div className="d-flex gap-3 p-2" style={{ marginRight: "300px" }}>
+           
               <button
                 className="btn btn-outline-primary"
                 onClick={() => handleRescheduleButtonClick(id)}
-              >
+            
+              > 
                 Reschedule
               </button>
+             
               <button
                 className="btn btn-outline-danger"
-                onClick={() => handleCancelBookingButtonClick(bookings.id)}
+                onClick={() => handleCancelBookingButtonClick(id)}
               >
                 Cancel Service
               </button>
+              
             </div>
           </div>
 
@@ -313,7 +348,7 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
                   </div>
                 </div>
 
-                <div className="p-0 m-0 mt-4">
+                <div className="p-0 m-0 mt-2">
                   <h6 style={{ fontWeight: "bold" }}> Customer Details</h6>
 
                   <p className="mb-1">
@@ -366,7 +401,7 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
                 </div>
 
                 {/* Worker Details */}
-                <div className="mt-4">
+                <div className="mt-2">
                   <h6 style={{ fontWeight: "bold" }}>Worker Details</h6>
                   {worker ? (
                     <div className="d-flex align-items-center">
@@ -384,9 +419,9 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
                       ></div>
                       <div className=" d-flex flex-column mb-1">
                         <p className="mb-1">
-                          <i className="bi bi-person-fill me-2"></i>{" "}
+                          <i className="bi bi-person-fill me-1"></i>{" "}
                           {worker.name}{" "}
-                          <span className="ms-2" style={{ fontSize: "16px" }}>
+                          <span className="ms-1" style={{ fontSize: "16px" }}>
                             <i
                               className="bi bi-star-fill"
                               style={{ color: "#FFD700" }}
@@ -417,12 +452,19 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
                       color: "#007bff",
                       marginLeft: "120px",
                       textDecoration: "none",
+                      marginTop: "-20px",
                     }}
                   >
                     View full Profile →
                   </a>
                 </div>
+                <div>
+                <h6 style={{ fontWeight: "bold" }}>Customer Review</h6>
+             <span style={{ color: "red" }}> Coming soon 🐣</span>
               </div>
+              </div>
+              
+              
               {/* Right Card - Service Details */}
               <div className="col-md-6">
                 <div
@@ -449,16 +491,16 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
                     }}
                   >
                     <div
-                      className="position-absolute"
-                      style={{
-                        top: getLinePosition(), // Dynamic height
-                        left: "0px",
-                        width: "4px",
-                        backgroundColor: "black",
-                        
-                        height: "75px",
-                        transition: "height 0.5s ease-in-out",
-                      }}
+                       className="position-absolute"
+                       style={{
+                           top: position, // Dynamic height from the function
+                           left: "0px",
+                           width: "4px",
+                           backgroundColor: color, // Dynamic color
+                           height: "75px",
+                           transition: "height 0.5s ease-in-out",
+                       }}
+                      
                     ></div>
                     <table className="table w-100" style={{ width: "100%" }}>
                       <tbody>
@@ -490,7 +532,7 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
                             style={{ backgroundColor: "#f0f0f0" }}
                           ></td>
                         </tr>
-                        {selectedBookingIdForCancellation  === booking.id &&(                 
+                        {selectedBookingIdForCancellation && cancellationReason && (                 
   <tr style={{ height: "40px" }}>
     <td className="text-start border-right">
       {/* Display booked date only if this booking is selected */}
@@ -573,7 +615,7 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
                           
                         </tr>
                         
-  {selectedBookingId  && (
+  { selectedBookingId  && showRescheduledRow &&(
                         <tr style={{ height: "40px" }}>
     <td className="text-start border-right">
       {/* Display booked date only if this booking is selected */}
@@ -671,6 +713,7 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
                             className="text-end "
                             style={{ backgroundColor: "#f0f0f0" }}
                           >
+                           {!isUpdated && !(selectedBookingIdForCancellation && cancellationReason) && (
                             <span className="custom-dropdown">
                               <select
                                 className="no-border"
@@ -690,6 +733,7 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
                                 <option value="Yes">Yes</option>
                               </select>
                             </span>
+                            )}
                             {/* Display Service Started Time */}
                           </td>
                         </tr>
@@ -725,6 +769,7 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
                             className="text-end"
                             style={{ backgroundColor: "#f0f0f0" }}
                           >
+                                {!isUpdated && !(selectedBookingIdForCancellation && cancellationReason) && (
                             <span className="custom-dropdown">
                               <select
                                 className="no-border"
@@ -743,10 +788,12 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
                                 <option value="Yes">Yes</option>
                               </select>
                             </span>
+                             )}
                           </td>
                         </tr>
                       </tbody>
                     </table>
+               
                     <button
                       className="btn btn-primary w-100"
                       onClick={updateBooking}
@@ -759,7 +806,7 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
             </div>
           </div>
            {/* Reschedule Slider */}
-           {isRescheduleModalOpen && selectedBookingId && (
+           {isRescheduleModalOpen && selectedBookingId &&  (
         <Reschedule
           id={selectedBookingId}
           booking={bookings} 

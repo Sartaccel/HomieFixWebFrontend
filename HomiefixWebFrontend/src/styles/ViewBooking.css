@@ -19,7 +19,7 @@
   .custom-dropdown::after {
     content: "▼";
     font-size: 12px;
-    color: grey;
+    
     position: absolute;
     right: 5px;
     top: 50%;
