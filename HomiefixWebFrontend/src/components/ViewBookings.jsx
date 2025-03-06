@@ -11,7 +11,8 @@ const ViewBookings = () => {
   const location = useLocation();
   const navigate = useNavigate(); // Fixed missing import
   const booking = location.state?.booking || {};
-  const [bookings, setBookings] = useState({});
+   const [bookings, setBookings] = useState({});
+ 
   const [bookingDate, setBookingDate] = useState("");
   const [bookedDate, setBookedDate] = useState("");
   const [activeTab, setActiveTab] = useState("serviceDetails");
@@ -35,7 +36,52 @@ const[selectedBookingIdForCancellation,setSelectedBookingIdForCancellation]=useS
 const [isCancellationConfirmed, setIsCancellationConfirmed] = useState(false);
 const [isRescheduledConfirmed, setIsRescheduledConfirmed] = useState(false); // To track reschedule confirmation
 const [isUpdated, setIsUpdated] = useState(false); // New state to track if the booking was updated
-const [isCancelled, setIsCancelled] = useState(false); // Track cancellation status
+const [feedback, setFeedback] = useState([]);
+
+useEffect(() => {
+  // Fetch feedback for a specific booking when the bookingId changes
+  const fetchFeedback = async () => {
+    try {
+      const response = await fetch(`http://localhost:2222/feedback/byBooking/${id}`);
+
+      // Check if response is okay
+      if (!response.ok) {
+        throw new Error('Failed to fetch feedback');
+      }
+
+      // Parse JSON response
+      const data = await response.json();
+      console.log('Fetched Feedback Data:', data); // Log the data for verification
+
+      // Set the feedback state if data is in correct format (an array)
+      if (Array.isArray(data)) {
+        setFeedback(data);
+      } else {
+        throw new Error('Unexpected data format');
+      }
+    } catch (error) {
+      setError(error.message); // Handle errors
+      console.error('Error fetching feedback:', error); // Log the error for debugging
+    } finally {
+      setLoading(false); // Stop loading after request is complete
+    }
+  };
+
+  if (id) {
+    fetchFeedback(); // Fetch feedback when bookingId is set
+  }
+}, [id]); // Re-run when bookingId changes
+
+const getCurrentDate = () => {
+  const date = new Date();
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric"
+  });
+};
+
+
   useEffect(() => {
     if (!id) return;
 
@@ -56,7 +102,7 @@ const [isCancelled, setIsCancelled] = useState(false); // Track cancellation sta
         setBookedDate(data.bookedDate || "N/A");
         setTimeSlot(data.timeSlot || "N/A");
         setNotes(data.notes || "");
-
+      
         // Set worker details
         if (data.worker) {
           setWorker(data.worker);
@@ -95,23 +141,8 @@ const [isCancelled, setIsCancelled] = useState(false); // Track cancellation sta
     console.log("Worker Data:", worker);
   }, [worker]);
 
-  const SetBookedDate = (dateString) => {
-    if (!dateString || dateString === "N/A") return "N/A";
-    const date = new Date(dateString);
-    return (
-      date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric",
-      }) +
-      " - " +
-      date.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      })
-    );
-  };
+ 
+ 
 
   const updateBooking = async () => {
     if (!id) {
@@ -341,7 +372,7 @@ const { position, color } = getLinePosition();
                   ></div>
                   <div>
                     <p className="mb-0">
-                      {booking.service} - ₹{bookings?.totalPrice ?? "N/A"}
+                      {booking.service} - ₹{bookings.totalPrice }
                     </p>
 
                     <small style={{ color: "#0076CE" }}>ID: {booking.id}</small>
@@ -372,7 +403,7 @@ const { position, color } = getLinePosition();
                 {/* Comment Field (Notes) */}
                 <div
                   className="mt-3 position-relative"
-                  style={{ width: "560px" }}
+                  style={{ width: "500px" }}
                 >
                   <span
                     className="position-absolute"
@@ -393,7 +424,7 @@ const { position, color } = getLinePosition();
                     rows="3"
                     style={{
                       resize: "none",
-                      height: "140px",
+                      height: "100px",
                       backgroundColor: "white",
                     }}
                     value={notes} // Display fetched notes
@@ -421,7 +452,7 @@ const { position, color } = getLinePosition();
                         <p className="mb-1">
                           <i className="bi bi-person-fill me-1"></i>{" "}
                           {worker.name}{" "}
-                          <span className="ms-1" style={{ fontSize: "16px" }}>
+                          <span className="ms-1" style={{ fontSize: "16px",backgroundColor: '#d3d3d3',width: '50px' }}>
                             <i
                               className="bi bi-star-fill"
                               style={{ color: "#FFD700" }}
@@ -460,7 +491,45 @@ const { position, color } = getLinePosition();
                 </div>
                 <div>
                 <h6 style={{ fontWeight: "bold" }}>Customer Review</h6>
-             <span style={{ color: "red" }}> Coming soon 🐣</span>
+         
+                {loading ? (
+        <p>Loading...</p> // Display loading text when fetching
+      ) : error ? (
+        <p style={{ color: 'red' }}>{error}</p> // Show error message if fetch fails
+      ) : (
+        feedback.length > 0 ? (
+          feedback.map((review, index) => (
+            <div key={index} >
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                
+              {review.rating === 4 && (
+                  <span style={{ color: 'gold', fontSize: '15px',backgroundColor: '#d3d3d3',width: '40px' }}>
+                    <i className="bi bi-star-fill"></i> 
+                   </span>
+                   
+                )}
+                  <p style={{ fontSize: '16px', marginLeft:"20px", marginTop: '-22px',  display: 'inline-block'}}>
+                   {review.rating} {/* Display the rating */}
+                </p>
+                
+              <p style={{ fontSize: '14px', color: '#888', marginTop: '-40px',marginLeft:"44px" }}>
+                   {getCurrentDate()}
+                   
+                </p>
+                
+                
+                {/* Display Review Comment */}
+                <p style={{ fontSize: '16px',  marginTop: '-15px' }}>{review.comment}</p>
+                
+                {/* Display Current Date */}
+               
+              </div>
+            </div>
+          ))
+        ) : (
+          <p>No feedback available.</p> // Show message if no feedback available
+        )
+      )}
               </div>
               </div>
               
@@ -618,7 +687,7 @@ const { position, color } = getLinePosition();
   { selectedBookingId  && showRescheduledRow &&(
                         <tr style={{ height: "40px" }}>
     <td className="text-start border-right">
-      {/* Display booked date only if this booking is selected */}
+    {console.log(bookings)}
       <span style={{ color: "grey" }}>
         {bookedDate !== "No"
           ? new Date(bookedDate).toLocaleDateString("en-US", {
