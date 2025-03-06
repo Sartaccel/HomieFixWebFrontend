@@ -1,30 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import notification from "../assets/Bell.png";
-import profile from "../assets/Profile.png";
-import search from "../assets/Search.png";
-
-
 import Swal from "sweetalert2";
 import Header from "./Header";
-
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 const Worker = () => {
    const { id } = useParams();
    const navigate = useNavigate();
    const [activeTab, setActiveTab] = useState("serviceDetails");
 
-
    // State for worker data
    const [workerData, setWorkerData] = useState(null);
-
 
    // State for bookings
    const [serviceDetailsData, setServiceDetailsData] = useState([]);
    const [inProgressData, setInProgressData] = useState([]);
    const [loading, setLoading] = useState(true);
-
 
    // Fetch worker data
    useEffect(() => {
@@ -37,11 +30,9 @@ const Worker = () => {
            });
    }, [id]);
 
-
    // Fetch worker bookings
    useEffect(() => {
        if (!workerData) return; // Ensure workerData is available
-
 
        const fetchWorkerBookings = async () => {
            try {
@@ -51,7 +42,6 @@ const Worker = () => {
                }
                const data = await response.json();
 
-
                // Filter data based on booking status
                const completedBookings = data.filter(booking => booking.bookingStatus === "COMPLETED");
                const inProgressBookings = data.filter(booking =>
@@ -59,7 +49,6 @@ const Worker = () => {
                    booking.bookingStatus === "STARTED" ||
                    booking.bookingStatus === "RESCHEDULED"
                );
-
 
                // Map backend data to frontend format
                const mappedCompletedBookings = completedBookings.map(booking => ({
@@ -72,7 +61,6 @@ const Worker = () => {
                    status: booking.bookingStatus
                }));
 
-
                const mappedInProgressBookings = inProgressBookings.map(booking => ({
                    id: booking.id,
                    service: booking.worker?.role || "N/A",
@@ -81,7 +69,6 @@ const Worker = () => {
                    date: booking.bookedDate,
                    status: booking.bookingStatus
                }));
-
 
                // Update state
                setServiceDetailsData(mappedCompletedBookings);
@@ -93,10 +80,8 @@ const Worker = () => {
            }
        };
 
-
        fetchWorkerBookings();
    }, [id, workerData]); // Add workerData as a dependency
-
 
    const handleDeleteWorker = async () => {
        Swal.fire({
@@ -120,30 +105,23 @@ const Worker = () => {
        });
    };
 
-
    if (!workerData || loading) {
-       return <p>Loading...</p>;
-   }
-
-
-   return (
-       <div className="col-12 p-0 m-0 d-flex flex-column">
-           {/* Navbar */}
-           <Header/>
-
-           <div className="navigation-bar d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
-           <div className="d-flex gap-3 align-items-center">
-               <button
-                className="btn btn-light p-2"
-                style={{ marginBottom: "-20px" }}
-                onClick={() => navigate(`/worker-details`)} // Fix: Use navigate function
-              >
-                <i
-                  className="bi bi-arrow-left"
-                  style={{ fontSize: "1.5rem", fontWeight: "bold" }}
-                ></i>
-              </button>
-                   <h5 className="px-3 pb-3 text-black mx-1"
+       return (
+           <div className="col-12 p-0 m-0 d-flex flex-column">
+               <Header />
+               <div className="navigation-bar d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
+                   <div className="d-flex gap-3 align-items-center">
+                       <button
+                           className="btn btn-light p-2"
+                           style={{ marginBottom: "-20px" }}
+                           onClick={() => navigate(`/worker-details`)}
+                       >
+                           <i
+                               className="bi bi-arrow-left"
+                               style={{ fontSize: "1.5rem", fontWeight: "bold" }}
+                           ></i>
+                       </button>
+                       <h5 className="px-3 pb-3 text-black mx-1"
                            style={{
                                borderBottom: "4px solid #000",
                                position: "relative",
@@ -151,15 +129,71 @@ const Worker = () => {
                            }}>
                            Worker Details
                        </h5>
+                   </div>
+               </div>
+
+               {/* Skeleton Loading for Main Content */}
+               <div className="container" style={{ marginTop: "150px" }}>
+                   <div className="row">
+                       <div className="col-4 border p-3 mt-4 rounded align-self-start h-auto d-flex flex-column" style={{ marginLeft: "70px", marginRight: "10px" }}>
+                           <Skeleton height={30} width={100} />
+                           <Skeleton height={100} width={100} />
+                           <Skeleton height={20} width={200} />
+                           <Skeleton height={20} width={200} />
+                           <Skeleton height={20} width={200} />
+                           <Skeleton height={20} width={200} />
+                           <Skeleton height={20} width={200} />
+                       </div>
+                       <div className="col-7 mt-4 border px-3 rounded">
+                           <div className="row">
+                               <div className="d-flex mt-3 pb-2">
+                                   <Skeleton height={30} width={100} />
+                                   <Skeleton height={30} width={100} style={{ marginLeft: "10px" }} />
+                                   <Skeleton height={30} width={100} style={{ marginLeft: "10px" }} />
+                                   <Skeleton height={30} width={100} style={{ marginLeft: "100px" }} />
+                               </div>
+                           </div>
+                           <div className="row">
+                               <div className="table-responsive custom-table" style={{ maxHeight: "550px" }}>
+                                   <Skeleton height={50} count={5} />
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+               </div>
+           </div>
+       );
+   }
+
+   return (
+       <div className="col-12 p-0 m-0 d-flex flex-column">
+           <Header />
+           <div className="navigation-bar d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
+               <div className="d-flex gap-3 align-items-center">
+                   <button
+                       className="btn btn-light p-2"
+                       style={{ marginBottom: "-20px" }}
+                       onClick={() => navigate(`/worker-details`)}
+                   >
+                       <i
+                           className="bi bi-arrow-left"
+                           style={{ fontSize: "1.5rem", fontWeight: "bold" }}
+                       ></i>
+                   </button>
+                   <h5 className="px-3 pb-3 text-black mx-1"
+                       style={{
+                           borderBottom: "4px solid #000",
+                           position: "relative",
+                           marginBottom: "-38px"
+                       }}>
+                       Worker Details
+                   </h5>
                </div>
            </div>
 
-
-           {/* Main content */}
-           <div className="container"  style={{ marginTop: "150px"}}>
-               <div className="row" >
+           <div className="container" style={{ marginTop: "150px" }}>
+               <div className="row">
                    <div className="col-4 border p-3 mt-4 rounded align-self-start h-auto d-flex flex-column" style={{ marginLeft: "70px", marginRight: "10px" }}>
-                       {/* Role Section */}
                        <div className="d-flex justify-content-between">
                            <div className="d-flex flex-wrap">
                                <p>Role:</p>
@@ -174,8 +208,6 @@ const Worker = () => {
                            </div>
                        </div>
 
-
-                       {/* Profile Section */}
                        <div className="row">
                            <div className="d-flex">
                                <div>
@@ -194,8 +226,6 @@ const Worker = () => {
                            </div>
                        </div>
 
-
-                       {/* Location Section */}
                        <div className="row">
                            <div className="d-flex">
                                <i className="bi bi-geo-alt mx-1"></i>
@@ -203,8 +233,6 @@ const Worker = () => {
                            </div>
                        </div>
 
-
-                       {/* Additional Details */}
                        <div className="row">
                            <div className="col-5">
                                <p>Joining Date</p>
@@ -221,10 +249,7 @@ const Worker = () => {
                        </div>
                    </div>
 
-
-                   {/* Table content */}
                    <div className="col-7 mt-4 border px-3 rounded">
-                       {/* Header Section with Active Border */}
                        <div className="row">
                            <div className="d-flex mt-3 pb-2">
                                <p
@@ -249,7 +274,6 @@ const Worker = () => {
                                    Reviews
                                </p>
 
-
                                <p
                                    className="border border-danger rounded px-2" style={{ marginLeft: "100px", paddingTop: "3px", cursor: "pointer" }} onClick={handleDeleteWorker}>
                                    <i className="bi bi-trash text-danger mx-1"></i>
@@ -258,8 +282,6 @@ const Worker = () => {
                            </div>
                        </div>
 
-
-                       {/* Dynamic Content Section */}
                        <div className="row">
                            <div className="table-responsive custom-table" style={{ maxHeight: "550px" }}>
                                {activeTab === "serviceDetails" && (
@@ -291,7 +313,6 @@ const Worker = () => {
                                        </tbody>
                                    </table>
                                )}
-
 
                                {activeTab === "inProgress" && (
                                    <table className="table table-bordered table-hover">
@@ -326,7 +347,6 @@ const Worker = () => {
                                    </table>
                                )}
 
-
                                {activeTab === "reviews" && (
                                    <div className="d-flex flex-wrap">
                                        <h1 className="text-center w-100">No reviews yet</h1>
@@ -340,6 +360,5 @@ const Worker = () => {
        </div>
    );
 };
-
 
 export default Worker;

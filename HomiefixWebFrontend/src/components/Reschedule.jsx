@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import "../styles/AssignBookings.css";
 
 const Reschedule = ({ id, booking, onClose, onReschedule }) => {
@@ -8,6 +10,8 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [rescheduleReason, setRescheduleReason] = useState("");
   const [otherReason, setOtherReason] = useState("");
+  const [loadingDates, setLoadingDates] = useState(true);
+  const [loadingTimes, setLoadingTimes] = useState(true);
 
   // Fetch available dates and times
   useEffect(() => {
@@ -37,6 +41,8 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
         setAvailableDates(validDates);
       } catch (error) {
         console.error("Error fetching available dates:", error);
+      } finally {
+        setLoadingDates(false);
       }
     };
 
@@ -47,6 +53,8 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
         setAvailableTimes(data);
       } catch (error) {
         console.error("Error fetching available times:", error);
+      } finally {
+        setLoadingTimes(false);
       }
     };
 
@@ -152,22 +160,27 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
         <div className="mb-3 mt-3">
           <h6>Date</h6>
           <div className="d-flex flex-wrap gap-2">
-            {availableDates.map((date, index) => (<button
-            key={index}
-            className="btn btn-sm"
-            style={{
-              fontSize: "15px",
-              padding: "5px 10px",
-              borderRadius: "5px",
-              border: selectedDate === date ? "1px solid #0076CE" : "1px solid #D2D2D2",
-              color: "#333",
-              backgroundColor: "transparent",
-            }}
-            onClick={() => handleDateSelection(date)}
-          >
-            {formatDate(date)}
-          </button>
-            ))}
+            {loadingDates
+              ? Array.from({ length: 5 }).map((_, index) => (
+                  <Skeleton key={index} width={100} height={50} />
+                ))
+              : availableDates.map((date, index) => (
+                  <button
+                    key={index}
+                    className="btn btn-sm"
+                    style={{
+                      fontSize: "15px",
+                      padding: "5px 10px",
+                      borderRadius: "5px",
+                      border: selectedDate === date ? "1px solid #0076CE" : "1px solid #D2D2D2",
+                      color: "#333",
+                      backgroundColor: "transparent",
+                    }}
+                    onClick={() => handleDateSelection(date)}
+                  >
+                    {formatDate(date)}
+                  </button>
+                ))}
           </div>
         </div>
         <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
@@ -176,23 +189,27 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
         <div className="mb-3 mt-3">
           <h6>Time</h6>
           <div className="d-flex flex-wrap gap-2">
-            {availableTimes.map((time, index) => (
-              <button
-                key={index}
-                className="btn btn-sm"
-                style={{
-                  fontSize: "15px",
-                  padding: "5px 10px",
-                  borderRadius: "5px",
-                  border: selectedTimeSlot === time ? "1px solid #0076CE" : "1px solid #D2D2D2",
-                  color: "#333",
-                  backgroundColor: "transparent",
-                }}
-                onClick={() => handleTimeSlotSelection(time)}
-              >
-                {time}
-              </button>
-            ))}
+            {loadingTimes
+              ? Array.from({ length: 5 }).map((_, index) => (
+                  <Skeleton key={index} width={80} height={30} />
+                ))
+              : availableTimes.map((time, index) => (
+                  <button
+                    key={index}
+                    className="btn btn-sm"
+                    style={{
+                      fontSize: "15px",
+                      padding: "5px 10px",
+                      borderRadius: "5px",
+                      border: selectedTimeSlot === time ? "1px solid #0076CE" : "1px solid #D2D2D2",
+                      color: "#333",
+                      backgroundColor: "transparent",
+                    }}
+                    onClick={() => handleTimeSlotSelection(time)}
+                  >
+                    {time}
+                  </button>
+                ))}
           </div>
         </div>
         <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>

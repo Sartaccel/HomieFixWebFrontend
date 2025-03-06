@@ -7,400 +7,438 @@ import search from "../assets/Search.png";
 import addWorker from "../assets/addWorker.png";
 import "../styles/AddWorker.css";
 import Header from "./Header";
-
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 const EditWorker = () => {
-   const { id } = useParams();
-   const navigate = useNavigate();
-   const [clickedButtons, setClickedButtons] = useState({});
-   const [formData, setFormData] = useState({
-       name: "",
-       email: "",
-       contactNumber: "",
-       workExperience: "",
-       dateOfBirth: "",
-       gender: "",
-       houseNumber: "",
-       town: "",
-       pincode: "",
-       nearbyLandmark: "",
-       district: "",
-       state: "",
-       aadharNumber: "",
-       drivingLicenseNumber: "",
-       joiningDate: "",
-       econtactNumber: "",
-       role: [], // Change to an array to store multiple roles
-       specification: [], // Array to store multiple specifications
-       language: [],
-       profilePic: null,
-   });
-   const [previewImage, setPreviewImage] = useState(addWorker);
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const [clickedButtons, setClickedButtons] = useState({});
+    const [formData, setFormData] = useState({
+        name: "",
+        email: "",
+        contactNumber: "",
+        workExperience: "",
+        dateOfBirth: "",
+        gender: "",
+        houseNumber: "",
+        town: "",
+        pincode: "",
+        nearbyLandmark: "",
+        district: "",
+        state: "",
+        aadharNumber: "",
+        drivingLicenseNumber: "",
+        joiningDate: "",
+        econtactNumber: "",
+        role: [],
+        specification: [],
+        language: [],
+        profilePic: null,
+    });
+    const [previewImage, setPreviewImage] = useState(addWorker);
+    const [loading, setLoading] = useState(true);
 
+    // Fetch worker data and initialize clickedButtons
+    useEffect(() => {
+        const fetchWorkerData = async () => {
+            try {
+                const response = await fetch(`http://localhost:2222/workers/view/${id}`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch worker data");
+                }
+                const data = await response.json();
 
-   // Fetch worker data and initialize clickedButtons
-   useEffect(() => {
-       const fetchWorkerData = async () => {
-           try {
-               const response = await fetch(`http://localhost:2222/workers/view/${id}`);
-               if (!response.ok) {
-                   throw new Error("Failed to fetch worker data");
-               }
-               const data = await response.json();
+                // Initialize formData
+                setFormData({
+                    ...data,
+                    role: data.role ? data.role.split(",") : [],
+                    specification: data.specification ? data.specification.split(",") : [],
+                    language: data.language ? data.language.split(",") : [],
+                });
 
+                // Initialize clickedButtons based on specification
+                const initialClickedButtons = {};
+                if (data.specification) {
+                    data.specification.split(",").forEach((item) => {
+                        initialClickedButtons[item] = true;
+                    });
+                }
+                setClickedButtons(initialClickedButtons);
 
-               // Initialize formData
-               setFormData({
-                   ...data,
-                   role: data.role ? data.role.split(",") : [], // Convert role string to array
-                   specification: data.specification ? data.specification.split(",") : [],
-                   language: data.language ? data.language.split(",") : [],
-               });
+                // Set preview image
+                setPreviewImage(data.profilePicUrl || addWorker);
+            } catch (error) {
+                console.error("Error fetching worker data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
+        fetchWorkerData();
+    }, [id]);
 
-               // Initialize clickedButtons based on specification
-               const initialClickedButtons = {};
-               if (data.specification) {
-                   data.specification.split(",").forEach((item) => {
-                       initialClickedButtons[item] = true;
-                   });
-               }
-               setClickedButtons(initialClickedButtons);
+    const handleButtonClick = (item, roleHeading) => {
+        setClickedButtons((prevState) => ({
+            ...prevState,
+            [item]: !prevState[item],
+        }));
 
+        setFormData((prevState) => {
+            const updatedSpecifications = prevState.specification.includes(item)
+                ? prevState.specification.filter((spec) => spec !== item)
+                : [...prevState.specification, item];
 
-               // Set preview image
-               setPreviewImage(data.profilePicUrl || addWorker);
-           } catch (error) {
-               console.error("Error fetching worker data:", error);
-           }
-       };
+            let updatedRoles = [...prevState.role];
 
+            if (!updatedSpecifications.includes(item)) {
+                const hasOtherSpecsForRole = updatedSpecifications.some(
+                    (spec) => spec.startsWith(roleHeading)
+                );
 
-       fetchWorkerData();
-   }, [id]);
+                if (!hasOtherSpecsForRole) {
+                    updatedRoles = updatedRoles.filter((role) => role !== roleHeading);
+                }
+            } else {
+                if (!updatedRoles.includes(roleHeading)) {
+                    updatedRoles.push(roleHeading);
+                }
+            }
 
+            return {
+                ...prevState,
+                role: updatedRoles,
+                specification: updatedSpecifications,
+            };
+        });
+    };
 
-   const handleButtonClick = (item, roleHeading) => {
-       setClickedButtons((prevState) => ({
-           ...prevState,
-           [item]: !prevState[item],
-       }));
-  
-       setFormData((prevState) => {
-           // Update specifications
-           const updatedSpecifications = prevState.specification.includes(item)
-               ? prevState.specification.filter((spec) => spec !== item) // Remove if already exists
-               : [...prevState.specification, item];
-  
-           let updatedRoles = [...prevState.role];
-  
-           if (!updatedSpecifications.includes(item)) {
-               const hasOtherSpecsForRole = updatedSpecifications.some(
-                   (spec) => spec.startsWith(roleHeading)
-               );
-  
-               if (!hasOtherSpecsForRole) {
-                   updatedRoles = updatedRoles.filter((role) => role !== roleHeading);
-               }
-           } else {
-               if (!updatedRoles.includes(roleHeading)) {
-                   updatedRoles.push(roleHeading);
-               }
-           }
-  
-           return {
-               ...prevState,
-               role: updatedRoles,
-               specification: updatedSpecifications,
-           };
-       });
-   };
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prevState) => ({
+            ...prevState,
+            [name]: value,
+        }));
+    };
 
+    const handleImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setFormData((prevState) => ({
+                ...prevState,
+                profilePic: file,
+            }));
+            setPreviewImage(URL.createObjectURL(file));
+        }
+    };
 
-   const handleChange = (e) => {
-       const { name, value } = e.target;
-       setFormData((prevState) => ({
-           ...prevState,
-           [name]: value,
-       }));
-   };
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const formDataToSend = new FormData();
+            for (const key in formData) {
+                if (key === "specification" || key === "role" || key === "language") {
+                    formDataToSend.append(key, formData[key].join(","));
+                } else {
+                    formDataToSend.append(key, formData[key]);
+                }
+            }
 
+            const response = await fetch(`http://localhost:2222/workers/update/${id}`, {
+                method: "PUT",
+                body: formDataToSend,
+            });
+            const data = await response.json();
+            console.log("Success:", data);
+            navigate(`/worker-details/worker/${id}`);
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    };
 
-   const handleImageUpload = (e) => {
-       const file = e.target.files[0];
-       if (file) {
-           setFormData((prevState) => ({
-               ...prevState,
-               profilePic: file,
-           }));
-           setPreviewImage(URL.createObjectURL(file));
-       }
-   };
+    return (
+        <>
+            {/* Navbar */}
+            <Header />
 
+            {/* Scrollable Content */}
+            <div className="container" style={{ paddingTop: "80px" }}>
+                <div className="d-flex gap-4 mx-2 align-items-center">
+                    <button
+                        className="btn btn-light p-2"
+                        style={{ marginBottom: "-20px" }}
+                        onClick={() => navigate(-1)}
+                    >
+                        <i
+                            className="bi bi-arrow-left"
+                            style={{ fontSize: "1.5rem", fontWeight: "bold" }}
+                        ></i>
+                    </button>
+                    <h5 className="px-3 pb-2 text-black"
+                        style={{
+                            borderBottom: "4px solid #000",
+                            position: "relative",
+                            marginBottom: "-30px"
+                        }}>
+                        Edit Worker Details
+                    </h5>
+                </div>
+            </div>
 
-   const handleSubmit = async (e) => {
-       e.preventDefault();
-       try {
-           const formDataToSend = new FormData();
-           for (const key in formData) {
-               if (key === "specification" || key === "role" || key === "language") {
-                   // Convert the array to a comma-separated string
-                   formDataToSend.append(key, formData[key].join(","));
-               } else {
-                   formDataToSend.append(key, formData[key]);
-               }
-           }
+            <div className="container" style={{ height: "80vh", overflowY: "auto", overflowX: "hidden", marginTop: "20px" }}>
+                <form onSubmit={handleSubmit}>
+                    {/* Profile Photo */}
+                    <div className="container mt-4" style={{ marginLeft: "64px", maxWidth: "100%" }}>
+                        <p>Profile Photo</p>
+                        <div>
+                            
+                                <img
+                                    src={previewImage}
+                                    alt="profile"
+                                    height={100}
+                                    width={100}
+                                    className="rounded-4"
+                                />
+                            
+                            <input
+                                type="file"
+                                id="profilePic"
+                                name="profilePic"
+                                accept="image/*"
+                                style={{ display: "none" }}
+                                onChange={handleImageUpload}
+                            />
+                            <label htmlFor="profilePic" className="btn mx-5" style={{ marginTop: "63px", borderColor: "#0076CE", color: "#0076CE" }}>
+                                Upload Photo
+                            </label>
+                        </div>
+                    </div>
 
+                    {/* Main container */}
+                    <div className="container mt-4" style={{ marginLeft: "60px", maxWidth: "100%" }}>
+                        {/* Job Title Section */}
+                        <div className="row mt-4">
+                            <p className="fw-bold">Job title</p>
+                        </div>
 
-           const response = await fetch(`http://localhost:2222/workers/update/${id}`, {
-               method: "PUT",
-               body: formDataToSend,
-           });
-           const data = await response.json();
-           console.log("Success:", data);
-           navigate(`/worker-details/worker/${id}`);
-       } catch (error) {
-           console.error("Error:", error);
-       }
-   };
+                        {/* Home Appliances */}
+                        <div className="row">
+                            <p>Home Appliances</p>
+                        </div>
+                        <div className="row">
+                            <div className="d-flex flex-wrap gap-3">
+                                {loading ? (
+                                    <Skeleton count={1} width={100} height={40} />
+                                ) : (
+                                    ["AC", "Geyser", "Microwave", "Inverter & Stabilizers", "Water Purifier", "TV", "Fridge", "Washing Machine", "Fan"].map((item) => (
+                                        <button
+                                            key={item}
+                                            type="button"
+                                            className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""}`}
+                                            onClick={() => handleButtonClick(item, "Home Appliances")}
+                                        >
+                                            {item} {clickedButtons[item] && "✓"}
+                                        </button>
+                                    ))
+                                )}
+                            </div>
+                        </div>
 
+                        {/* Electrician */}
+                        <div className="row mt-3">
+                            <p>Electrician</p>
+                        </div>
+                        <div className="row">
+                            <div className="d-flex flex-wrap gap-3">
+                                {loading ? (
+                                    <Skeleton count={1} width={100} height={40} />
+                                ) : (
+                                    ["Switch & Socket", "Wiring", "Doorbell", "Appliance", "MCB & Submeter", "Light and Wall light", "CCTV"].map((item) => (
+                                        <button
+                                            key={item}
+                                            type="button"
+                                            className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""}`}
+                                            onClick={() => handleButtonClick(item, "Electrician")}
+                                        >
+                                            {item} {clickedButtons[item] && "✓"}
+                                        </button>
+                                    ))
+                                )}
+                            </div>
+                        </div>
 
-   return (
-       <>
-           {/* Navbar */}
-           <Header/>
+                        {/* Carpentry */}
+                        <div className="row mt-3">
+                            <p>Carpentry</p>
+                        </div>
+                        <div className="row">
+                            <div className="d-flex flex-wrap gap-3">
+                                {loading ? (
+                                    <Skeleton count={1} width={100} height={40} />
+                                ) : (
+                                    ["Bed", "Cupboard & Drawer", "Door", "Windows", "Drill & Hang", "Furniture Repair"].map((item) => (
+                                        <button
+                                            key={item}
+                                            type="button"
+                                            className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""}`}
+                                            onClick={() => handleButtonClick(item, "Carpentry")}
+                                        >
+                                            {item} {clickedButtons[item] && "✓"}
+                                        </button>
+                                    ))
+                                )}
+                            </div>
+                        </div>
 
+                        {/* Plumbing */}
+                        <div className="row mt-3">
+                            <p>Plumbing</p>
+                        </div>
+                        <div className="row">
+                            <div className="d-flex flex-wrap gap-3">
+                                {loading ? (
+                                    <Skeleton count={1} width={100} height={40} />
+                                ) : (
+                                    ["Washbasin Installation", "Blockage Removal", "Shower", "Toilet", "Tap, Pipe works", "Water tank & Motor"].map((item) => (
+                                        <button
+                                            key={item}
+                                            type="button"
+                                            className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""}`}
+                                            onClick={() => handleButtonClick(item, "Plumbing")}
+                                        >
+                                            {item} {clickedButtons[item] && "✓"}
+                                        </button>
+                                    ))
+                                )}
+                            </div>
+                        </div>
 
-           {/* Scrollable Content */}
-           <div className="container" style={{ paddingTop: "80px" }}>
-               <div className="d-flex gap-4 mx-2 align-items-center">
-               <button
-                className="btn btn-light p-2"
-                style={{ marginBottom: "-20px" }}
-                onClick={() => navigate(-1)} // Fix: Use navigate function
-              >
-                <i
-                  className="bi bi-arrow-left"
-                  style={{ fontSize: "1.5rem", fontWeight: "bold" }}
-                ></i>
-              </button>
-                   <h5 className="px-3 pb-2 text-black"
-                       style={{
-                           borderBottom: "4px solid #000",
-                           position: "relative",
-                           marginBottom: "-30px"
-                       }}>
-                       Edit Worker Details
-                   </h5>
-               </div>
-           </div>
+                        {/* Vehicle Service */}
+                        <div className="row mt-3">
+                            <p>Vehicle service</p>
+                        </div>
+                        <div className="row">
+                            <div className="d-flex flex-wrap gap-3">
+                                {loading ? (
+                                    <Skeleton count={1} width={100} height={40} />
+                                ) : (
+                                    ["Batteries", "Health checkup", "Wash & Cleaning", "Denting & Painting", "Wheel car", "Vehicle AC"].map((item) => (
+                                        <button
+                                            key={item}
+                                            type="button"
+                                            className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""}`}
+                                            onClick={() => handleButtonClick(item, "Vehicle service")}
+                                        >
+                                            {item} {clickedButtons[item] && "✓"}
+                                        </button>
+                                    ))
+                                )}
+                            </div>
+                        </div>
 
+                        {/* Address Details */}
+                        <div className="row mt-4">
+                            <p className="fw-bold">Address Details</p>
+                        </div>
+                        <div className="row">
+                            <div className="col-md-3">
+                                <label htmlFor="houseNumber" className="form-label">{loading ? <Skeleton width={150} /> : "House no/ Building name"}</label>
+                                {loading ? (
+                                    <Skeleton height={38} />
+                                ) : (
+                                    <input type="text" className="form-control" name="houseNumber" id="houseNumber" required placeholder="Enter House no/ Building name" value={formData.houseNumber} onChange={handleChange} />
+                                )}
+                            </div>
+                            <div className="col-md-3">
+                                <label htmlFor="town" className="form-label">{loading ? <Skeleton width={150} /> : "Locality/ Town"}</label>
+                                {loading ? (
+                                    <Skeleton height={38} />
+                                ) : (
+                                    <input type="text" className="form-control" name="town" id="town" required placeholder="Enter Locality/ Town" value={formData.town} onChange={handleChange} />
+                                )}
+                            </div>
+                            <div className="col-md-3">
+                                <label htmlFor="pincode" className="form-label">{loading ? <Skeleton width={150} /> : "Pin code"}</label>
+                                {loading ? (
+                                    <Skeleton height={38} />
+                                ) : (
+                                    <input type="text" className="form-control" name="pincode" id="pincode" required placeholder="Enter Pin code" value={formData.pincode} onChange={handleChange} />
+                                )}
+                            </div>
+                        </div>
 
-           <div className="container" style={{ height: "80vh", overflowY: "auto", overflowX: "hidden", marginTop: "20px" }}>
-               <form onSubmit={handleSubmit}>
-                   {/* Profile Photo */}
-                   <div className="container mt-4" style={{ marginLeft: "64px", maxWidth: "100%" }}>
-                       <p>Profile Photo</p>
-                       <div>
-                           <img
-                               src={previewImage}
-                               alt="profile"
-                               height={100}
-                               width={100}
-                               className="rounded-4"
-                           />
-                           <input
-                               type="file"
-                               id="profilePic"
-                               name="profilePic"
-                               accept="image/*"
-                               style={{ display: "none" }}
-                               onChange={handleImageUpload}
-                           />
-                           <label htmlFor="profilePic" className="btn  mx-5" style={{ marginTop: "63px", borderColor: "#0076CE", color: "#0076CE" }}>
-                               Upload Photo
-                           </label>
-                       </div>
-                   </div>
+                        {/* Row 2 */}
+                        <div className="row mt-4">
+                            <div className="col-md-3">
+                                <label htmlFor="nearbyLandmark" className="form-label">{loading ? <Skeleton width={150} /> : "Nearby Landmark"}</label>
+                                {loading ? (
+                                    <Skeleton height={38} />
+                                ) : (
+                                    <input type="text" className="form-control" name="nearbyLandmark" id="nearbyLandmark" required placeholder="Enter Nearby Landmark" value={formData.nearbyLandmark} onChange={handleChange} />
+                                )}
+                            </div>
+                            <div className="col-md-3">
+                                <label htmlFor="district" className="form-label">{loading ? <Skeleton width={150} /> : "District"}</label>
+                                {loading ? (
+                                    <Skeleton height={38} />
+                                ) : (
+                                    <input type="text" className="form-control" name="district" id="district" required placeholder="Enter District" value={formData.district} onChange={handleChange} />
+                                )}
+                            </div>
+                            <div className="col-md-3">
+                                <label htmlFor="state" className="form-label">{loading ? <Skeleton width={150} /> : "State"}</label>
+                                {loading ? (
+                                    <Skeleton height={38} />
+                                ) : (
+                                    <input type="text" className="form-control" name="state" id="state" required placeholder="Enter State" value={formData.state} onChange={handleChange} />
+                                )}
+                            </div>
+                        </div>
 
+                        {/* Identification Details */}
+                        <div className="row mt-4">
+                            <p className="fw-bold">Identification & Document</p>
+                        </div>
+                        <div className="row mb-4">
+                            <div className="col-md-3">
+                                <label htmlFor="aadharNumber" className="form-label">{loading ? <Skeleton width={150} /> : "Aadhar number"}</label>
+                                {loading ? (
+                                    <Skeleton height={38} />
+                                ) : (
+                                    <input type="text" className="form-control" name="aadharNumber" id="aadharNumber" required placeholder="Enter Aadhar number" value={formData.aadharNumber} onChange={handleChange} />
+                                )}
+                            </div>
+                            <div className="col-md-3">
+                                <label htmlFor="drivingLicenseNumber" className="form-label">{loading ? <Skeleton width={150} /> : "Driving license number"}</label>
+                                {loading ? (
+                                    <Skeleton height={38} />
+                                ) : (
+                                    <input type="text" className="form-control" name="drivingLicenseNumber" id="drivingLicenseNumber" placeholder="Enter Driving license number" value={formData.drivingLicenseNumber} onChange={handleChange} />
+                                )}
+                            </div>
+                            <div className="col-md-3">
+                                <label htmlFor="joiningDate" className="form-label">{loading ? <Skeleton width={150} /> : "Joining date"}</label>
+                                {loading ? (
+                                    <Skeleton height={38} />
+                                ) : (
+                                    <input type="date" className="form-control" name="joiningDate" id="joiningDate" required value={formData.joiningDate} onChange={handleChange} />
+                                )}
+                            </div>
+                        </div>
 
-                   {/* Main container */}
-                   <div className="container mt-4" style={{ marginLeft: "60px", maxWidth: "100%" }}>
-                       {/* Job Title Section */}
-                       <div className="row mt-4">
-                           <p className="fw-bold">Job title</p>
-                       </div>
-
-
-                       {/* Home Appliances */}
-                       <div className="row">
-                           <p>Home Appliances</p>
-                       </div>
-                       <div className="row">
-                           <div className="d-flex flex-wrap gap-3">
-                               {["AC", "Geyser", "Microwave", "Inverter & Stabilizers", "Water Purifier", "TV", "Fridge", "Washing Machine", "Fan"].map((item) => (
-                                   <button
-                                       key={item}
-                                       type="button"
-                                       className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""}`}
-                                       onClick={() => handleButtonClick(item, "Home Appliances")}
-                                   >
-                                       {item} {clickedButtons[item] && "✓"}
-                                   </button>
-                               ))}
-                           </div>
-                       </div>
-
-
-                       {/* Electrician */}
-                       <div className="row mt-3">
-                           <p>Electrician</p>
-                       </div>
-                       <div className="row">
-                           <div className="d-flex flex-wrap gap-3">
-                               {["Switch & Socket", "Wiring", "Doorbell", "Appliance", "MCB & Submeter", "Light and Wall light", "CCTV"].map((item) => (
-                                   <button
-                                       key={item}
-                                       type="button"
-                                       className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""}`}
-                                       onClick={() => handleButtonClick(item, "Electrician")}
-                                   >
-                                       {item} {clickedButtons[item] && "✓"}
-                                   </button>
-                               ))}
-                           </div>
-                       </div>
-
-
-                       {/* Carpentry */}
-                       <div className="row mt-3">
-                           <p>Carpentry</p>
-                       </div>
-                       <div className="row">
-                           <div className="d-flex flex-wrap gap-3">
-                               {["Bed", "Cupboard & Drawer", "Door", "Windows", "Drill & Hang", "Furniture Repair"].map((item) => (
-                                   <button
-                                       key={item}
-                                       type="button"
-                                       className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""}`}
-                                       onClick={() => handleButtonClick(item, "Carpentry")}
-                                   >
-                                       {item} {clickedButtons[item] && "✓"}
-                                   </button>
-                               ))}
-                           </div>
-                       </div>
-
-
-                       {/* Plumbing */}
-                       <div className="row mt-3">
-                           <p>Plumbing</p>
-                       </div>
-                       <div className="row">
-                           <div className="d-flex flex-wrap gap-3">
-                               {["Washbasin Installation", "Blockage Removal", "Shower", "Toilet", "Tap, Pipe works", "Water tank & Motor"].map((item) => (
-                                   <button
-                                       key={item}
-                                       type="button"
-                                       className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""}`}
-                                       onClick={() => handleButtonClick(item, "Plumbing")}
-                                   >
-                                       {item} {clickedButtons[item] && "✓"}
-                                   </button>
-                               ))}
-                           </div>
-                       </div>
-
-
-                       {/* Vehicle Service */}
-                       <div className="row mt-3">
-                           <p>Vehicle service</p>
-                       </div>
-                       <div className="row">
-                           <div className="d-flex flex-wrap gap-3">
-                               {["Batteries", "Health checkup", "Wash & Cleaning", "Denting & Painting", "Wheel car", "Vehicle AC"].map((item) => (
-                                   <button
-                                       key={item}
-                                       type="button"
-                                       className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""}`}
-                                       onClick={() => handleButtonClick(item, "Vehicle service")}
-                                   >
-                                       {item} {clickedButtons[item] && "✓"}
-                                   </button>
-                               ))}
-                           </div>
-                       </div>
-
-
-                       {/* Address Details */}
-                       <div className="row mt-4">
-                           <p className="fw-bold">Address Details</p>
-                       </div>
-                       <div className="row">
-                           <div className="col-md-3">
-                               <label htmlFor="houseNumber" className="form-label">House no/ Building name</label>
-                               <input type="text" className="form-control" name="houseNumber" id="houseNumber" required placeholder="Enter House no/ Building name" value={formData.houseNumber} onChange={handleChange} />
-                           </div>
-                           <div className="col-md-3">
-                               <label htmlFor="town" className="form-label">Locality/ Town</label>
-                               <input type="text" className="form-control" name="town" id="town" required placeholder="Enter Locality/ Town" value={formData.town} onChange={handleChange} />
-                           </div>
-                           <div className="col-md-3">
-                               <label htmlFor="pincode" className="form-label">Pin code</label>
-                               <input type="text" className="form-control" name="pincode" id="pincode" required placeholder="Enter Pin code" value={formData.pincode} onChange={handleChange} />
-                           </div>
-                       </div>
-
-
-                       {/* Row 2 */}
-                       <div className="row mt-4">
-                           <div className="col-md-3">
-                               <label htmlFor="nearbyLandmark" className="form-label">Nearby Landmark</label>
-                               <input type="text" className="form-control" name="nearbyLandmark" id="nearbyLandmark" required placeholder="Enter Nearby Landmark" value={formData.nearbyLandmark} onChange={handleChange} />
-                           </div>
-                           <div className="col-md-3">
-                               <label htmlFor="district" className="form-label">District</label>
-                               <input type="text" className="form-control" name="district" id="district" required placeholder="Enter District" value={formData.district} onChange={handleChange} />
-                           </div>
-                           <div className="col-md-3">
-                               <label htmlFor="state" className="form-label">State</label>
-                               <input type="text" className="form-control" name="state" id="state" required placeholder="Enter State" value={formData.state} onChange={handleChange} />
-                           </div>
-                       </div>
-
-
-                       {/* Identification Details */}
-                       <div className="row mt-4">
-                           <p className="fw-bold">Identification & Document</p>
-                       </div>
-                       <div className="row mb-4">
-                           <div className="col-md-3">
-                               <label htmlFor="aadharNumber" className="form-label">Aadhar number</label>
-                               <input type="text" className="form-control" name="aadharNumber" id="aadharNumber" required placeholder="Enter Aadhar number" value={formData.aadharNumber} onChange={handleChange} />
-                           </div>
-                           <div className="col-md-3">
-                               <label htmlFor="drivingLicenseNumber" className="form-label">Driving license number</label>
-                               <input type="text" className="form-control" name="drivingLicenseNumber" id="drivingLicenseNumber" placeholder="Enter Driving license number" value={formData.drivingLicenseNumber} onChange={handleChange} />
-                           </div>
-                           <div className="col-md-3">
-                               <label htmlFor="joiningDate" className="form-label">Joining date</label>
-                               <input type="date" className="form-control" name="joiningDate" id="joiningDate" required value={formData.joiningDate} onChange={handleChange} />
-                           </div>
-                       </div>
-
-
-                       {/* Submit Button */}
-                       <div className="row mb-4">
-                           <div className="col">
-                               <button type="submit" className="btn px-5" style={{ backgroundColor: "#0076CE", color: "white" }}>Update</button>
-                           </div>
-                       </div>
-                   </div>
-               </form>
-           </div>
-       </>
-   );
+                        {/* Submit Button */}
+                        <div className="row mb-4">
+                            <div className="col">
+                               
+                                    <button type="submit" className="btn px-5" style={{ backgroundColor: "#0076CE", color: "white" }}>Update</button>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </>
+    );
 };
-
 
 export default EditWorker;
