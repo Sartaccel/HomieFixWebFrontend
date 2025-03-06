@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { FaClipboardList, FaCheckCircle, FaTimesCircle, FaUsers, FaBell } from "react-icons/fa";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
@@ -19,38 +21,64 @@ import { FaUser, FaPhone, FaMapMarkerAlt, FaStar } from "react-icons/fa";
 const FilterModal = ({ show, handleClose }) => {
   return (
     <div className={`modal ${show ? 'd-block' : 'd-none'}`} tabIndex="-1">
-      <div className="modal-dialog modal-lg">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">Filter Options</h5>
-            <button type="button" className="btn-close" onClick={handleClose}></button>
-          </div>
-          <div className="modal-body">
-            <div className="d-flex flex-wrap gap-3">
-              <div className="card p-2">
-                <h6>Home appliances</h6>
-                {['AC', 'Geyser', 'Microwave', 'Inverter', 'Water purifier', 'TV', 'Fridge', 'Washing machine', 'Fan'].map(item => (
+    <div className="modal-dialog modal-lg">
+      <div className="modal-content">
+        <div className="modal-header">
+          <button type="button" className="btn-close" onClick={handleClose}></button>
+        </div>
+        <div className="modal-body">
+          {/* Scrollable Row */}
+          <div className="d-flex flex-nowrap gap-3 overflow-auto">
+            {[
+              {
+                title: "Home appliances",
+                items: [
+                  "AC", "Geyser (water heater)", "Microwave", "Inverter & Stabilizers",
+                  "Water purifier", "TV", "Fridge", "Washing machine", "Fan"
+                ]
+              },
+              {
+                title: "Electrician",
+                items: ["Switch & Socket", "Wiring", "Doorbell", "Appliance", "MCB", "Light"]
+              },
+              {
+                title: "Carpentry",
+                items: ["Bed", "Cupboard & drawer", "Door", "Windows", "Drill & hang", "Furniture repair"]
+              },
+              {
+                title: "Plumbing",
+                items: ["Wash basin Installation", "Blockage removal", "Shower", "Toilet", "Tap, pipe", "Water tank and motor"]
+              },
+              {
+                title: "Vehicle service",
+                items: ["Batteries", "Health checkup", "Denting & painting", "Wash", "Wheel car", "Vehicle AC", "Cleaning"]
+              },
+              {
+                title: "CCTV",
+                items: ["CCTV"]
+              },
+              
+             
+            ].map((category, index) => (
+              <div key={index} className="card p-2" style={{ minWidth: "200px" }}>
+                <h6>{category.title}</h6>
+                {category.items.map(item => (
                   <div key={item}>
                     <input type="checkbox" id={item} /> <label htmlFor={item}>{item}</label>
                   </div>
                 ))}
               </div>
-              <div className="card p-2">
-                <h6>Electrician</h6>
-                {['Switch & Socket', 'Wiring', 'Doorbell', 'Appliance', 'MCB', 'Light'].map(item => (
-                  <div key={item}>
-                    <input type="checkbox" id={item} /> <label htmlFor={item}>{item}</label>
-                  </div>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
-          <div className="modal-footer">
-            <button className="btn btn-primary">Apply</button>
-          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-primary">Apply</button>
         </div>
       </div>
     </div>
+  </div>
+  
+  
   );
 };
 
@@ -156,6 +184,8 @@ const WorkerDetails = () => {
       languages: ['Tamil', 'Malayalam', 'English'],
       totalService: 30,
       Date: 'Jan 25, 2025',
+      Datestatus:'completed',
+      Dateprogress:'Servive pending',
       ID:'SER000107',
       image: alenSamImg
       
@@ -172,6 +202,8 @@ const WorkerDetails = () => {
       totalService: 30,
       address: 'Beverly Hills, California, USA 90210',
       Date: 'Mar 15, 2023',
+      Datestatus:'completed',
+      Dateprogress:'Servive pending',
       ID:'SER000127',
       image: alenSamImg
     },
@@ -186,6 +218,8 @@ const WorkerDetails = () => {
       totalService: 30,
       address: 'Londan Uk',
       Date: 'Aug 10, 2024',
+      Datestatus:'completed',
+      Dateprogress:'Servive pending',
       ID:'SER000127',
       image: alenSamImg
     },
@@ -200,6 +234,8 @@ const WorkerDetails = () => {
       totalService: 30,
       address: 'Madrid, Spain',
       Date: 'Nov 5, 2023',
+      Datestatus:'completed',
+      Dateprogress:'Servive pending',
       ID:'SER000127',
       image: alenSamImg
     },
@@ -214,6 +250,8 @@ const WorkerDetails = () => {
       totalService: 30,
       address: 'Mumbai, India',
       Date: 'Feb 20, 2024',
+      Datestatus:'completed',
+      Dateprogress:'Servive pending',
       ID:'SER000127',
       image: alenSamImg
     },
@@ -228,6 +266,8 @@ const WorkerDetails = () => {
       totalService: 30,
       address: 'New York City, USA 10001',
       Date: 'Jun 30, 2023',
+      Datestatus:'completed',
+      Dateprogress:'Servive pending',
       ID:'SER000127',
       image: alenSamImg
     },
@@ -242,12 +282,81 @@ const WorkerDetails = () => {
       totalService: 30,
       address: 'Paris, France',
       Date: 'Sep 12, 2024',
+      Datestatus:'completed',
+      Dateprogress:'Servive pending',
+      ID:'SER000127',
+      image: alenSamImg
+    },
+    {
+      name: 'Sophie Brown',
+      service: 'Chef',
+      contact: '9778889990',
+      rating: 4.7,
+      address: '23 Ocean View Drive, Jambulingam Coral Bay, Kerala, India 695582',
+      aadhaar: '**** **** 4567',
+      languages: ['Tamil', 'Malayalam', 'English'],
+      totalService: 30,
+      address: 'Paris, France',
+      Date: 'Sep 12, 2024',
+      Datestatus:'completed',
+      Dateprogress:'Servive pending',
+      ID:'SER000127',
+      image: alenSamImg
+    },
+    {
+      name: 'Sophie Brown',
+      service: 'Chef',
+      contact: '9778889990',
+      rating: 4.7,
+      address: '23 Ocean View Drive, Jambulingam Coral Bay, Kerala, India 695582',
+      aadhaar: '**** **** 4567',
+      languages: ['Tamil', 'Malayalam', 'English'],
+      totalService: 30,
+      address: 'Paris, France',
+      Date: 'Sep 12, 2024',
+      Datestatus:'completed',
+      Dateprogress:'Servive pending',
+      ID:'SER000127',
+      image: alenSamImg
+    },
+    {
+      name: 'Sophie Brown',
+      service: 'Chef',
+      contact: '9778889990',
+      rating: 4.7,
+      address: '23 Ocean View Drive, Jambulingam Coral Bay, Kerala, India 695582',
+      aadhaar: '**** **** 4567',
+      languages: ['Tamil', 'Malayalam', 'English'],
+      totalService: 30,
+      address: 'Paris, France',
+      Date: 'Sep 12, 2024',
+      Datestatus:'completed',
+      Dateprogress:'Servive pending',
+      ID:'SER000127',
+      image: alenSamImg
+    },
+    {
+      name: 'Sophie Brown',
+      service: 'Chef',
+      contact: '9778889990',
+      rating: 4.7,
+      address: '23 Ocean View Drive, Jambulingam Coral Bay, Kerala, India 695582',
+      aadhaar: '**** **** 4567',
+      languages: ['Tamil', 'Malayalam', 'English'],
+      totalService: 30,
+      address: 'Paris, France',
+      Date: 'Sep 12, 2024',
+      Datestatus:'completed',
+      Dateprogress:'Servive pending',
       ID:'SER000127',
       image: alenSamImg
     }
+    
   ];
 
   const [showAddWorker, setShowAddWorker] = useState(false);
+
+  const navigate = useNavigate();
 
   return (
     <div>
@@ -269,113 +378,54 @@ const WorkerDetails = () => {
       {/* Main Content */}
       <div className="container pt-5" style={{ paddingTop: "80px" }}>
         {/* Header with Filter Button */}
-        <div className="d-flex justify-content-between align-items-center mb-3 mt-5 ">
-        <h4 
-  className="mb-0 pb-2 text-black"  
-  onClick={() => setSelectedWorker(null)} 
-  style={{ borderBottom: "3px solid #000", cursor: "pointer" }}
+        <div
+  className={`d-flex justify-content-between align-items-center mb-3 mt-5 ${
+    selectedWorker ? "border-bottom" : ""
+  }`}
 >
-  {selectedWorker && "←"} Worker Details
-</h4>
+  <h4
+    className="mb-0 pb-2 text-black"
+    onClick={() => setSelectedWorker(null)}
+    style={{
+      borderBottom: "3px solid #000", // Always black underline
+      cursor: "pointer",
+    }}
+  >
+    {selectedWorker && "←"} Worker Details
+  </h4>
 
-
-      {!selectedWorker && (
-     <div className="d-flex gap-2">
-    {!showAddWorker && (
-      <button className="btn text-light" onClick={() => setShowAddWorker(true)} style={{ backgroundColor: "#0076CE" }}>
-        Add Worker
+  {!selectedWorker && (
+    <div className="d-flex gap-2">
+      {!showAddWorker && (
+        <button
+          className="btn text-light"
+          onClick={() => navigate("/add-worker")}
+          style={{ backgroundColor: "#0076CE" }}
+        >
+          Add Worker
+        </button>
+      )}
+      <button className="btn btn-light" onClick={() => setShowFilter(true)}>
+        Filter <i className="bi bi-funnel" />
       </button>
-    )}
-    <button className="btn btn-light" onClick={() => setShowFilter(true)}>
-      Filter <i className="bi bi-funnel" />
-    </button>
-     </div>
-     )}
+    </div>
+  )}
+</div>
 
-        </div>
+
 
         <div className="container mt-4">
 
 
           {/* Worker Form - Shown when Add Worker is clicked */}
-          {showAddWorker ? (
-            <div className="card p-4">
-              <button className="btn btn-outline-secondary mb-3" onClick={() => setShowAddWorker(false)}>
-                ← Back
-              </button>
-
-              {/* Add Worker Heading */}
-              <h5 className="mb-3 text-center">Add Worker</h5>
-
-              {/* Upload Profile Section BELOW the Heading */}
-              <div className="col-md-12 text-center mb-3">
-                <div className="border p-3 d-inline-block">
-                  <div className="bg-light" style={{ width: "100px", height: "100px", borderRadius: "5px" }}></div>
-                  <button className="btn btn-sm btn-primary mt-2">Upload Profile</button>
-                </div>
-              </div>
-
-              {/* Worker Form UI */}
-              <div className="row">
-                <div className="col-md-6">
-                  <label className="form-label">Full Name</label>
-                  <input type="text" className="form-control" placeholder="Enter name" />
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">Email ID</label>
-                  <input type="email" className="form-control" placeholder="Enter email ID" />
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">Contact Number</label>
-                  <input type="text" className="form-control" placeholder="Enter contact number" />
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">Emergency Contact Number</label>
-                  <input type="text" className="form-control" placeholder="Enter emergency contact number" />
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">Work Experience</label>
-                  <input type="text" className="form-control" placeholder="Enter work experience" />
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">Date of Birth</label>
-                  <input type="date" className="form-control" />
-                </div>
-
-                {/* Gender */}
-                <div className="col-md-6">
-                  <label className="form-label">Gender</label>
-                  <div className="d-flex gap-3">
-                    <div>
-                      <input type="radio" id="male" name="gender" className="form-check-input" />
-                      <label htmlFor="male" className="ms-1">Male</label>
-                    </div>
-                    <div>
-                      <input type="radio" id="female" name="gender" className="form-check-input" />
-                      <label htmlFor="female" className="ms-1">Female</label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Submit Button */}
-                <div className="col-12 mt-3">
-                  <button className="btn btn-primary w-100">Submit</button>
-                </div>
-              </div>
-            </div>
-          ) : null}
+          
         </div>
 
        {/* Worker Table */}
 
        {!selectedWorker ? (
           <div style={{ overflow: 'hidden', padding: '10px 15px' }}>
-            <div style={{ maxHeight: '80vh', overflowY: 'auto', border: '1px solid #dee2e6' }}>
+            <div style={{ maxHeight: '75vh', overflowY: 'auto', border: '1px solid #dee2e6' }}>
               <table className="table table-hover" style={{ width: '100%', marginBottom: '0', tableLayout: 'fixed' }}>
                 <thead className="table-light" style={{ position: 'sticky', top: 0, zIndex: 2 }}>
                   <tr>
@@ -404,20 +454,20 @@ const WorkerDetails = () => {
                         </div>
                       </td>
                       {/* Service Column */}
-                      <td style={{ padding: '12px', verticalAlign: 'middle' }}>{worker.role}</td>
+                      <td style={{ padding: '12px', verticalAlign: 'middle' }}>{worker.service}</td>
                       {/* Contact Column */}
-                      <td style={{ padding: '12px', verticalAlign: 'middle' }}>{worker.contactNumber}</td>
+                      <td style={{ padding: '12px', verticalAlign: 'middle' }}>{worker.contact}</td>
                       {/* Rating Column */}
                       <td style={{ padding: '12px', verticalAlign: 'middle' }}>
                         <i className="bi bi-star-fill text-warning me-1"></i>
-                        {worker.averageRating || "N/A"}
+                        {worker.rating || "N/A"}
                       </td>
                       {/* Address Column */}
                       <td style={{ padding: '12px', verticalAlign: 'middle' }}>
-                        {`${worker.houseNumber}, ${worker.town}, ${worker.nearbyLandmark}, ${worker.district}, ${worker.state}, ${worker.pincode}`}
+                        {`${worker.address}`}
                       </td>
                       {/* Joining Date Column */}
-                      <td style={{ padding: '12px', verticalAlign: 'middle' }}>{worker.joiningDate}</td>
+                      <td style={{ padding: '12px', verticalAlign: 'middle' }}>{worker.Date}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -511,7 +561,7 @@ const WorkerDetails = () => {
         <div className="col-md-8">
           <div className="card p-3">
             {/* Tabs */}
-            <div className="d-flex border-bottom">
+            <div className="d-flex">
               {["service", "inProgress", "reviews"].map((tab) => (
                 <div
                   key={tab}
@@ -527,53 +577,93 @@ const WorkerDetails = () => {
             </div>
 
             {/* Content */}
-            <div className="mt-3">
-              {activeTab === "service" && (
-                <div>
-                  <table className="table table-hover">
-                    <thead className="">
-                      <tr>
-                        <th>S.no</th>
-                        <th>Service</th>
-                        <th>Name</th>
-                        <th>Date</th>
-                        <th>Rating</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {workers.map((item, index) => (
-                        <tr key={index}>
-                          <td>{index + 1}</td>
-                          <td>
-                            {item.service}
-                            
-                            <div className="text-primary">ID:{item.ID}</div>
-                          </td>
-                          <td>
-                            {item.name}
-                            <div className="text-muted">{item.contact}</div>
-                            
-                            {item.phone}
-                          </td>
-                          <td>
-                            {item.Date}
-                            
-                            <span className="text-success">{item.status}</span>
-                          </td>
-                          <td>
-                            <FaStar color="gold" /> {item.rating}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+            <div className="mt-3" style={{ overflow: 'hidden', padding: '10px 15px' }} >
+            {activeTab === "service" && (
+  <div style={{ maxHeight: '67vh', overflowY: 'auto', border: '1px solid #dee2e6', paddingBottom: '20px' }}>
+    <table className="table table-hover" style={{ width: '100%', marginBottom: '0', tableLayout: 'fixed' }}>
+      <thead className="table-light" style={{ position: 'sticky', top: 0, zIndex: 2 }}>
+        <tr>
+          <th style={{ position: "sticky", top: 0, background: "#fff" }}>S.no</th>
+          <th style={{ position: "sticky", top: 0, background: "#fff" }}>Service</th>
+          <th style={{ position: "sticky", top: 0, background: "#fff" }}>Name</th>
+          <th style={{ position: "sticky", top: 0, background: "#fff" }}>Date</th>
+          <th style={{ position: "sticky", top: 0, background: "#fff" }}>Rating</th>
+        </tr>
+      </thead>
+      <tbody >
+        {workers.map((item, index) => (
+          <tr key={index}>
+            <td>{index + 1}</td>
+            <td>
+              {item.service}
+              <div className="text-primary">ID: {item.ID}</div>
+            </td>
+            <td>
+              {item.name}
+              <div className="text-muted">{item.contact}</div>
+              {item.phone}
+            </td>
+            <td>
+              {item.Date}
+              <div className="text-muted">{item.Datestatus}</div>
+            </td>
+            <td>
+              <FaStar color="gold" /> {item.rating}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
 
-              {activeTab === "inProgress" && <h5 className="text-center text-muted">In Progress Content Here</h5>}
+
+{activeTab === "inProgress" && (
+  <div style={{ maxHeight: '67vh', overflowY: 'auto', border: '1px solid #dee2e6', paddingBottom: '20px' }}>
+    <table className="table table-hover" style={{ width: '100%', marginBottom: '0', tableLayout: 'fixed' }}>
+      <thead className="table-light" style={{ position: 'sticky', top: 0, zIndex: 2 }}>
+        <tr>
+          <th style={{ position: "sticky", top: 0, background: "#fff" }}>S.no</th>
+          <th style={{ position: "sticky", top: 0, background: "#fff" }}>Service</th>
+          <th style={{ position: "sticky", top: 0, background: "#fff" }}>Name</th>
+          <th style={{ position: "sticky", top: 0, background: "#fff" }}>Date</th>
+          <th style={{ position: "sticky", top: 0, background: "#fff" }}>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {workers.map((item, index) => (
+          <tr key={index}>
+            <td>{index + 1}</td>
+            <td>
+              {item.service}
+              <div className="text-primary">ID:{item.ID}</div>
+            </td>
+            <td>
+              {item.name}
+              <div className="text-muted">{item.contact}</div>
+              {item.phone}
+            </td>
+            <td>
+              {item.Date}
+              <div className="text-muted">{item.Dateprogress}</div>
+            </td>
+            <td>
+        {index === 0 && ( // Only show button for the first row (S.No 1)
+          <button className="btn btn-success btn-sm">Started</button>
+        )}
+      </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
 
               {activeTab === "reviews" && <h5 className="text-center text-muted">Reviews Content Here</h5>}
             </div>
+
+            
+
           </div>
         </div>
       </div>
