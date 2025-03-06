@@ -53,7 +53,7 @@ const CustomerReview = () => {
                 <div className="row mt-4">
                     <div className="col-md-6 p-3 border d-flex justify-content-between">
                         <div>
-                            <h4>Customer</h4>
+                            <h4>Customer Details</h4>
                             <img src={review.profilePic} alt={review.user} className="rounded-circle" width="80" height="80" />
                         </div>
                         <div className="flex-column">

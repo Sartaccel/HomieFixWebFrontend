@@ -40,7 +40,7 @@
     gap: 15px;
     background-color: #fff;
     position: fixed;
-    top: 70px; /* Ensure it appears below the header */
+    top: 70px; 
     width: 100%;
     z-index: 1000;
     border-bottom: 1px solid #ddd;
@@ -51,8 +51,9 @@
     padding: 40px 20px;
     height: 10px;
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 550;
     transition: all 0.3s ease;
+    font-size: 18px;
 }
 
 .section:hover,
@@ -61,21 +62,25 @@
 }
 
 .booking-table {
-    border-collapse: separate; /* Allow border visibility */
+    border-collapse: separate; 
     border-spacing: 0;
-    border-radius: 12px;
+    border-radius: 12px!important;
     border: 1px solid #e5e5e5;
     width: 1220px;
     margin-left: 30px;
     background: #fff;
-    margin-top: 145px;    
+    margin-top: 145px;  
+    border-collapse: collapse;  
+    
 }
 
 .table-container {
-    max-height: 1000px; /* Set max height for scrollability */
-    overflow-y: auto; /* Enable vertical scroll */
+    max-height: 1000px; 
+    overflow-y: auto; 
     display: block;
     width: 100%;
+    border-radius: 12px!important;
+    overflow: hidden;
 }
 
 .booking-table thead {
@@ -83,6 +88,7 @@
     top: 0;
     background: #fafafa;
     z-index: 10;
+
 }
 
 .booking-table th, .booking-table td {
@@ -121,6 +127,4 @@
 .assign-button:hover {
     background: #0056b3;
 }
-
-
 

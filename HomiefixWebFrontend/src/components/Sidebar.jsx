@@ -69,8 +69,8 @@ const Sidebar = () => {
         </nav>
 
         {/* Logout Button */}
-        <div className="logout-container mt-auto">
-          <button onClick={handleLogout} className="logout-button" style={{ height: "54px", background: "transparent", border: "none" }}>
+        <div className="logout-container" style={{ marginTop: "200px" }}>
+          <button onClick={handleLogout} className="logout-button" style={{ height: "54px", border: "none" }}>
             <img src={logoutIcon} alt="Logout" className="menu-icon" />
             Logout
           </button>

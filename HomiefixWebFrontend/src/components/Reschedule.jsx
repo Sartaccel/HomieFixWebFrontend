@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../styles/AssignBookings.css";
 
-const Reschedule = ({ id, booking, onClose }) => {
+const Reschedule = ({ id, booking, onClose, onReschedule }) => {
   const [availableDates, setAvailableDates] = useState([]);
   const [availableTimes, setAvailableTimes] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
@@ -108,6 +108,7 @@ const Reschedule = ({ id, booking, onClose }) => {
 
       if (response.ok) {
         alert("Booking rescheduled successfully");
+        onReschedule(formattedDate, selectedTimeSlot); // Update parent state
         onClose(); // Close the Reschedule modal
       } else {
         const errorData = await response.json();
@@ -151,22 +152,21 @@ const Reschedule = ({ id, booking, onClose }) => {
         <div className="mb-3 mt-3">
           <h6>Date</h6>
           <div className="d-flex flex-wrap gap-2">
-            {availableDates.map((date, index) => (
-              <button
-                key={index}
-                className="btn btn-sm"
-                style={{
-                  fontSize: "15px",
-                  padding: "5px 10px",
-                  borderRadius: "5px",
-                  border: "1px solid #D2D2D2",
-                  color: selectedDate === date ? "#fff" : "#333",
-                  backgroundColor: selectedDate === date ? "#0076CE" : "transparent",
-                }}
-                onClick={() => handleDateSelection(date)}
-              >
-                {formatDate(date)}
-              </button>
+            {availableDates.map((date, index) => (<button
+            key={index}
+            className="btn btn-sm"
+            style={{
+              fontSize: "15px",
+              padding: "5px 10px",
+              borderRadius: "5px",
+              border: selectedDate === date ? "1px solid #0076CE" : "1px solid #D2D2D2",
+              color: "#333",
+              backgroundColor: "transparent",
+            }}
+            onClick={() => handleDateSelection(date)}
+          >
+            {formatDate(date)}
+          </button>
             ))}
           </div>
         </div>
@@ -184,9 +184,9 @@ const Reschedule = ({ id, booking, onClose }) => {
                   fontSize: "15px",
                   padding: "5px 10px",
                   borderRadius: "5px",
-                  border: "1px solid #D2D2D2",
-                  color: selectedTimeSlot === time ? "#fff" : "#333",
-                  backgroundColor: selectedTimeSlot === time ? "#0076CE" : "transparent",
+                  border: selectedTimeSlot === time ? "1px solid #0076CE" : "1px solid #D2D2D2",
+                  color: "#333",
+                  backgroundColor: "transparent",
                 }}
                 onClick={() => handleTimeSlotSelection(time)}
               >
@@ -232,6 +232,13 @@ const Reschedule = ({ id, booking, onClose }) => {
               rows="3"
               value={otherReason}
               onChange={(e) => setOtherReason(e.target.value)}
+              style={{
+                height: "75px", // Fixed height
+                resize: "none", // Prevents resizing
+                padding: "10px", // Ensures proper spacing
+                width: "100%", // Ensures it fills the container
+                boxSizing: "border-box", // Prevents overflow issues
+              }}
             ></textarea>
           )}
         </div>

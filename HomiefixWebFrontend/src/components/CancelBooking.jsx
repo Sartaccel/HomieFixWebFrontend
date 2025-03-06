@@ -86,9 +86,16 @@ const CancelBooking = ({ id, booking, onClose }) => {
             <textarea
               className="form-control"
               placeholder="Other reason"
-              rows="3"
+              rows="6"
               value={otherReason}
               onChange={(e) => setOtherReason(e.target.value)}
+              style={{
+                height: "200px", // Fixed height
+                resize: "none", // Prevents resizing
+                padding: "10px", // Ensures proper spacing
+                width: "100%", // Ensures it fills the container
+                boxSizing: "border-box", // Prevents overflow issues
+              }}
             ></textarea>
           )}
         </div>
@@ -96,7 +103,7 @@ const CancelBooking = ({ id, booking, onClose }) => {
 
         {/* Cancel Button */}
         <button className="btn btn-primary w-100 mt-3" style={{ backgroundColor: "#B8141A", border: "none" }} onClick={handleCancel}>
-          Cancel
+          Cancel Service
         </button>
       </div>
     </div>
