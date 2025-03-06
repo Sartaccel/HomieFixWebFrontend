@@ -4,7 +4,6 @@ import axios from "axios";
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
-
 import Swal from "sweetalert2";
 
 const Worker = () => {
@@ -35,56 +34,54 @@ const Worker = () => {
     useEffect(() => {
         if (!workerData) return; // Ensure workerData is available
 
-        const fetchWorkerBookings = async () => {
-            try {
-                const response = await fetch(`http://localhost:2222/booking/worker/${id}`);
-                if (!response.ok) {
-                    throw new Error("Failed to fetch data");
-                }
-                const data = await response.json();
+        const fetchWorkerBookings = () => {
+            axios.get(`http://localhost:2222/booking/worker/${id}`)
+                .then(response => {
+                    const data = response.data;
 
-                // Filter data based on booking status
-                const completedBookings = data.filter(booking => booking.bookingStatus === "COMPLETED");
-                const inProgressBookings = data.filter(booking =>
-                    booking.bookingStatus === "ASSIGNED" ||
-                    booking.bookingStatus === "STARTED" ||
-                    booking.bookingStatus === "RESCHEDULED"
-                );
+                    // Filter data based on booking status
+                    const completedBookings = data.filter(booking => booking.bookingStatus === "COMPLETED");
+                    const inProgressBookings = data.filter(booking =>
+                        booking.bookingStatus === "ASSIGNED" ||
+                        booking.bookingStatus === "STARTED" ||
+                        booking.bookingStatus === "RESCHEDULED"
+                    );
 
-                // Map backend data to frontend format
-                const mappedCompletedBookings = completedBookings.map(booking => ({
-                    id: booking.id,
-                    service: booking.worker?.role || "N/A",
-                    name: booking.worker?.name || "N/A",
-                    phone: booking.worker?.contactNumber || "N/A",
-                    date: booking.bookedDate,
-                    rating: booking.worker?.averageRating || 0,
-                    status: booking.bookingStatus
-                }));
+                    // Map backend data to frontend format
+                    const mappedCompletedBookings = completedBookings.map(booking => ({
+                        id: booking.id,
+                        service: booking.worker?.role || "N/A",
+                        name: booking.worker?.name || "N/A",
+                        phone: booking.worker?.contactNumber || "N/A",
+                        date: booking.bookedDate,
+                        rating: booking.worker?.averageRating || 0,
+                        status: booking.bookingStatus
+                    }));
 
-                const mappedInProgressBookings = inProgressBookings.map(booking => ({
-                    id: booking.id,
-                    service: booking.worker?.role || "N/A",
-                    name: booking.worker?.name || "N/A",
-                    phone: booking.worker?.contactNumber || "N/A",
-                    date: booking.bookedDate,
-                    status: booking.bookingStatus
-                }));
+                    const mappedInProgressBookings = inProgressBookings.map(booking => ({
+                        id: booking.id,
+                        service: booking.worker?.role || "N/A",
+                        name: booking.worker?.name || "N/A",
+                        phone: booking.worker?.contactNumber || "N/A",
+                        date: booking.bookedDate,
+                        status: booking.bookingStatus
+                    }));
 
-                // Update state
-                setServiceDetailsData(mappedCompletedBookings);
-                setInProgressData(mappedInProgressBookings);
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching worker bookings:", error);
-                setLoading(false);
-            }
+                    // Update state
+                    setServiceDetailsData(mappedCompletedBookings);
+                    setInProgressData(mappedInProgressBookings);
+                    setLoading(false);
+                })
+                .catch(error => {
+                    console.error("Error fetching worker bookings:", error);
+                    setLoading(false);
+                });
         };
 
         fetchWorkerBookings();
     }, [id, workerData]); // Add workerData as a dependency
 
-    const handleDeleteWorker = async () => {
+    const handleDeleteWorker = () => {
         Swal.fire({
             title: "Are you sure?",
             text: "You won't be able to revert this!",
@@ -93,15 +90,16 @@ const Worker = () => {
             confirmButtonColor: "#d33",
             cancelButtonColor: "#3085d6",
             confirmButtonText: "Yes, delete it!",
-        }).then(async (result) => {
+        }).then((result) => {
             if (result.isConfirmed) {
-                try {
-                    await axios.delete(`http://localhost:2222/workers/${id}`);
-                    Swal.fire("Deleted!", "Worker has been removed.", "success");
-                    navigate(-1);
-                } catch (error) {
-                    Swal.fire("Error!", "Failed to delete worker.", "error");
-                }
+                axios.delete(`http://localhost:2222/workers/${id}`)
+                    .then(() => {
+                        Swal.fire("Deleted!", "Worker has been removed.", "success");
+                        navigate(-1);
+                    })
+                    .catch(() => {
+                        Swal.fire("Error!", "Failed to delete worker.", "error");
+                    });
             }
         });
     };

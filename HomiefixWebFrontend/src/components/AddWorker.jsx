@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import axios from "axios"; // Import axios
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
@@ -10,7 +11,6 @@ import "../styles/AddWorker.css";
 
 const AddWorker = () => {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState("recent");
     const [clickedButtons, setClickedButtons] = useState({});
     const [formData, setFormData] = useState({
         name: "",
@@ -29,33 +29,32 @@ const AddWorker = () => {
         drivingLicenseNumber: "",
         joiningDate: "",
         econtactNumber: "",
-        role: [], // Change to an array to store multiple roles
-        specification: [], // Array to store multiple specifications
+        role: [],
+        specification: [],
         language: [],
         profilePic: null,
     });
-    const [previewImage, setPreviewImage] = useState(addWorker); // To display the selected image preview
+    const [previewImage, setPreviewImage] = useState(addWorker);
 
     const handleButtonClick = (item, roleHeading) => {
         setClickedButtons((prevState) => ({
             ...prevState,
             [item]: !prevState[item],
         }));
-    
+
         setFormData((prevState) => {
             const updatedSpecifications = prevState.specification.includes(item)
-                ? prevState.specification.filter((spec) => spec !== item) // Remove if already exists
-                : [...prevState.specification, item]; // Add if not exists
-    
-            // Add the role to the roles array if it doesn't already exist
+                ? prevState.specification.filter((spec) => spec !== item)
+                : [...prevState.specification, item];
+
             const updatedRoles = prevState.role.includes(roleHeading)
                 ? prevState.role
                 : [...prevState.role, roleHeading];
-    
+
             return {
                 ...prevState,
-                role: updatedRoles, // Update the array of roles
-                specification: updatedSpecifications, // Update the array of specifications
+                role: updatedRoles,
+                specification: updatedSpecifications,
             };
         });
     };
@@ -69,60 +68,83 @@ const AddWorker = () => {
     };
 
     const handleImageUpload = (e) => {
-        const file = e.target.files[0]; // Get the selected file
+        const file = e.target.files[0];
         if (file) {
             setFormData((prevState) => ({
                 ...prevState,
-                profilePic: file, // Store the file in state
+                profilePic: file,
             }));
-            setPreviewImage(URL.createObjectURL(file)); // Set the preview image URL
+            setPreviewImage(URL.createObjectURL(file));
         }
     };
 
     const checkContactNumberExists = async (contactNumber) => {
         try {
-            const response = await fetch(`http://localhost:2222/workers/check-contact?contactNumber=${contactNumber}`);
-            const data = await response.json();
-            return data; // Returns true if contact number exists, false otherwise
+            const response = await axios.get(`http://localhost:2222/workers/check-contact`, {
+                params: { contactNumber }, // Pass query parameters
+            });
+            return response.data; // Returns true if contact number is available, false otherwise
         } catch (error) {
             console.error("Error checking contact number:", error);
-            return false; // Assume contact number does not exist in case of an error
+            return false;
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
-        // Check if the contact number already exists
-        const contactNumberExists = await checkContactNumberExists(formData.contactNumber);
-    
-        if (contactNumberExists) {
+
+        // Validate required fields
+        if (!formData.name || !formData.contactNumber || !formData.email || !formData.dateOfBirth || !formData.profilePic) {
             Swal.fire({
                 icon: "error",
                 title: "Error",
-                text: "Contact number already exists. Please use a different contact number.",
+                text: "Please fill in all required fields.",
             });
-            return; // Stop the submission if the contact number exists
+            return;
         }
-    
+
+        // Check if contactNumber and econtactNumber are the same
+        if (formData.contactNumber === formData.econtactNumber) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Contact Number and Emergency Contact Number cannot be the same.",
+            });
+            return;
+        }
+
+        // Check if contact number is available
+        const isContactNumberAvailable = await checkContactNumberExists(formData.contactNumber);
+        if (!isContactNumberAvailable) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Contact number is already in use by an active worker.",
+            });
+            return;
+        }
+
         try {
             const formDataToSend = new FormData();
             for (const key in formData) {
                 if (key === "specification" || key === "role") {
-                    // Convert the array to a comma-separated string
                     formDataToSend.append(key, formData[key].join(","));
+                } else if (key === "econtactNumber") {
+                    // Use the correct key expected by the backend
+                    formDataToSend.append("eContactNumber", formData[key]);
                 } else {
                     formDataToSend.append(key, formData[key]);
                 }
             }
-    
-            const response = await fetch("http://localhost:2222/workers/add", {
-                method: "POST",
-                body: formDataToSend,
+
+            const response = await axios.post("http://localhost:2222/workers/add", formDataToSend, {
+                headers: {
+                    "Content-Type": "multipart/form-data", // Set the content type for file uploads
+                },
             });
-            const data = await response.json();
-            console.log("Success:", data);
-    
+
+            console.log("Success:", response.data);
+
             Swal.fire({
                 icon: "success",
                 title: "Success",
@@ -195,7 +217,7 @@ const AddWorker = () => {
                                 style={{ display: "none" }}
                                 onChange={handleImageUpload}
                             />
-                            <label htmlFor="profilePic" className="btn  mx-5" style={{ marginTop: "63px", borderColor: "#0076CE", color: "#0076CE" }}>
+                            <label htmlFor="profilePic" className="btn mx-5" style={{ marginTop: "63px", borderColor: "#0076CE", color: "#0076CE" }}>
                                 Upload Photo
                             </label>
                         </div>
@@ -219,7 +241,12 @@ const AddWorker = () => {
                             </div>
                             <div className="col-md-3">
                                 <label htmlFor="eContactNumber" className="form-label">Emergency Contact Number</label>
-                                <input type="tel" className="form-control" name="eContactNumber" id="eContactNumber" placeholder="Enter Emergency Contact Number" onChange={handleChange} />
+                                <input
+                                    type="tel" className="form-control" name="econtactNumber" // This matches the key in formData
+                                    id="eContactNumber"
+                                    placeholder="Enter Emergency Contact Number"
+                                    onChange={handleChange}
+                                />
                             </div>
                         </div>
 
@@ -227,7 +254,7 @@ const AddWorker = () => {
                         <div className="row mt-4">
                             <div className="col-md-2">
                                 <label htmlFor="language" className="form-label">Language</label>
-                                <input type="tel" className="form-control" name="language" id="language" placeholder="Enter Language" onChange={handleChange} />
+                                <input type="text" className="form-control" name="language" id="language" placeholder="Enter Language" onChange={handleChange} />
                             </div>
                             <div className="col-md-3">
                                 <label htmlFor="workExperience" className="form-label">Work Experience</label>

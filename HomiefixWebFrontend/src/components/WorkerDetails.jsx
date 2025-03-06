@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-
+import axios from "axios"; // Import axios
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
@@ -17,18 +17,8 @@ const WorkerDetails = () => {
   useEffect(() => {
     const fetchWorkers = async () => {
       try {
-        const response = await fetch("http://localhost:2222/workers/view");
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const text = await response.text();
-        if (!text) {
-          throw new Error("Empty response from server");
-        }
-
-        const data = JSON.parse(text);
+        const response = await axios.get("http://localhost:2222/workers/view"); // Use axios.get
+        const data = response.data; // Access data directly from the response
         setWorkers(data);
       } catch (error) {
         console.error("Error fetching worker data:", error);
@@ -82,7 +72,6 @@ const WorkerDetails = () => {
           <div>
             <button className="btn text-light me-2" onClick={() => navigate("/worker-details/add-worker")} style={{ backgroundColor: "#0076CE" }}>Add Worker</button>
             <button className="btn border text-black" onClick={() => setShowFilter(true)} style={{}}>Filter <i className="bi bi-funnel"></i></button>
-
           </div>
         </div>
         {/* Filter Modal */}
@@ -117,7 +106,7 @@ const WorkerDetails = () => {
                     ))}
                   </div>
                 </div>
-                <div className=" modal-footer">
+                <div className="modal-footer">
                   <button className="btn btn-danger" onClick={() => setShowFilter(false)}>Cancel</button>
                   <button className="btn" style={{ backgroundColor: "#0076CE", color: "white" }} onClick={() => setShowFilter(false)}>Apply</button>
                 </div>
