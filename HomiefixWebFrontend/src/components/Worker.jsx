@@ -129,7 +129,7 @@ const Worker = () => {
 
             <div className="container" style={{ paddingTop: "80px", paddingLeft: "0px", paddingRight: "0px", marginLeft: "-10px" }}>
                 <div className="d-flex border-bottom mx-2 align-items-center w-100 mt-3">
-                    <button className="btn d-flex align-items-center" onClick={() => navigate( `/worker-details`)}>
+                    <button className="btn d-flex align-items-center" onClick={() => navigate(`/worker-details`)}>
                         <span style={{ fontSize: "20px" }}>←</span>
                         <h5 className="px-3 pb-2 text-black mx-5"
                             style={{
