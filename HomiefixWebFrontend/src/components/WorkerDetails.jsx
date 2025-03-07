@@ -2,27 +2,33 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import axios from "axios"; // Import axios
+import axios from "axios";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
 import alenSamImg from "../assets/home1.png";
+import Header from "./Header";
 
 const WorkerDetails = () => {
   const navigate = useNavigate();
   const [workers, setWorkers] = useState([]);
   const [showFilter, setShowFilter] = useState(false);
   const [selectedSpecifications, setSelectedSpecifications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchWorkers = async () => {
       try {
-        const response = await axios.get("http://localhost:2222/workers/view"); // Use axios.get
-        const data = response.data; // Access data directly from the response
+        const response = await axios.get("http://localhost:2222/workers/view");
+        const data = response.data;
         setWorkers(data);
       } catch (error) {
         console.error("Error fetching worker data:", error);
         setWorkers([]);
+      } finally {
+        setLoading(false);
       }
     };
     fetchWorkers();
@@ -51,30 +57,16 @@ const WorkerDetails = () => {
 
   return (
     <div>
-      {/* Navbar */}
-      <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100" style={{ zIndex: 1000 }}>
-        <h2 className="heading mb-0" style={{ marginLeft: "31px" }}>Worker Details</h2>
-        <div className="header-right d-flex align-items-center gap-3">
-          <div className="input-group" style={{ width: "300px" }}>
-            <input type="text" className="form-control search-bar" placeholder="Search" />
-            <span className="input-group-text">
-              <img src={search} alt="Search" width="20" />
-            </span>
-          </div>
-          <img src={notification} alt="Notifications" width="40" className="cursor-pointer" />
-          <img src={profile} alt="Profile" width="40" className="cursor-pointer" />
-        </div>
-      </header>
+      <Header />
 
       <div className="container pt-5" style={{ paddingTop: "80px" }}>
         <div className="d-flex justify-content-between align-items-center mb-3 mt-5" style={{ marginRight: "25px" }}>
           <h5 className="px-3 pb-2 text-black mx-3" style={{ borderBottom: "4px solid #000" }}>Worker Details</h5>
           <div>
             <button className="btn text-light me-2" onClick={() => navigate("/worker-details/add-worker")} style={{ backgroundColor: "#0076CE" }}>Add Worker</button>
-            <button className="btn border text-black" onClick={() => setShowFilter(true)} style={{}}>Filter <i className="bi bi-funnel"></i></button>
+            <button className="btn border text-black" onClick={() => setShowFilter(true)}>Filter <i className="bi bi-funnel"></i></button>
           </div>
         </div>
-        {/* Filter Modal */}
         {showFilter && (
           <div className="modal d-block" style={{ zIndex: 12111, position: "fixed", top: "150px", left: "250px" }}>
             <div className="modal-lg-dialog" style={{ width: "81%" }}>
@@ -114,7 +106,6 @@ const WorkerDetails = () => {
             </div>
           </div>
         )}
-        {/* Main Content */}
         <div style={{ overflow: "hidden", padding: "10px 15px" }}>
           <div style={{ maxHeight: "77vh", overflowY: "auto", border: "1px solid #dee2e6" }}>
             <table className="table table-hover" style={{ width: "100%", marginBottom: "0", tableLayout: "fixed" }}>
@@ -129,7 +120,18 @@ const WorkerDetails = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredWorkers.length > 0 ? (
+                {loading ? (
+                  Array(5).fill().map((_, index) => (
+                    <tr key={index}>
+                      <td><Skeleton width={100} height={20} /></td>
+                      <td><Skeleton width={150} height={20} /></td>
+                      <td><Skeleton width={80} height={20} /></td>
+                      <td><Skeleton width={50} height={20} /></td>
+                      <td><Skeleton width={200} height={20} /></td>
+                      <td><Skeleton width={100} height={20} /></td>
+                    </tr>
+                  ))
+                ) : filteredWorkers.length > 0 ? (
                   filteredWorkers.map((worker) => (
                     <tr key={worker.workerId || worker.contactNumber} onClick={() => navigate(`/worker-details/worker/${worker.id}`)} style={{ cursor: "pointer" }}>
                       <td>

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import notification from "../assets/Bell.png";
-import profile from "../assets/Profile.png";
-import search from "../assets/Search.png";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import closeDate from "../assets/close date.png"; // Import the close date icon
 import Reschedule from "./Reschedule"; // Import the Reschedule component
 import CancelBooking from "./CancelBooking"; // Import the CancelBooking component
 import "../styles/AssignBookings.css";
 import bookingDetails from "../assets/BookingDetails.png";
+import Header from "./Header";
 
 const AssignBookings = () => {
   const { id } = useParams();
@@ -26,6 +26,8 @@ const AssignBookings = () => {
   const [rescheduledTimeslot, setRescheduledTimeslot] = useState(
     booking.timeslot
   );
+  const [loadingWorkers, setLoadingWorkers] = useState(true); // Loading state for workers
+  const [loadingBookingDetails, setLoadingBookingDetails] = useState(true); // Loading state for booking details
   const navigate = useNavigate();
 
   // Helper function to format date
@@ -47,21 +49,36 @@ const AssignBookings = () => {
         setWorkers(data);
       } catch (error) {
         console.error("Error fetching workers:", error);
+      } finally {
+        setLoadingWorkers(false); // Set loading to false after fetching
       }
     };
 
     fetchWorkers();
   }, []);
 
+  // Fetch booking details from the API
   useEffect(() => {
-    const savedDate = localStorage.getItem("rescheduledDate");
-    const savedTimeslot = localStorage.getItem("rescheduledTimeslot");
-
-    if (savedDate && savedTimeslot) {
-      setRescheduledDate(savedDate);
-      setRescheduledTimeslot(savedTimeslot);
-    }
-  }, []);
+    
+    const fetchBookingDetails = async () => {
+      try {
+        const response = await fetch(`http://localhost:2222/booking/${id}`);
+        const data = await response.json();
+        // Ensure the API response contains the correct fields
+        if (data.date && data.timeslot) {
+          setRescheduledDate(data.date);
+          setRescheduledTimeslot(data.timeslot);
+        }
+        setNotes(data.notes || "");
+      } catch (error) {
+        console.error("Error fetching booking details:", error);
+      } finally {
+        setLoadingBookingDetails(false); // Set loading to false after fetching
+      }
+    };
+  
+    fetchBookingDetails();
+  }, [id]);
 
   // Handle worker selection and deselection
   const handleWorkerSelection = (workerId) => {
@@ -183,34 +200,7 @@ const AssignBookings = () => {
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
-          {/* Header */}
-          <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
-            <h2 className="heading align-items-center mb-0">Booking Details</h2>
-            <div className="header-right d-flex align-items-center gap-3">
-              <div className="input-group" style={{ width: "300px" }}>
-                <input
-                  type="text"
-                  className="form-control search-bar"
-                  placeholder="Search"
-                />
-                <span className="input-group-text">
-                  <img src={search} alt="Search" width="20" />
-                </span>
-              </div>
-              <img
-                src={notification}
-                alt="Notifications"
-                width="40"
-                className="cursor-pointer"
-              />
-              <img
-                src={profile}
-                alt="Profile"
-                width="40"
-                className="cursor-pointer"
-              />
-            </div>
-          </header>
+          <Header />
 
           {/* Navigation Bar */}
           <div className="navigation-bar d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
@@ -274,13 +264,33 @@ const AssignBookings = () => {
                   className="d-flex align-items-center gap-2"
                   style={{ marginTop: "50px" }}
                 >
-                  <div
-                    className="rounded-circle bg-secondary"
-                    style={{ width: "40px", height: "40px" }}
-                  ></div>
+                  {loadingBookingDetails ? (
+                    <Skeleton circle width={40} height={40} />
+                  ) : (
+                    <div
+                      className="rounded-circle"
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        flexShrink: 0,
+                        backgroundImage: `url(${booking.productImage})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                    ></div>
+                  )}
                   <div>
-                    <p className="mb-0">{booking.service}</p>
-                    <small style={{ color: "#0076CE" }}>ID: {booking.id}</small>
+                    {loadingBookingDetails ? (
+                      <>
+                        <Skeleton width={150} height={20} />
+                        <Skeleton width={100} height={15} />
+                      </>
+                    ) : (
+                      <>
+                        <p className="mb-0">{booking.service}</p>
+                        <small style={{ color: "#0076CE" }}>ID: {booking.id}</small>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -288,54 +298,64 @@ const AssignBookings = () => {
                   <div className="mt-4">
                     <h6>Customer Details</h6>
                   </div>
-                  <p className="mb-1">
-                    <i className="bi bi-person fw-bold me-2"></i> {booking.name}
-                  </p>
-                  <p className="mb-1">
-                    <i className="bi bi-telephone fw-bold me-2"></i> {booking.contact}
-                  </p>
-                  <p
-                    className="mb-1"
-                    style={{
-                      backgroundColor:
-                        rescheduledDate !== booking.date
-                          ? "#EDF3F7"
-                          : "transparent",
-                      borderRadius: "5px",
-                      display: "inline-block",  
-                      padding: rescheduledDate !== booking.date ? "0px 10px 0px 0px" : "0",
-                     }}
-                  >
-                    {rescheduledDate !== booking.date ? (
-                      <img
-                        src={closeDate}
-                        alt="Close"
-                        width="25"
+                  {loadingBookingDetails ? (
+                    <>
+                      <Skeleton width={200} height={15} />
+                      <Skeleton width={200} height={15} />
+                      <Skeleton width={200} height={15} />
+                      <Skeleton width={200} height={15} />
+                    </>
+                  ) : (
+                    <>
+                      <p className="mb-1">
+                        <i className="bi bi-person fw-bold me-2"></i> {booking.name}
+                      </p>
+                      <p className="mb-1">
+                        <i className="bi bi-telephone fw-bold me-2"></i> {booking.contact}
+                      </p>
+                      <p
+                        className="mb-1"
                         style={{
-                          cursor: "pointer",
-                          verticalAlign: "middle",
-                          marginRight: "5px",
+                          backgroundColor:
+                            rescheduledDate !== booking.date
+                              ? "#EDF3F7"
+                              : "transparent",
+                          borderRadius: "5px",
+                          display: "inline-block",
+                          padding: rescheduledDate !== booking.date ? "0px 10px 0px 0px" : "0",
                         }}
-                        onClick={undoReschedule}
-                      />
-                    ) : (
-                      <img
-                        src={bookingDetails}
-                        alt="Booking Details"
-                        className="menu-icon" // Removed `me-2` to prevent right spacing
-                        style={{
-                          width: "17px",
-                          height: "17px",
-                        }}
-                      />
-                    )}
-                    {formatDate(rescheduledDate)} |{" "}
-                    {rescheduledTimeslot || "Not Available"}
-                  </p>
-
-                  <p className="mb-1">
-                    <i className="bi bi-geo-alt fw-bold me-2"></i> {booking.address}
-                  </p>
+                      >
+                        {rescheduledDate !== booking.date ? (
+                          <img
+                            src={closeDate}
+                            alt="Close"
+                            width="25"
+                            style={{
+                              cursor: "pointer",
+                              verticalAlign: "middle",
+                              marginRight: "5px",
+                            }}
+                            onClick={undoReschedule}
+                          />
+                        ) : (
+                          <img
+                            src={bookingDetails}
+                            alt="Booking Details"
+                            className="menu-icon"
+                            style={{
+                              width: "17px",
+                              height: "17px",
+                            }}
+                          />
+                        )}
+                        {formatDate(rescheduledDate)} |{" "}
+                        {rescheduledTimeslot || "Not Available"}
+                      </p>
+                      <p className="mb-1">
+                        <i className="bi bi-geo-alt fw-bold me-2"></i> {booking.address}
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 {/* Comment Field (Notes) */}
@@ -343,35 +363,47 @@ const AssignBookings = () => {
                   className="mt-3 position-relative"
                   style={{ width: "550px" }}
                 >
-                  <textarea
-                    id="notes"
-                    className="form-control"
-                    placeholder="Notes"
-                    rows="9"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    style={{ paddingBottom: "40px" }}
-                  ></textarea>
-                  <button
-                    className="btn position-absolute"
-                    onClick={saveNotes}
-                    onMouseEnter={() => setIsSaveHovered(true)}
-                    onMouseLeave={() => setIsSaveHovered(false)}
-                    style={{
-                      bottom: "10px",
-                      right: "10px",
-                      padding: "5px 10px",
-                      borderRadius: "5px",
-                      color: isSaveHovered ? "white" : "#0076CE",
-                      backgroundColor: isSaveHovered
-                        ? "#0076CE"
-                        : "transparent",
-                      border: "1px solid #0076CE",
-                      transition: "all 0.3s ease-in-out",
-                    }}
-                  >
-                    Save
-                  </button>
+                  {loadingBookingDetails ? (
+                    <Skeleton height={237} />
+                  ) : (
+                    <>
+                      <textarea
+                        id="notes"
+                        className="form-control"
+                        placeholder="Notes"
+                        rows="8"
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        style={{
+                          height: "237px",
+                          resize: "none",
+                          padding: "10px",
+                          width: "100%",
+                          boxSizing: "border-box",
+                        }}
+                      ></textarea>
+                      <button
+                        className="btn position-absolute"
+                        onClick={saveNotes}
+                        onMouseEnter={() => setIsSaveHovered(true)}
+                        onMouseLeave={() => setIsSaveHovered(false)}
+                        style={{
+                          bottom: "10px",
+                          right: "10px",
+                          padding: "5px 10px",
+                          borderRadius: "5px",
+                          color: isSaveHovered ? "white" : "#0076CE",
+                          backgroundColor: isSaveHovered
+                            ? "#0076CE"
+                            : "transparent",
+                          border: "1px solid #0076CE",
+                          transition: "all 0.3s ease-in-out",
+                        }}
+                      >
+                        Save
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -412,51 +444,70 @@ const AssignBookings = () => {
                       marginTop: "-40px",
                     }}
                   >
-                    <div
-                      className="row d-flex flex-wrap"
-                      style={{ gap: "8px" }}
-                    >
-                      {workers.map((worker, index) => (
-                        <div
-                          key={index}
-                          className="col-6"
-                          style={{
-                            width: "48%",
-                            border:
-                              selectedWorkerId === worker.id
-                                ? "2px solid #0076CE"
-                                : "1px solid #ddd",
-                            borderRadius: "8px",
-                            padding: "8px",
-                            background:
-                              selectedWorkerId === worker.id
-                                ? "#e6f3ff"
-                                : "#f9f9f9",
-                            cursor: "pointer",
-                          }}
-                          onClick={() => handleWorkerSelection(worker.id)}
-                        >
-                          <div className="d-flex align-items-center gap-2">
+                    <div className="row d-flex flex-wrap" style={{ gap: "8px" }}>
+                      {loadingWorkers
+                        ? Array.from({ length: 4 }).map((_, index) => (
                             <div
-                              className="rounded-circle bg-secondary"
+                              key={index}
+                              className="col-6"
                               style={{
-                                width: "40px",
-                                height: "40px",
-                                flexShrink: 0,
-                                backgroundImage: `url(${worker.profilePicUrl})`,
-                                backgroundSize: "cover",
-                                backgroundPosition: "center",
+                                width: "48%",
+                                border: "1px solid #ddd",
+                                borderRadius: "8px",
+                                padding: "8px",
+                                background: "#f9f9f9",
                               }}
-                            ></div>
-                            <div>
-                              <p className="mb-0">{worker.name}</p>
-                              <small style={{ color: "#666666" }}>
-                                {worker.town}, {worker.pincode}
-                              </small>
+                            >
+                              <div className="d-flex align-items-center gap-2">
+                                <Skeleton circle width={40} height={40} />
+                                <div>
+                                  <Skeleton width={100} height={15} />
+                                  <Skeleton width={80} height={12} />
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      ))}
+                          ))
+                        : workers.map((worker, index) => (
+                            <div
+                              key={index}
+                              className="col-6"
+                              style={{
+                                width: "48%",
+                                border:
+                                  selectedWorkerId === worker.id
+                                    ? "2px solid #0076CE"
+                                    : "1px solid #ddd",
+                                borderRadius: "8px",
+                                padding: "8px",
+                                background:
+                                  selectedWorkerId === worker.id
+                                    ? "#e6f3ff"
+                                    : "#f9f9f9",
+                                cursor: "pointer",
+                              }}
+                              onClick={() => handleWorkerSelection(worker.id)}
+                            >
+                              <div className="d-flex align-items-center gap-2">
+                                <div
+                                  className="rounded-circle bg-secondary"
+                                  style={{
+                                    width: "40px",
+                                    height: "40px",
+                                    flexShrink: 0,
+                                    backgroundImage: `url(${worker.profilePicUrl})`,
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                  }}
+                                ></div>
+                                <div>
+                                  <p className="mb-0">{worker.name}</p>
+                                  <small style={{ color: "#666666" }}>
+                                    {worker.town}, {worker.pincode}
+                                  </small>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                     </div>
                   </div>
 
