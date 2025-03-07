@@ -116,7 +116,9 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
 
       if (response.ok) {
         alert("Booking rescheduled successfully");
-        onReschedule(formattedDate, selectedTimeSlot); // Update parent state
+
+
+        onReschedule(formattedDate, selectedTimeSlot, reason);// Update parent state
         onClose(); // Close the Reschedule modal
       } else {
         const errorData = await response.json();

@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import "../styles/ViewBooking.css";
-import notification from "../assets/Bell.png";
-import profile from "../assets/Profile.png";
-import search from "../assets/Search.png";
 import Reschedule from "./Reschedule"; // Import the Reschedule component
 import CancelBooking from "./CancelBooking"; // Import the CancelBooking component
+import Header from "./Header"
 const ViewBookings = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate(); // Fixed missing import
-  const booking = location.state?.booking || {};
-  const [bookings, setBookings] = useState({});
+  const bookings = location.state?.booking || {};
+  const [booking, setBooking] = useState("");
 
   const [bookingDate, setBookingDate] = useState("");
   const [bookedDate, setBookedDate] = useState("");
@@ -30,12 +28,9 @@ const ViewBookings = () => {
   const [cancellationReason, setCancellationReason] = useState(null);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [showRescheduledRow, setShowRescheduledRow] = useState(false);
-  const [rescheduledBooking, setRescheduledBooking] = useState(bookings);
+ const[bookingsDate,setBookingsDate] = useState("");
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
-  const [
-    selectedBookingIdForCancellation,
-    setSelectedBookingIdForCancellation,
-  ] = useState("");
+  const [ selectedBookingIdForCancellation,setSelectedBookingIdForCancellation] = useState("");
   const [isCancellationConfirmed, setIsCancellationConfirmed] = useState(false);
   const [isRescheduledConfirmed, setIsRescheduledConfirmed] = useState(false); // To track reschedule confirmation
   const [isUpdated, setIsUpdated] = useState(false); // New state to track if the booking was updated
@@ -89,24 +84,23 @@ const ViewBookings = () => {
   useEffect(() => {
     if (!id) return;
 
-    const fetchBookingDetails = async () => {
+    const fetchBooking = async () => {
       try {
         setLoading(true);
 
         const response = await fetch(`http://localhost:2222/booking/${id}`);
+        console.log(response);
         if (!response.ok) {
           throw new Error("Failed to fetch booking details");
         }
         const data = await response.json();
         console.log("Fetched Booking Data:", data);
-
-        setBookings(data);
-
-        setBookingDate(data.bookingDate || "N/A");
-        setBookedDate(data.bookedDate || "N/A");
-        setTimeSlot(data.timeSlot || "N/A");
-        setNotes(data.notes || "");
-
+        if (data && data.bookingDate && data.bookedDate ) {
+          setBooking(data);
+          setError(null);
+        } else {
+          console.error("Invalid booking data", data);
+        }
         // Set worker details
         if (data.worker) {
           setWorker(data.worker);
@@ -136,7 +130,7 @@ const ViewBookings = () => {
       }
     };
 
-    fetchBookingDetails();
+    fetchBooking();
   }, [id]);
 
   useEffect(() => {
@@ -285,17 +279,19 @@ const ViewBookings = () => {
     console.log("Reschedule Successful", newDate, newTime, reason);
     setIsRescheduledConfirmed(true);
     // Update only the selected booking, not all bookings
-    setBookings((prevBookings) =>
-      selectedBookingId
-        ? {
-            ...booking,
-            bookedDate: newDate,
-            bookedTimeSlot: newTime,
-            rescheduleReason: reason,
-          }
-        : booking
-    );
-
+    setBooking((prevBooking) =>
+     
+         selectedBookingId
+          ? {
+              ...booking,
+              bookedDate: newDate,
+              bookedTimeSlot: newTime,
+              rescheduleReason: reason,
+            }
+          : booking
+      )
+    
+  
     setShowRescheduledRow(true);
 
     closeRescheduleModal(); // Close modal after success
@@ -309,33 +305,7 @@ const ViewBookings = () => {
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
           {/* Header */}
-          <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
-            <h2 className="heading align-items-center mb-0">Booking Details</h2>
-            <div className="header-right d-flex align-items-center gap-3">
-              <div className="input-group" style={{ width: "300px" }}>
-                <input
-                  type="text"
-                  className="form-control search-bar"
-                  placeholder="Search"
-                />
-                <span className="input-group-text">
-                  <img src={search} alt="Search" width="20" />
-                </span>
-              </div>
-              <img
-                src={notification}
-                alt="Notifications"
-                width="40"
-                className="cursor-pointer"
-              />
-              <img
-                src={profile}
-                alt="Profile"
-                width="40"
-                className="cursor-pointer"
-              />
-            </div>
-          </header>
+         <Header/>
 
           {/* Navigation Bar */}
           <div className="navigation-bar d-flex justify-content-between align-items-center py-2 px-3 bg-white border-bottom w-100">
@@ -395,7 +365,7 @@ const ViewBookings = () => {
                   ></div>
                   <div>
                     <p className="mb-0">
-                      {booking.service} - ₹{bookings.totalPrice}
+                      {bookings.service} - ₹{booking.totalPrice}
                     </p>
 
                     <small style={{ color: "#0076CE" }}>ID: {booking.id}</small>
@@ -403,24 +373,28 @@ const ViewBookings = () => {
                 </div>
 
                 <div className="p-0 m-0 mt-2">
-                  <h6 style={{ fontWeight: "bold" }}> Customer Details</h6>
-
-                  <p className="mb-1">
-                    <i className="bi bi-person-fill me-2"></i>{" "}
-                    {booking?.name ?? "N/A"}
-                  </p>
-                  <p className="mb-1">
-                    <i className="bi bi-telephone-fill me-2"></i>{" "}
-                    {booking?.contact ?? "N/A"}
-                  </p>
-                  <p className="mb-1">
-                    <i className="bi bi-geo-alt-fill me-2"></i>{" "}
-                    {booking?.address ?? "N/A"}
-                  </p>
-                  <p className="mb-1">
-                    <i className="bi bi-calendar-event-fill me-2"></i>{" "}
-                    {booking?.date ?? "N/A"}
-                  </p>
+                <>
+    {booking ? (
+      <>
+        <h6 style={{ fontWeight: "bold" }}>Customer Details</h6>
+        <p className="mb-1">
+          <i className="bi bi-person me-2"></i> {bookings?.name ?? "N/A"}
+        </p>
+        <p className="mb-1">
+          <i className="bi bi-telephone me-2"></i> {bookings?.contact ?? "N/A"}
+        </p>
+        <p className="mb-1">
+          <i className="bi bi-geo-alt me-2"></i> {bookings?.address ?? "N/A"}
+        </p>
+        <p className="mb-1">
+          <i className="bi bi-calendar-event me-2"></i>
+          {booking?.bookingDate ?? "N/A"} {"|"} {booking?.timeSlot ?? "N/A"}
+        </p>
+      </>
+    ) : (
+      <p>Loading customer details...</p>
+    )}
+  </>
                 </div>
 
                 {/* Comment Field (Notes) */}
@@ -474,7 +448,7 @@ const ViewBookings = () => {
 
                       <div className=" d-flex flex-column mb-1">
                         <p className="mb-1">
-                          <i className="bi bi-person-fill me-1"></i>{" "}
+                          <i className="bi bi-person me-1"></i>{" "}
                           {worker.name}{" "}
                           <span
                             className="ms-1"
@@ -495,11 +469,11 @@ const ViewBookings = () => {
                           </span>
                         </p>
                         <p className="mb-1">
-                          <i className="bi bi-telephone-fill me-2"></i>{" "}
+                          <i className="bi bi-telephone me-2"></i>{" "}
                           {worker.contactNumber}
                         </p>
                         <p className="mb-1">
-                          <i className="bi bi-geo-alt-fill me-2"></i>{" "}
+                          <i className="bi bi-geo-alt me-2"></i>{" "}
                           {worker.houseNumber},{worker.nearbyLandmark},
                           {worker.town},{worker.pincode},{worker.state},
                           {worker.district}
@@ -594,22 +568,31 @@ const ViewBookings = () => {
                   style={{
                     marginTop: "47px",
                     minHeight: "300px",
-                    maxWidth: "670px",
-                    marginLeft: "-20px",
+                    maxWidth: "600px",
+                    marginLeft: "-40px",
                     bottom: "20px",
                     border: "1px solid #ddd",
                     borderRadius: "12px",
+                    position: "relative",
+                    display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
                   }}
                 >
                   <h5>Status update</h5>
                   <div
                     className="p-3 mt-3 rounded"
                     style={{
-                      height: "380px",
-                      width: "600",
+                      height: "300px",
+                      width: "550",
                       border: "1px solid #ccc",
                       borderRadius: "10px",
                       position: "relative",
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                       justifyContent: "flex-start",
+                       gap: "20px",  // Added some gap for spacing between secti
                     }}
                   >
                     <div
@@ -625,7 +608,7 @@ const ViewBookings = () => {
                     ></div>
                     <table className="table w-100" style={{ width: "100%" }}>
                       <tbody>
-                        <tr style={{ height: "40px" }}>
+                        <tr style={{ height: "40px",width:"500px" }}>
                           <td className="text-start border-right">
                             <tr style={{ color: "grey" }}>
                               {new Date().toLocaleDateString("en-US", {
@@ -641,12 +624,12 @@ const ViewBookings = () => {
                               })}
                             </tr>
                             Booking Successful on{" "}
-                            {new Date(bookingDate).toLocaleDateString("en-US", {
+                            {new Date(booking.bookingDate).toLocaleDateString("en-US", {
                               month: "short",
                               day: "2-digit",
                               year: "numeric",
                             })}
-                            {bookings.timeSlot ? ` | ${bookings.timeSlot}` : ""}
+                            {booking.timeSlot ? ` | ${booking.timeSlot}` : ""}
                           </td>
                           <td
                             className="text-end"
@@ -659,19 +642,17 @@ const ViewBookings = () => {
                               <td className="text-start border-right">
                                 {/* Display booked date only if this booking is selected */}
                                 <span style={{ color: "grey" }}>
-                                  {bookedDate !== "No"
-                                    ? new Date(bookedDate).toLocaleDateString(
-                                        "en-US",
-                                        {
-                                          month: "short",
-                                          day: "2-digit",
-                                          year: "numeric",
-                                          hour: "2-digit",
-                                          minute: "2-digit",
-                                          hour12: true,
-                                        }
-                                      )
-                                    : "N/A"}
+                                {new Date().toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "2-digit",
+                                year: "numeric",
+                              })}{" "}
+                              |{" "}
+                              {new Date().toLocaleTimeString("en-US", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              })}
                                 </span>
 
                                 <div
@@ -710,22 +691,22 @@ const ViewBookings = () => {
                             </tr>
                           )}
 
-                        <tr style={{ height: "70px" }}>
+                        <tr style={{ height: "70px",width:"500px" }}>
                           <td className="text-start border-right">
                             <span style={{ color: "grey" }}>
-                              {bookedDate !== "No"
-                                ? new Date(bookedDate).toLocaleDateString(
-                                    "en-US",
-                                    {
-                                      month: "short",
-                                      day: "2-digit",
-                                      year: "numeric",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                      hour12: true,
-                                    }
-                                  )
-                                : "Not Assigned"}
+                            {booking.bookedDate !== "No"
+    ? new Date(booking.bookedDate).toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      }) +
+      " | " +
+      new Date(booking.bookedDate).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })
+    : "Not Assigned"}
                             </span>
                             <br />
                             Worker Assigned
@@ -740,21 +721,21 @@ const ViewBookings = () => {
                         {selectedBookingId && showRescheduledRow && (
                           <tr style={{ height: "40px" }}>
                             <td className="text-start border-right">
-                              {console.log(bookings)}
+                              {console.log(booking)}
                               <span style={{ color: "grey" }}>
-                                {bookedDate !== "No"
-                                  ? new Date(bookedDate).toLocaleDateString(
-                                      "en-US",
-                                      {
-                                        month: "short",
-                                        day: "2-digit",
-                                        year: "numeric",
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                        hour12: true,
-                                      }
-                                    )
-                                  : "N/A"}
+                              {booking.bookedDate !== "No"
+    ? new Date(booking.bookedDate).toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      }) +
+      " | " +
+      new Date(booking.bookedDate).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })
+    : "Not Assigned"}
                               </span>
 
                               <div
@@ -777,21 +758,21 @@ const ViewBookings = () => {
                                   <span style={{ color: "red" }}>
                                     Reschedule Service On
                                     {new Date(
-                                      bookings.bookedDate
+                                      booking.bookedDate
                                     ).toLocaleDateString("en-US", {
                                       month: "short",
                                       day: "2-digit",
                                       year: "numeric",
                                     })}
                                     {" | "}
-                                    {bookings.bookedTimeSlot}
+                                    {booking.bookedTimeSlot}
                                     {/* Assuming bookedTimeSlot is in the correct format */}
                                   </span>
                                 </div>
 
                                 {/* Display the cancellation reason below the Service Canceled text */}
                                 <div style={{ fontSize: "14px" }}>
-                                  <td>{bookings.rescheduleReason}</td>
+                                  <td>{booking.rescheduleReason}</td>
                                 </div>
                               </div>
                             </td>
@@ -802,29 +783,28 @@ const ViewBookings = () => {
                           </tr>
                         )}
 
-                        <tr style={{ height: "70px" }}>
+                        <tr style={{ height: "70px",width:'500px' }}>
                           <td className="text-start border-right">
                             <span style={{ color: "grey" }}>
-                              {serviceStarted !== "No"
-                                ? new Date(serviceStarted).toLocaleDateString(
-                                    "en-US",
-                                    {
-                                      month: "short",
-                                      day: "2-digit",
-                                      year: "numeric",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                      hour12: true,
-                                    }
-                                  )
-                                : new Date().toLocaleDateString("en-US", {
-                                    month: "short",
-                                    day: "2-digit",
-                                    year: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    hour12: true,
-                                  })}
+                            {serviceStarted !== "No"
+    ? `${new Date(serviceStarted).toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      })} | ${new Date(serviceStarted).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })}`
+    : `${new Date().toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      })} | ${new Date().toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })}`}
                             </span>
                             <br />
                             Service Started
@@ -856,29 +836,28 @@ const ViewBookings = () => {
                           </td>
                         </tr>
 
-                        <tr style={{ height: "80px" }}>
+                        <tr style={{ height: "80px",width:"500px" }}>
                           <td className="text-start border-right">
                             <span style={{ color: "grey" }}>
                               {serviceCompleted !== "No"
-                                ? new Date(serviceCompleted).toLocaleDateString(
-                                    "en-US",
-                                    {
-                                      month: "short",
-                                      day: "2-digit",
-                                      year: "numeric",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                      hour12: true,
-                                    }
-                                  )
-                                : new Date().toLocaleDateString("en-US", {
-                                    month: "short",
-                                    day: "2-digit",
-                                    year: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    hour12: true,
-                                  })}
+                                ? `${new Date(serviceCompleted).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "2-digit",
+                                  year: "numeric",
+                                })} | ${new Date(serviceCompleted).toLocaleTimeString("en-US", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                })}`
+                              : `${new Date().toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "2-digit",
+                                  year: "numeric",
+                                })} | ${new Date().toLocaleTimeString("en-US", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                })}`}
                             </span>
                             <br />
                             Service Completed
@@ -925,9 +904,9 @@ const ViewBookings = () => {
           {isRescheduleModalOpen && selectedBookingId && (
             <Reschedule
               id={selectedBookingId}
-              booking={bookings}
+              booking={booking}
               onClose={closeRescheduleModal}
-              onRescheduleSuccess={handleRescheduleSuccess}
+              onReschedule={handleRescheduleSuccess}
             />
           )}
 
@@ -935,7 +914,7 @@ const ViewBookings = () => {
           {showCancelBookingModal && selectedBookingIdForCancellation && (
             <CancelBooking
               id={selectedBookingIdForCancellation}
-              booking={bookings}
+              booking={booking}
               onClose={() => setShowCancelBookingModal(false)}
               onCancelSuccess={handleCancelBookingSuccess}
             />
