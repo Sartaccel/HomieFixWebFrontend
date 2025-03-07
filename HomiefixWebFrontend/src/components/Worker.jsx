@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import Header from "./Header";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import ComingSoon from "./ComingSoon";
 
 const Worker = () => {
    const { id } = useParams();
@@ -348,9 +349,10 @@ const Worker = () => {
                                )}
 
                                {activeTab === "reviews" && (
-                                   <div className="d-flex flex-wrap">
-                                       <h1 className="text-center w-100">No reviews yet</h1>
-                                   </div>
+                                    <div className="p-fixed" style={{overflow:"hidden", height: "650px", marginTop:"-180px"}}>
+                                    {/* <h1 className="text-center w-100">No reviews yet</h1> */}
+                                    <ComingSoon />
+                                  </div>
                                )}
                            </div>
                        </div>

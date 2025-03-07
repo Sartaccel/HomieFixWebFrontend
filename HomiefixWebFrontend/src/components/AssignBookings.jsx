@@ -2,9 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import notification from "../assets/Bell.png";
-import profile from "../assets/Profile.png";
-import search from "../assets/Search.png";
 import closeDate from "../assets/close date.png"; // Import the close date icon
 import Reschedule from "./Reschedule"; // Import the Reschedule component
 import CancelBooking from "./CancelBooking"; // Import the CancelBooking component
@@ -62,6 +59,7 @@ const AssignBookings = () => {
 
   // Fetch booking details from the API
   useEffect(() => {
+    
     const fetchBookingDetails = async () => {
       try {
         const response = await fetch(`http://localhost:2222/booking/${id}`);

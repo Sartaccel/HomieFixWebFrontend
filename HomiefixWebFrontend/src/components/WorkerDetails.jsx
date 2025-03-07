@@ -4,10 +4,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-
-import notification from "../assets/Bell.png";
-import profile from "../assets/Profile.png";
-import search from "../assets/Search.png";
 import alenSamImg from "../assets/home1.png";
 import Header from "./Header";
 
