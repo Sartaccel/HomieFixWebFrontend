@@ -204,6 +204,36 @@ const getCurrentDate = () => {
       alert("Network error while updating booking.");
     }
   };
+  useEffect(() => {
+    const savedServiceStarted = localStorage.getItem('serviceStarted');
+    const savedServiceCompleted = localStorage.getItem('serviceCompleted');
+
+    if (savedServiceStarted) {
+      setServiceStarted(savedServiceStarted);
+    }
+
+    if (savedServiceCompleted) {
+      setServiceCompleted(savedServiceCompleted);
+    }
+  }, []);
+
+  const handleServiceStartedChange = (e) => {
+    const value = e.target.value === "Yes" ? new Date().toISOString() : "No";
+    setServiceStarted(value);
+    localStorage.setItem('serviceStarted', value);
+
+    if (value === "Yes") {
+      setServiceCompleted("No");
+      localStorage.setItem('serviceCompleted', "No");
+    }
+  };
+
+  const handleServiceCompletedChange = (e) => {
+    const value = e.target.value === "Yes" ? new Date().toISOString() : "No";
+    setServiceCompleted(value);
+    localStorage.setItem('serviceCompleted', value);
+  };
+
  
   const getLinePosition = () => {
     let position = 72; // Initial position for "Booking Successful"
@@ -540,8 +570,8 @@ const { position, color } = getLinePosition();
                   className="card rounded p-4 shadow-sm"
                   style={{
                     marginTop: "47px",
-                    minHeight: "500px",
-                    maxWidth: "770px",
+                    minHeight: "300px",
+                    maxWidth: "670px",
                     marginLeft:"-20px",
                     bottom:"20px",
                     border: "1px solid #ddd",
@@ -552,7 +582,7 @@ const { position, color } = getLinePosition();
                   <div
                     className="p-3 mt-3 rounded"
                     style={{
-                      height: "450px",
+                      height: "380px",
                       width:"600",
                       border: "1px solid #ccc",
                       borderRadius: "10px",
@@ -786,16 +816,7 @@ const { position, color } = getLinePosition();
                             <span className="custom-dropdown">
                               <select
                                 className="no-border"
-                                onChange={(e) => {
-                                  setServiceStarted(
-                                    e.target.value === "Yes"
-                                      ? new Date().toISOString()
-                                      : "No"
-                                  );
-                                  if (e.target.value === "Yes") {
-                                    setServiceCompleted("No");
-                                  }
-                                }}
+                                onChange={handleServiceStartedChange}
                                 value={serviceStarted !== "No" ? "Yes" : "No"}
                               >
                                 <option value="No">No</option>
@@ -842,15 +863,7 @@ const { position, color } = getLinePosition();
                             <span className="custom-dropdown">
                               <select
                                 className="no-border"
-                                onChange={(e) => {
-                                  if (e.target.value === "Yes") {
-                                    const completedTime =
-                                      new Date().toISOString(); // Get current timestamp
-                                    setServiceCompleted(completedTime); // Save it to state
-                                  } else {
-                                    setServiceCompleted("No");
-                                  }
-                                }}
+                                onChange={handleServiceCompletedChange}
                                 value={serviceCompleted !== "No" ? "Yes" : "No"}
                               >
                                 <option value="No">No</option>
