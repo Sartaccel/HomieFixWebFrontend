@@ -95,7 +95,7 @@ const Worker = () => {
                 axios.delete(`http://localhost:2222/workers/${id}`)
                     .then(() => {
                         Swal.fire("Deleted!", "Worker has been removed.", "success");
-                        navigate(-1);
+                        navigate("/worker-details");
                     })
                     .catch(() => {
                         Swal.fire("Error!", "Failed to delete worker.", "error");

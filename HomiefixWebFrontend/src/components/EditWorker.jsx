@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import axios from "axios"; // Import axios
+import axios from "axios";
+import Swal from "sweetalert2"; // Import SweetAlert2
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
@@ -75,16 +76,20 @@ const EditWorker = () => {
             ...prevState,
             [item]: !prevState[item],
         }));
-
+    
         setFormData((prevState) => {
             const updatedSpecifications = prevState.specification.includes(item)
                 ? prevState.specification.filter((spec) => spec !== item)
                 : [...prevState.specification, item];
-
-            const updatedRoles = prevState.role.includes(roleHeading)
-                ? prevState.role
-                : [...prevState.role, roleHeading];
-
+    
+            // Check if the roleHeading should be added or removed based on the updatedSpecifications
+            const roleExists = updatedSpecifications.some(spec => spec === item);
+            const updatedRoles = roleExists
+                ? prevState.role.includes(roleHeading)
+                    ? prevState.role
+                    : [...prevState.role, roleHeading]
+                : prevState.role.filter(role => role !== roleHeading);
+    
             return {
                 ...prevState,
                 role: updatedRoles,
@@ -130,10 +135,25 @@ const EditWorker = () => {
                 },
             });
 
-            console.log("Success:", response.data);
-            navigate(`/worker-details/worker/${id}`);
+            // Show success message using SweetAlert2
+            Swal.fire({
+                icon: "success",
+                title: "Success!",
+                text: "Worker details updated successfully.",
+                confirmButtonText: "OK",
+            }).then(() => {
+                navigate(`/worker-details/worker/${id}`); // Navigate after confirmation
+            });
         } catch (error) {
             console.error("Error:", error);
+
+            // Show error message using SweetAlert2
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Failed to update worker details. Please try again.",
+                confirmButtonText: "OK",
+            });
         }
     };
 
@@ -157,7 +177,7 @@ const EditWorker = () => {
             {/* Scrollable Content */}
             <div className="container" style={{ paddingTop: "80px" }}>
                 <div className="d-flex gap-4 mx-2 align-items-center">
-                    <button className="btn" onClick={() => navigate(-1)}>
+                    <button className="btn" onClick={() => navigate(`/worker-details/worker/${id}`)}>
                         <span style={{ fontSize: "20px" }}>←</span>
                     </button>
                     <h5 className="px-3 pb-2 text-black"
