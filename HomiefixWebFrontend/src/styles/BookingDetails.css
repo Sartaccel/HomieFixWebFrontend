@@ -3,7 +3,6 @@
     position: fixed;
 }
 
-
 .heading {
     font-size: 25px;
     font-weight: 500;
@@ -12,7 +11,6 @@
 
 .header-right {
     margin-right: 300px;
-    
 }
 
 .search-bar {
@@ -40,7 +38,7 @@
     gap: 15px;
     background-color: #fff;
     position: fixed;
-    top: 70px; 
+    top: 70px;
     width: 100%;
     z-index: 1000;
     border-bottom: 1px solid #ddd;
@@ -61,25 +59,29 @@
     border-bottom: 4px solid #1A1A1A;
 }
 
+.table-responsive {
+    overflow-x: auto;
+    width: 100%;
+}
+
 .booking-table {
-    border-collapse: separate; 
+    border-collapse: separate;
     border-spacing: 0;
-    border-radius: 12px!important;
+    border-radius: 12px !important;
     border: 1px solid #e5e5e5;
-    width: 1220px;
+    width: 95%;
     margin-left: 30px;
     background: #fff;
-    margin-top: 145px;  
-    border-collapse: collapse;  
-    
+    margin-top: 145px;
+    border-collapse: collapse;
 }
 
 .table-container {
-    max-height: 1000px; 
-    overflow-y: auto; 
+    max-height: 1000px;
+    overflow-y: auto;
     display: block;
     width: 100%;
-    border-radius: 12px!important;
+    border-radius: 12px !important;
     overflow: hidden;
 }
 
@@ -88,10 +90,10 @@
     top: 0;
     background: #fafafa;
     z-index: 10;
-
 }
 
-.booking-table th, .booking-table td {
+.booking-table th,
+.booking-table td {
     padding: 10px;
     text-align: left;
     border-bottom: 1px solid #e5e5e5;
@@ -99,6 +101,10 @@
 
 .booking-table th {
     background: #fafafa;
+}
+
+.booking-table th:last-child {
+    border-right: 1px solid #e5e5e5;
 }
 
 .booking-table tbody {
@@ -113,7 +119,6 @@
     table-layout: fixed;
 }
 
-
 .assign-button {
     background: #007bff;
     color: white;
@@ -127,4 +132,3 @@
 .assign-button:hover {
     background: #0056b3;
 }
-
