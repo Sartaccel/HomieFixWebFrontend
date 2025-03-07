@@ -33,6 +33,37 @@ const Profile = () => {
               </button>
               <div className="section active">Profile Details</div>
             </div>
+
+            <div className="container" style={{ height: "80vh", overflowY: "auto", overflowX: "hidden", marginTop: "20px" }}>
+                <form onSubmit={handleSubmit}>
+                    {/* Profile Photo */}
+                    <div className="container mt-4" style={{ marginLeft: "64px", maxWidth: "100%" }}>
+                        <p>Profile Photo</p>
+                        <div>
+                            
+                                <img
+                                    src={previewImage}
+                                    alt="profile"
+                                    height={100}
+                                    width={100}
+                                    className="rounded-4"
+                                />
+                            
+                            <input
+                                type="file"
+                                id="profilePic"
+                                name="profilePic"
+                                accept="image/*"
+                                style={{ display: "none" }}
+                                onChange={handleImageUpload}
+                            />
+                            <label htmlFor="profilePic" className="btn mx-5" style={{ marginTop: "63px", borderColor: "#0076CE", color: "#0076CE" }}>
+                                Upload Photo
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
           </div>
         </main>
       </div>
