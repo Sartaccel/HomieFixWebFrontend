@@ -146,7 +146,7 @@ const Profile = () => {
            <div className="container" style={{ height: "80vh", overflowY: "auto", overflowX: "hidden", marginTop: "20px" }}>
                <form onSubmit={handleSubmit}>
                    {/* Profile Photo */}
-                   <div className="container mt-4" style={{ marginLeft: "64px", maxWidth: "100%" }}>
+                   <div className="container mt-2" style={{ marginLeft: "64px", maxWidth: "100%" }}>
                        <p>Profile Photo</p>
                        <div>
                            <img
@@ -171,7 +171,7 @@ const Profile = () => {
                    </div>
 
                    {/* Main container */}
-                   <div className="container mt-4" style={{ marginLeft: "60px", maxWidth: "100%" }}>
+                   <div className="container mt-2" style={{ marginLeft: "60px", maxWidth: "100%" }}>
                        {/* Row 1 */}
                        <div className="row" style={{ maxWidth: "100%" }}>
                            <div className="col-md-2">
@@ -189,7 +189,7 @@ const Profile = () => {
                        </div>
 
                        {/* Row 2 */}
-                       <div className="row mt-4">
+                       <div className="row mt-2">
                            <div className="col-md-2">
                                <label htmlFor="language" className="form-label">Email Id</label>
                                <input type="text" className="form-control" name="language" id="language" placeholder="Enter Language" value={formData.language} onChange={handleChange} />
@@ -206,7 +206,7 @@ const Profile = () => {
                        </div>
 
                        {/* Address Details */}
-                       <div className="row mt-4">
+                       <div className="row mt-3">
                            <p className="fw-bold">Address Details</p>
                        </div>
                        <div className="row">
@@ -225,7 +225,7 @@ const Profile = () => {
                        </div>
 
                        {/* Row 2 */}
-                       <div className="row mt-4">
+                       <div className="row mt-2">
                            <div className="col-md-3">
                                <label htmlFor="nearbyLandmark" className="form-label">Nearby Landmark</label>
                                <input type="text" className="form-control" name="nearbyLandmark" id="nearbyLandmark" required placeholder="Enter Nearby Landmark" value={formData.nearbyLandmark} onChange={handleChange} />
@@ -241,7 +241,7 @@ const Profile = () => {
                        </div>
 
                        {/* Submit Button */}
-                       <div className="row mb-4 mt-4">
+                       <div className="row mb-3 mt-3">
                            <div className="col">
                                <button type="submit" className="btn px-5" style={{ backgroundColor: "#0076CE", color: "white" }}>Update</button>
                            </div>
