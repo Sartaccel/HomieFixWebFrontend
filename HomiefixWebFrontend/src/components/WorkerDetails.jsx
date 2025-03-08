@@ -61,7 +61,7 @@ const WorkerDetails = () => {
 
       <div className="container pt-5" style={{ paddingTop: "80px" }}>
         <div className="d-flex justify-content-between align-items-center mb-3 mt-5" style={{ marginRight: "25px" }}>
-          <h5 className="px-3 pb-2 text-black mx-3" style={{ borderBottom: "4px solid #000" }}>Worker Details</h5>
+          <h5 className="px-3 pb-3 text-black mx-3" style={{ borderBottom: "4px solid #000" }}>Worker Details</h5>
           <div>
             <button className="btn text-light me-2" onClick={() => navigate("/worker-details/add-worker")} style={{ backgroundColor: "#0076CE" }}>Add Worker</button>
             <button className="btn border text-black" onClick={() => setShowFilter(true)}>Filter <i className="bi bi-funnel"></i></button>
