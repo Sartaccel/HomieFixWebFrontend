@@ -17,18 +17,17 @@ const ViewBookings = () => {
   const [worker, setWorker] = useState([]);
   const [serviceStarted, setServiceStarted] = useState("No");
   const [serviceCompleted, setServiceCompleted] = useState("No");
-  const [timeSlot, setTimeSlot] = useState("");
+ 
   const [notes, setNotes] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
-  const [typingTimeout, setTypingTimeout] = useState(null);
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [lineColor, setLineColor] = useState("black");
+  
   const [showCancelBookingModal, setShowCancelBookingModal] = useState(false); // State to control CancelBooking visibility
   const [cancellationReason, setCancellationReason] = useState(null);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [showRescheduledRow, setShowRescheduledRow] = useState(false);
- const[bookingsDate,setBookingsDate] = useState("");
+ 
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [ selectedBookingIdForCancellation,setSelectedBookingIdForCancellation] = useState("");
   const [isCancellationConfirmed, setIsCancellationConfirmed] = useState(false);
@@ -97,6 +96,7 @@ const ViewBookings = () => {
         console.log("Fetched Booking Data:", data);
         if (data && data.bookingDate && data.bookedDate ) {
           setBooking(data);
+          setNotes(data.notes || "");
           setError(null);
         } else {
           console.error("Invalid booking data", data);
@@ -235,7 +235,7 @@ const ViewBookings = () => {
     }
     if (selectedBookingId && isRescheduledConfirmed) {
       position = 150; // Adjust for rescheduled booking
-      color = "red"; // Reschedule color (Red)
+      color = "C14810"; // Reschedule color (Red)
     }
 
     if (serviceStarted !== "No") {
@@ -248,7 +248,7 @@ const ViewBookings = () => {
     }
     if (selectedBookingIdForCancellation && isCancellationConfirmed) {
       position = 80; // Adjust for cancellation row visibility
-      color = "red"; // Cancellation color (Red)
+      color = "#AE1319"; // Cancellation color (Red)
     }
 
     return { position: `${position}px`, color };
@@ -300,6 +300,50 @@ const ViewBookings = () => {
     setSelectedBookingId(id); // This will trigger the modal to open
     openRescheduleModal();
   };
+  const handleNotesChange = (e) => {
+    setNotes(e.target.value);
+  };
+
+  // Submit the updated notes
+  const handleUpdateNotes = async () => {
+    if (!id || !notes) {
+      return; // Don't send empty requests or when no bookingId
+    }
+
+    setLoading(true); // Set loading state to true
+    try {
+      const response = await fetch(
+        `http://localhost:2222/booking/update-notes/${id}`,
+        {
+          method: "PATCH", // Use PATCH request
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ notes }), // Send the updated notes in the request body
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update booking notes");
+      }
+
+      const data = await response.json(); // Get the updated booking
+      console.log("Updated Booking:", data);
+    } catch (err) {
+      console.error("Error updating notes:", err);
+    } finally {
+      setLoading(false); // Reset loading state
+    }
+  };
+  const handleUpdate = () => {
+    setIsUpdated(true);  // This triggers the color change to green
+  };
+
+  // Function to dynamically apply the text color
+  const getTextColor = () => {
+    return isUpdated ? "green" : "";  // Green if updated, Grey if not
+  };
+
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
@@ -425,7 +469,13 @@ const ViewBookings = () => {
                       backgroundColor: "white",
                     }}
                     value={notes} // Display fetched notes
-                  ></textarea>
+                    onChange={handleNotesChange}
+                     onBlur={handleUpdateNotes}
+                  >
+                    
+      
+                  </textarea>  
+                  
                 </div>
 
                 {/* Worker Details */}
@@ -671,7 +721,7 @@ const ViewBookings = () => {
                                       fontWeight: "bold",
                                     }}
                                   >
-                                    <span style={{ color: "red" }}>
+                                    <span style={{ color: "#AE1319" }}>
                                       Service Cancelled
                                     </span>
                                   </div>
@@ -755,7 +805,7 @@ const ViewBookings = () => {
                                     gap: "5px",
                                   }}
                                 >
-                                  <span style={{ color: "red" }}>
+                                  <span style={{ color: "#C14810" }}>
                                     Reschedule Service On
                                     {new Date(
                                       booking.bookedDate
@@ -814,11 +864,7 @@ const ViewBookings = () => {
                             className="text-end "
                             style={{ backgroundColor: "#f0f0f0" }}
                           >
-                            {!isUpdated &&
-                              !(
-                                selectedBookingIdForCancellation &&
-                                cancellationReason
-                              ) && (
+                          
                                 <span className="custom-dropdown">
                                   <select
                                     className="no-border"
@@ -831,11 +877,11 @@ const ViewBookings = () => {
                                     <option value="Yes">Yes</option>
                                   </select>
                                 </span>
-                              )}
+                            
                             {/* Display Service Started Time */}
                           </td>
                         </tr>
-
+                        
                         <tr style={{ height: "80px",width:"500px" }}>
                           <td className="text-start border-right">
                             <span style={{ color: "grey" }}>
@@ -860,17 +906,18 @@ const ViewBookings = () => {
                                 })}`}
                             </span>
                             <br />
-                            Service Completed
+                            <span style={{ color: getTextColor() }}>  Service Completed  </span>
                           </td>
                           <td
                             className="text-end"
                             style={{ backgroundColor: "#f0f0f0" }}
                           >
-                            {!isUpdated &&
+                              {!isUpdated  && 
                               !(
                                 selectedBookingIdForCancellation &&
                                 cancellationReason
-                              ) && (
+                              ) && (  
+                               
                                 <span className="custom-dropdown">
                                   <select
                                     className="no-border"
@@ -883,9 +930,10 @@ const ViewBookings = () => {
                                     <option value="Yes">Yes</option>
                                   </select>
                                 </span>
-                              )}
+                              )} 
                           </td>
                         </tr>
+                        
                       </tbody>
                     </table>
 
