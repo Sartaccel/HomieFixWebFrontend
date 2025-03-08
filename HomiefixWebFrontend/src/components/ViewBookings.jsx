@@ -10,25 +10,20 @@ const ViewBookings = () => {
   const navigate = useNavigate(); // Fixed missing import
   const bookings = location.state?.booking || {};
   const [booking, setBooking] = useState("");
-
-  const [bookingDate, setBookingDate] = useState("");
+const [bookingDate, setBookingDate] = useState("");
   const [bookedDate, setBookedDate] = useState("");
   const [activeTab, setActiveTab] = useState("serviceDetails");
   const [worker, setWorker] = useState([]);
   const [serviceStarted, setServiceStarted] = useState("No");
   const [serviceCompleted, setServiceCompleted] = useState("No");
- 
-  const [notes, setNotes] = useState("");
-  
-  const [loading, setLoading] = useState(true);
+ const [notes, setNotes] = useState("");
+   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  
-  const [showCancelBookingModal, setShowCancelBookingModal] = useState(false); // State to control CancelBooking visibility
+   const [showCancelBookingModal, setShowCancelBookingModal] = useState(false); // State to control CancelBooking visibility
   const [cancellationReason, setCancellationReason] = useState(null);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [showRescheduledRow, setShowRescheduledRow] = useState(false);
- 
-  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+ const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [ selectedBookingIdForCancellation,setSelectedBookingIdForCancellation] = useState("");
   const [isCancellationConfirmed, setIsCancellationConfirmed] = useState(false);
   const [isRescheduledConfirmed, setIsRescheduledConfirmed] = useState(false); // To track reschedule confirmation
@@ -205,6 +200,7 @@ const ViewBookings = () => {
     if (savedServiceCompleted) {
       setServiceCompleted(savedServiceCompleted);
     }
+   
   }, []);
 
   const handleServiceStartedChange = (e) => {
@@ -223,6 +219,9 @@ const ViewBookings = () => {
     setServiceCompleted(value);
     localStorage.setItem("serviceCompleted", value);
   };
+   
+ 
+ 
 
   const getLinePosition = () => {
     let position = 72; // Initial position for "Booking Successful"
@@ -233,11 +232,11 @@ const ViewBookings = () => {
       position = 70; // Move down when "Worker Assigned"
       color = "black"; // Worker Assigned color (Black)
     }
-    if (selectedBookingId && isRescheduledConfirmed) {
+    if (selectedBookingId && showRescheduledRow ) {
       position = 150; // Adjust for rescheduled booking
-      color = "C14810"; // Reschedule color (Red)
+      color = "#C14810"; 
     }
-
+   
     if (serviceStarted !== "No") {
       position = 137; // Move down when "Service Started"
       color = "black"; // Service Started color (Black)
@@ -301,11 +300,10 @@ const ViewBookings = () => {
     openRescheduleModal();
   };
   const handleNotesChange = (e) => {
-    setNotes(e.target.value);
+    setNotes(e.target.value); // Update notes state as user types
   };
-
-  // Submit the updated notes
   const handleUpdateNotes = async () => {
+    localStorage.setItem("notes", notes); // Save notes to localStorage
     if (!id || !notes) {
       return; // Don't send empty requests or when no bookingId
     }
@@ -335,9 +333,7 @@ const ViewBookings = () => {
       setLoading(false); // Reset loading state
     }
   };
-  const handleUpdate = () => {
-    setIsUpdated(true);  // This triggers the color change to green
-  };
+ 
 
   // Function to dynamically apply the text color
   const getTextColor = () => {
@@ -468,14 +464,15 @@ const ViewBookings = () => {
                       height: "100px",
                       backgroundColor: "white",
                     }}
-                    value={notes} // Display fetched notes
-                    onChange={handleNotesChange}
-                     onBlur={handleUpdateNotes}
+                    value={notes}
+                    onChange={handleNotesChange} // Update notes state
+                    onBlur={handleUpdateNotes} // Trigger save when user clicks away
+                     
                   >
                     
       
                   </textarea>  
-                  
+               
                 </div>
 
                 {/* Worker Details */}
@@ -767,7 +764,7 @@ const ViewBookings = () => {
                             style={{ backgroundColor: "#f0f0f0" }}
                           ></td>
                         </tr>
-
+                      
                         {selectedBookingId && showRescheduledRow && (
                           <tr style={{ height: "40px" }}>
                             <td className="text-start border-right">
@@ -788,13 +785,14 @@ const ViewBookings = () => {
     : "Not Assigned"}
                               </span>
 
-                              <div
+                              <div 
                                 className="booking-details"
                                 style={{
                                   display: "flex",
                                   flexDirection: "column",
                                   gap: "5px",
                                   fontSize: "14px",
+                                  
                                 }}
                               >
                                 <div
@@ -815,7 +813,7 @@ const ViewBookings = () => {
                                       year: "numeric",
                                     })}
                                     {" | "}
-                                    {booking.bookedTimeSlot}
+                                    {booking.timeSlot}
                                     {/* Assuming bookedTimeSlot is in the correct format */}
                                   </span>
                                 </div>
@@ -864,7 +862,11 @@ const ViewBookings = () => {
                             className="text-end "
                             style={{ backgroundColor: "#f0f0f0" }}
                           >
-                          
+                           {
+                              !(
+                                selectedBookingIdForCancellation &&
+                                cancellationReason
+                              ) && (  
                                 <span className="custom-dropdown">
                                   <select
                                     className="no-border"
@@ -877,7 +879,7 @@ const ViewBookings = () => {
                                     <option value="Yes">Yes</option>
                                   </select>
                                 </span>
-                            
+                              )}
                             {/* Display Service Started Time */}
                           </td>
                         </tr>
@@ -912,7 +914,7 @@ const ViewBookings = () => {
                             className="text-end"
                             style={{ backgroundColor: "#f0f0f0" }}
                           >
-                              {!isUpdated  && 
+                              {
                               !(
                                 selectedBookingIdForCancellation &&
                                 cancellationReason
