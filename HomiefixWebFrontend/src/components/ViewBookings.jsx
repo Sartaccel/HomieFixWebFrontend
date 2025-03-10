@@ -773,8 +773,11 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
+       
       })
+      
     : "Not Assigned"}
+    
                             </span>
                             <br />
                             Worker Assigned
@@ -798,7 +801,7 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
         year: "numeric",
       }) +
       " | " +
-      new Date(booking.bookedDate).toLocaleTimeString("en-US", {
+      new Date().toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
