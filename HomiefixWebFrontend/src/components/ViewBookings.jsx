@@ -10,8 +10,7 @@ const ViewBookings = () => {
   const navigate = useNavigate(); // Fixed missing import
   const bookings = location.state?.booking || {};
   const [booking, setBooking] = useState("");
-const [bookingDate, setBookingDate] = useState("");
-  const [bookedDate, setBookedDate] = useState("");
+ const [bookedDate, setBookedDate] = useState("");
   const [activeTab, setActiveTab] = useState("serviceDetails");
   const [worker, setWorker] = useState([]);
   const [serviceStarted, setServiceStarted] = useState("No");
@@ -29,6 +28,9 @@ const [bookingDate, setBookingDate] = useState("");
   const [isRescheduledConfirmed, setIsRescheduledConfirmed] = useState(false); // To track reschedule confirmation
   const [isUpdated, setIsUpdated] = useState(false); // New state to track if the booking was updated
   const [feedback, setFeedback] = useState([]);
+const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
+  const [isCancelHovered, setIsCancelHovered] = useState(false);
+
 
   useEffect(() => {
     // Fetch feedback for a specific booking when the bookingId changes
@@ -132,6 +134,9 @@ const [bookingDate, setBookingDate] = useState("");
     console.log("Worker Data:", worker);
   }, [worker]);
 
+
+
+
   const updateBooking = async () => {
     if (!id) {
       alert("Error: Booking ID is missing.");
@@ -220,7 +225,7 @@ const [bookingDate, setBookingDate] = useState("");
     localStorage.setItem("serviceCompleted", value);
   };
    
- 
+  
  
 
   const getLinePosition = () => {
@@ -341,7 +346,7 @@ const [bookingDate, setBookingDate] = useState("");
   };
 
   return (
-    <div className="container-fluid m-0 p-0 vh-100 w-100">
+    <div className="container-fluid m-0 p-0 vh-100 w-100" >
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
           {/* Header */}
@@ -374,6 +379,15 @@ const [bookingDate, setBookingDate] = useState("");
               <button
                 className="btn btn-outline-primary"
                 onClick={() => handleRescheduleButtonClick(id)}
+                onMouseEnter={() => setIsRescheduleHovered(true)}
+                onMouseLeave={() => setIsRescheduleHovered(false)}
+                style={{
+                  border: "1px solid #0076CE",
+                  backgroundColor: isRescheduleHovered
+                    ? "#0076CE"
+                    : "transparent",
+                  color: isRescheduleHovered ? "white" : "#0076CE",
+                }}
               >
                 Reschedule
               </button>
@@ -381,6 +395,14 @@ const [bookingDate, setBookingDate] = useState("");
               <button
                 className="btn btn-outline-danger"
                 onClick={() => handleCancelBookingButtonClick(id)}
+                onMouseEnter={() => setIsCancelHovered(true)}
+                onMouseLeave={() => setIsCancelHovered(false)}
+                style={{
+                  border: "1px solid #B8141A",
+                  backgroundColor: isCancelHovered ? "#B8141A" : "transparent",
+                  color: isCancelHovered ? "white" : "#B8141A",
+                  transition: "all 0.3s ease-in-out",
+                }}
               >
                 Cancel Service
               </button>
@@ -747,7 +769,7 @@ const [bookingDate, setBookingDate] = useState("");
         year: "numeric",
       }) +
       " | " +
-      new Date(booking.bookedDate).toLocaleTimeString("en-US", {
+      new Date().toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
@@ -879,7 +901,7 @@ const [bookingDate, setBookingDate] = useState("");
                                   </select>
                                 </span>
                               )}
-                            {/* Display Service Started Time */}
+                          
                           </td>
                         </tr>
                         

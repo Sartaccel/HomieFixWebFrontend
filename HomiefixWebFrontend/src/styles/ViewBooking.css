@@ -90,3 +90,12 @@
   z-index: 1050;
 }
 
+.main-content.fade-in-shadow {
+  background-color: rgba(0, 0, 0, 0.1); /* A light background color */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Apply shadow to main page */
+  opacity: 0.9; /* Make the content slightly transparent for the fade effect */
+}
+.main-content {
+  position: relative;
+  transition: all 0.5s ease-in-out; /* Smooth transition for fade-in effect */
+}
