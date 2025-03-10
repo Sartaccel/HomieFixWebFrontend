@@ -522,8 +522,7 @@ const [bookingDate, setBookingDate] = useState("");
                         <p className="mb-1">
                           <i className="bi bi-geo-alt me-2"></i>{" "}
                           {worker.houseNumber},{worker.nearbyLandmark},
-                          {worker.town},{worker.pincode},{worker.state},
-                          {worker.district}
+                          {worker.district},{worker.town},{worker.state},{worker.pincode},
                         </p>
                       </div>
                     </div>
