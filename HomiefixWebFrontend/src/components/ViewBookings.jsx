@@ -3,35 +3,36 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import "../styles/ViewBooking.css";
 import Reschedule from "./Reschedule"; // Import the Reschedule component
 import CancelBooking from "./CancelBooking"; // Import the CancelBooking component
-import Header from "./Header"
+import Header from "./Header";
+
 const ViewBookings = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate(); // Fixed missing import
   const bookings = location.state?.booking || {};
   const [booking, setBooking] = useState("");
- const [bookedDate, setBookedDate] = useState("");
+  const [bookedDate, setBookedDate] = useState("");
   const [activeTab, setActiveTab] = useState("serviceDetails");
   const [worker, setWorker] = useState([]);
   const [serviceStarted, setServiceStarted] = useState("No");
   const [serviceCompleted, setServiceCompleted] = useState("No");
- const [notes, setNotes] = useState("");
-   const [loading, setLoading] = useState(true);
+  const [notes, setNotes] = useState("");
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-   const [showCancelBookingModal, setShowCancelBookingModal] = useState(false); // State to control CancelBooking visibility
+  const [showCancelBookingModal, setShowCancelBookingModal] = useState(false); // State to control CancelBooking visibility
   const [cancellationReason, setCancellationReason] = useState(null);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [showRescheduledRow, setShowRescheduledRow] = useState(false);
- const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
-  const [ selectedBookingIdForCancellation,setSelectedBookingIdForCancellation] = useState("");
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+  const [selectedBookingIdForCancellation, setSelectedBookingIdForCancellation] = useState("");
   const [isCancellationConfirmed, setIsCancellationConfirmed] = useState(false);
   const [isRescheduledConfirmed, setIsRescheduledConfirmed] = useState(false); // To track reschedule confirmation
   const [isUpdated, setIsUpdated] = useState(false); // New state to track if the booking was updated
   const [feedback, setFeedback] = useState([]);
-const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
+  const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
   const [isCancelHovered, setIsCancelHovered] = useState(false);
   const [bookingStatuses, setBookingStatuses] = useState({});
- 
+
   useEffect(() => {
     // Fetch feedback for a specific booking when the bookingId changes
     const fetchFeedback = async () => {
@@ -69,13 +70,12 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
   }, [id]); // Re-run when bookingId changes
 
   const getCurrentDate = () => {
-    const date = new Date() ;
+    const date = new Date();
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "2-digit",
       year: "numeric",
     });
-
   };
 
   useEffect(() => {
@@ -92,7 +92,7 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
         }
         const data = await response.json();
         console.log("Fetched Booking Data:", data);
-        if (data && data.bookingDate && data.bookedDate ) {
+        if (data && data.bookingDate && data.bookedDate) {
           setBooking(data);
           setNotes(data.notes || "");
           setError(null);
@@ -135,11 +135,8 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
     console.log("Worker Data:", worker);
   }, [worker]);
 
-
-
-
   const updateBooking = async () => {
-    const serviceStarted = bookingStatuses[id]?.serviceStarted ;
+    const serviceStarted = bookingStatuses[id]?.serviceStarted;
     const serviceCompleted = bookingStatuses[id]?.serviceCompleted;
 
     if (!id) {
@@ -198,35 +195,36 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
       alert("Network error while updating booking.");
     }
   };
+
   useEffect(() => {
     // Get saved statuses for all bookings
     const savedStatuses = JSON.parse(localStorage.getItem("bookingStatuses")) || {};
     setBookingStatuses(savedStatuses);
   }, []);
-  
+
   const handleServiceStartedChange = (e, id) => {
     const value = e.target.value === "Yes" ? new Date().toISOString() : "No";
     setBookingStatuses((prevStatuses) => {
-      const updatedStatuses = { 
-        ...prevStatuses, 
-        [id]: { 
-          ...prevStatuses[id], 
+      const updatedStatuses = {
+        ...prevStatuses,
+        [id]: {
+          ...prevStatuses[id],
           serviceStarted: value
         }
       };
-  
+
       // Save the updated statuses to localStorage
       localStorage.setItem("bookingStatuses", JSON.stringify(updatedStatuses));
       return updatedStatuses;
     });
-  
+
     // If service is marked as started, set serviceCompleted to "No"
     if (value === "Yes") {
       setBookingStatuses((prevStatuses) => {
-        const updatedStatuses = { 
-          ...prevStatuses, 
-          [id]: { 
-            ...prevStatuses[id], 
+        const updatedStatuses = {
+          ...prevStatuses,
+          [id]: {
+            ...prevStatuses[id],
             serviceCompleted: "No" // Reset service completed status
           }
         };
@@ -235,24 +233,24 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
       });
     }
   };
-  
+
   const handleServiceCompletedChange = (e, id) => {
     const value = e.target.value === "Yes" ? new Date().toISOString() : "No";
     setBookingStatuses((prevStatuses) => {
-      const updatedStatuses = { 
-        ...prevStatuses, 
-        [id]: { 
-          ...prevStatuses[id], 
-          serviceCompleted: value 
+      const updatedStatuses = {
+        ...prevStatuses,
+        [id]: {
+          ...prevStatuses[id],
+          serviceCompleted: value
         }
       };
-  
+
       // Save the updated statuses to localStorage
       localStorage.setItem("bookingStatuses", JSON.stringify(updatedStatuses));
       return updatedStatuses;
     });
   };
-  
+
   const getLinePosition = () => {
     let position = 72; // Initial position for "Booking Successful"
     let color = "black"; // Default color (black)
@@ -262,11 +260,11 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
       position = 70; // Move down when "Worker Assigned"
       color = "black"; // Worker Assigned color (Black)
     }
-    if (selectedBookingId && showRescheduledRow ) {
+    if (selectedBookingId && showRescheduledRow) {
       position = 150; // Adjust for rescheduled booking
-      color = "#C14810"; 
+      color = "#C14810";
     }
-   
+
     if (serviceStarted !== "No") {
       position = 137; // Move down when "Service Started"
       color = "black"; // Service Started color (Black)
@@ -293,7 +291,6 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
   const handleCancelBookingButtonClick = (id) => {
     setSelectedBookingIdForCancellation(id); // Store the selected booking ID
     setShowCancelBookingModal(true); // Show the cancel booking modal
-    // setLineColor("red");
   };
 
   const openRescheduleModal = () => {
@@ -309,18 +306,16 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
     setIsRescheduledConfirmed(true);
     // Update only the selected booking, not all bookings
     setBooking((prevBooking) =>
-     
-         selectedBookingId
-          ? {
-              ...booking,
-              bookedDate: newDate,
-              bookedTimeSlot: newTime,
-              rescheduleReason: reason,
-            }
-          : booking
-      )
-    
-  
+      selectedBookingId
+        ? {
+            ...booking,
+            bookedDate: newDate,
+            bookedTimeSlot: newTime,
+            rescheduleReason: reason,
+          }
+        : booking
+    );
+
     setShowRescheduledRow(true);
 
     closeRescheduleModal(); // Close modal after success
@@ -363,19 +358,18 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
       setLoading(false); // Reset loading state
     }
   };
- 
 
   // Function to dynamically apply the text color
   const getTextColor = () => {
-    return isUpdated ? "green" : "";  // Green if updated, Grey if not
+    return isUpdated ? "green" : ""; // Green if updated, Grey if not
   };
 
   return (
-    <div className="container-fluid m-0 p-0 vh-100 w-100" >
+    <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
           {/* Header */}
-         <Header/>
+          <Header />
 
           {/* Navigation Bar */}
           <div className="navigation-bar d-flex justify-content-between align-items-center py-2 px-3 bg-white border-bottom w-100">
@@ -460,28 +454,28 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                 </div>
 
                 <div className="p-0 m-0 mt-2">
-                <>
-    {booking ? (
-      <>
-        <h6 style={{ fontWeight: "bold" }}>Customer Details</h6>
-        <p className="mb-1">
-          <i className="bi bi-person me-2"></i> {bookings?.name ?? "N/A"}
-        </p>
-        <p className="mb-1">
-          <i className="bi bi-telephone me-2"></i> {bookings?.contact ?? "N/A"}
-        </p>
-        <p className="mb-1">
-          <i className="bi bi-geo-alt me-2"></i> {bookings?.address ?? "N/A"}
-        </p>
-        <p className="mb-1">
-          <i className="bi bi-calendar-event me-2"></i>
-          {booking?.bookingDate ?? "N/A"} {"|"} {booking?.timeSlot ?? "N/A"}
-        </p>
-      </>
-    ) : (
-      <p>Loading customer details...</p>
-    )}
-  </>
+                  <>
+                    {booking ? (
+                      <>
+                        <h6 style={{ fontWeight: "bold" }}>Customer Details</h6>
+                        <p className="mb-1">
+                          <i className="bi bi-person me-2"></i> {bookings?.name ?? "N/A"}
+                        </p>
+                        <p className="mb-1">
+                          <i className="bi bi-telephone me-2"></i> {bookings?.contact ?? "N/A"}
+                        </p>
+                        <p className="mb-1">
+                          <i className="bi bi-geo-alt me-2"></i> {bookings?.address ?? "N/A"}
+                        </p>
+                        <p className="mb-1">
+                          <i className="bi bi-calendar-event me-2"></i>
+                          {booking?.bookingDate ?? "N/A"} {"|"} {booking?.timeSlot ?? "N/A"}
+                        </p>
+                      </>
+                    ) : (
+                      <p>Loading customer details...</p>
+                    )}
+                  </>
                 </div>
 
                 {/* Comment Field (Notes) */}
@@ -514,12 +508,8 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                     value={notes}
                     onChange={handleNotesChange} // Update notes state
                     onBlur={handleUpdateNotes} // Trigger save when user clicks away
-                     
                   >
-                    
-      
-                  </textarea>  
-               
+                  </textarea>
                 </div>
 
                 {/* Worker Details */}
@@ -668,8 +658,8 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                     borderRadius: "12px",
                     position: "relative",
                     display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
                   }}
                 >
                   <h5>Status update</h5>
@@ -684,8 +674,8 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                       flex: 1,
                       display: "flex",
                       flexDirection: "column",
-                       justifyContent: "flex-start",
-                       gap: "20px",  // Added some gap for spacing between secti
+                      justifyContent: "flex-start",
+                      gap: "20px", // Added some gap for spacing between sections
                     }}
                   >
                     <div
@@ -699,12 +689,11 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                         transition: "height 0.5s ease-in-out",
                       }}
                     >
-
                     </div>
-                    
+
                     <table className="table w-100" style={{ width: "100%" }}>
                       <tbody>
-                       <tr style={{ height: "40px",width:"500px" }}>
+                        <tr style={{ height: "40px", width: "500px" }}>
                           <td className="text-start border-right">
                             <span style={{ color: "grey" }}>
                               {new Date().toLocaleDateString("en-US", {
@@ -718,7 +707,7 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                                 minute: "2-digit",
                                 hour12: true,
                               })}
-                            </span><br/>
+                            </span><br />
                             Booking Successful on{" "}
                             {new Date(booking.bookingDate).toLocaleDateString("en-US", {
                               month: "short",
@@ -738,17 +727,17 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                               <td className="text-start border-right">
                                 {/* Display booked date only if this booking is selected */}
                                 <span style={{ color: "grey" }}>
-                                {new Date().toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "2-digit",
-                                year: "numeric",
-                              })}{" "}
-                              |{" "}
-                              {new Date().toLocaleTimeString("en-US", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              })}
+                                  {new Date().toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "2-digit",
+                                    year: "numeric",
+                                  })}{" "}
+                                  |{" "}
+                                  {new Date().toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })}
                                 </span>
                                 <span
                                   className="booking-details"
@@ -770,7 +759,7 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                                       Service Cancelled
                                     </span>
                                   </span>
-                                <span style={{ fontSize: "14px" }}>
+                                  <span style={{ fontSize: "14px" }}>
                                     {cancellationReason
                                       ? cancellationReason
                                       : "No reason provided"}
@@ -783,27 +772,27 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                               ></td>
                             </tr>
                           )}
-                       <tr style={{ height: "70px",width:"500px" }}>
+                        <tr style={{ height: "70px", width: "500px" }}>
                           <td className="text-start border-right">
                             <span style={{ color: "grey" }}>
-                            {booking.bookedDate !== "No"
-                        ? new Date(booking.bookedDate).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "2-digit",
-                              year: "numeric",
-                              }) +
-                            " | " +
-                         new Date().toLocaleTimeString("en-US", {
-                         hour: "2-digit",
-                         minute: "2-digit",
-                         hour12: true,
-                         })
-                    : "Not Assigned"}
-                    </span>
+                              {booking.bookedDate !== "No"
+                                ? new Date(booking.bookedDate).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "2-digit",
+                                  year: "numeric",
+                                }) +
+                                " | " +
+                                new Date().toLocaleTimeString("en-US", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                })
+                                : "Not Assigned"}
+                            </span>
                             <br />
                             Worker Assigned
                           </td>
-                           <td
+                          <td
                             className="text-end"
                             style={{ backgroundColor: "#f0f0f0" }}
                           ></td>
@@ -811,21 +800,20 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                         {selectedBookingId && showRescheduledRow && (
                           <tr style={{ height: "40px" }}>
                             <td className="text-start border-right">
-                              {console.log(booking)}
                               <span style={{ color: "grey" }}>
-                              {booking.bookedDate !== "No"
-                       ? new Date(booking.bookedDate).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "2-digit",
-                              year: "numeric",
-                             }) +
-                           " | " +
-                    new Date().toLocaleTimeString("en-US", {
-                   hour: "2-digit",
-                   minute: "2-digit",
-                   hour12: true,
-                      })
-                  : "Not Assigned"}
+                                {booking.bookedDate !== "No"
+                                  ? new Date(booking.bookedDate).toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "2-digit",
+                                    year: "numeric",
+                                  }) +
+                                  " | " +
+                                  new Date().toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })
+                                  : "Not Assigned"}
                               </span>
                               <span
                                 className="booking-details"
@@ -834,7 +822,6 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                                   flexDirection: "column",
                                   gap: "5px",
                                   fontSize: "14px",
-                                  
                                 }}
                               >
                                 <span
@@ -860,7 +847,7 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                                   </span>
                                 </span>
                                 <span style={{ fontSize: "14px" }}>
-                                  <td>{booking.rescheduleReason}</td>
+                                  {booking.rescheduleReason}
                                 </span>
                               </span>
                             </td>
@@ -870,41 +857,40 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                             ></td>
                           </tr>
                         )}
-                 <tr key={booking.id}style={{ height: "70px",width:'500px' }}>
+                        <tr key={booking.id} style={{ height: "70px", width: '500px' }}>
                           <td className="text-start border-right">
                             <span style={{ color: "grey" }}>
-                             {bookingStatuses[booking.id]?.serviceStarted !== "No"
-                     ? `${new Date(bookingStatuses[booking.id]?.serviceStarted).toLocaleDateString("en-US", {
-                        month: "short",
-                         day: "2-digit",
-                          year: "numeric",
-                     })} | ${new Date(bookingStatuses[booking.id]?.serviceStarted).toLocaleTimeString("en-US", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                       hour12: true,
-                        })}`
-                 : `${new Date().toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "2-digit",
-                     year: "numeric",
-                    })} | ${new Date().toLocaleTimeString("en-US", {
-                      hour: "2-digit",
-                     minute: "2-digit",
-                      hour12: true,
-                         })}`}
+                              {bookingStatuses[booking.id]?.serviceStarted !== "No"
+                                ? `${new Date(bookingStatuses[booking.id]?.serviceStarted).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "2-digit",
+                                  year: "numeric",
+                                })} | ${new Date(bookingStatuses[booking.id]?.serviceStarted).toLocaleTimeString("en-US", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                })}`
+                                : `${new Date().toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "2-digit",
+                                  year: "numeric",
+                                })} | ${new Date().toLocaleTimeString("en-US", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                })}`}
                             </span>
                             <br />
                             Service Started
                           </td>
-                          <td
-                            className="text-end "
+                          <td className="text-end"
                             style={{ backgroundColor: "#f0f0f0" }}
                           >
-                           {
+                            {
                               !(
                                 selectedBookingIdForCancellation &&
                                 cancellationReason
-                              ) && (  
+                              ) && (
                                 <span className="custom-dropdown">
                                   <select
                                     className="no-border"
@@ -916,13 +902,13 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                                   </select>
                                 </span>
                               )}
-                           </td>
+                          </td>
                         </tr>
-                        <tr style={{ height: "80px",width:"500px" }}>
+                        <tr style={{ height: "80px", width: "500px" }}>
                           <td className="text-start border-right">
                             <span style={{ color: "grey" }}>
-                               {bookingStatuses[booking.id]?.serviceCompleted !== "No"
-                               ? `${new Date(bookingStatuses[booking.id]?.serviceCompleted).toLocaleDateString("en-US", {
+                              {bookingStatuses[booking.id]?.serviceCompleted !== "No"
+                                ? `${new Date(bookingStatuses[booking.id]?.serviceCompleted).toLocaleDateString("en-US", {
                                   month: "short",
                                   day: "2-digit",
                                   year: "numeric",
@@ -931,7 +917,7 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                                   minute: "2-digit",
                                   hour12: true,
                                 })}`
-                              : `${new Date().toLocaleDateString("en-US", {
+                                : `${new Date().toLocaleDateString("en-US", {
                                   month: "short",
                                   day: "2-digit",
                                   year: "numeric",
@@ -944,16 +930,14 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                             <br />
                             <span style={{ color: getTextColor() }}>  Service Completed  </span>
                           </td>
-                          <td
-                            className="text-end"
+                          <td className="text-end"
                             style={{ backgroundColor: "#f0f0f0" }}
                           >
-                              {
+                            {
                               !(
                                 selectedBookingIdForCancellation &&
                                 cancellationReason
-                              ) && (  
-                               
+                              ) && (
                                 <span className="custom-dropdown">
                                   <select
                                     className="no-border"
@@ -964,17 +948,18 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                                     <option value="Yes">Yes</option>
                                   </select>
                                 </span>
-                              )} 
+                              )}
                           </td>
                         </tr>
-                        </tbody>
+                      </tbody>
                     </table>
-                  
-                   <button className="btn btn-primary w-100" onClick={() => updateBooking(booking.id)}>
-                   Update
-                 </button>
-                    
+
+                    <button className="btn btn-primary w-100" onClick={() => updateBooking(booking.id)}>
+                      Update
+                    </button>
+
                   </div>
+               
                 </div>
               </div>
             </div>
