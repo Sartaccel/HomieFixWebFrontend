@@ -559,7 +559,7 @@ const ViewBookings = () => {
                         <p className="mb-1">
                           <i className="bi bi-geo-alt me-2"></i>{" "}
                           {worker.houseNumber},{worker.nearbyLandmark},
-                          {worker.district},{worker.town},{worker.state},{worker.pincode},
+                          {worker.town},{worker.district},{worker.state},{worker.pincode},
                         </p>
                       </div>
                     </div>
