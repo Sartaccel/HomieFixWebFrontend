@@ -14,22 +14,23 @@ const Login = ({ setToken }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isInvalid, setIsInvalid] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
-  const [loading, setLoading] = useState(false); // Loading state
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Start loading when the button is clicked
+    setLoading(true);
     try {
-      const response = await axios.post("http://localhost:2222/auth/login", {
+      const response = await axios.post("http://localhost:2222/admin/login", {
         username,
         password,
       });
-
+  
       console.log("Login Response:", response.data);
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
+        localStorage.setItem("username", username); // Store username in local storage
         setToken(response.data.token);
-        navigate("/dashboard");
+        navigate("/dashboard"); // Redirect to dashboard after login
         setIsInvalid(false);
         setErrorMessage("");
       } else {
@@ -41,7 +42,7 @@ const Login = ({ setToken }) => {
       setIsInvalid(true);
       setErrorMessage("Invalid credentials");
     }
-    setLoading(false); // Stop loading after request completes
+    setLoading(false);
   };
 
   return (

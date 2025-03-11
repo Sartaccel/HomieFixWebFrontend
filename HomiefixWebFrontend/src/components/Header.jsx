@@ -18,6 +18,9 @@ const Header = () => {
     return "Dashboard"; // Default heading
   };
 
+  // Retrieve username from local storage
+  const username = localStorage.getItem("username");
+
   return (
     <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
       <h2 className="heading align-items-center mb-0" style={{ marginLeft: "31px" }}>{getHeading()}</h2>
@@ -38,7 +41,7 @@ const Header = () => {
           alt="Profile"
           width="40"
           className="cursor-pointer"
-          onClick={() => navigate("/profile")} // Navigate to Profile
+          onClick={() => navigate(`/profile/${username}`)} // Dynamically insert username
           style={{ cursor: "pointer" }} // Ensure it's clickable
         />
       </div>
