@@ -31,6 +31,7 @@ const ViewBookings = () => {
 const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
   const [isCancelHovered, setIsCancelHovered] = useState(false);
   const [bookingStatuses, setBookingStatuses] = useState({});
+ 
   useEffect(() => {
     // Fetch feedback for a specific booking when the bookingId changes
     const fetchFeedback = async () => {
@@ -138,7 +139,7 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
 
 
   const updateBooking = async () => {
-    const serviceStarted = bookingStatuses[id]?.serviceStarted;
+    const serviceStarted = bookingStatuses[id]?.serviceStarted ;
     const serviceCompleted = bookingStatuses[id]?.serviceCompleted;
 
     if (!id) {
@@ -210,7 +211,7 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
         ...prevStatuses, 
         [id]: { 
           ...prevStatuses[id], 
-          serviceStarted: value 
+          serviceStarted: value
         }
       };
   
@@ -749,7 +750,7 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                                 hour12: true,
                               })}
                                 </span>
-                                <div
+                                <span
                                   className="booking-details"
                                   style={{
                                     display: "flex",
@@ -758,7 +759,7 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                                     fontSize: "14px",
                                   }}
                                 >
-                                  <div
+                                  <span
                                     style={{
                                       display: "flex",
                                       alignItems: "center",
@@ -768,13 +769,13 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                                     <span style={{ color: "#AE1319" }}>
                                       Service Cancelled
                                     </span>
-                                  </div>
-                                <div style={{ fontSize: "14px" }}>
+                                  </span>
+                                <span style={{ fontSize: "14px" }}>
                                     {cancellationReason
                                       ? cancellationReason
                                       : "No reason provided"}
-                                  </div>
-                                </div>
+                                  </span>
+                                </span>
                               </td>
                               <td
                                 className="text-end"
@@ -826,7 +827,7 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                       })
                   : "Not Assigned"}
                               </span>
-                              <div 
+                              <span
                                 className="booking-details"
                                 style={{
                                   display: "flex",
@@ -836,7 +837,7 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                                   
                                 }}
                               >
-                                <div
+                                <span
                                   style={{
                                     display: "flex",
                                     alignItems: "center",
@@ -857,11 +858,11 @@ const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
                                     {booking.timeSlot}
                                     {/* Assuming bookedTimeSlot is in the correct format */}
                                   </span>
-                                </div>
-                                <div style={{ fontSize: "14px" }}>
+                                </span>
+                                <span style={{ fontSize: "14px" }}>
                                   <td>{booking.rescheduleReason}</td>
-                                </div>
-                              </div>
+                                </span>
+                              </span>
                             </td>
                             <td
                               className="text-end"
