@@ -278,7 +278,7 @@ const ViewBookings = () => {
   
     if (bookingStatuses[booking.id]?.serviceCompleted !== "No") {
       position = 212; // Service Completed
-      color = "green"; // Green color for completed service
+      color = "#1F7A45"; // Green color for completed service
     }
     if (selectedBookingIdForCancellation && isCancellationConfirmed) {
       position = 80; // Adjust for cancellation row visibility
@@ -332,25 +332,40 @@ const ViewBookings = () => {
     setSelectedBookingId(id); // This will trigger the modal to open
     openRescheduleModal();
   };
+  useEffect(() => {
+    const savedNotes = localStorage.getItem("notes"); // Get saved notes from localStorage
+    if (savedNotes) {
+      console.log("Loaded notes from localStorage:", savedNotes);
+      setNotes(savedNotes); // Set notes state with saved value from localStorage
+    }
+  }, []); // Empty dependency array ensures this runs once on component mount
+
+  // Handle notes input change
   const handleNotesChange = (e) => {
-    setNotes(e.target.value); // Update notes state as user types
+    setNotes(e.target.value); // Update the state as the user types
   };
+
+  // Handle save (onBlur or on a button click)
   const handleUpdateNotes = async () => {
-    localStorage.setItem("notes", notes); // Save notes to localStorage
     if (!id || !notes) {
       return; // Don't send empty requests or when no bookingId
     }
 
     setLoading(true); // Set loading state to true
     try {
+      // First, store the updated notes in localStorage immediately
+      localStorage.setItem("notes", notes); // Save notes to localStorage
+      console.log("Saved notes to localStorage:", notes); // Debugging log
+
+      // Now, send the updated notes to the backend
       const response = await fetch(
         `http://localhost:2222/booking/update-notes/${id}`,
         {
-          method: "PATCH", // Use PATCH request
+          method: "PATCH", // Use PATCH request to update the notes
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ notes }), // Send the updated notes in the request body
+          body: JSON.stringify({ notes }), // Send updated notes in the request body
         }
       );
 
@@ -358,14 +373,21 @@ const ViewBookings = () => {
         throw new Error("Failed to update booking notes");
       }
 
-      const data = await response.json(); // Get the updated booking
+      const data = await response.json(); // Get updated booking from backend
       console.log("Updated Booking:", data);
+
+      // After updating the backend, update the local state with the latest notes
+      setNotes(data.notes); // Update the notes state with the latest value from the backend
+
+      // Optionally, you can also update localStorage to reflect the change
+      localStorage.setItem("notes", data.notes);
     } catch (err) {
       console.error("Error updating notes:", err);
     } finally {
-      setLoading(false); // Reset loading state
+      setLoading(false); // Reset loading state after the request is complete
     }
   };
+
 
   // Function to dynamically apply the text color
   const getTextColor = (status) => {
@@ -481,7 +503,12 @@ const ViewBookings = () => {
                         </p>
                         <p className="mb-1">
                           <i className="bi bi-calendar-event me-2"></i>
-                          {booking?.bookingDate ?? "N/A"} {"|"} {booking?.timeSlot ?? "N/A"}
+                          {new Date(booking.bookingDate).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "2-digit",
+                              year: "numeric",
+                            })}
+                            {booking.timeSlot ? ` | ${booking.timeSlot}` : ""}
                         </p>
                       </>
                     ) : (
@@ -522,6 +549,7 @@ const ViewBookings = () => {
                     onBlur={handleUpdateNotes} // Trigger save when user clicks away
                   >
                   </textarea>
+                  {loading && <div>Loading...</div>} {/* Optional: Loading indicator */}
                 </div>
 
                 {/* Worker Details */}
