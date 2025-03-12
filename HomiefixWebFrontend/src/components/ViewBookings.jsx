@@ -31,8 +31,12 @@ const ViewBookings = () => {
   const [feedback, setFeedback] = useState([]);
   const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
   const [isCancelHovered, setIsCancelHovered] = useState(false);
-  const [bookingStatuses, setBookingStatuses] = useState({});
-
+  const [bookingStatuses, setBookingStatuses] = useState(() => {
+    const savedStatuses = localStorage.getItem("bookingStatuses");
+    return savedStatuses ? JSON.parse(savedStatuses) : {}; // Ensure fallback
+  });
+  const [statuses, setStatuses] = useState(bookingStatuses);
+ 
   useEffect(() => {
     // Fetch feedback for a specific booking when the bookingId changes
     const fetchFeedback = async () => {
@@ -212,6 +216,7 @@ const ViewBookings = () => {
           serviceStarted: value
         }
       };
+      console.log("Updated serviceStarted:", updatedStatuses[id].serviceStarted);
 
       // Save the updated statuses to localStorage
       localStorage.setItem("bookingStatuses", JSON.stringify(updatedStatuses));
@@ -228,6 +233,7 @@ const ViewBookings = () => {
             serviceCompleted: "No" // Reset service completed status
           }
         };
+       
         localStorage.setItem("bookingStatuses", JSON.stringify(updatedStatuses));
         return updatedStatuses;
       });
@@ -244,13 +250,13 @@ const ViewBookings = () => {
           serviceCompleted: value
         }
       };
-
+      console.log("Updated serviceCompleted:", updatedStatuses[id].serviceCompleted);
       // Save the updated statuses to localStorage
       localStorage.setItem("bookingStatuses", JSON.stringify(updatedStatuses));
       return updatedStatuses;
     });
   };
-
+ 
   const getLinePosition = () => {
     let position = 72; // Initial position for "Booking Successful"
     let color = "black"; // Default color (black)
@@ -265,19 +271,21 @@ const ViewBookings = () => {
       color = "#C14810";
     }
 
-    if (serviceStarted !== "No") {
-      position = 137; // Move down when "Service Started"
-      color = "black"; // Service Started color (Black)
+    if (bookingStatuses[booking.id]?.serviceStarted !== "No" ) {
+      position = 137; // Service Started
+      color = "black";
     }
-    if (serviceCompleted !== "No") {
-      position = 212; // Move down when "Service Completed"
-      color = "green"; // Service Completed color (Green)
+  
+    if (bookingStatuses[booking.id]?.serviceCompleted !== "No") {
+      position = 212; // Service Completed
+      color = "green"; // Green color for completed service
     }
     if (selectedBookingIdForCancellation && isCancellationConfirmed) {
       position = 80; // Adjust for cancellation row visibility
       color = "#AE1319"; // Cancellation color (Red)
     }
 
+    console.log(`Position: ${position}, Color: ${color}`);
     return { position: `${position}px`, color };
   };
   const { position, color } = getLinePosition();
@@ -360,10 +368,14 @@ const ViewBookings = () => {
   };
 
   // Function to dynamically apply the text color
-  const getTextColor = () => {
-    return isUpdated ? "green" : ""; // Green if updated, Grey if not
+  const getTextColor = (status) => {
+    return status !== "No" ? "green" : "";  // Green if completed, grey if not
   };
-
+  useEffect(() => {
+    // If you want to fetch or sync status data on initial load
+    setStatuses(bookingStatuses);
+  }, [bookingStatuses]);
+  
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
@@ -691,7 +703,7 @@ const ViewBookings = () => {
                     >
                     </div>
 
-                    <table className="table w-100" style={{ width: "100%" }}>
+                    <table className="table w-100" style={{  position: "relative",width: "100%" }}>
                       <tbody>
                         <tr style={{ height: "40px", width: "500px" }}>
                           <td className="text-start border-right">
@@ -928,7 +940,7 @@ const ViewBookings = () => {
                                 })}`}
                             </span>
                             <br />
-                            <span style={{ color: getTextColor() }}>  Service Completed  </span>
+                            <span style={{ color: getTextColor(statuses[booking.id]?.serviceCompleted) }}>  Service Completed  </span>
                           </td>
                           <td className="text-end"
                             style={{ backgroundColor: "#f0f0f0" }}
