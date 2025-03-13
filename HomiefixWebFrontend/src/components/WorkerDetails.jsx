@@ -2,8 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import axios from "axios";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import notification from "../assets/Bell.png";
+import profile from "../assets/Profile.png";
+import search from "../assets/Search.png";
 import alenSamImg from "../assets/home1.png";
 import Header from "./Header";
 
@@ -12,30 +16,19 @@ const WorkerDetails = () => {
   const [workers, setWorkers] = useState([]);
   const [showFilter, setShowFilter] = useState(false);
   const [selectedSpecifications, setSelectedSpecifications] = useState([]);
-  const [loading, setLoading] = useState(true); // Loading state
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchWorkers = async () => {
-      setLoading(true); // Set loading to true when fetching starts
       try {
-        const response = await fetch("http://localhost:2222/workers/view");
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const text = await response.text();
-        if (!text) {
-          throw new Error("Empty response from server");
-        }
-
-        const data = JSON.parse(text);
+        const response = await axios.get("http://localhost:2222/workers/view");
+        const data = response.data;
         setWorkers(data);
       } catch (error) {
         console.error("Error fetching worker data:", error);
         setWorkers([]);
       } finally {
-        setLoading(false); // Set loading to false when fetching is done
+        setLoading(false);
       }
     };
     fetchWorkers();
@@ -64,19 +57,16 @@ const WorkerDetails = () => {
 
   return (
     <div>
-      {/* Navbar */}
       <Header />
 
       <div className="container pt-5" style={{ paddingTop: "80px" }}>
         <div className="d-flex justify-content-between align-items-center mb-3 mt-5" style={{ marginRight: "25px" }}>
-          <h5 className="px-3 pb-2 text-black mx-3" style={{ borderBottom: "4px solid #000" }}>Worker Details</h5>
+          <h5 className="px-3 pb-3 text-black mx-3" style={{ borderBottom: "4px solid #000" }}>Worker Details</h5>
           <div>
             <button className="btn text-light me-2" onClick={() => navigate("/worker-details/add-worker")} style={{ backgroundColor: "#0076CE" }}>Add Worker</button>
             <button className="btn border text-black" onClick={() => setShowFilter(true)}>Filter <i className="bi bi-funnel"></i></button>
           </div>
         </div>
-
-        {/* Filter Modal */}
         {showFilter && (
           <div className="modal d-block" style={{ zIndex: 12111, position: "fixed", top: "150px", left: "250px" }}>
             <div className="modal-lg-dialog" style={{ width: "81%" }}>
@@ -116,8 +106,6 @@ const WorkerDetails = () => {
             </div>
           </div>
         )}
-
-        {/* Main Content */}
         <div style={{ overflow: "hidden", padding: "10px 15px" }}>
           <div style={{ maxHeight: "77vh", overflowY: "auto", border: "1px solid #dee2e6" }}>
             <table className="table table-hover" style={{ width: "100%", marginBottom: "0", tableLayout: "fixed" }}>
@@ -133,15 +121,14 @@ const WorkerDetails = () => {
               </thead>
               <tbody>
                 {loading ? (
-                  // Render skeleton rows while loading
-                  Array.from({ length: 5 }).map((_, index) => (
+                  Array(5).fill().map((_, index) => (
                     <tr key={index}>
-                      <td><Skeleton height={40} /></td>
-                      <td><Skeleton height={40} /></td>
-                      <td><Skeleton height={40} /></td>
-                      <td><Skeleton height={40} /></td>
-                      <td><Skeleton height={40} /></td>
-                      <td><Skeleton height={40} /></td>
+                      <td><Skeleton width={100} height={20} /></td>
+                      <td><Skeleton width={150} height={20} /></td>
+                      <td><Skeleton width={80} height={20} /></td>
+                      <td><Skeleton width={50} height={20} /></td>
+                      <td><Skeleton width={200} height={20} /></td>
+                      <td><Skeleton width={100} height={20} /></td>
                     </tr>
                   ))
                 ) : filteredWorkers.length > 0 ? (
