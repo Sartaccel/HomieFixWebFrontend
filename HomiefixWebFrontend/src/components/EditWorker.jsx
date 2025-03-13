@@ -3,9 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
 import Swal from "sweetalert2"; // Import SweetAlert2
-import notification from "../assets/Bell.png";
-import profile from "../assets/Profile.png";
-import search from "../assets/Search.png";
 import addWorker from "../assets/addWorker.png";
 import "../styles/AddWorker.css";
 import Header from "./Header";

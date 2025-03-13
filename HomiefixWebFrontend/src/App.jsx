@@ -8,11 +8,9 @@ import AssignBookings from "./components/AssignBookings";
 import CustomerReview from "./components/CustomerReview";
 import Reviews from "./components/Reviews";
 import ProtectedRoute from "./components/ProtectedRoute";
-
 import Reschedule from "./components/Reschedule";
 import CancelBooking from "./components/CancelBooking";
 import ViewBookings from "./components/ViewBookings";
-
 import WorkerDetails from "./components/WorkerDetails";
 import AddWorker from "./components/AddWorker";
 import Services from "./components/Services";
@@ -40,15 +38,14 @@ const App = () => {
             <Route path="/booking-details" element={<BookingDetails />} />
             <Route path="/booking-details/view-bookings/:id" element={<ViewBookings />} />
             <Route path="/booking-details/reschedule/:id" element={<Reschedule />} />
-            <Route path="/booking-details/reschedule/:id" element={<CancelBooking />} />
+            <Route path="/booking-details/cancel-booking/:id" element={<CancelBooking />} />
             <Route path="/booking-details/assign-bookings/:id" element={<AssignBookings />} />
-            {/* <Route path="/reviews" element={<Reviews />} /> */}
-            {/* <Route path="/reviews/customer-review/:id" element={<CustomerReview />} /> */}
             <Route path="/reviews" element={<ComingSoon />} />
+            <Route path="/reviews/customer-review/:id" element={<CustomerReview />} />
             <Route path="/worker-details" element={<WorkerDetails />} />
             <Route path="/worker-details/worker/:id" element={<Worker />} />
             <Route path="/worker-details/add-worker" element={<AddWorker />} />
-            <Route path="/worker-details/worker/edit/:id" element={<EditWorker/>}/>
+            <Route path="/worker-details/worker/edit/:id" element={<EditWorker />} />
             <Route path="/services" element={<ComingSoon />} />
             <Route path="/profile" element={<Profile />} />
           </Route>

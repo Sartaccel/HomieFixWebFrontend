@@ -510,7 +510,7 @@ const ViewBookings = () => {
                     <p>No worker assigned</p>
                   )}
                   <a
-                    href={`/workers/view/${worker.id}`}
+                    href={`/worker-details/worker/${worker.id}`}
                     style={{
                       color: "#007bff",
                       marginLeft: "120px",

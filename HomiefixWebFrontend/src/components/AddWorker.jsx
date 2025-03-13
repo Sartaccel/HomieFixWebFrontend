@@ -3,9 +3,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import axios from "axios"; // Import axios
-import notification from "../assets/Bell.png";
-import profile from "../assets/Profile.png";
-import search from "../assets/Search.png";
 import addWorker from "../assets/addWorker.png";
 import "../styles/AddWorker.css";
 import Header from "./Header";

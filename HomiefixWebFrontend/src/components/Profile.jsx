@@ -1,10 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-import notification from "../assets/Bell.png";
-import profile from "../assets/Profile.png";
-import search from "../assets/Search.png";
-
 import "../styles/AssignBookings.css";
 import Header from "./Header";
 
