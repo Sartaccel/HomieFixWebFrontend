@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import axios from "axios";
+import Swal from "sweetalert2"; // Import SweetAlert2
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
@@ -30,8 +32,8 @@ const EditWorker = () => {
        drivingLicenseNumber: "",
        joiningDate: "",
        econtactNumber: "",
-       role: [], // Change to an array to store multiple roles
-       specification: [], // Array to store multiple specifications
+       role: [],
+       specification: [],
        language: [],
        profilePic: null,
    });
@@ -42,11 +44,8 @@ const EditWorker = () => {
    useEffect(() => {
        const fetchWorkerData = async () => {
            try {
-               const response = await fetch(`http://localhost:2222/workers/view/${id}`);
-               if (!response.ok) {
-                   throw new Error("Failed to fetch worker data");
-               }
-               const data = await response.json();
+               const response = await axios.get(`http://localhost:2222/workers/view/${id}`);
+               const data = response.data;
 
 
                // Initialize formData
@@ -87,26 +86,17 @@ const EditWorker = () => {
        }));
   
        setFormData((prevState) => {
-           // Update specifications
            const updatedSpecifications = prevState.specification.includes(item)
-               ? prevState.specification.filter((spec) => spec !== item) // Remove if already exists
+               ? prevState.specification.filter((spec) => spec !== item)
                : [...prevState.specification, item];
   
-           let updatedRoles = [...prevState.role];
-  
-           if (!updatedSpecifications.includes(item)) {
-               const hasOtherSpecsForRole = updatedSpecifications.some(
-                   (spec) => spec.startsWith(roleHeading)
-               );
-  
-               if (!hasOtherSpecsForRole) {
-                   updatedRoles = updatedRoles.filter((role) => role !== roleHeading);
-               }
-           } else {
-               if (!updatedRoles.includes(roleHeading)) {
-                   updatedRoles.push(roleHeading);
-               }
-           }
+           // Check if the roleHeading should be added or removed based on the updatedSpecifications
+           const roleExists = updatedSpecifications.some(spec => spec === item);
+           const updatedRoles = roleExists
+               ? prevState.role.includes(roleHeading)
+                   ? prevState.role
+                   : [...prevState.role, roleHeading]
+               : prevState.role.filter(role => role !== roleHeading);
   
            return {
                ...prevState,
@@ -144,7 +134,6 @@ const EditWorker = () => {
            const formDataToSend = new FormData();
            for (const key in formData) {
                if (key === "specification" || key === "role" || key === "language") {
-                   // Convert the array to a comma-separated string
                    formDataToSend.append(key, formData[key].join(","));
                } else {
                    formDataToSend.append(key, formData[key]);
@@ -152,15 +141,33 @@ const EditWorker = () => {
            }
 
 
-           const response = await fetch(`http://localhost:2222/workers/update/${id}`, {
-               method: "PUT",
-               body: formDataToSend,
+           const response = await axios.put(`http://localhost:2222/workers/update/${id}`, formDataToSend, {
+               headers: {
+                   "Content-Type": "multipart/form-data", // Set the content type for file uploads
+               },
            });
-           const data = await response.json();
-           console.log("Success:", data);
-           navigate(`/worker-details/worker/${id}`);
+
+
+           // Show success message using SweetAlert2
+           Swal.fire({
+               icon: "success",
+               title: "Success!",
+               text: "Worker details updated successfully.",
+               confirmButtonText: "OK",
+           }).then(() => {
+               navigate(`/worker-details/worker/${id}`); // Navigate after confirmation
+           });
        } catch (error) {
            console.error("Error:", error);
+
+
+           // Show error message using SweetAlert2
+           Swal.fire({
+               icon: "error",
+               title: "Error",
+               text: "Failed to update worker details. Please try again.",
+               confirmButtonText: "OK",
+           });
        }
    };
 
@@ -177,14 +184,14 @@ const EditWorker = () => {
                <button
                 className="btn btn-light p-2"
                 style={{ marginBottom: "-20px" }}
-                onClick={() => navigate(-1)} // Fix: Use navigate function
+                onClick={() => navigate(`/worker-details/worker/${id}`)}
               >
                 <i
                   className="bi bi-arrow-left"
                   style={{ fontSize: "1.5rem", fontWeight: "bold" }}
                 ></i>
               </button>
-                   <h5 className="px-3 pb-2 text-black"
+                   <h5 className="px-3 pb-3 text-black"
                        style={{
                            borderBottom: "4px solid #000",
                            position: "relative",
@@ -196,8 +203,7 @@ const EditWorker = () => {
            </div>
 
 
-           <div className="container" style={{ height: "80vh", overflowY: "auto", overflowX: "hidden", marginTop: "20px" }}>
-               <form onSubmit={handleSubmit}>
+           <div className="container" style={{ height: "80vh", overflowY: "auto", overflowX: "hidden", marginTop: "20px" }}>               <form onSubmit={handleSubmit}>
                    {/* Profile Photo */}
                    <div className="container mt-4" style={{ marginLeft: "64px", maxWidth: "100%" }}>
                        <p>Profile Photo</p>
@@ -217,7 +223,7 @@ const EditWorker = () => {
                                style={{ display: "none" }}
                                onChange={handleImageUpload}
                            />
-                           <label htmlFor="profilePic" className="btn  mx-5" style={{ marginTop: "63px", borderColor: "#0076CE", color: "#0076CE" }}>
+                           <label htmlFor="profilePic" className="btn mx-5" style={{ marginTop: "63px", borderColor: "#0076CE", color: "#0076CE" }}>
                                Upload Photo
                            </label>
                        </div>
@@ -226,6 +232,61 @@ const EditWorker = () => {
 
                    {/* Main container */}
                    <div className="container mt-4" style={{ marginLeft: "60px", maxWidth: "100%" }}>
+                       {/* Row 1 */}
+                       <div className="row" style={{ maxWidth: "100%" }}>
+                           <div className="col-md-2">
+                               <label htmlFor="name" className="form-label">Full Name</label>
+                               <input type="text" className="form-control" name="name" id="name" required placeholder="Enter Name" value={formData.name} onChange={handleChange} />
+                           </div>
+                           <div className="col-md-3">
+                               <label htmlFor="email" className="form-label">Email</label>
+                               <input type="email" className="form-control" name="email" id="email" required placeholder="Enter Email" value={formData.email} onChange={handleChange} />
+                           </div>
+                           <div className="col-md-3">
+                               <label htmlFor="contactNumber" className="form-label">Contact Number</label>
+                               <input type="tel" className="form-control" name="contactNumber" id="contactNumber" required placeholder="Enter Contact Number" value={formData.contactNumber} onChange={handleChange} />
+                           </div>
+                           <div className="col-md-3">
+                               <label htmlFor="eContactNumber" className="form-label">Emergency Contact Number</label>
+                               <input
+                                   type="tel" className="form-control" name="econtactNumber"
+                                   id="eContactNumber"
+                                   placeholder="Enter Emergency Contact Number"
+                                   value={formData.econtactNumber}
+                                   onChange={handleChange}
+                               />
+                           </div>
+                       </div>
+
+
+                       {/* Row 2 */}
+                       <div className="row mt-4">
+                           <div className="col-md-2">
+                               <label htmlFor="language" className="form-label">Language</label>
+                               <input type="text" className="form-control" name="language" id="language" placeholder="Enter Language" value={formData.language} onChange={handleChange} />
+                           </div>
+                           <div className="col-md-3">
+                               <label htmlFor="workExperience" className="form-label">Work Experience</label>
+                               <input type="text" className="form-control" name="workExperience" id="workExperience" required placeholder="Enter Work Experience" value={formData.workExperience} onChange={handleChange} />
+                           </div>
+                           <div className="col-md-3">
+                               <label htmlFor="dateOfBirth" className="form-label">D.O.B</label>
+                               <input type="date" className="form-control" name="dateOfBirth" id="dateOfBirth" required value={formData.dateOfBirth} onChange={handleChange} />
+                           </div>
+                           <div className="col-md-2">
+                               <label htmlFor="gender" className="form-label">Gender</label> <br />
+                               <div className="form-check form-check-inline mt-2">
+                                   <input className="form-check-input" type="radio" name="gender" id="male" value="Male" checked={formData.gender === "Male"} onChange={handleChange} />
+                                   <label className="form-check-label" htmlFor="male">Male</label>
+                               </div>
+                               <div className="form-check form-check-inline">
+                                   <input className="form-check-input" type="radio" name="gender" id="female" value="Female" checked={formData.gender === "Female"} onChange={handleChange} />
+                                   <label className="form-check-label" htmlFor="female">Female</label>
+                               </div>
+                           </div>
+                       </div>
+
+
                        {/* Job Title Section */}
                        <div className="row mt-4">
                            <p className="fw-bold">Job title</p>

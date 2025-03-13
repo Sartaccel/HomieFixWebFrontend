@@ -2,11 +2,10 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import { FaStar } from "react-icons/fa";
 import "../styles/BookingDetails.css";
-import notification from "../assets/Bell.png";
-import profile from "../assets/Profile.png";
-import search from "../assets/Search.png";
 import statusRescheduled from "../assets/Status Rescheduled.png";
 import statusAssigned from "../assets/Status Assigned.png";
 import statusStarted from "../assets/Status Started.png";
@@ -26,6 +25,7 @@ const BookingDetails = () => {
   const [ratings, setRatings] = useState({});
   const dropdownRef = useRef(null);
   const [ratingFilter, setRatingFilter] = useState("All");
+  const [loading, setLoading] = useState(true); // Loading state
 
   // Separate selectedDate states for each section
   const [selectedDateBookings, setSelectedDateBookings] = useState(null);
@@ -36,6 +36,7 @@ const BookingDetails = () => {
   // Fetch bookings from the API
   useEffect(() => {
     const fetchBookings = async () => {
+      setLoading(true); // Set loading to true when fetching starts
       try {
         const response = await fetch("http://localhost:2222/booking/all");
         const text = await response.text();
@@ -57,7 +58,7 @@ const BookingDetails = () => {
           date: booking.bookedDate,
           timeslot: booking.timeSlot,
           cancelReason: booking.cancelReason,
-          productImage: booking.productImage, // Add productImage to the transformed booking
+          productImage: booking.productImage,
           status:
             booking.bookingStatus === "COMPLETED"
               ? "Completed"
@@ -83,6 +84,8 @@ const BookingDetails = () => {
         setBookings(transformedBookings);
       } catch (error) {
         console.error("Error fetching bookings:", error);
+      } finally {
+        setLoading(false); // Set loading to false when fetching is done
       }
     };
 
@@ -122,7 +125,7 @@ const BookingDetails = () => {
   const pendingBookings = bookings.filter(
     (booking) =>
       booking.status === "Pending" ||
-      (booking.status === "Rescheduled" && !booking.worker) // Rescheduled bookings without workers stay in pending
+      (booking.status === "Rescheduled" && !booking.worker)
   );
 
   const inProgress = bookings.filter(
@@ -130,7 +133,7 @@ const BookingDetails = () => {
       (booking.status === "Assigned" ||
         booking.status === "Started" ||
         booking.status === "Rescheduled") &&
-      booking.worker // Only include bookings with a worker
+      booking.worker
   );
 
   const completed = bookings.filter(
@@ -188,7 +191,7 @@ const BookingDetails = () => {
     selectedDateInProgress,
     selectedDateCompleted,
     selectedDateCanceled,
-  ]); // Add selectedDate states as dependencies
+  ]);
 
   // Handle date filter changes
   const handleDateChange = (date) => {
@@ -231,6 +234,7 @@ const BookingDetails = () => {
         setFilteredBookings([]);
     }
   };
+
   const filterBookingsByDate = (date, bookingsToFilter) => {
     if (!date) return bookingsToFilter;
 
@@ -299,11 +303,11 @@ const BookingDetails = () => {
   const getStatusIcon = (status) => {
     switch (status) {
       case "Rescheduled":
-        return { icon: statusRescheduled, width: 140 }; // Adjust width as needed
+        return { icon: statusRescheduled, width: 140 };
       case "Assigned":
-        return { icon: statusAssigned, width: 110 }; // Adjust width as needed
+        return { icon: statusAssigned, width: 110 };
       case "Started":
-        return { icon: statusStarted, width: 110 }; // Adjust width as needed
+        return { icon: statusStarted, width: 110 };
       default:
         return null;
     }
@@ -334,44 +338,93 @@ const BookingDetails = () => {
     });
   };
 
+  // Skeleton loading for table rows
+  const renderSkeletonRows = (count) => {
+    return Array.from({ length: count }).map((_, index) => (
+      <tr key={index}>
+        <td className="p-3">
+          <Skeleton height={40} />
+        </td>
+        <td className="p-3">
+          <Skeleton height={40} />
+        </td>
+        <td className="p-3">
+          <Skeleton height={40} />
+        </td>
+        <td className="p-3">
+          <Skeleton height={40} />
+        </td>
+        <td className="p-3">
+          <Skeleton height={40} />
+        </td>
+        {activeTab !== "bookings" && (
+          <td className="p-3">
+            <Skeleton height={40} />
+          </td>
+        )}
+        <td className="p-3">
+          <Skeleton height={40} />
+        </td>
+      </tr>
+    ));
+  };
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
-          
-          <Header/>
-          <div className=" d-flex gap-3 pt-3 bg-white border-bottom w-100 mt-5">
+          <Header />
+
+          <div className="navigation-bar d-flex gap-3 py-3 bg-white border-bottom w-100">
             <div
               className={`section ${activeTab === "bookings" ? "active" : ""}`}
               onClick={() => setActiveTab("bookings")}
             >
               Bookings{" "}
-              <span className="badge bg-dark ms-1" style={{borderRadius:"45%"}}>
+              <span className="badge bg-dark ms-1" style={{ borderRadius: "45%" }}>
                 {pendingBookings.length}
               </span>
             </div>
             <div
-              className={`section ${
-                activeTab === "inProgress" ? "active" : ""
-              }`}
+              className={`section ${activeTab === "inProgress" ? "active" : ""}`}
               onClick={() => setActiveTab("inProgress")}
             >
               In Progress{" "}
-              <span className="badge bg-dark ms-1" style={{borderRadius:"45%"}}>{inProgress.length}</span>
+              <span className="badge bg-dark ms-1" style={{ borderRadius: "45%" }}>
+                {inProgress.length}
+              </span>
             </div>
             <div
               className={`section ${activeTab === "completed" ? "active" : ""}`}
               onClick={() => setActiveTab("completed")}
             >
               Completed{" "}
-              <span className="badge bg-dark ms-1" style={{borderRadius:"45%"}}>{completed.length}</span>
+              <span className="badge bg-dark ms-1" style={{ borderRadius: "45%" }}>
+                {completed.length}
+              </span>
             </div>
             <div
               className={`section ${activeTab === "canceled" ? "active" : ""}`}
               onClick={() => setActiveTab("canceled")}
             >
               Canceled{" "}
-              <span className="badge bg-dark ms-1"style={{borderRadius:"45%"}}>{canceled.length}</span>
+              <span className="badge bg-dark ms-1" style={{ borderRadius: "45%" }}>
+                {canceled.length}
+              </span>
             </div>
           </div>
 
@@ -480,8 +533,7 @@ const BookingDetails = () => {
                       {dropdownOpen && (
                         <div className="dropdown-menu show p-2">
                           <div id="sandbox-container">
-                            <div></div>{" "}
-                            {/* This is where the datepicker will be rendered */}
+                            <div></div>
                           </div>
                         </div>
                       )}
@@ -513,7 +565,7 @@ const BookingDetails = () => {
                             : activeTab === "canceled"
                             ? "15%"
                             : "15%",
-                        padding: activeTab == "canceled" ? "16px" : "10px",
+                        padding: activeTab === "canceled" ? "16px" : "10px",
                       }}
                     >
                       {activeTab === "inProgress" ? (
@@ -758,209 +810,211 @@ const BookingDetails = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredBookings.map((booking) => (
-                  <tr key={booking.id}>
-                    {/* Service Column */}
-                    <td
-                      className="p-3 text-left"
-                      style={{
-                        width:
-                          activeTab === "bookings"
-                            ? "20%"
-                            : activeTab === "canceled"
-                            ? "18.8%"
-                            : activeTab === "completed" ||
-                              activeTab === "inProgress"
-                            ? "19.2%"
-                            : "20%",
-                      }}
-                    >
-                      <div className="d-flex align-items-center gap-2">
-                        <div
-                          className="rounded-circle"
+                {loading
+                  ? renderSkeletonRows(5)
+                  : filteredBookings.map((booking) => (
+                      <tr key={booking.id}>
+                        {/* Service Column */}
+                        <td
+                          className="p-3 text-left"
                           style={{
-                            width: "40px",
-                            height: "40px",
-                            flexShrink: 0,
-                            backgroundImage: `url(${booking.productImage})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
+                            width:
+                              activeTab === "bookings"
+                                ? "20%"
+                                : activeTab === "canceled"
+                                ? "18.8%"
+                                : activeTab === "completed" ||
+                                  activeTab === "inProgress"
+                                ? "19.2%"
+                                : "20%",
                           }}
-                        ></div>
-                        <div>
-                          <p className="mb-0">{booking.service}</p>
-                          <small style={{ color: "#0076CE" }}>
-                            ID: {booking.id}
-                          </small>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Name Column */}
-                    <td
-                      className="p-3 text-left"
-                      style={{
-                        width:
-                          activeTab === "bookings"
-                            ? "13.8%"
-                            : activeTab === "canceled"
-                            ? "17%"
-                            : activeTab === "completed"
-                            ? "15%"
-                            : activeTab === "inProgress"
-                            ? "14.5%"
-                            : "13.8%",
-                      }}
-                    >
-                      {booking.name} <br />
-                      {(activeTab === "inProgress" ||
-                        activeTab === "completed" ||
-                        activeTab === "canceled") && (
-                        <span>{booking.contact}</span>
-                      )}
-                    </td>
-
-                    {/* Worker, Contact, and Address Columns */}
-                    {activeTab === "inProgress" ||
-                    activeTab === "completed" ||
-                    activeTab === "canceled" ? (
-                      <td
-                        className="p-3 text-left"
-                        style={{
-                          width:
-                            activeTab === "canceled"
-                              ? "15%"
-                              : activeTab === "completed" ||
-                                activeTab === "inProgress"
-                              ? "15%"
-                              : "16%",
-                        }}
-                      >
-                        {booking.worker ? (
-                          <>
-                            <p className="mb-0 ">{booking.worker.name}</p>
-                            <p className="mb-0 ">{booking.worker.contact}</p>
-                          </>
-                        ) : (
-                          <p className="text-muted">Not Assigned</p>
-                        )}
-                      </td>
-                    ) : (
-                      <>
-                        <td className="p-3 text-left" style={{ width: "12%" }}>
-                          {booking.contact}
-                        </td>
-                        <td className="p-3 text-left" style={{ width: "25%" }}>
-                          {booking.address}
-                        </td>
-                      </>
-                    )}
-
-                    {/* Date Column */}
-                    <td
-                      className="p-3 text-left"
-                      style={{
-                        width:
-                          activeTab === "bookings"
-                            ? "14%"
-                            : activeTab === "completed"
-                            ? "14%"
-                            : activeTab === "inProgress" ||
-                              activeTab === "canceled"
-                            ? "14%"
-                            : "14%",
-                      }}
-                    >
-                      {formatDate(booking.date)} <br />
-                      <span>{booking.timeslot}</span>
-                    </td>
-
-                    {/* Status/Reason Column */}
-                    {activeTab !== "bookings" && (
-                      <td
-                        className="p-3 text-left"
-                        style={{
-                          width: "15%",
-                          maxWidth: "200px",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {activeTab === "inProgress" ? (
-                          <img
-                            src={
-                              getStatusIcon(booking.status)
-                                ? getStatusIcon(booking.status).icon
-                                : null
-                            }
-                            alt={booking.status}
-                            width={
-                              getStatusIcon(booking.status)
-                                ? getStatusIcon(booking.status).width
-                                : 0
-                            }
-                            height="40"
-                          />
-                        ) : activeTab === "completed" ? (
-                          <div
-                            className="d-flex align-items-center"
-                            style={{ marginLeft: "10px" }}
-                          >
-                            {ratings[booking.id] && (
-                              <FaStar style={{ color: "gold" }} />
-                            )}
-                            <span className="ms-1">
-                              {ratings[booking.id] || "No Rating"}
-                            </span>
+                        >
+                          <div className="d-flex align-items-center gap-2">
+                            <div
+                              className="rounded-circle"
+                              style={{
+                                width: "40px",
+                                height: "40px",
+                                flexShrink: 0,
+                                backgroundImage: `url(${booking.productImage})`,
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                              }}
+                            ></div>
+                            <div>
+                              <p className="mb-0">{booking.service}</p>
+                              <small style={{ color: "#0076CE" }}>
+                                ID: {booking.id}
+                              </small>
+                            </div>
                           </div>
-                        ) : (
-                          <span>{truncateText(booking.cancelReason)}</span>
-                        )}
-                      </td>
-                    )}
+                        </td>
 
-                    {/* Action Column */}
-                    <td className="p-3 text-left" style={{ width: "10%" }}>
-                      {activeTab === "inProgress" ||
-                      activeTab === "completed" ||
-                      activeTab === "canceled" ? (
-                        <button
-                          className="btn btn-primary"
+                        {/* Name Column */}
+                        <td
+                          className="p-3 text-left"
                           style={{
-                            backgroundColor: "#0076CE",
-                            width: "90px",
-                            borderRadius: "12px",
+                            width:
+                              activeTab === "bookings"
+                                ? "13.8%"
+                                : activeTab === "canceled"
+                                ? "17%"
+                                : activeTab === "completed"
+                                ? "15%"
+                                : activeTab === "inProgress"
+                                ? "14.5%"
+                                : "13.8%",
                           }}
-                          onClick={() =>
-                            navigate(`/booking-details/view-bookings/${booking.id}`, {
-                              state: { booking },
-                            })
-                          }
                         >
-                          View
-                        </button>
-                      ) : (
-                        <button
-                          className="btn btn-primary"
+                          {booking.name} <br />
+                          {(activeTab === "inProgress" ||
+                            activeTab === "completed" ||
+                            activeTab === "canceled") && (
+                            <span>{booking.contact}</span>
+                          )}
+                        </td>
+
+                        {/* Worker, Contact, and Address Columns */}
+                        {activeTab === "inProgress" ||
+                        activeTab === "completed" ||
+                        activeTab === "canceled" ? (
+                          <td
+                            className="p-3 text-left"
+                            style={{
+                              width:
+                                activeTab === "canceled"
+                                  ? "15%"
+                                  : activeTab === "completed" ||
+                                    activeTab === "inProgress"
+                                  ? "15%"
+                                  : "16%",
+                            }}
+                          >
+                            {booking.worker ? (
+                              <>
+                                <p className="mb-0 ">{booking.worker.name}</p>
+                                <p className="mb-0 ">{booking.worker.contact}</p>
+                              </>
+                            ) : (
+                              <p className="text-muted">Not Assigned</p>
+                            )}
+                          </td>
+                        ) : (
+                          <>
+                            <td className="p-3 text-left" style={{ width: "12%" }}>
+                              {booking.contact}
+                            </td>
+                            <td className="p-3 text-left" style={{ width: "25%" }}>
+                              {booking.address}
+                            </td>
+                          </>
+                        )}
+
+                        {/* Date Column */}
+                        <td
+                          className="p-3 text-left"
                           style={{
-                            backgroundColor: "#0076CE",
-                            width: "100px",
-                            borderRadius: "12px",
+                            width:
+                              activeTab === "bookings"
+                                ? "14%"
+                                : activeTab === "completed"
+                                ? "14%"
+                                : activeTab === "inProgress" ||
+                                  activeTab === "canceled"
+                                ? "14%"
+                                : "14%",
                           }}
-                          onClick={() =>
-                            navigate(
-                              `/booking-details/assign-bookings/${booking.id}`,
-                              {
-                                state: { booking },
+                        >
+                          {formatDate(booking.date)} <br />
+                          <span>{booking.timeslot}</span>
+                        </td>
+
+                        {/* Status/Reason Column */}
+                        {activeTab !== "bookings" && (
+                          <td
+                            className="p-3 text-left"
+                            style={{
+                              width: "15%",
+                              maxWidth: "200px",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {activeTab === "inProgress" ? (
+                              <img
+                                src={
+                                  getStatusIcon(booking.status)
+                                    ? getStatusIcon(booking.status).icon
+                                    : null
+                                }
+                                alt={booking.status}
+                                width={
+                                  getStatusIcon(booking.status)
+                                    ? getStatusIcon(booking.status).width
+                                    : 0
+                                }
+                                height="40"
+                              />
+                            ) : activeTab === "completed" ? (
+                              <div
+                                className="d-flex align-items-center"
+                                style={{ marginLeft: "10px" }}
+                              >
+                                {ratings[booking.id] && (
+                                  <FaStar style={{ color: "gold" }} />
+                                )}
+                                <span className="ms-1">
+                                  {ratings[booking.id] || "No Rating"}
+                                </span>
+                              </div>
+                            ) : (
+                              <span>{truncateText(booking.cancelReason)}</span>
+                            )}
+                          </td>
+                        )}
+
+                        {/* Action Column */}
+                        <td className="p-3 text-left" style={{ width: "10%" }}>
+                          {activeTab === "inProgress" ||
+                          activeTab === "completed" ||
+                          activeTab === "canceled" ? (
+                            <button
+                              className="btn btn-primary"
+                              style={{
+                                backgroundColor: "#0076CE",
+                                width: "90px",
+                                borderRadius: "12px",
+                              }}
+                              onClick={() =>
+                                navigate(`/booking-details/view-bookings/${booking.id}`, {
+                                  state: { booking },
+                                })
                               }
-                            )
-                          }
-                        >
-                          Assign
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                            >
+                              View
+                            </button>
+                          ) : (
+                            <button
+                              className="btn btn-primary"
+                              style={{
+                                backgroundColor: "#0076CE",
+                                width: "100px",
+                                borderRadius: "12px",
+                              }}
+                              onClick={() =>
+                                navigate(
+                                  `/booking-details/assign-bookings/${booking.id}`,
+                                  {
+                                    state: { booking },
+                                  }
+                                )
+                              }
+                            >
+                              Assign
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
               </tbody>
             </table>
           </div>

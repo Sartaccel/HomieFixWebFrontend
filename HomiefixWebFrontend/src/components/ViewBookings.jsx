@@ -1,139 +1,459 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import "../styles/ViewBooking.css";
-import notification from "../assets/Bell.png";
-import profile from "../assets/Profile.png";
-import search from "../assets/Search.png";
+import Reschedule from "./Reschedule"; // Import the Reschedule component
+import CancelBooking from "./CancelBooking"; // Import the CancelBooking component
+import Header from "./Header";
 
 const ViewBookings = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate(); // Fixed missing import
-  const booking = location.state?.booking || {};
-  const [bookings, setBookings] = useState("");
-
-  const [bookingDate, setBookingDate] = useState("");
+  const bookings = location.state?.booking || {};
+  const [booking, setBooking] = useState("");
   const [bookedDate, setBookedDate] = useState("");
   const [activeTab, setActiveTab] = useState("serviceDetails");
-  const [workers, setWorkers] = useState([]);
+  const [worker, setWorker] = useState([]);
   const [serviceStarted, setServiceStarted] = useState("No");
   const [serviceCompleted, setServiceCompleted] = useState("No");
-  const [endTime, setEndTime] = useState(null);
-  ;
+  const [notes, setNotes] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showCancelBookingModal, setShowCancelBookingModal] = useState(false); // State to control CancelBooking visibility
+  const [cancellationReason, setCancellationReason] = useState(null);
+  const [selectedBookingId, setSelectedBookingId] = useState(null);
+  const [showRescheduledRow, setShowRescheduledRow] = useState(false);
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+  const [
+    selectedBookingIdForCancellation,
+    setSelectedBookingIdForCancellation,
+  ] = useState("");
+  const [isCancellationConfirmed, setIsCancellationConfirmed] = useState(false);
+  const [isRescheduledConfirmed, setIsRescheduledConfirmed] = useState(false); // To track reschedule confirmation
+  const [isUpdated, setIsUpdated] = useState(false); // New state to track if the booking was updated
+  const [feedback, setFeedback] = useState([]);
+  const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
+  const [isCancelHovered, setIsCancelHovered] = useState(false);
+  const [bookingStatuses, setBookingStatuses] = useState(() => {
+    const savedStatuses = localStorage.getItem("bookingStatuses");
+    return savedStatuses ? JSON.parse(savedStatuses) : {}; // Ensure fallback
+  });
+  const [statuses, setStatuses] = useState(bookingStatuses);
 
-  // Fetch workers from the API
   useEffect(() => {
-    const fetchWorkers = async () => {
+    // Fetch feedback for a specific booking when the bookingId changes
+    const fetchFeedback = async () => {
       try {
-        const response = await fetch("http://localhost:2222/workers/view");
+        const response = await fetch(
+          `http://localhost:2222/feedback/byBooking/${id}`
+        );
+
+        // Check if response is okay
+        if (!response.ok) {
+          throw new Error("Failed to fetch feedback");
+        }
+
+        // Parse JSON response
         const data = await response.json();
-        setWorkers(data);
-      } catch (error) {
-        console.error("Error fetching workers:", error);
-      }
-    };
+        console.log("Fetched Feedback Data:", data); // Log the data for verification
 
-    fetchWorkers();
-  }, [id]); // Added id in dependencies
-
-  useEffect(() => {
-    const fetchBookingDetails = async () => {
-      try {
-        const response = await fetch("http://localhost:2222/booking/all");
-        const data = await response.json();
-
-        const currentBooking = data.find(b => String(b.id) === String(id));
-        if (currentBooking) {
-          setBookings(currentBooking);
-          setBookingDate(currentBooking.bookingDate || "N/A");
-          setBookedDate(currentBooking["bookedDate"] || "N/A");
-          setTimeSlot(currentBooking.timeSlot || "N/A"); // Fix key if needed
+        // Set the feedback state if data is in correct format (an array)
+        if (Array.isArray(data)) {
+          setFeedback(data);
+        } else {
+          throw new Error("Unexpected data format");
         }
       } catch (error) {
-        console.error("Error fetching booking details:", error);
+        setError(error.message); // Handle errors
+        console.error("Error fetching feedback:", error); // Log the error for debugging
+      } finally {
+        setLoading(false); // Stop loading after request is complete
       }
     };
 
-    fetchBookingDetails();
-  }, [id]); // Dependency array ensures it runs when `id` changes
+    if (id) {
+      fetchFeedback(); // Fetch feedback when bookingId is set
+    }
+  }, [id]); // Re-run when bookingId changes
 
-  const SetBookedDate = (dateString) => {
-    if (!dateString || dateString === "N/A") return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "2-digit",
-      year: "numeric"
-    }) +
-      " - " +
-      date.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true
-      });
-  };
-  const updateBooking = async () => {
-    const updatedData = {
-      bookingDate: bookingDate !== "Yes" ? bookingDate : null,
-      bookedDate: bookedDate !== "Yes" ? bookedDate : null,
-      serviceStarted: serviceStarted !== "Yes" ? serviceStarted : null,
-      serviceCompleted: serviceCompleted !== "Yes" ? serviceCompleted : null
-    };
-
+  const saveNotes = async () => {
     try {
-      const response = await fetch(`http://localhost:2222/booking/update-status/${id}`, {
-        method: "PUT",
+      const response = await fetch(`http://localhost:2222/booking/update-notes/${id}`, {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(updatedData),
+        body: JSON.stringify({ notes }), // Send updated notes in the request body
       });
 
-      const responseData = await response.json();  // Try to parse JSON response
-
-      console.log("Server Response:", responseData);
-
       if (response.ok) {
-        alert("Booking updated successfully!");
+        alert("Notes saved successfully");
       } else {
-        alert(`Failed to update booking. Server responded with: ${responseData.message || response.statusText}`);
+        alert("Failed to save notes");
       }
     } catch (error) {
-      console.error("Error updating booking:", error);
-      alert("Error updating booking.");
+      console.error("Error saving notes:", error);
     }
   };
 
+  const getCurrentDate = () => {
+    const date = new Date();
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
+  };
 
+  useEffect(() => {
+    if (!id) return;
 
+    const fetchBooking = async () => {
+      try {
+        setLoading(true);
+
+        const response = await fetch(`http://localhost:2222/booking/${id}`);
+        console.log(response);
+        if (!response.ok) {
+          throw new Error("Failed to fetch booking details");
+        }
+        const data = await response.json();
+        console.log("Fetched Booking Data:", data);
+        if (data && data.bookingDate && data.bookedDate) {
+          setBooking(data);
+          setNotes(data.notes || "");
+          setError(null);
+        } else {
+          console.error("Invalid booking data", data);
+        }
+        // Set worker details
+        if (data.worker) {
+          setWorker(data.worker);
+        } else if (data.workerId) {
+          try {
+            const workerResponse = await fetch(
+              `http://localhost:2222/workers/view/${data.workerId}`
+            );
+            if (!workerResponse.ok) {
+              throw new Error("Failed to fetch worker details");
+            }
+            const workerData = await workerResponse.json();
+            console.log("Worker Data:", workerData);
+            setWorker(workerData);
+          } catch (workerErr) {
+            console.error("Error fetching worker details:", workerErr);
+            setWorker(null); // Ensure UI handles missing worker properly
+          }
+        } else {
+          setWorker(null); // If no worker, explicitly set null
+        }
+      } catch (err) {
+        console.error("Error fetching booking details:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooking();
+  }, [id]);
+
+  useEffect(() => {
+    console.log("Worker Data:", worker);
+  }, [worker]);
+
+  const updateBooking = async () => {
+    const serviceStarted = bookingStatuses[id]?.serviceStarted;
+    const serviceCompleted = bookingStatuses[id]?.serviceCompleted;
+
+    if (!id) {
+      alert("Error: Booking ID is missing.");
+      return;
+    }
+
+    console.log("Debug: Type of serviceStarted =", typeof serviceStarted);
+    console.log("Debug: Type of serviceCompleted =", typeof serviceCompleted);
+
+    // Determine status dynamically
+    let status = "";
+
+    if (serviceStarted === "No" && serviceCompleted !== "No") {
+      alert("Error: Service cannot be completed without starting first!");
+      return;
+    }
+    if (serviceCompleted !== "No") {
+      status = "COMPLETED";
+    } else if (serviceStarted !== "No") {
+      status = "STARTED";
+    } else {
+      alert("Invalid status update!");
+      return;
+    }
+
+    console.log("Final status being sent:", status);
+
+    if (!status) {
+      alert("Invalid status change!");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:2222/booking/update-status/${id}?status=${status}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status }), // ✅ Send JSON
+        }
+      );
+
+      const textResponse = await response.text();
+      console.log("Raw Response:", textResponse);
+
+      if (response.ok) {
+        alert(`Booking successfully updated! Status: ${status}`);
+
+        setIsUpdated(true); // Mark the booking as updated
+      } else {
+        alert(`Failed to update booking. Server response: ${textResponse}`);
+      }
+    } catch (error) {
+      console.error("Network or API Error:", error);
+      alert("Network error while updating booking.");
+    }
+  };
+
+  useEffect(() => {
+    // Get saved statuses for all bookings
+    const savedStatuses =
+      JSON.parse(localStorage.getItem("bookingStatuses")) || {};
+    setBookingStatuses(savedStatuses);
+  }, []);
+
+  const handleServiceStartedChange = (e, id) => {
+    const value = e.target.value === "Yes" ? new Date().toISOString() : "No";
+    setBookingStatuses((prevStatuses) => {
+      const updatedStatuses = {
+        ...prevStatuses,
+        [id]: {
+          ...prevStatuses[id],
+          serviceStarted: value,
+        },
+      };
+      console.log(
+        "Updated serviceStarted:",
+        updatedStatuses[id].serviceStarted
+      );
+
+      // Save the updated statuses to localStorage
+      localStorage.setItem("bookingStatuses", JSON.stringify(updatedStatuses));
+      return updatedStatuses;
+    });
+
+    // If service is marked as started, set serviceCompleted to "No"
+    if (value === "Yes") {
+      setBookingStatuses((prevStatuses) => {
+        const updatedStatuses = {
+          ...prevStatuses,
+          [id]: {
+            ...prevStatuses[id],
+            serviceCompleted: "No", // Reset service completed status
+          },
+        };
+
+        localStorage.setItem(
+          "bookingStatuses",
+          JSON.stringify(updatedStatuses)
+        );
+        return updatedStatuses;
+      });
+    }
+  };
+
+  const handleServiceCompletedChange = (e, id) => {
+    const value = e.target.value === "Yes" ? new Date().toISOString() : "No";
+    setBookingStatuses((prevStatuses) => {
+      const updatedStatuses = {
+        ...prevStatuses,
+        [id]: {
+          ...prevStatuses[id],
+          serviceCompleted: value,
+        },
+      };
+      console.log(
+        "Updated serviceCompleted:",
+        updatedStatuses[id].serviceCompleted
+      );
+      // Save the updated statuses to localStorage
+      localStorage.setItem("bookingStatuses", JSON.stringify(updatedStatuses));
+      return updatedStatuses;
+    });
+  };
+
+  const getLinePosition = () => {
+    let position = 72; // Initial position for "Booking Successful"
+    let color = "black"; // Default color (black)
+
+    // Set position and color based on different conditions
+    if (bookedDate !== "No") {
+      position = 70; // Move down when "Worker Assigned"
+      color = "black"; // Worker Assigned color (Black)
+    }
+    if (selectedBookingId && showRescheduledRow) {
+      position = 150; // Adjust for rescheduled booking
+      color = "#C14810";
+    }
+
+    if (bookingStatuses[booking.id]?.serviceStarted !== "No") {
+      position = 137; // Service Started
+      color = "black";
+    }
+
+    if (bookingStatuses[booking.id]?.serviceCompleted !== "No") {
+      position = 212; // Service Completed
+      color = "#1F7A45"; // Green color for completed service
+    }
+    if (selectedBookingIdForCancellation && isCancellationConfirmed) {
+      position = 80; // Adjust for cancellation row visibility
+      color = "#AE1319"; // Cancellation color (Red)
+    }
+
+    console.log(`Position: ${position}, Color: ${color}`);
+    return { position: `${position}px`, color };
+  };
+  const { position, color } = getLinePosition();
+
+  const handleCancelBookingSuccess = (reason) => {
+    setCancellationReason(reason);
+    setIsCancellationConfirmed(true);
+    setShowCancelBookingModal(false);
+  };
+
+  const handleCancelBookingButtonClick = (id) => {
+    setSelectedBookingIdForCancellation(id); // Store the selected booking ID
+    setShowCancelBookingModal(true); // Show the cancel booking modal
+  };
+
+  const openRescheduleModal = () => {
+    setIsRescheduleModalOpen(true);
+  };
+
+  const closeRescheduleModal = () => {
+    setIsRescheduleModalOpen(false);
+  };
+
+  const handleRescheduleSuccess = (newDate, newTime, reason) => {
+    console.log("Reschedule Successful", newDate, newTime, reason);
+    setIsRescheduledConfirmed(true);
+    // Update only the selected booking, not all bookings
+    setBooking((prevBooking) =>
+      selectedBookingId
+        ? {
+            ...booking,
+            bookedDate: newDate,
+            bookedTimeSlot: newTime,
+            rescheduleReason: reason,
+          }
+        : booking
+    );
+
+    setShowRescheduledRow(true);
+
+    closeRescheduleModal(); // Close modal after success
+  };
+  const handleRescheduleButtonClick = (id) => {
+    setSelectedBookingId(id); // This will trigger the modal to open
+    openRescheduleModal();
+  };
+  useEffect(() => {
+    const savedNotes = localStorage.getItem("notes"); // Get saved notes from localStorage
+    if (savedNotes) {
+      console.log("Loaded notes from localStorage:", savedNotes);
+      setNotes(savedNotes); // Set notes state with saved value from localStorage
+    }
+  }, []); // Empty dependency array ensures this runs once on component mount
+
+  // Handle notes input change
+  const handleNotesChange = (e) => {
+    setNotes(e.target.value); // Update the state as the user types
+  };
+
+  // Handle save (onBlur or on a button click)
+  const handleUpdateNotes = async () => {
+    if (!id || !notes) {
+      return; // Don't send empty requests or when no bookingId
+    }
+
+    setLoading(true); // Set loading state to true
+    try {
+      // First, store the updated notes in localStorage immediately
+      localStorage.setItem("notes", notes); // Save notes to localStorage
+      console.log("Saved notes to localStorage:", notes); // Debugging log
+
+      // Now, send the updated notes to the backend
+      const response = await fetch(
+        `http://localhost:2222/booking/update-notes/${id}`,
+        {
+          method: "PATCH", // Use PATCH request to update the notes
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ notes }), // Send updated notes in the request body
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update booking notes");
+      }
+
+      const data = await response.json(); // Get updated booking from backend
+      console.log("Updated Booking:", data);
+
+      // After updating the backend, update the local state with the latest notes
+      setNotes(data.notes); // Update the notes state with the latest value from the backend
+
+      // Optionally, you can also update localStorage to reflect the change
+      localStorage.setItem("notes", data.notes);
+    } catch (err) {
+      console.error("Error updating notes:", err);
+    } finally {
+      setLoading(false); // Reset loading state after the request is complete
+    }
+  };
+
+  // Function to dynamically apply the text color
+  const getTextColor = (status) => {
+    return status !== "No" ? "green" : ""; // Green if completed, grey if not
+  };
+  useEffect(() => {
+    // If you want to fetch or sync status data on initial load
+    setStatuses(bookingStatuses);
+  }, [bookingStatuses]);
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
           {/* Header */}
-          <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
-            <h2 className="heading align-items-center mb-0">Booking Details</h2>
-            <div className="header-right d-flex align-items-center gap-3">
-              <div className="input-group" style={{ width: "300px" }}>
-                <input type="text" className="form-control search-bar" placeholder="Search" />
-                <span className="input-group-text">
-                  <img src={search} alt="Search" width="20" />
-                </span>
-              </div>
-              <img src={notification} alt="Notifications" width="40" className="cursor-pointer" />
-              <img src={profile} alt="Profile" width="40" className="cursor-pointer" />
-            </div>
-          </header>
+          <Header />
 
           {/* Navigation Bar */}
-          <div className="navigation-bar d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
+          <div className="navigation-bar d-flex justify-content-between align-items-center py-2 px-3 bg-white border-bottom w-100">
             <div className="d-flex gap-3 align-items-center">
-              <button className="btn btn-light p-2" style={{ marginBottom: "-20px" }} onClick={() => navigate(-1)}>
-                <i className="bi bi-arrow-left" style={{ fontSize: "1.5rem", fontWeight: "bold" }}></i>
+              <button
+                className="btn btn- p-2"
+                style={{ marginBottom: "-20px" }}
+                onClick={() => navigate(-1)}
+              >
+                <i
+                  className="bi bi-arrow-left"
+                  style={{ fontSize: "1.5rem", fontWeight: "bold" }}
+                ></i>
               </button>
               <div
-                className={`section ${activeTab === "serviceDetails" ? "active" : ""}`}
+                className={`section ${
+                  activeTab === "serviceDetails" ? "active" : ""
+                }`}
                 onClick={() => setActiveTab("serviceDetails")}
               >
                 Service Details
@@ -141,95 +461,321 @@ const ViewBookings = () => {
             </div>
             {/* Right side buttons */}
             <div className="d-flex gap-3 p-2" style={{ marginRight: "300px" }}>
-              <button className="btn btn-outline-primary">Reschedule</button>
-              <button className="btn btn-outline-danger">Cancel Service</button>
+              <button
+                className="btn btn-outline-primary"
+                onClick={() => handleRescheduleButtonClick(id)}
+                onMouseEnter={() => setIsRescheduleHovered(true)}
+                onMouseLeave={() => setIsRescheduleHovered(false)}
+                style={{
+                  border: "1px solid #0076CE",
+                  backgroundColor: isRescheduleHovered
+                    ? "#0076CE"
+                    : "transparent",
+                  color: isRescheduleHovered ? "white" : "#0076CE",
+                }}
+              >
+                Reschedule
+              </button>
+
+              <button
+                className="btn btn-outline-danger"
+                onClick={() => handleCancelBookingButtonClick(id)}
+                onMouseEnter={() => setIsCancelHovered(true)}
+                onMouseLeave={() => setIsCancelHovered(false)}
+                style={{
+                  border: "1px solid #B8141A",
+                  backgroundColor: isCancelHovered ? "#B8141A" : "transparent",
+                  color: isCancelHovered ? "white" : "#B8141A",
+                  transition: "all 0.3s ease-in-out",
+                }}
+              >
+                Cancel Service
+              </button>
             </div>
           </div>
 
           {/* Content */}
           <div className="container mt-5 pt-4">
-            <div className="row justify-content-between" style={{ marginTop: "60px", marginLeft: "30px" }}>
+            <div
+              className="row justify-content-between"
+              style={{ marginTop: "60px", marginLeft: "30px" }}
+            >
               {/* Left Card - Booking Information */}
               <div className="col-md-6">
-                <div className="d-flex align-items-center gap-2" style={{ marginTop: "50px" }}>
-                  <div className="rounded-circle bg-secondary" style={{ width: "40px", height: "40px" }}></div>
+                <div
+                  className="d-flex align-items-center gap-2"
+                  style={{ marginTop: "50px" }}
+                >
+                  <div
+                    className="rounded-circle bg-secondary"
+                    style={{ width: "40px", height: "40px" }}
+                  ></div>
                   <div>
-                    <p className="mb-0">{booking.service}</p>
+                    <p className="mb-0">
+                      {bookings.service} - ₹{booking.totalPrice}
+                    </p>
+
                     <small style={{ color: "#0076CE" }}>ID: {booking.id}</small>
                   </div>
                 </div>
 
-                <div className="p-0 m-0 mt-4">
-                  <h6>Customer Details</h6>
-                  <p className="mb-1"><i className="bi bi-person-fill me-2"></i> {booking.name}</p>
-                  <p className="mb-1"><i className="bi bi-telephone-fill me-2"></i> {booking.contact}</p>
-                  <p className="mb-1"><i className="bi bi-geo-alt-fill me-2"></i> {booking.address}</p>
-                  <p className="mb-1"><i className="bi bi-calendar-event-fill me-2"></i> {booking.date}</p>
+                <div className="p-0 m-0 mt-2">
+                  <>
+                    {booking ? (
+                      <>
+                        <h6 style={{ fontWeight: "bold" }}>Customer Details</h6>
+                        <p className="mb-1">
+                          <i className="bi bi-person me-2"></i>{" "}
+                          {bookings?.name ?? "N/A"}
+                        </p>
+                        <p className="mb-1">
+                          <i className="bi bi-telephone me-2"></i>{" "}
+                          {bookings?.contact ?? "N/A"}
+                        </p>
+                        <p className="mb-1">
+                          <i className="bi bi-geo-alt me-2"></i>{" "}
+                          {bookings?.address ?? "N/A"}
+                        </p>
+                        <p className="mb-1">
+                          <i className="bi bi-calendar-event me-2"></i>
+                          {new Date(booking.bookingDate).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "2-digit",
+                              year: "numeric",
+                            }
+                          )}
+                          {booking.timeSlot ? ` | ${booking.timeSlot}` : ""}
+                        </p>
+                      </>
+                    ) : (
+                      <p>Loading customer details...</p>
+                    )}
+                  </>
                 </div>
 
                 {/* Comment Field (Notes) */}
-                <div className="mt-3 position-relative" style={{ width: "500px" }}>
+                <div
+                  className="mt-3 position-relative"
+                  style={{ width: "500px" }}
+                >
                   <span
                     className="position-absolute"
-                    style={{ top: "5px", right: "10px", fontSize: "14px", color: "#0076CE", cursor: "pointer" }}
+                    style={{
+                      top: "5px",
+                      right: "15px",
+                      fontSize: "14px",
+                      color: "#0076CE",
+                      cursor: "pointer",
+                    }}
                   >
                     Edit
                   </span>
-                  <textarea id="notes" className="form-control" placeholder="Notes" rows="4" style={{ resize: "none", height: "150px" }}></textarea>
+                  <textarea
+                    id="notes"
+                    className="form-control"
+                    placeholder="Notes not Available"
+                    rows="3"
+                    style={{
+                      resize: "none",
+                      height: "100px",
+                      backgroundColor: "white",
+                    }}
+                    value={notes}
+                    onChange={handleNotesChange} // Update notes state
+                    onBlur={handleUpdateNotes} // Trigger save when user clicks away
+                  ></textarea>
+                  {loading && <div>Loading...</div>}{" "}
+                  {/* Optional: Loading indicator */}
                 </div>
 
                 {/* Worker Details */}
-                <div className="mt-4">
-                  <h6>Worker Details</h6>
-                  {workers.length > 0 ? (
-                    workers.map((worker) => (
+                <div className="mt-2">
+                  <h6 style={{ fontWeight: "bold" }}>Worker Details</h6>
+                  {worker ? (
+                    <div className="d-flex align-items-center">
+                      <div
+                        className="rounded-circle bg-secondary"
+                        style={{
+                          width: "100px",
+                          height: "100px",
+                          backgroundImage: worker.profilePicUrl
+                            ? `url('${worker.profilePicUrl}')`
+                            : `url('/default-avatar.png')`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }}
+                      ></div>
 
-                      <div key={worker.id} className="d-flex align-items-center mb-3">
-                        <div className="d-flex align-items-center gap-2">
-                          <div
-                            className="rounded-circle bg-secondary"
+                      <div className=" d-flex flex-column mb-1">
+                        <p className="mb-1">
+                          <i className="bi bi-person me-1"></i> {worker.name}{" "}
+                          <span
+                            className="ms-1"
                             style={{
-                              width: "100px",
-                              height: "100px",
-                              marginTop: "-30px",
-                              flexShrink: 0,
-                              backgroundImage: `url(${worker.profilePicUrl})`,
-                              backgroundSize: "cover",
-                              backgroundPosition: "center",
+                              fontSize: "16px",
+                              backgroundColor: "#d3d3d3",
+                              width: "50px",
                             }}
-                          ></div>
-                        </div>
-                        <div className="ms-3">
-                          <p className="mb-1"><i className="bi bi-person-fill me-2"></i>{worker.name}</p>
-                          <p className="mb-1"><i className="bi bi-telephone-fill me-2"></i> {worker.contactNumber}</p>
-                          <p className="mb-1"><i className="bi bi-house-fill me-2"></i> {worker.houseNumber}</p>
-                          <p className="mb-1"><i className="bi bi-geo-alt-fill me-2"></i> {worker.pincode}</p>
-                          <p className="mb-1"><i className="bi bi-signpost-fill me-2"></i> {worker.nearbyLandmark}</p>
-                          <p className="mb-1"><i className="bi bi-map-fill me-2"></i> {worker.district}</p>
-                          <p className="mb-1"><i className="bi bi-geo-alt-fill me-2"></i> {worker.state}</p>
+                          >
+                            <i
+                              className="bi bi-star-fill"
+                              style={{ color: "#FFD700" }}
+                            ></i>
+                            {worker.rating !== undefined &&
+                            worker.rating !== null
+                              ? worker.rating.toFixed(1)
+                              : "4.5"}
+                          </span>
+                        </p>
+                        <p className="mb-1">
+                          <i className="bi bi-telephone me-2"></i>{" "}
+                          {worker.contactNumber}
+                        </p>
+                        <p className="mb-1">
+                          <i className="bi bi-geo-alt me-2"></i>{" "}
+                          {worker.houseNumber},{worker.nearbyLandmark},
+                          {worker.town},{worker.district},{worker.state},
+                          {worker.pincode},
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <p>No worker assigned</p>
+                  )}
+                  <a
+                    href={`/workers/view/${worker?.id || ""}`} // Avoids error if worker is null
+                    style={{
+                      color: "#007bff",
+                      marginLeft: "120px",
+                      textDecoration: "none",
+                      marginTop: "-20px",
+                    }}
+                  >
+                    View full Profile →
+                  </a>
+                </div>
+                <div>
+                  <h6 style={{ fontWeight: "bold" }}>Customer Review</h6>
 
+                  {loading ? (
+                    <p>Loading...</p> // Display loading text when fetching
+                  ) : error ? (
+                    <p style={{ color: "red" }}>{error}</p> // Show error message if fetch fails
+                  ) : feedback.length > 0 ? (
+                    feedback.map((review, index) => (
+                      <div key={index}>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "flex-start",
+                          }}
+                        >
+                          {review.rating === 4 && (
+                            <span
+                              style={{
+                                color: "gold",
+                                fontSize: "15px",
+                                backgroundColor: "#d3d3d3",
+                                width: "40px",
+                              }}
+                            >
+                              <i className="bi bi-star-fill"></i>
+                            </span>
+                          )}
+                          <p
+                            style={{
+                              fontSize: "16px",
+                              marginLeft: "20px",
+                              marginTop: "-22px",
+                              display: "inline-block",
+                            }}
+                          >
+                            {review.rating} {/* Display the rating */}
+                          </p>
+
+                          <p
+                            style={{
+                              fontSize: "14px",
+                              color: "#888",
+                              marginTop: "-40px",
+                              marginLeft: "44px",
+                            }}
+                          >
+                            {getCurrentDate()}
+                          </p>
+
+                          {/* Display Review Comment */}
+                          <p style={{ fontSize: "16px", marginTop: "-15px" }}>
+                            {review.comment}
+                          </p>
+
+                          {/* Display Current Date */}
                         </div>
                       </div>
                     ))
                   ) : (
-                    <p>No workers assigned</p>
+                    <p>No feedback available.</p> // Show message if no feedback available
                   )}
                 </div>
               </div>
 
               {/* Right Card - Service Details */}
               <div className="col-md-6">
-                <div className="card rounded p-4 shadow-sm" style={{ marginTop: "60px", minHeight: "400px", maxWidth: "550px", border: "1px solid #ddd", borderRadius: "12px" }}>
+                <div
+                  className="card rounded p-4 shadow-sm"
+                  style={{
+                    marginTop: "47px",
+                    minHeight: "300px",
+                    maxWidth: "600px",
+                    marginLeft: "-40px",
+                    bottom: "20px",
+                    border: "1px solid #ddd",
+                    borderRadius: "12px",
+                    position: "relative",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
                   <h5>Status update</h5>
-                  <div className="p-3 mt-3 rounded" style={{ height: "350px", border: "1px solid #ccc", borderRadius: "10px" }}>
-                    <table className="table w-100">
+                  <div
+                    className="p-3 mt-3 rounded"
+                    style={{
+                      height: "300px",
+                      width: "550",
+                      border: "1px solid #ccc",
+                      borderRadius: "10px",
+                      position: "relative",
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "flex-start",
+                      gap: "20px", // Added some gap for spacing between sections
+                    }}
+                  >
+                    <div
+                      className="position-absolute"
+                      style={{
+                        top: position, // Dynamic height from the function
+                        left: "0px",
+                        width: "4px",
+                        backgroundColor: color, // Dynamic color
+                        height: "75px",
+                        transition: "height 0.5s ease-in-out",
+                      }}
+                    ></div>
+
+                    <table
+                      className="table w-100"
+                      style={{ position: "relative", width: "100%" }}
+                    >
                       <tbody>
-
-
-                        <tr style={{ height: "50px" }}>
-
+                        <tr style={{ height: "40px", width: "500px" }}>
                           <td className="text-start border-right">
-                            <tr style={{ color: "grey" }}>
+                            <span style={{ color: "grey" }}>
                               {new Date().toLocaleDateString("en-US", {
                                 month: "short",
                                 day: "2-digit",
@@ -240,143 +786,338 @@ const ViewBookings = () => {
                                 hour: "2-digit",
                                 minute: "2-digit",
                                 hour12: true,
-                              })}</tr>
-
-                            Booking Successful on  {new Date(bookingDate).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "2-digit",
-                              year: "numeric",
-                            })}
-                            {bookings.timeSlot ? ` | ${bookings.timeSlot}` : ""}</td>
-
+                              })}
+                            </span>
+                            <br />
+                            Booking Successful on{" "}
+                            {new Date(booking.bookingDate).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "2-digit",
+                                year: "numeric",
+                              }
+                            )}
+                            {booking.timeSlot ? ` | ${booking.timeSlot}` : ""}
+                          </td>
+                          <td
+                            className="text-end"
+                            style={{ backgroundColor: "#f0f0f0" }}
+                          ></td>
                         </tr>
-
-
-                        <tr style={{ height: "50px" }}>
-
+                        {selectedBookingIdForCancellation &&
+                          cancellationReason && (
+                            <tr style={{ height: "40px" }}>
+                              <td className="text-start border-right">
+                                {/* Display booked date only if this booking is selected */}
+                                <span style={{ color: "grey" }}>
+                                  {new Date().toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "2-digit",
+                                    year: "numeric",
+                                  })}{" "}
+                                  |{" "}
+                                  {new Date().toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })}
+                                </span>
+                                <span
+                                  className="booking-details"
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "5px",
+                                    fontSize: "14px",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      fontWeight: "bold",
+                                    }}
+                                  >
+                                    <span style={{ color: "#AE1319" }}>
+                                      Service Cancelled
+                                    </span>
+                                  </span>
+                                  <span style={{ fontSize: "14px" }}>
+                                    {cancellationReason
+                                      ? cancellationReason
+                                      : "No reason provided"}
+                                  </span>
+                                </span>
+                              </td>
+                              <td
+                                className="text-end"
+                                style={{ backgroundColor: "#f0f0f0" }}
+                              ></td>
+                            </tr>
+                          )}
+                        <tr style={{ height: "70px", width: "500px" }}>
                           <td className="text-start border-right">
                             <span style={{ color: "grey" }}>
-                              {bookedDate !== "No"
-                                ? new Date(bookedDate).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "2-digit",
-                                  year: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                })
+                              {booking.bookedDate !== "No"
+                                ? new Date(
+                                    booking.bookedDate
+                                  ).toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "2-digit",
+                                    year: "numeric",
+                                  }) +
+                                  " | " +
+                                  new Date().toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })
                                 : "Not Assigned"}
-                            </span><br />
-
-                            Worker Assigned</td>
-
-                          <td className="text-end bg-grey" >
-                            <div className="custom-dropdown">
-                              <select
-                                className="no-border"
-                                onChange={(e) => { setBookedDate(e.target.value === "Yes" ? new Date().toISOString() : "No"); }}
-                                value={bookedDate !== "No" ? "Yes" : "No"}
-                              >
-                                <option value="No">No</option>
-                                <option value="Yes">Yes</option>
-                              </select>
-                            </div>
+                            </span>
+                            <br />
+                            Worker Assigned
                           </td>
-
+                          <td
+                            className="text-end"
+                            style={{ backgroundColor: "#f0f0f0" }}
+                          ></td>
                         </tr>
-
-                        <tr style={{ height: "50px" }}>
+                        {selectedBookingId && showRescheduledRow && (
+                          <tr style={{ height: "40px" }}>
+                            <td className="text-start border-right">
+                              <span style={{ color: "grey" }}>
+                                {booking.bookedDate !== "No"
+                                  ? new Date(
+                                      booking.bookedDate
+                                    ).toLocaleDateString("en-US", {
+                                      month: "short",
+                                      day: "2-digit",
+                                      year: "numeric",
+                                    }) +
+                                    " | " +
+                                    new Date().toLocaleTimeString("en-US", {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      hour12: true,
+                                    })
+                                  : "Not Assigned"}
+                              </span>
+                              <span
+                                className="booking-details"
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: "5px",
+                                  fontSize: "14px",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    fontWeight: "bold",
+                                    gap: "5px",
+                                  }}
+                                >
+                                  <span style={{ color: "#C14810" }}>
+                                    Reschedule Service On
+                                    {new Date(
+                                      booking.bookedDate
+                                    ).toLocaleDateString("en-US", {
+                                      month: "short",
+                                      day: "2-digit",
+                                      year: "numeric",
+                                    })}
+                                    {" | "}
+                                    {booking.timeSlot}
+                                    {/* Assuming bookedTimeSlot is in the correct format */}
+                                  </span>
+                                </span>
+                                <span style={{ fontSize: "14px" }}>
+                                  {booking.rescheduleReason}
+                                </span>
+                              </span>
+                            </td>
+                            <td
+                              className="text-end"
+                              style={{ backgroundColor: "#f0f0f0" }}
+                            ></td>
+                          </tr>
+                        )}
+                        <tr
+                          key={booking.id}
+                          style={{ height: "70px", width: "500px" }}
+                        >
                           <td className="text-start border-right">
-                            <span >
-                              {serviceStarted !== "No"
-                                ? new Date(serviceStarted).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "2-digit",
-                                  year: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                })
-                                : new Date().toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "2-digit",
-                                  year: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                })}
+                            <span style={{ color: "grey" }}>
+                              {bookingStatuses[booking.id]?.serviceStarted !==
+                              "No"
+                                ? `${new Date(
+                                    bookingStatuses[booking.id]?.serviceStarted
+                                  ).toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "2-digit",
+                                    year: "numeric",
+                                  })} | ${new Date(
+                                    bookingStatuses[booking.id]?.serviceStarted
+                                  ).toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })}`
+                                : `${new Date().toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "2-digit",
+                                    year: "numeric",
+                                  })} | ${new Date().toLocaleTimeString(
+                                    "en-US",
+                                    {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      hour12: true,
+                                    }
+                                  )}`}
                             </span>
                             <br />
                             Service Started
                           </td>
-
-                          <td className="text-end bg-grey">
-
-                            <div className="custom-dropdown">
-                              <select
-                                className="no-border"
-                                onChange={(e) => setServiceStarted(e.target.value === "Yes" ? new Date().toISOString() : "No")}
-                                value={serviceStarted !== "No" ? "Yes" : "No"}
-                              >
-                                <option value="No">No</option>
-                                <option value="Yes">Yes</option>
-                              </select>
-                            </div>
-                            {/* Display Service Started Time */}
-
-
+                          <td
+                            className="text-end"
+                            style={{ backgroundColor: "#f0f0f0" }}
+                          >
+                            {!(
+                              selectedBookingIdForCancellation &&
+                              cancellationReason
+                            ) && (
+                              <span className="custom-dropdown">
+                                <select
+                                  className="no-border"
+                                  onChange={(e) =>
+                                    handleServiceStartedChange(e, booking.id)
+                                  }
+                                  value={
+                                    bookingStatuses[booking.id]
+                                      ?.serviceStarted !== "No"
+                                      ? "Yes"
+                                      : "No"
+                                  }
+                                >
+                                  <option value="No">No</option>
+                                  <option value="Yes">Yes</option>
+                                </select>
+                              </span>
+                            )}
                           </td>
-
                         </tr>
-
-
-                        <tr style={{ height: "60px" }}>
-
-                          <td className="text-start border-right"><span style={{ color: "grey" }}>
-                            {serviceCompleted !== "No"
-                              ? new Date(serviceCompleted).toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "2-digit",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              })
-                              : new Date().toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "2-digit",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              })}
-                          </span>
+                        <tr style={{ height: "80px", width: "500px" }}>
+                          <td className="text-start border-right">
+                            <span style={{ color: "grey" }}>
+                              {bookingStatuses[booking.id]?.serviceCompleted !==
+                              "No"
+                                ? `${new Date(
+                                    bookingStatuses[
+                                      booking.id
+                                    ]?.serviceCompleted
+                                  ).toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "2-digit",
+                                    year: "numeric",
+                                  })} | ${new Date(
+                                    bookingStatuses[
+                                      booking.id
+                                    ]?.serviceCompleted
+                                  ).toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })}`
+                                : `${new Date().toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "2-digit",
+                                    year: "numeric",
+                                  })} | ${new Date().toLocaleTimeString(
+                                    "en-US",
+                                    {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      hour12: true,
+                                    }
+                                  )}`}
+                            </span>
                             <br />
-                            Service Completed</td>
-                          <td className="text-end bg-grey">
-                            <div className="custom-dropdown">
-                              <select
-                                className="no-border"
-                                onChange={(e) => setServiceCompleted(e.target.value === "Yes" ? new Date().toISOString() : "No")}
-                                value={serviceCompleted !== "No" ? "Yes" : "No"}
-                              >
-                                <option value="No">No</option>
-                                <option value="Yes">Yes</option>
-                              </select>
-                            </div>
-
+                            <span
+                              style={{
+                                color: getTextColor(
+                                  statuses[booking.id]?.serviceCompleted
+                                ),
+                              }}
+                            >
+                              {" "}
+                              Service Completed{" "}
+                            </span>
+                          </td>
+                          <td
+                            className="text-end"
+                            style={{ backgroundColor: "#f0f0f0" }}
+                          >
+                            {!(
+                              selectedBookingIdForCancellation &&
+                              cancellationReason
+                            ) && (
+                              <span className="custom-dropdown">
+                                <select
+                                  className="no-border"
+                                  onChange={(e) =>
+                                    handleServiceCompletedChange(e, booking.id)
+                                  }
+                                  value={
+                                    bookingStatuses[booking.id]
+                                      ?.serviceCompleted !== "No"
+                                      ? "Yes"
+                                      : "No"
+                                  }
+                                >
+                                  <option value="No">No</option>
+                                  <option value="Yes">Yes</option>
+                                </select>
+                              </span>
+                            )}
                           </td>
                         </tr>
-
                       </tbody>
                     </table>
-                    <button className="btn btn-primary w-100" onClick={updateBooking}>Update</button>
+
+                    <button
+                      className="btn btn-primary w-100"
+                      onClick={() => updateBooking(booking.id)}
+                    >
+                      Update
+                    </button>
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
+          {/* Reschedule Slider */}
+          {isRescheduleModalOpen && selectedBookingId && (
+            <Reschedule
+              id={selectedBookingId}
+              booking={booking}
+              onClose={closeRescheduleModal}
+              onReschedule={handleRescheduleSuccess}
+            />
+          )}
+
+          {/* Cancel Booking Modal */}
+          {showCancelBookingModal && selectedBookingIdForCancellation && (
+            <CancelBooking
+              id={selectedBookingIdForCancellation}
+              booking={booking}
+              onClose={() => setShowCancelBookingModal(false)}
+              onCancelSuccess={handleCancelBookingSuccess}
+            />
+          )}
         </main>
       </div>
     </div>
