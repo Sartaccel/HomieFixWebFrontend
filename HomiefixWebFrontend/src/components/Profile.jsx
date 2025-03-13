@@ -57,8 +57,11 @@ const Profile = () => {
           joiningDate: data.joiningDate,
         });
 
-        // Set preview image
-        setPreviewImage(data.profilePicUrl || addWorker);
+        // Set preview image and update local storage
+        if (data.profilePicUrl) {
+          setPreviewImage(data.profilePicUrl);
+          localStorage.setItem("profilePhoto", data.profilePicUrl); // Save to local storage
+        }
       } catch (error) {
         console.error("Error fetching profile data:", error);
       }
@@ -78,11 +81,13 @@ const Profile = () => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setPreviewImage(imageUrl);
+      localStorage.setItem("profilePhoto", imageUrl); // Save to local storage
       setFormData((prevState) => ({
         ...prevState,
         profilePic: file,
       }));
-      setPreviewImage(URL.createObjectURL(file));
     }
   };
 
@@ -99,13 +104,13 @@ const Profile = () => {
       formDataToSend.append("dateOfBirth", formData.dateOfBirth);
       formDataToSend.append("district", formData.district);
       formDataToSend.append("state", formData.state);
-  
+
       // Append the profile picture if it exists
       if (formData.profilePic) {
         formDataToSend.append("profilePic", formData.profilePic);
       }
-  
-      const response = await axios.post( // Use POST or PATCH as required by the API
+
+      const response = await axios.post(
         "http://localhost:2222/admin/completeProfile",
         formDataToSend,
         {
@@ -114,7 +119,7 @@ const Profile = () => {
           },
         }
       );
-  
+
       // Show success message
       Swal.fire({
         icon: "success",
@@ -176,7 +181,7 @@ const Profile = () => {
           {/* Profile Photo */}
           <div className="container mt-2" style={{ marginLeft: "64px", maxWidth: "100%" }}>
             <p>Profile Photo</p>
-            <div style={{marginTop: "-5px"}}>
+            <div style={{ marginTop: "-5px" }}>
               <img
                 src={previewImage}
                 alt="profile"
