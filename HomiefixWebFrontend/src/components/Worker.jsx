@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
 import Swal from "sweetalert2";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import Header from "./Header";
+
+import api from "../api";
 
 const Worker = () => {
   const { id } = useParams();
@@ -21,8 +22,8 @@ const Worker = () => {
 
   // Fetch worker data
   useEffect(() => {
-    axios
-      .get(`http://localhost:2222/workers/view/${id}`)
+    api
+      .get(`/workers/view/${id}`)
       .then((response) => {
         setWorkerData(response.data);
       })
@@ -36,8 +37,8 @@ const Worker = () => {
     if (!workerData) return; // Ensure workerData is available
 
     const fetchWorkerBookings = () => {
-      axios
-        .get(`http://localhost:2222/booking/worker/${id}`)
+      api
+        .get(`/booking/worker/${id}`)
         .then((response) => {
           const data = response.data;
 
@@ -97,8 +98,8 @@ const Worker = () => {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        axios
-          .delete(`http://localhost:2222/workers/${id}`)
+        api
+          .delete(`/workers/${id}`)
           .then(() => {
             Swal.fire("Deleted!", "Worker has been removed.", "success");
             navigate("/worker-details");

@@ -14,6 +14,7 @@ import $ from "jquery";
 import "bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css";
 import "bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js";
 import Header from "./Header";
+import api from "../api";
 
 const BookingDetails = () => {
   const navigate = useNavigate();
@@ -33,23 +34,15 @@ const BookingDetails = () => {
   const [selectedDateCompleted, setSelectedDateCompleted] = useState(null);
   const [selectedDateCanceled, setSelectedDateCanceled] = useState(null);
 
-  // Fetch bookings from the API
+  // Fetch bookings from the API using axios
   useEffect(() => {
     const fetchBookings = async () => {
       setLoading(true); // Set loading to true when fetching starts
       try {
-        const response = await fetch("http://localhost:2222/booking/all");
-        const text = await response.text();
-        console.log("Raw Response:", text);
+        const response = await api.get("/booking/all");
+        setBookings(response.data);
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = JSON.parse(text);
-        console.log("API Data:", data);
-
-        const transformedBookings = data.map((booking) => ({
+        const transformedBookings = response.data.map((booking) => ({
           id: booking.id,
           service: booking.productName,
           name: booking.userProfile.fullName,
@@ -92,7 +85,7 @@ const BookingDetails = () => {
     fetchBookings();
   }, []);
 
-  // Fetch ratings for completed bookings
+  // Fetch ratings for completed bookings using axios
   useEffect(() => {
     const fetchRatings = async () => {
       const completedBookings = bookings.filter(
@@ -102,12 +95,11 @@ const BookingDetails = () => {
 
       for (const booking of completedBookings) {
         try {
-          const response = await fetch(
-            `http://localhost:2222/feedback/byBooking/${booking.id}`
+          const response = await api.get(
+            `/feedback/byBooking/${booking.id}`
           );
-          const data = await response.json();
-          if (data.length > 0) {
-            ratingsData[booking.id] = data[0].rating;
+          if (response.data.length > 0) {
+            ratingsData[booking.id] = response.data[0].rating;
           }
         } catch (error) {
           console.error("Error fetching rating:", error);

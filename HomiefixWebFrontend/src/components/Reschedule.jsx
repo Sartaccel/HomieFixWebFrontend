@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import "../styles/AssignBookings.css";
+import api from "../api";
+
 
 const Reschedule = ({ id, booking, onClose, onReschedule }) => {
   const [availableDates, setAvailableDates] = useState([]);
@@ -13,16 +15,15 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
   const [loadingDates, setLoadingDates] = useState(true);
   const [loadingTimes, setLoadingTimes] = useState(true);
 
-  // Fetch available dates and times
+  // Fetch available dates and times using axios
   useEffect(() => {
     const fetchAvailableDates = async () => {
       try {
-        const response = await fetch("http://localhost:2222/booking/available-dates");
-        const data = await response.json();
-        console.log("Available Dates from API:", data); // Debugging
+        const response = await api.get("/booking/available-dates");
+        console.log("Available Dates from API:", response.data); // Debugging
 
         // Transform dates into a valid format
-        const validDates = data
+        const validDates = response.data
           .map((date) => {
             // Remove the day of the week (e.g., "Saturday") from the date string
             const cleanedDate = date.replace(/\s\w+day\s/, " "); // Removes " Saturday", " Sunday", etc.
@@ -48,9 +49,8 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
 
     const fetchAvailableTimes = async () => {
       try {
-        const response = await fetch("http://localhost:2222/booking/available-times");
-        const data = await response.json();
-        setAvailableTimes(data);
+        const response = await api.get("/booking/available-times");
+        setAvailableTimes(response.data);
       } catch (error) {
         console.error("Error fetching available times:", error);
       } finally {
@@ -84,7 +84,7 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
     }
   };
 
-  // Handle reschedule button click
+  // Handle reschedule button click using axios
   const handleReschedule = async () => {
     if (!selectedDate || !selectedTimeSlot || !rescheduleReason) {
       alert("Please select a date, time slot, and reason for reschedule");
@@ -106,22 +106,19 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       const encodedTimeSlot = encodeURIComponent(selectedTimeSlot); // URL encode time
       const encodedReason = encodeURIComponent(reason); // URL encode reason
 
-      const url = `http://localhost:2222/booking/reschedule/${id}?selectedDate=${formattedDate}&selectedTimeSlot=${encodedTimeSlot}&rescheduleReason=${encodedReason}`;
+      const url = `/booking/reschedule/${id}?selectedDate=${formattedDate}&selectedTimeSlot=${encodedTimeSlot}&rescheduleReason=${encodedReason}`;
 
       console.log("Reschedule URL:", url);
 
-      const response = await fetch(url, {
-        method: "PUT",
-      });
+      const response = await api.put(url);
 
-      if (response.ok) {
+      if (response.status === 200) {
         alert("Booking rescheduled successfully");
         onReschedule(formattedDate, selectedTimeSlot); // Update parent state
         onClose(); // Close the Reschedule modal
       } else {
-        const errorData = await response.json();
-        console.error("Reschedule failed:", response.status, errorData);
-        alert(`Failed to reschedule booking: ${response.status} - ${errorData.message || "Unknown error"}`);
+        console.error("Reschedule failed:", response.status, response.data);
+        alert(`Failed to reschedule booking: ${response.status} - ${response.data.message || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error rescheduling booking:", error);

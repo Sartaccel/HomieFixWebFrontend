@@ -2,12 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import axios from "axios";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
 import alenSamImg from "../assets/home1.png";
 import Header from "./Header";
+
+import api from "../api";
 
 const WorkerDetails = () => {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ const WorkerDetails = () => {
   useEffect(() => {
     const fetchWorkers = async () => {
       try {
-        const response = await axios.get("http://localhost:2222/workers/view");
+        const response = await api.get("/workers/view");
         const data = response.data;
         setWorkers(data);
       } catch (error) {

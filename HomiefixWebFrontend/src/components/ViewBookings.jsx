@@ -6,10 +6,13 @@ import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
 import Reschedule from "./Reschedule"; // Import the Reschedule component
 import CancelBooking from "./CancelBooking"; // Import the CancelBooking component
+import axios from "axios"; // Import axios
+import api from "../api";
+
 const ViewBookings = () => {
   const { id } = useParams();
   const location = useLocation();
-  const navigate = useNavigate(); // Fixed missing import
+  const navigate = useNavigate();
   const booking = location.state?.booking || {};
   const [bookings, setBookings] = useState({});
 
@@ -26,56 +29,42 @@ const ViewBookings = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [lineColor, setLineColor] = useState("black");
-  const [showCancelBookingModal, setShowCancelBookingModal] = useState(false); // State to control CancelBooking visibility
+  const [showCancelBookingModal, setShowCancelBookingModal] = useState(false);
   const [cancellationReason, setCancellationReason] = useState(null);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [showRescheduledRow, setShowRescheduledRow] = useState(false);
   const [rescheduledBooking, setRescheduledBooking] = useState(bookings);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
-  const [
-    selectedBookingIdForCancellation,
-    setSelectedBookingIdForCancellation,
-  ] = useState("");
+  const [selectedBookingIdForCancellation, setSelectedBookingIdForCancellation] = useState("");
   const [isCancellationConfirmed, setIsCancellationConfirmed] = useState(false);
-  const [isRescheduledConfirmed, setIsRescheduledConfirmed] = useState(false); // To track reschedule confirmation
-  const [isUpdated, setIsUpdated] = useState(false); // New state to track if the booking was updated
+  const [isRescheduledConfirmed, setIsRescheduledConfirmed] = useState(false);
+  const [isUpdated, setIsUpdated] = useState(false);
   const [feedback, setFeedback] = useState([]);
 
+  // Fetch feedback for a specific booking using axios
   useEffect(() => {
-    // Fetch feedback for a specific booking when the bookingId changes
     const fetchFeedback = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:2222/feedback/byBooking/${id}`
-        );
+        const response = await api.get(`/feedback/byBooking/${id}`);
+        console.log("Fetched Feedback Data:", response.data);
 
-        // Check if response is okay
-        if (!response.ok) {
-          throw new Error("Failed to fetch feedback");
-        }
-
-        // Parse JSON response
-        const data = await response.json();
-        console.log("Fetched Feedback Data:", data); // Log the data for verification
-
-        // Set the feedback state if data is in correct format (an array)
-        if (Array.isArray(data)) {
-          setFeedback(data);
+        if (Array.isArray(response.data)) {
+          setFeedback(response.data);
         } else {
           throw new Error("Unexpected data format");
         }
       } catch (error) {
-        setError(error.message); // Handle errors
-        console.error("Error fetching feedback:", error); // Log the error for debugging
+        setError(error.message);
+        console.error("Error fetching feedback:", error);
       } finally {
-        setLoading(false); // Stop loading after request is complete
+        setLoading(false);
       }
     };
 
     if (id) {
-      fetchFeedback(); // Fetch feedback when bookingId is set
+      fetchFeedback();
     }
-  }, [id]); // Re-run when bookingId changes
+  }, [id]);
 
   const getCurrentDate = () => {
     const date = new Date();
@@ -86,6 +75,7 @@ const ViewBookings = () => {
     });
   };
 
+  // Fetch booking details using axios
   useEffect(() => {
     if (!id) return;
 
@@ -93,40 +83,32 @@ const ViewBookings = () => {
       try {
         setLoading(true);
 
-        const response = await fetch(`http://localhost:2222/booking/${id}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch booking details");
-        }
-        const data = await response.json();
-        console.log("Fetched Booking Data:", data);
+        const response = await api.get(`/booking/${id}`);
+        console.log("Fetched Booking Data:", response.data);
 
-        setBookings(data);
+        setBookings(response.data);
 
-        setBookingDate(data.bookingDate || "N/A");
-        setBookedDate(data.bookedDate || "N/A");
-        setTimeSlot(data.timeSlot || "N/A");
-        setNotes(data.notes || "");
+        setBookingDate(response.data.bookingDate || "N/A");
+        setBookedDate(response.data.bookedDate || "N/A");
+        setTimeSlot(response.data.timeSlot || "N/A");
+        setNotes(response.data.notes || "");
 
         // Set worker details
-        if (data.worker) {
-          setWorker(data.worker);
-        } else if (data.workerId) {
+        if (response.data.worker) {
+          setWorker(response.data.worker);
+        } else if (response.data.workerId) {
           try {
-            const workerResponse = await fetch(
-              `http://localhost:2222/workers/view/${data.workerId}`
+            const workerResponse = await api.get(
+              `/workers/view/${response.data.workerId}`
             );
-            if (!workerResponse.ok) {
-              throw new Error("Failed to fetch worker details");
-            }
-            const workerData = await workerResponse.json();
-            console.log("Worker Data:", workerData);
-            setWorker(workerData);
+            console.log("Worker Data:", workerResponse.data);
+            setWorker(workerResponse.data);
           } catch (workerErr) {
             console.error("Error fetching worker details:", workerErr);
-            setWorker(null); // Ensure UI handles missing worker properly
+            setWorker(null);
           }
         } else {
-          setWorker(null); // If no worker, explicitly set null
+          setWorker(null);
         }
       } catch (err) {
         console.error("Error fetching booking details:", err);
@@ -143,6 +125,7 @@ const ViewBookings = () => {
     console.log("Worker Data:", worker);
   }, [worker]);
 
+  // Update booking status using axios
   const updateBooking = async () => {
     if (!id) {
       alert("Error: Booking ID is missing.");
@@ -152,7 +135,6 @@ const ViewBookings = () => {
     console.log("Debug: Type of serviceStarted =", typeof serviceStarted);
     console.log("Debug: Type of serviceCompleted =", typeof serviceCompleted);
 
-    // Determine status dynamically
     let status = "";
 
     if (serviceStarted === "No" && serviceCompleted !== "No") {
@@ -176,30 +158,25 @@ const ViewBookings = () => {
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:2222/booking/update-status/${id}?status=${status}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status }), // ✅ Send JSON
-        }
+      const response = await api.put(
+        `/booking/update-status/${id}?status=${status}`,
+        { status }
       );
 
-      const textResponse = await response.text();
-      console.log("Raw Response:", textResponse);
+      console.log("Response:", response.data);
 
-      if (response.ok) {
+      if (response.status === 200) {
         alert(`Booking successfully updated! Status: ${status}`);
-
-        setIsUpdated(true); // Mark the booking as updated
+        setIsUpdated(true);
       } else {
-        alert(`Failed to update booking. Server response: ${textResponse}`);
+        alert(`Failed to update booking. Server response: ${response.data}`);
       }
     } catch (error) {
       console.error("Network or API Error:", error);
       alert("Network error while updating booking.");
     }
   };
+
   useEffect(() => {
     const savedServiceStarted = localStorage.getItem("serviceStarted");
     const savedServiceCompleted = localStorage.getItem("serviceCompleted");
@@ -231,34 +208,34 @@ const ViewBookings = () => {
   };
 
   const getLinePosition = () => {
-    let position = 72; // Initial position for "Booking Successful"
-    let color = "black"; // Default color (black)
+    let position = 72;
+    let color = "black";
 
-    // Set position and color based on different conditions
     if (bookedDate !== "No") {
-      position = 70; // Move down when "Worker Assigned"
-      color = "black"; // Worker Assigned color (Black)
+      position = 70;
+      color = "black";
     }
     if (selectedBookingId && isRescheduledConfirmed) {
-      position = 150; // Adjust for rescheduled booking
-      color = "red"; // Reschedule color (Red)
+      position = 150;
+      color = "red";
     }
 
     if (serviceStarted !== "No") {
-      position = 137; // Move down when "Service Started"
-      color = "black"; // Service Started color (Black)
+      position = 137;
+      color = "black";
     }
     if (serviceCompleted !== "No") {
-      position = 212; // Move down when "Service Completed"
-      color = "green"; // Service Completed color (Green)
+      position = 212;
+      color = "green";
     }
     if (selectedBookingIdForCancellation && isCancellationConfirmed) {
-      position = 80; // Adjust for cancellation row visibility
-      color = "red"; // Cancellation color (Red)
+      position = 80;
+      color = "red";
     }
 
     return { position: `${position}px`, color };
   };
+
   const { position, color } = getLinePosition();
 
   const handleCancelBookingSuccess = (reason) => {
@@ -268,9 +245,8 @@ const ViewBookings = () => {
   };
 
   const handleCancelBookingButtonClick = (id) => {
-    setSelectedBookingIdForCancellation(id); // Store the selected booking ID
-    setShowCancelBookingModal(true); // Show the cancel booking modal
-    // setLineColor("red");
+    setSelectedBookingIdForCancellation(id);
+    setShowCancelBookingModal(true);
   };
 
   const openRescheduleModal = () => {
@@ -284,7 +260,6 @@ const ViewBookings = () => {
   const handleRescheduleSuccess = (newDate, newTime, reason) => {
     console.log("Reschedule Successful", newDate, newTime, reason);
     setIsRescheduledConfirmed(true);
-    // Update only the selected booking, not all bookings
     setBookings((prevBookings) =>
       selectedBookingId
         ? {
@@ -297,13 +272,14 @@ const ViewBookings = () => {
     );
 
     setShowRescheduledRow(true);
-
-    closeRescheduleModal(); // Close modal after success
+    closeRescheduleModal();
   };
+
   const handleRescheduleButtonClick = (id) => {
-    setSelectedBookingId(id); // This will trigger the modal to open
+    setSelectedBookingId(id);
     openRescheduleModal();
   };
+
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">

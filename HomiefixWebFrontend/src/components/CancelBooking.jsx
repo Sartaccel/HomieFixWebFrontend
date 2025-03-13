@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import "../styles/AssignBookings.css";
 import Skeleton from "react-loading-skeleton"; // Import Skeleton Loader
 import "react-loading-skeleton/dist/skeleton.css"; // Skeleton styles
+import api from "../api";
+
 
 const CancelBooking = ({ id, booking, onClose }) => {
   const [cancelReason, setCancelReason] = useState("");
@@ -20,19 +22,18 @@ const CancelBooking = ({ id, booking, onClose }) => {
 
     try {
       const encodedReason = encodeURIComponent(reason);
-      const url = `http://localhost:2222/booking/cancel/${id}?reason=${encodedReason}`;
+      const url = `/booking/cancel/${id}?reason=${encodedReason}`;
 
       console.log("Cancellation URL:", url);
 
-      const response = await fetch(url, { method: "PUT" });
+      const response = await api.put(url); // Use axios.put instead of fetch
 
-      if (response.ok) {
+      if (response.status === 200) {
         alert("Booking cancelled successfully");
         onClose(); // Close the CancelBooking modal
       } else {
-        const errorData = await response.json();
-        console.error("Cancellation failed:", response.status, errorData);
-        alert(`Failed to cancel booking: ${response.status} - ${errorData.message || "Unknown error"}`);
+        console.error("Cancellation failed:", response.status, response.data);
+        alert(`Failed to cancel booking: ${response.status} - ${response.data.message || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error cancelling booking:", error);

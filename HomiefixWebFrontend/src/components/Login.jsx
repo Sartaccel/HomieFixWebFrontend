@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import logo from "../assets/HomiefixLogo.png";
 import usernameIcon from "../assets/Username.png";
 import passwordIcon from "../assets/Password.png";
 import "../styles/Login.css";
+import api from "../api";
 
 const Login = ({ setToken }) => {
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ const Login = ({ setToken }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:2222/admin/login", {
+      const response = await api.post("/admin/login", {
         username,
         password,
       });

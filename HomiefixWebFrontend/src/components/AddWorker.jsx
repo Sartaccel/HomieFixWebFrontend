@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import axios from "axios"; // Import axios
 import addWorker from "../assets/addWorker.png";
 import "../styles/AddWorker.css";
 import Header from "./Header";
+import api from "../api";
 
 
 const AddWorker = () => {
@@ -86,7 +86,7 @@ const AddWorker = () => {
 
    const checkContactNumberExists = async (contactNumber) => {
        try {
-           const response = await axios.get(`http://localhost:2222/workers/check-contact`, {
+           const response = await api.get(`/workers/check-contact`, {
                params: { contactNumber }, // Pass query parameters
            });
            return response.data; // Returns true if contact number is available, false otherwise
@@ -149,7 +149,7 @@ const AddWorker = () => {
            }
 
 
-           const response = await axios.post("http://localhost:2222/workers/add", formDataToSend, {
+           const response = await api.post("/workers/add", formDataToSend, {
                headers: {
                    "Content-Type": "multipart/form-data", // Set the content type for file uploads
                },
