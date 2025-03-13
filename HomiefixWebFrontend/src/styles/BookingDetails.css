@@ -39,10 +39,9 @@
     padding-left: 40px;
     gap: 15px;
     background-color: #fff;
-    position: fixed;
+    position: relative;
     top: 70px; 
     width: 100%;
-    z-index: 1000;
     border-bottom: 1px solid #ddd;
 }
 
@@ -69,7 +68,7 @@
     width: 1220px;
     margin-left: 30px;
     background: #fff;
-    margin-top: 145px;  
+    /* margin-top: 145px;   */
     border-collapse: collapse;  
     
 }
