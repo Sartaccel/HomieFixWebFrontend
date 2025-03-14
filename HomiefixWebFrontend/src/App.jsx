@@ -20,6 +20,7 @@ import ComingSoon from "./components/ComingSoon";
 import Worker from "./components/Worker";
 import EditWorker from "./components/EditWorker";
 import Profile from "./components/Profile";
+import Notifications from "./components/Notifications";
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem("token") || "");
@@ -51,6 +52,8 @@ const App = () => {
             <Route path="/worker-details/worker/edit/:id" element={<EditWorker/>}/>
             <Route path="/services" element={<ComingSoon />} />
             <Route path="/profile/:username" element={<Profile />} />
+            <Route path="/notifications" element={<Notifications/>} />
+
           </Route>
         </Route>
       </Routes>
