@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import "../styles/AssignBookings.css";
-import Skeleton from "react-loading-skeleton"; // Import Skeleton Loader
-import "react-loading-skeleton/dist/skeleton.css"; // Skeleton styles
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
-const CancelBooking = ({ id, booking, onClose }) => {
+const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
   const [cancelReason, setCancelReason] = useState("");
   const [otherReason, setOtherReason] = useState("");
-  const [loading, setLoading] = useState(false); // New loading state
+  const [loading, setLoading] = useState(false);
 
   // Handle cancel button click
   const handleCancel = async () => {
@@ -16,7 +16,7 @@ const CancelBooking = ({ id, booking, onClose }) => {
     }
 
     const reason = cancelReason === "other" ? otherReason : cancelReason;
-    setLoading(true); // Start loading
+    setLoading(true);
 
     try {
       const encodedReason = encodeURIComponent(reason);
@@ -28,7 +28,8 @@ const CancelBooking = ({ id, booking, onClose }) => {
 
       if (response.ok) {
         alert("Booking cancelled successfully");
-        onClose(); // Close the CancelBooking modal
+        onCancelSuccess(reason); // Call the onCancelSuccess callback with the reason
+        onClose(); // Close the modal
       } else {
         const errorData = await response.json();
         console.error("Cancellation failed:", response.status, errorData);
@@ -38,7 +39,7 @@ const CancelBooking = ({ id, booking, onClose }) => {
       console.error("Error cancelling booking:", error);
       alert("An error occurred during cancellation.");
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
@@ -77,7 +78,7 @@ const CancelBooking = ({ id, booking, onClose }) => {
                     value={option.value}
                     checked={cancelReason === option.value}
                     onChange={(e) => setCancelReason(e.target.value)}
-                    disabled={loading} // Disable input while loading
+                    disabled={loading}
                   />
                   <label className="form-check-label" style={{ marginLeft: "5px" }} htmlFor={option.value}>
                     {option.label}
@@ -114,7 +115,7 @@ const CancelBooking = ({ id, booking, onClose }) => {
           className="btn btn-primary w-100 mt-3"
           style={{ backgroundColor: "#B8141A", border: "none" }}
           onClick={handleCancel}
-          disabled={loading} // Disable button while loading
+          disabled={loading}
         >
           {loading ? "Cancelling..." : "Cancel Service"}
         </button>
