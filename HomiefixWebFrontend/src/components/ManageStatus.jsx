@@ -36,52 +36,40 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
     setErrorMessage(""); // Clear any previous error messages
   };
 
-  const getLinePosition = () => {
-    if (booking.cancelReason) {
-      // If cancellation exists, highlight both the "Cancelled" row and the status row
-      switch (booking.bookingStatus) {
-        case "CANCELLED":
-          return { position: "80px", color: "#AE1319" }; // Highlight the "Cancelled" row
-        case "STARTED":
-          return { position: "137px", color: "black" }; // Highlight the "Started" row
-        case "COMPLETED":
-          return { position: "212px", color: "#1F7A45" }; // Highlight the "Completed" row
-        default:
-          return { position: "72px", color: "black" }; // Default to "Booking Successful"
-      }
-    }
-  
-    if (booking.rescheduleReason) {
-      // If rescheduled, highlight the "Rescheduled" row
-      return { position: "70px", color: "#C14810" };
-    }
-  
-    // Highlight based on the booking status
-    switch (booking.bookingStatus) {
-      case "ASSIGNED":
-        return { position: "150px", color: "black" }; // Highlight the "Worker Assigned" row
-      case "STARTED":
-        return { position: "137px", color: "black" }; // Highlight the "Started" row
-      case "COMPLETED":
-        return { position: "212px", color: "#1F7A45" }; // Highlight the "Completed" row
-      case "CANCELLED":
-        return { position: "80px", color: "#AE1319" }; // Highlight the "Cancelled" row
-      default:
-        return { position: "72px", color: "black" }; // Default to "Booking Successful"
-    }
-  };
+  const getHighlightStyle = (rowType) => {
+    // Define the highlight style for each row type
+    const highlightStyles = {
+      BOOKING_SUCCESSFUL: { borderLeft: "4px solid black" },
+      CANCELLED: { borderLeft: "4px solid #AE1319" },
+      RESCHEDULED: { borderLeft: "4px solid #C14810" },
+      ASSIGNED: { borderLeft: "4px solid black" },
+      STARTED: { borderLeft: "4px solid black" },
+      COMPLETED: { borderLeft: "4px solid #1F7A45" },
+    };
 
-  const { position, color } = getLinePosition();
+    // Only highlight the row if it matches the current status or scenario
+    if (rowType === booking.bookingStatus) {
+      return highlightStyles[rowType];
+    }
+
+    // Highlight the rescheduled row only if the status is RESCHEDULED
+    if (rowType === "RESCHEDULED" && booking.rescheduleReason) {
+      return highlightStyles.RESCHEDULED;
+    }
+
+    // No highlight for other rows
+    return {};
+  };
 
   return (
     <div className="col-md-6">
       <div
-        className="card rounded p-4 shadow-sm"
+        className="card rounded p-4"
         style={{
           marginTop: "47px",
           minHeight: "300px",
-          maxWidth: "600px",
-          marginLeft: "-40px",
+          maxWidth: "550px",
+          marginLeft: "0px",
           bottom: "20px",
           border: "1px solid #ddd",
           borderRadius: "12px",
@@ -91,42 +79,30 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
           justifyContent: "space-between",
         }}
       >
-        <h5>Status update</h5>
-        <div
-          className="p-3 mt-3 rounded"
-          style={{
-            height: "300px",
-            width: "550px",
-            border: "1px solid #ccc",
-            borderRadius: "10px",
-            position: "relative",
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "flex-start",
-            gap: "20px",
-          }}
-        >
-          <div
-            className="position-absolute"
-            style={{
-              top: position,
-              left: "0px",
-              width: "4px",
-              backgroundColor: color,
-              height: "75px",
-              transition: "height 0.5s ease-in-out",
-            }}
-          ></div>
-
+        <h5 style={{ paddingLeft: "20px" }}>Status update</h5>
+        <div className="p-3 mt-2 ">
           <table
             className="table w-100"
-            style={{ position: "relative", width: "100%" }}
+            style={{
+              position: "relative",
+              width: "100%",
+              border: "1px solid #E6E6E6",
+              borderCollapse: "collapse",
+            }}
           >
             <tbody>
               {/* Booking Successful Row */}
-              <tr style={{ height: "40px", width: "500px" }}>
-                <td className="text-start border-right">
+              <tr
+                style={{
+                  height: "40px",
+                  width: "500px",
+                  ...getHighlightStyle("BOOKING_SUCCESSFUL"),
+                }}
+              >
+                <td
+                  className="text-start border-right"
+                  style={{ border: "1px solid #E6E6E6" }}
+                >
                   <span style={{ color: "grey" }}>
                     {new Date().toLocaleDateString("en-US", {
                       month: "short",
@@ -142,7 +118,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                   </span>
                   <br />
                   Booking Successful on{" "}
-                  {new Date(booking.bookingDate).toLocaleDateString("en-US", {
+                  {new Date(booking.bookedDate).toLocaleDateString("en-US", {
                     month: "short",
                     day: "2-digit",
                     year: "numeric",
@@ -151,63 +127,27 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                 </td>
                 <td
                   className="text-end"
-                  style={{ backgroundColor: "#f0f0f0" }}
+                  style={{
+                    backgroundColor: "#FAFAFA",
+                    border: "1px solid #E6E6E6",
+                    width: "60px", // Fixed width for the right column
+                  }}
                 ></td>
               </tr>
-
-              {/* Cancelled Row */}
-              {booking.bookingStatus === "CANCELLED" && (
-                <tr style={{ height: "40px", backgroundColor: "#f8e1e1" }}>
-                  <td className="text-start border-right">
-                    <span style={{ color: "grey" }}>
-                      {new Date().toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "2-digit",
-                        year: "numeric",
-                      })}{" "}
-                      |{" "}
-                      {new Date().toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: true,
-                      })}
-                    </span>
-                    <span
-                      className="booking-details"
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "5px",
-                        fontSize: "14px",
-                      }}
-                    >
-                      <span
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        <span style={{ color: "#AE1319" }}>
-                          Service Cancelled
-                        </span>
-                      </span>
-                      <span style={{ fontSize: "14px" }}>
-                        {booking.cancelReason}
-                      </span>
-                    </span>
-                  </td>
-                  <td
-                    className="text-end"
-                    style={{ backgroundColor: "#f0f0f0" }}
-                  ></td>
-                </tr>
-              )}
-
               {/* Rescheduled Row */}
               {booking.rescheduleReason && (
-                <tr style={{ height: "40px", backgroundColor: "#f8f3e6" }}>
-                  <td className="text-start border-right">
+                <tr
+                  style={{
+                    height: "40px",
+                    ...(booking.status === "RESCHEDULED"
+                      ? getHighlightStyle("RESCHEDULED")
+                      : {}),
+                  }}
+                >
+                  <td
+                    className="text-start border-right"
+                    style={{ border: "1px solid #E6E6E6" }}
+                  >
                     <span style={{ color: "grey" }}>
                       {booking.bookedDate
                         ? new Date(booking.bookedDate).toLocaleDateString(
@@ -264,7 +204,77 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                   </td>
                   <td
                     className="text-end"
-                    style={{ backgroundColor: "#f0f0f0" }}
+                    style={{
+                      backgroundColor: "#FAFAFA",
+                      border: "1px solid #E6E6E6",
+                    }}
+                  ></td>
+                </tr>
+              )}
+              {/* Cancelled Row */}
+              {booking.bookingStatus === "CANCELLED" && (
+                <tr
+                  style={{
+                    height: "40px",
+                    ...getHighlightStyle("CANCELLED"),
+                  }}
+                >
+                  <td
+                    className="text-start border-right"
+                    style={{ border: "1px solid #E6E6E6" }}
+                  >
+                    <span style={{ color: "grey" }}>
+                      {new Date().toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "2-digit",
+                        year: "numeric",
+                      })}{" "}
+                      |{" "}
+                      {new Date().toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}
+                    </span>
+                    <span
+                      className="booking-details"
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "5px",
+                        fontSize: "14px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        <span style={{ color: "#AE1319" }}>
+                          Service Cancelled
+                        </span>
+                      </span>
+                      <span style={{ fontSize: "14px" }}>
+                        {booking.cancelReason
+                          ? booking.cancelReason.split(" ").length > 4
+                            ? booking.cancelReason
+                                .split(" ")
+                                .slice(0, 4)
+                                .join(" ") + "..."
+                            : booking.cancelReason
+                          : ""}
+                      </span>
+                    </span>
+                  </td>
+                  <td
+                    className="text-end"
+                    style={{
+                      backgroundColor: "#FAFAFA",
+                      border: "1px solid #E6E6E6",
+                      width: "60px", // Fixed width for the right column
+                    }}
                   ></td>
                 </tr>
               )}
@@ -272,158 +282,262 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
               {/* Worker Assigned Row */}
               <tr
                 style={{
-                  height: "70px",
-                  width: "500px",
-                  backgroundColor:
-                    booking.bookingStatus === "ASSIGNED"
-                      ? "#e8f0fe"
-                      : "transparent",
+                  height: "40px", // Fixed height
+                  width: "500px", // Fixed width
+                  ...getHighlightStyle("ASSIGNED"),
                 }}
               >
-                <td className="text-start border-right">
-                  <span style={{ color: "grey" }}>
-                    {booking.bookedDate
-                      ? new Date(booking.bookedDate).toLocaleDateString(
-                          "en-US",
-                          {
-                            month: "short",
-                            day: "2-digit",
-                            year: "numeric",
-                          }
-                        ) +
-                        " | " +
-                        new Date().toLocaleTimeString("en-US", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        })
-                      : "Not Assigned"}
-                  </span>
-                  <br />
-                  Worker Assigned
+                <td
+                  className="text-start border-right"
+                  style={{
+                    border: "1px solid #E6E6E6",
+                    height: "60px", // Ensures enough height for proper vertical centering
+                    verticalAlign: "middle", // Aligns content within the cell
+                  }}
+                >
+                  {booking.bookingStatus !== "CANCELLED" ? (
+                    <>
+                      <span style={{ color: "grey" }}>
+                        {booking.bookedDate
+                          ? new Date(booking.bookedDate).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "2-digit",
+                                year: "numeric",
+                              }
+                            ) +
+                            " | " +
+                            new Date().toLocaleTimeString("en-US", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })
+                          : "Not Assigned"}
+                      </span>
+                      <br />
+                      <span style={{ color: "black" }}>Worker Assigned</span>
+                    </>
+                  ) : (
+                    // Flex container for vertical centering
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        height: "40px", // Matches the td height
+                        width: "100%", // Ensures full width
+                      }}
+                    >
+                      <span style={{ color: "grey" }}>Worker Assigned</span>
+                    </div>
+                  )}
                 </td>
+
                 <td
                   className="text-end"
-                  style={{ backgroundColor: "#f0f0f0" }}
+                  style={{
+                    backgroundColor: "#FAFAFA",
+                    border: "1px solid #E6E6E6",
+                    width: "60px", // Fixed width for the right column
+                  }}
                 ></td>
               </tr>
 
               {/* Service Started Row */}
               <tr
                 style={{
-                  height: "70px",
-                  width: "500px",
-                  backgroundColor:
-                    booking.bookingStatus === "STARTED"
-                      ? "#e8f0fe"
-                      : "transparent",
+                  height: "40px", // Fixed height
+                  width: "500px", // Fixed width
+                  ...getHighlightStyle("STARTED"),
                 }}
               >
-                <td className="text-start border-right">
-                  <span style={{ color: "grey" }}>
-                    {serviceStarted === "Yes"
-                      ? `${new Date().toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "2-digit",
-                          year: "numeric",
-                        })} | ${new Date().toLocaleTimeString("en-US", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        })}`
-                      : `${new Date().toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "2-digit",
-                          year: "numeric",
-                        })} | ${new Date().toLocaleTimeString("en-US", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        })}`}
-                  </span>
-                  <br />
-                  Service Started
-                </td>
-                <td className="text-end" style={{ backgroundColor: "#f0f0f0" }}>
-                  <span className="custom-dropdown">
-                    <select
-                      className="no-border"
-                      onChange={(e) => setServiceStarted(e.target.value)}
-                      value={serviceStarted}
+                <td
+                  className="text-start border-right"
+                  style={{
+                    border: "1px solid #E6E6E6",
+                    height: "60px", // Ensures enough height for vertical centering
+                    verticalAlign: "middle", // Helps align content inside the td
+                  }}
+                >
+                  {booking.bookingStatus !== "CANCELLED" ? (
+                    <>
+                      <span style={{ color: "grey" }}>
+                        {serviceStarted === "Yes"
+                          ? `${new Date().toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "2-digit",
+                              year: "numeric",
+                            })} | ${new Date().toLocaleTimeString("en-US", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })}`
+                          : "Not Assigned"}
+                      </span>
+                      <br />
+                      <span style={{ color: "black" }}>Service Started</span>
+                    </>
+                  ) : (
+                    // Full height flex container for centering
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        height: "40px", // Matches the td height
+                        width: "100%", // Ensures full width
+                      }}
                     >
-                      <option value="No">No</option>
-                      <option value="Yes">Yes</option>
-                    </select>
-                  </span>
+                      <span style={{ color: "grey" }}>Service Started</span>
+                    </div>
+                  )}
+                </td>
+
+                <td
+                  className="text-center"
+                  style={{
+                    backgroundColor: "#FAFAFA",
+                    border: "1px solid #E6E6E6",
+                    width: "60px", // Fixed width for the right column
+                  }}
+                >
+                  {booking.bookingStatus !== "CANCELLED" &&
+                  booking.bookingStatus !== "COMPLETED" ? (
+                    <span className="custom-dropdown">
+                      <select
+                        className="no-border"
+                        onChange={(e) => setServiceStarted(e.target.value)}
+                        value={serviceStarted}
+                        style={{ width: "100%" }} // Ensure dropdown takes full width
+                      >
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                      </select>
+                    </span>
+                  ) : (
+                    <span
+                      style={{
+                        visibility: "hidden",
+                        width: "100%",
+                        display: "inline-block", // Ensures the placeholder takes up space
+                      }}
+                    >
+                      -
+                    </span> // Placeholder to maintain width
+                  )}
                 </td>
               </tr>
 
               {/* Service Completed Row */}
               <tr
                 style={{
-                  height: "80px",
-                  width: "500px",
-                  backgroundColor:
-                    booking.bookingStatus === "COMPLETED"
-                      ? "#e8f0fe"
-                      : "transparent",
+                  height: "40px", // Fixed height
+                  width: "500px", // Fixed width
+                  ...getHighlightStyle("COMPLETED"),
                 }}
               >
-                <td className="text-start border-right">
-                  <span style={{ color: "grey" }}>
-                    {serviceCompleted === "Yes"
-                      ? `${new Date().toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "2-digit",
-                          year: "numeric",
-                        })} | ${new Date().toLocaleTimeString("en-US", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        })}`
-                      : `${new Date().toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "2-digit",
-                          year: "numeric",
-                        })} | ${new Date().toLocaleTimeString("en-US", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        })}`}
-                  </span>
-                  <br />
-                  <span
+                <td
+                  className="text-start border-right"
+                  style={{
+                    border: "1px solid #E6E6E6",
+                    height: "60px", // Ensures enough height for vertical centering
+                    verticalAlign: "middle", // Helps with vertical alignment inside the td
+                  }}
+                >
+                  {booking.bookingStatus !== "CANCELLED" ? (
+                    <>
+                      <span style={{ color: "grey" }}>
+                        {serviceCompleted === "Yes"
+                          ? `${new Date().toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "2-digit",
+                              year: "numeric",
+                            })} | ${new Date().toLocaleTimeString("en-US", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })}`
+                          : "Not Assigned"}
+                      </span>
+                      <br />
+                      <span
+                        style={{
+                          color:
+                            booking.bookingStatus === "COMPLETED"
+                              ? "#1F7A45"
+                              : "black",
+                        }}
+                      >
+                        Service Completed
+                      </span>
+                    </>
+                  ) : (
+                    // Full height flex container for centering
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        height: "40px", // Matches the td height
+                        width: "100%", // Ensures full width
+                      }}
+                    >
+                      <span style={{ color: "grey" }}>Service Completed</span>
+                    </div>
+                  )}
+                </td>
+
+                {booking.status !== "COMPLETED" && (
+                  <td
+                    className="text-center"
                     style={{
-                      color:
-                        booking.bookingStatus === "COMPLETED"
-                          ? "#1F7A45"
-                          : "black",
+                      backgroundColor: "#FAFAFA",
+                      border: "1px solid #E6E6E6",
+                      width: "80px", // Fixed width for the right column
                     }}
                   >
-                    Service Completed
-                  </span>
-                </td>
-                <td className="text-end" style={{ backgroundColor: "#f0f0f0" }}>
-                  <span className="custom-dropdown">
-                    <select
-                      className="no-border"
-                      onChange={(e) => setServiceCompleted(e.target.value)}
-                      value={serviceCompleted}
-                    >
-                      <option value="No">No</option>
-                      <option value="Yes">Yes</option>
-                    </select>
-                  </span>
-                </td>
+                    {booking.bookingStatus !== "CANCELLED" ? (
+                      <span className="custom-dropdown">
+                        <select
+                          className="no-border"
+                          onChange={(e) => setServiceCompleted(e.target.value)}
+                          value={serviceCompleted}
+                          style={{ width: "100%" }} // Ensure dropdown takes full width
+                        >
+                          <option value="No">No</option>
+                          <option value="Yes">Yes</option>
+                        </select>
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          visibility: "hidden",
+                          width: "100%",
+                          display: "inline-block", // Ensures the placeholder takes up space
+                        }}
+                      >
+                        -
+                      </span> // Placeholder to maintain width
+                    )}
+                  </td>
+                )}
               </tr>
 
               {/* Update Button Row */}
               <tr>
-                <td colSpan="2" className="text-center">
+                <td
+                  colSpan="2"
+                  className="text-center"
+                  style={{ border: "1px solid #E6E6E6" }}
+                >
                   <button
                     className="btn btn-primary"
                     onClick={handleUpdateStatus}
-                    style={{ marginTop: "10px" }}
+                    style={{
+                      marginTop: "10px",
+                      width: "90%",
+                      borderRadius: "14px",
+                      backgroundColor: "#0076CE",
+                      marginBottom: "10px",
+                    }}
                   >
                     Update
                   </button>
