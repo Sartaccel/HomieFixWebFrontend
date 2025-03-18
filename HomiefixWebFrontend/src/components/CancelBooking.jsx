@@ -8,7 +8,6 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
   const [otherReason, setOtherReason] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Handle cancel button click
   const handleCancel = async () => {
     if (!cancelReason) {
       alert("Please select a reason for cancellation");
@@ -28,8 +27,8 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
 
       if (response.ok) {
         alert("Booking cancelled successfully");
-        onCancelSuccess(reason); // Call the onCancelSuccess callback with the reason
-        onClose(); // Close the modal
+        onCancelSuccess(reason);
+        onClose();
       } else {
         const errorData = await response.json();
         console.error("Cancellation failed:", response.status, errorData);
@@ -46,7 +45,6 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
   return (
     <div className="reschedule-slider position-fixed top-0 end-0 h-100 bg-white shadow-lg" style={{ width: "550px", zIndex: 1000 }}>
       <div className="p-4">
-        {/* Header */}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h4>Cancel Service</h4>
           <button className="btn btn-light" onClick={onClose} disabled={loading}>
@@ -55,7 +53,6 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
         </div>
         <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
 
-        {/* Reason for Cancellation */}
         <div className="mb-4 mt-3">
           <h6>Reason for Cancellation</h6>
           <div className="mb-4">
@@ -110,7 +107,6 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
         </div>
         <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
 
-        {/* Cancel Button */}
         <button
           className="btn btn-primary w-100 mt-3"
           style={{ backgroundColor: "#B8141A", border: "none" }}

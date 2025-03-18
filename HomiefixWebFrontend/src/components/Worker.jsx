@@ -64,14 +64,16 @@ const Worker = () => {
             status: booking.bookingStatus,
           }));
 
-          const mappedInProgressBookings = inProgressBookings.map((booking) => ({
-            id: booking.id,
-            service: booking.worker?.role || "N/A",
-            name: booking.worker?.name || "N/A",
-            phone: booking.worker?.contactNumber || "N/A",
-            date: booking.bookedDate,
-            status: booking.bookingStatus,
-          }));
+          const mappedInProgressBookings = inProgressBookings.map(
+            (booking) => ({
+              id: booking.id,
+              service: booking.worker?.role || "N/A",
+              name: booking.worker?.name || "N/A",
+              phone: booking.worker?.contactNumber || "N/A",
+              date: booking.bookedDate,
+              status: booking.bookingStatus,
+            })
+          );
 
           // Update state
           setServiceDetailsData(mappedCompletedBookings);
@@ -121,7 +123,7 @@ const Worker = () => {
           <button
             className="btn btn-light p-2"
             style={{ marginBottom: "-20px" }}
-            onClick={() => navigate(`/worker-details`)}
+            onClick={() => navigate(-1)}
           >
             <i
               className="bi bi-arrow-left"
@@ -296,7 +298,11 @@ const Worker = () => {
 
                 <p
                   className="border border-danger rounded px-2"
-                  style={{ marginLeft: "100px", paddingTop: "3px", cursor: "pointer" }}
+                  style={{
+                    marginLeft: "100px",
+                    paddingTop: "3px",
+                    cursor: "pointer",
+                  }}
                   onClick={handleDeleteWorker}
                 >
                   <i className="bi bi-trash text-danger mx-1"></i>
@@ -347,7 +353,9 @@ const Worker = () => {
                           <td>{index + 1}</td>
                           <td>
                             {item.service} <br />
-                            <span style={{ color: "#0076CE" }}>ID: {item.id}</span>
+                            <span style={{ color: "#0076CE" }}>
+                              ID: {item.id}
+                            </span>
                           </td>
                           <td>
                             {item.name} <br /> {item.phone}
@@ -398,7 +406,9 @@ const Worker = () => {
                           <td>
                             {item.service}
                             <br />
-                            <span style={{ color: "#0076CE" }}>ID: {item.id}</span>
+                            <span style={{ color: "#0076CE" }}>
+                              ID: {item.id}
+                            </span>
                           </td>
                           <td>
                             {item.name}
@@ -427,7 +437,14 @@ const Worker = () => {
                     </tbody>
                   </table>
                 ) : (
-                    <div className="p-fixed" style={{overflow:"hidden", height: "650px", marginTop:"-180px"}}>
+                  <div
+                    className="p-fixed"
+                    style={{
+                      overflow: "hidden",
+                      height: "650px",
+                      marginTop: "-180px",
+                    }}
+                  >
                     {/* <h1 className="text-center w-100">No reviews yet</h1> */}
                     <ComingSoon />
                   </div>

@@ -13,30 +13,26 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
   const [loadingDates, setLoadingDates] = useState(true);
   const [loadingTimes, setLoadingTimes] = useState(true);
 
-  // Fetch available dates and times
   useEffect(() => {
     const fetchAvailableDates = async () => {
       try {
         const response = await fetch("http://localhost:2222/booking/available-dates");
         const data = await response.json();
-        console.log("Available Dates from API:", data); // Debugging
+        console.log("Available Dates from API:", data);
 
-        // Transform dates into a valid format
         const validDates = data
           .map((date) => {
-            // Remove the day of the week (e.g., "Saturday") from the date string
-            const cleanedDate = date.replace(/\s\w+day\s/, " "); // Removes " Saturday", " Sunday", etc.
-            console.log("Cleaned Date:", cleanedDate); // Debugging
+            const cleanedDate = date.replace(/\s\w+day\s/, " ");
+            console.log("Cleaned Date:", cleanedDate);
 
-            // Parse the cleaned date
             const parsedDate = new Date(cleanedDate);
             if (isNaN(parsedDate.getTime())) {
-              console.warn("Invalid date found:", date); // Log invalid dates
-              return null; // Skip invalid dates
+              console.warn("Invalid date found:", date);
+              return null;
             }
-            return parsedDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+            return parsedDate.toISOString().split("T")[0];
           })
-          .filter((date) => date !== null); // Remove null values
+          .filter((date) => date !== null);
 
         setAvailableDates(validDates);
       } catch (error) {
@@ -62,36 +58,28 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
     fetchAvailableTimes();
   }, []);
 
-  // Handle date selection and deselection
   const handleDateSelection = (date) => {
     if (selectedDate === date) {
-      // Deselect the date if already selected
       setSelectedDate("");
     } else {
-      // Select the date
       setSelectedDate(date);
     }
   };
 
-  // Handle time slot selection and deselection
   const handleTimeSlotSelection = (time) => {
     if (selectedTimeSlot === time) {
-      // Deselect the time slot if already selected
       setSelectedTimeSlot("");
     } else {
-      // Select the time slot
       setSelectedTimeSlot(time);
     }
   };
 
-  // Handle reschedule button click
   const handleReschedule = async () => {
     if (!selectedDate || !selectedTimeSlot || !rescheduleReason) {
       alert("Please select a date, time slot, and reason for reschedule");
       return;
     }
 
-    // Validate selectedDate
     const parsedDate = new Date(selectedDate);
     if (isNaN(parsedDate.getTime())) {
       alert("Please select a valid date");
@@ -101,10 +89,9 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
     const reason = rescheduleReason === "other" ? otherReason : rescheduleReason;
 
     try {
-      // Format the date as YYYY-MM-DD
       const formattedDate = parsedDate.toISOString().split("T")[0];
-      const encodedTimeSlot = encodeURIComponent(selectedTimeSlot); // URL encode time
-      const encodedReason = encodeURIComponent(reason); // URL encode reason
+      const encodedTimeSlot = encodeURIComponent(selectedTimeSlot);
+      const encodedReason = encodeURIComponent(reason);
 
       const url = `http://localhost:2222/booking/reschedule/${id}?selectedDate=${formattedDate}&selectedTimeSlot=${encodedTimeSlot}&rescheduleReason=${encodedReason}`;
 
@@ -116,8 +103,8 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
 
       if (response.ok) {
         alert("Booking rescheduled successfully");
-        onReschedule(formattedDate, selectedTimeSlot); // Update parent state
-        onClose(); // Close the Reschedule modal
+        onReschedule(formattedDate, selectedTimeSlot);
+        onClose();
       } else {
         const errorData = await response.json();
         console.error("Reschedule failed:", response.status, errorData);
@@ -129,17 +116,16 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
     }
   };
 
-  // Helper function to format the date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const day = date.getDate(); // Get the day (e.g., 21)
-    const month = date.toLocaleString("en-US", { month: "short" }); // Get the month (e.g., "Feb")
-    const dayOfWeek = date.toLocaleString("en-US", { weekday: "long" }); // Get the day of the week (e.g., "Friday")
+    const day = date.getDate();
+    const month = date.toLocaleString("en-US", { month: "short" });
+    const dayOfWeek = date.toLocaleString("en-US", { weekday: "long" });
 
     return (
       <div>
-        <div>{`${day} ${month}`}</div> {/* Output: "21 Feb" */}
-        <div>{dayOfWeek}</div> {/* Output: "Friday" */}
+        <div>{`${day} ${month}`}</div>
+        <div>{dayOfWeek}</div>
       </div>
     );
   };
@@ -147,7 +133,6 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
   return (
     <div className="reschedule-slider position-fixed top-0 end-0 h-100 bg-white shadow-lg" style={{ width: "550px", zIndex: 1000 }}>
       <div className="p-4">
-        {/* Header */}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h4>Reschedule Service</h4>
           <button className="btn btn-light" onClick={onClose}>
@@ -156,7 +141,6 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
         </div>
         <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
 
-        {/* Date Selection */}
         <div className="mb-3 mt-3">
           <h6>Date</h6>
           <div className="d-flex flex-wrap gap-2">
@@ -185,7 +169,6 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
         </div>
         <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
 
-        {/* Time Slot Selection */}
         <div className="mb-3 mt-3">
           <h6>Time</h6>
           <div className="d-flex flex-wrap gap-2">
@@ -214,7 +197,6 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
         </div>
         <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
 
-        {/* Reason for Reschedule */}
         <div className="mb-3 mt-3">
           <h6>Reason for Reschedule</h6>
           <div className="mb-2">
@@ -250,18 +232,17 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
               value={otherReason}
               onChange={(e) => setOtherReason(e.target.value)}
               style={{
-                height: "75px", // Fixed height
-                resize: "none", // Prevents resizing
-                padding: "10px", // Ensures proper spacing
-                width: "100%", // Ensures it fills the container
-                boxSizing: "border-box", // Prevents overflow issues
+                height: "75px",
+                resize: "none",
+                padding: "10px",
+                width: "100%",
+                boxSizing: "border-box",
               }}
             ></textarea>
           )}
         </div>
         <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
 
-        {/* Reschedule Button */}
         <button className="btn btn-primary w-100 mt-3" style={{ backgroundColor: "#0076CE" }} onClick={handleReschedule}>
           Reschedule
         </button>

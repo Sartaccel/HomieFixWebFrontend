@@ -8,7 +8,6 @@ import Reschedule from "./Reschedule"; // Ensure you have a Reschedule component
 import CancelBooking from "./CancelBooking";
 import ManageStatus from "./ManageStatus"; // Ensure you have a CancelBooking component
 
-
 const ViewBookings = () => {
   const { id } = useParams(); // Get the booking ID from the URL
   const navigate = useNavigate(); // Initialize the navigate function
@@ -27,7 +26,7 @@ const ViewBookings = () => {
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [showCancelBookingModal, setShowCancelBookingModal] = useState(false);
   const [selectedBookingIdForCancellation, setSelectedBookingIdForCancellation] = useState(null);
-
+  const [refresh, setRefresh] = useState(false); // State to trigger refresh
 
   const handleStatusUpdate = async (status) => {
     try {
@@ -35,9 +34,11 @@ const ViewBookings = () => {
         `http://localhost:2222/booking/update-status/${id}?status=${status}`
       );
 
-
       if (response.status === 200) {
-        setBooking((prevBooking) => ({ ...prevBooking, bookingStatus: status }));
+        setBooking((prevBooking) => ({
+          ...prevBooking,
+          bookingStatus: status,
+        }));
         alert(`Booking status updated to ${status}`);
       } else {
         alert("Failed to update booking status");
@@ -48,85 +49,65 @@ const ViewBookings = () => {
     }
   };
 
-
-  // Helper function to format the date as "Mon DD, YYYY"
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const month = date.toLocaleString("default", { month: "short" }); // Get the short month name (e.g., "Oct")
-    const day = date.getDate().toString().padStart(2, "0"); // Add leading zero for single-digit days
-    const year = date.getFullYear(); // Get the full year (e.g., 2023)
-    return `${month} ${day}, ${year}`; // Format as "Oct 05, 2023"
+    const month = date.toLocaleString("default", { month: "short" });
+    const day = date.getDate().toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${month} ${day}, ${year}`;
   };
 
+  const fetchBookingDetails = async () => {
+    try {
+      setLoading(true);
+      const { data } = await axios.get(`http://localhost:2222/booking/${id}`);
+      setBooking(data);
+      setNotes(data.notes || "No additional notes provided.");
 
-  useEffect(() => {
-    const fetchBookingDetails = async () => {
-      try {
-        setLoading(true);
-        // Fetch booking details
-        const { data } = await axios.get(`http://localhost:2222/booking/${id}`);
-        setBooking(data);
-        setNotes(data.notes || "No additional notes provided.");
-
-
-        // Fetch worker details if workerId is available
-        if (data.worker) {
-          setWorker(data.worker);
-        } else if (data.workerId) {
-          const workerResponse = await axios.get(
-            `http://localhost:2222/workers/view/${data.workerId}`
-          );
-          setWorker(workerResponse.data);
-        }
-
-
-        // Fetch feedback for the booking
-        await fetchFeedback(data.id, data.bookedDate); // Pass booking ID and booking date
-      } catch (err) {
-        console.error("Error fetching booking details:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-
-    // Function to fetch feedback dynamically
-    const fetchFeedback = async (bookingId, bookingDate) => {
-      try {
-        const response = await axios.get(
-          `http://localhost:2222/feedback/byBooking/${bookingId}`
+      if (data.worker) {
+        setWorker(data.worker);
+      } else if (data.workerId) {
+        const workerResponse = await axios.get(
+          `http://localhost:2222/workers/view/${data.workerId}`
         );
-        if (response.data && response.data.length > 0) {
-          // Add booking date to the feedback object
-          const feedbackWithDate = {
-            ...response.data[0],
-            bookingDate: bookingDate, // Include the booking date
-          };
-          setFeedback(feedbackWithDate); // Set the feedback with booking date
-        } else {
-          setFeedback(null); // No feedback available
-        }
-      } catch (err) {
-        console.error("Error fetching feedback:", err);
-        setFeedback(null); // Reset feedback if there's an error
+        setWorker(workerResponse.data);
       }
-    };
 
+      await fetchFeedback(data.id, data.bookedDate);
+    } catch (err) {
+      console.error("Error fetching booking details:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchBookingDetails();
-  }, [id]); // Re-run effect when the booking ID changes
-
+  const fetchFeedback = async (bookingId, bookingDate) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:2222/feedback/byBooking/${bookingId}`
+      );
+      if (response.data && response.data.length > 0) {
+        const feedbackWithDate = {
+          ...response.data[0],
+          bookingDate: bookingDate,
+        };
+        setFeedback(feedbackWithDate);
+      } else {
+        setFeedback(null);
+      }
+    } catch (err) {
+      console.error("Error fetching feedback:", err);
+      setFeedback(null);
+    }
+  };
 
   const saveNotes = async () => {
     setSaving(true);
     try {
       const response = await axios.patch(
-        `http://localhost:2222/booking/update-notes/${id}?notes=${encodeURIComponent(
-          notes
-        )}`
+        `http://localhost:2222/booking/update-notes/${id}?notes=${encodeURIComponent(notes)}`
       );
-
 
       if (response.status === 200) {
         alert("Notes saved successfully ✅");
@@ -147,36 +128,33 @@ const ViewBookings = () => {
     setIsRescheduleModalOpen(true);
   };
 
-
   const closeRescheduleModal = () => {
     setIsRescheduleModalOpen(false);
     setSelectedBookingId(null);
   };
 
-
   const handleRescheduleSuccess = () => {
     closeRescheduleModal();
-    // Optionally, refetch booking details or update state
+    setRefresh(!refresh); // Trigger refresh
   };
-
 
   const handleCancelBookingButtonClick = (bookingId) => {
     setSelectedBookingIdForCancellation(bookingId);
     setShowCancelBookingModal(true);
   };
 
-
   const handleCancelBookingSuccess = () => {
     setShowCancelBookingModal(false);
     setSelectedBookingIdForCancellation(null);
-    // Optionally, refetch booking details or update state
+    setRefresh(!refresh); // Trigger refresh
   };
 
+  useEffect(() => {
+    fetchBookingDetails();
+  }, [id, refresh]); // Re-run effect when the booking ID or refresh state changes
 
-  if (loading) return <Spinner animation="border" />;
-  if (error) return <p className="text-danger">Error: {error}</p>;
-  if (!booking) return <p>No booking details found.</p>;
-
+  if (error) return <p className="text-danger">{error}</p>;
+  if (!booking) return <p></p>;
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -196,8 +174,9 @@ const ViewBookings = () => {
                 ></i>
               </button>
               <div
-                className={`section ${activeTab === "serviceDetails" ? "active" : ""
-                  }`}
+                className={`section ${
+                  activeTab === "serviceDetails" ? "active" : ""
+                }`}
                 onClick={() => setActiveTab("serviceDetails")}
               >
                 Service Details
@@ -211,9 +190,7 @@ const ViewBookings = () => {
                 onMouseLeave={() => setIsRescheduleHovered(false)}
                 style={{
                   border: "1px solid #0076CE",
-                  backgroundColor: isRescheduleHovered
-                    ? "#0076CE"
-                    : "transparent",
+                  backgroundColor: isRescheduleHovered ? "#0076CE" : "transparent",
                   color: isRescheduleHovered ? "white" : "#0076CE",
                 }}
               >
@@ -236,11 +213,8 @@ const ViewBookings = () => {
             </div>
           </div>
           <div className="container mt-5 pt-4">
-            <div
-              className="row justify-content-between p-3 mt-5"
-            >
+            <div className="row justify-content-between p-3 mt-5">
               <div className="mt-4 p-3 col-6">
-                {/* Service Title & Price */}
                 <div className="d-flex align-items-center">
                   <img
                     src={booking.productImage || "https://via.placeholder.com/50"}
@@ -256,8 +230,6 @@ const ViewBookings = () => {
                   </div>
                 </div>
 
-
-                {/* Customer Details */}
                 <div className="mt-3">
                   <h6 className=" fw-bold">Customer Details</h6>
                   <p className="mb-1">
@@ -274,73 +246,73 @@ const ViewBookings = () => {
                   </p>
                   <p className="mb-1">
                     <i className="bi bi-geo-alt me-2"></i>
-                    {booking.deliveryAddress.houseNumber}, {booking.deliveryAddress.town},{" "}
-                    {booking.deliveryAddress.district}, {booking.deliveryAddress.state} -{" "}
+                    {booking.deliveryAddress.houseNumber},{" "}
+                    {booking.deliveryAddress.town},{" "}
+                    {booking.deliveryAddress.district},{" "}
+                    {booking.deliveryAddress.state} -{" "}
                     {booking.deliveryAddress.pincode}
                   </p>
                 </div>
 
+                <div className="border rounded p-3 mt-2" style={{ height: "110px" }}>
+                  <div className="d-flex justify-content-between align-items-center" style={{ marginTop: "-8px" }}>
+                    <h6 className="m-0" style={{ color: "#808080" }}>
+                      Notes
+                    </h6>
+                  </div>
 
-               {/* Notes Section */}
-<div className="border rounded p-3 mt-2" style={{height:"110px"}}>
-  <div className="d-flex justify-content-between align-items-center" style={{ marginTop: "-8px" }}>
-    <h6 className="m-0" style={{ color: "#808080" }}>Notes</h6>
-  </div>
+                  <div className="position-relative">
+                    <textarea
+                      id="notesText"
+                      className="form-control border-0 p-2"
+                      style={{
+                        width: "100%",
+                        height: "70px",
+                        resize: "none",
+                        outline: "none",
+                        background: "transparent",
+                        boxShadow: "none",
+                        overflowY: "auto",
+                      }}
+                      rows="3"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      readOnly={!isEditing}
+                    />
 
-  {/* Editable Textarea in the SAME BOX */}
-  <div className="position-relative">
-    <textarea
-      id="notesText"
-      className="form-control border-0 p-2"
-      style={{
-        width: "100%",
-        height: "70px", // 3 rows height
-        resize: "none",
-        outline: "none",
-        background: "transparent",
-        boxShadow: "none",
-        overflowY: "auto", // Enable scrolling if text exceeds
-      }}
-      rows="3"
-      value={notes}
-      onChange={(e) => setNotes(e.target.value)}
-      readOnly={!isEditing}
-    />
+                    <div className="d-flex justify-content-end" style={{ marginTop: "-95px", marginRight: "5px" }}>
+                      {!isEditing ? (
+                        <a
+                          href="#"
+                          className="text-primary text-decoration-none"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setIsEditing(true);
+                            document.getElementById("notesText").focus();
+                          }}
+                        >
+                          Edit
+                        </a>
+                      ) : (
+                        <a
+                          href="#"
+                          className={`text-primary text-decoration-none ${saving ? "disabled" : ""}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (!saving) saveNotes();
+                          }}
+                          style={{
+                            cursor: saving ? "not-allowed" : "pointer",
+                            opacity: saving ? 0.6 : 1,
+                          }}
+                        >
+                          {saving ? "Saving..." : "Save"}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
-    {/* Show Edit & Save Button Inside the Textarea */}
-    <div className="d-flex justify-content-end " style={{ marginTop: "-95px", marginRight: "5px" }}>
-      {!isEditing ? (
-        <a
-          href="#"
-          className="text-primary text-decoration-none"
-          onClick={(e) => {
-            e.preventDefault();
-            setIsEditing(true);
-            document.getElementById("notesText").focus();
-          }}
-        >
-          Edit
-        </a>
-      ) : (
-        <a
-          href="#"
-          className={`text-primary text-decoration-none ${saving ? "disabled" : ""}`}
-          onClick={(e) => {
-            e.preventDefault();
-            if (!saving) saveNotes();
-          }}
-          style={{ cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1 }}
-        >
-          {saving ? "Saving..." : "Save"}
-        </a>
-      )}
-    </div>
-  </div>
-</div>
-
-
-
-                {/* Worker Details */}
                 {worker && (
                   <div className="mt-3">
                     <h6 style={{ fontWeight: "bold" }}>Worker Details</h6>
@@ -376,15 +348,15 @@ const ViewBookings = () => {
                           </span>
                         </p>
                         <p className="mb-1">
-                          <i className="bi bi-telephone me-2"></i> {worker.contactNumber}
+                          <i className="bi bi-telephone me-2"></i>{" "}
+                          {worker.contactNumber}
                         </p>
                         <p className="mb-1">
-                          <i className="bi bi-geo-alt me-2"></i> {worker.houseNumber},{" "}
-                          {worker.town}, {worker.district}, {worker.state}, {worker.pincode}
+                          <i className="bi bi-geo-alt me-2"></i>{" "}
+                          {worker.houseNumber}, {worker.town}, {worker.district}, {worker.state}, {worker.pincode}
                         </p>
                       </div>
                     </div>
-                    {/* Move the "View full profile" link outside the flex container */}
                     <div className="">
                       <a
                         href="#"
@@ -401,8 +373,6 @@ const ViewBookings = () => {
                   </div>
                 )}
 
-
-                {/* Feedback Section */}
                 <div className="mt-2">
                   <h6>Customer Review</h6>
                   {feedback ? (
@@ -416,38 +386,46 @@ const ViewBookings = () => {
                             width: "50px",
                           }}
                         >
-                          <i className="bi bi-star-fill" style={{ color: "#FFD700" }}></i>{" "}
+                          <i
+                            className="bi bi-star-fill"
+                            style={{ color: "#FFD700" }}
+                          ></i>{" "}
                           {feedback.rating}
                         </span>
-                        <span style={{ marginLeft: "10px", color: "#666666", fontSize: "13px" }}>
+                        <span
+                          style={{
+                            marginLeft: "10px",
+                            color: "#666666",
+                            fontSize: "13px",
+                          }}
+                        >
                           {formatDate(feedback.bookingDate)}
                         </span>
                         <p
-                        className="feedback-text"
-                        style={{
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2, // Limit to 2 lines
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          maxWidth: "100%", // Ensure it doesn't stretch
-                          whiteSpace: "normal", // Allow wrapping
-                        }}
-                      >
-                        {feedback.comment}
+                          className="feedback-text"
+                          style={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            maxWidth: "100%",
+                            whiteSpace: "normal",
+                          }}
+                        >
+                          {feedback.comment}
+                        </p>
                       </p>
-                      </p>
-                   
                     </>
                   ) : (
                     <p>No feedback available.</p>
                   )}
                 </div>
-
-
               </div>
-              <ManageStatus booking={booking} onStatusUpdate={handleStatusUpdate} />
-             
+              <ManageStatus
+                booking={booking}
+                onStatusUpdate={handleStatusUpdate}
+              />
             </div>
             {isRescheduleModalOpen && selectedBookingId && (
               <Reschedule
@@ -471,6 +449,5 @@ const ViewBookings = () => {
     </div>
   );
 };
-
 
 export default ViewBookings;
