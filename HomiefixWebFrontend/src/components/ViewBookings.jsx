@@ -219,7 +219,7 @@ const ViewBookings = () => {
                   <img
                     src={booking.productImage || "https://via.placeholder.com/50"}
                     alt="Service"
-                    className="me-3"
+                    className="me-3 rounded"
                     style={{ width: 50, height: 50 }}
                   />
                   <div>
@@ -320,7 +320,7 @@ const ViewBookings = () => {
                       <img
                         src={worker.profilePicUrl || "https://via.placeholder.com/50"}
                         alt="Worker"
-                        className="me-3"
+                        className="me-3 rounded"
                         style={{
                           width: "80px",
                           height: "80px",
@@ -361,7 +361,7 @@ const ViewBookings = () => {
                       <a
                         href="#"
                         className="text-primary text-decoration-none d-block"
-                        style={{ marginLeft: "100px" }}
+                        style={{ marginLeft: "100px", color: "#0076CE" }}
                         onClick={(e) => {
                           e.preventDefault();
                           navigate(`/worker-details/worker/${worker.id}`);

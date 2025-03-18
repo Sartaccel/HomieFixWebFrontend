@@ -40,11 +40,11 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
     // Define the highlight style for each row type
     const highlightStyles = {
       BOOKING_SUCCESSFUL: { borderLeft: "4px solid black" },
-      CANCELLED: { borderLeft: "4px solid #AE1319" },
+      CANCELLED: { borderLeft: "4px solid #B8141A" },
       RESCHEDULED: { borderLeft: "4px solid #C14810" },
       ASSIGNED: { borderLeft: "4px solid black" },
       STARTED: { borderLeft: "4px solid black" },
-      COMPLETED: { borderLeft: "4px solid #1F7A45" },
+      COMPLETED: { borderLeft: "4px solid #2FB467" },
     };
 
     // Only highlight the row if it matches the current status or scenario
@@ -64,17 +64,24 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
   // Helper function to format date and time
   const formatDateTime = (dateString, timeString) => {
     if (!dateString || !timeString) return "Not Assigned";
-
+  
     const date = new Date(`${dateString}T${timeString}`);
-    return date.toLocaleString("en-US", {
+    
+    const formattedDate = date.toLocaleDateString("en-US", {
       month: "short",
       day: "2-digit",
       year: "numeric",
+    });
+  
+    const formattedTime = date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
     });
+  
+    return `${formattedDate} | ${formattedTime}`;
   };
+  
 
   return (
     <div className="col-md-6">
@@ -83,7 +90,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
         style={{
           marginTop: "47px",
           minHeight: "300px",
-          maxWidth: "550px",
+          maxWidth: "560px",
           marginLeft: "0px",
           bottom: "20px",
           border: "1px solid #ddd",
@@ -193,7 +200,14 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                         </span>
                       </span>
                       <span style={{ fontSize: "14px" }}>
-                        {booking.rescheduleReason}
+                        {booking.rescheduleReason
+                          ? booking.rescheduleReason.split(" ").length > 7
+                            ? booking.rescheduleReason
+                                .split(" ")
+                                .slice(0, 7)
+                                .join(" ") + "..."
+                            : booking.rescheduleReason
+                          : ""}
                       </span>
                     </span>
                   </td>
@@ -221,8 +235,8 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                   >
                     <span style={{ color: "grey" }}>
                       {formatDateTime(
-                        booking.serviceCompletedDate,
-                        booking.serviceCompletedTime
+                        booking.cancelledDate,
+                        booking.cancelledTime
                       )}
                     </span>
                     <span
@@ -247,10 +261,10 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                       </span>
                       <span style={{ fontSize: "14px" }}>
                         {booking.cancelReason
-                          ? booking.cancelReason.split(" ").length > 4
+                          ? booking.cancelReason.split(" ").length > 7
                             ? booking.cancelReason
                                 .split(" ")
-                                .slice(0, 4)
+                                .slice(0, 7)
                                 .join(" ") + "..."
                             : booking.cancelReason
                           : ""}
@@ -550,7 +564,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                       marginTop: "10px",
                       width: "90%",
                       border: "none",
-                      borderRadius: "14px",
+                      borderRadius: "12px",
                       backgroundColor:
                         booking.bookingStatus === "CANCELLED"
                           ? "#A0A0A0"
