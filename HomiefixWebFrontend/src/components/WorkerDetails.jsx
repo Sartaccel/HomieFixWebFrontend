@@ -54,9 +54,8 @@ const WorkerDetails = ({ token, setToken }) => {
   const filteredWorkers = workers.filter((worker) =>
     selectedSpecifications.length === 0 ||
     selectedSpecifications.some((spec) =>
-      worker.role.split(",").map((role) => role.trim()).includes(spec)
-    )
-  );
+      worker.specification.split(",").map((s) => s.trim()).includes(spec)
+  ));
 
   return (
     <div>
