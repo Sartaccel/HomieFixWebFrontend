@@ -105,19 +105,24 @@ const AssignBookings = () => {
       alert("Please select a worker");
       return;
     }
- 
+  
     try {
       const token = localStorage.getItem("token");
-      console.log("Token:", token); // Debugging
- 
+      console.log("Token:", token); // Debugging: Log the token
+  
+      // Send workerId as a query parameter
       const response = await api.put(
-        `/booking/assign-worker/${id}`,
+        `/booking/assign-worker/${id}?workerId=${selectedWorkerId}`,
         {
-          workerId: selectedWorkerId,
-          notes: notes,
+          notes: notes, // Send notes in the request body
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
- 
+  
       if (response.status === 200) {
         alert("Worker assigned successfully");
         navigate(-1);
@@ -127,7 +132,7 @@ const AssignBookings = () => {
     } catch (error) {
       console.error("Error assigning worker:", error);
       if (error.response) {
-        console.error("Server response:", error.response.data); // Debugging
+        console.error("Server response:", error.response.data); // Debugging: Log the server response
         if (error.response.status === 403) {
           alert("You do not have permission to perform this action.");
           navigate("/"); // Redirect to login page
