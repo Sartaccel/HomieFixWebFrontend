@@ -55,7 +55,7 @@ const WorkerDetails = ({ token, setToken }) => {
     selectedSpecifications.length === 0 ||
     selectedSpecifications.some((spec) =>
       worker.specification.split(",").map((s) => s.trim()).includes(spec)
-  ));
+    ));
 
   return (
     <div>
