@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import axios from "axios"; // Import axios
 import closeDate from "../assets/close date.png"; // Import the close date icon
 import Reschedule from "./Reschedule"; // Import the Reschedule component
 import CancelBooking from "./CancelBooking"; // Import the CancelBooking component
@@ -44,9 +45,8 @@ const AssignBookings = () => {
   useEffect(() => {
     const fetchWorkers = async () => {
       try {
-        const response = await fetch("http://localhost:2222/workers/view");
-        const data = await response.json();
-        setWorkers(data);
+        const response = await axios.get("http://localhost:2222/workers/view");
+        setWorkers(response.data);
       } catch (error) {
         console.error("Error fetching workers:", error);
       } finally {
@@ -59,11 +59,10 @@ const AssignBookings = () => {
 
   // Fetch booking details from the API
   useEffect(() => {
-    
     const fetchBookingDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:2222/booking/${id}`);
-        const data = await response.json();
+        const response = await axios.get(`http://localhost:2222/booking/${id}`);
+        const data = response.data;
         // Ensure the API response contains the correct fields
         if (data.date && data.timeslot) {
           setRescheduledDate(data.date);
@@ -76,7 +75,7 @@ const AssignBookings = () => {
         setLoadingBookingDetails(false); // Set loading to false after fetching
       }
     };
-  
+
     fetchBookingDetails();
   }, [id]);
 
@@ -100,19 +99,15 @@ const AssignBookings = () => {
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:2222/booking/assign-worker/${id}?workerId=${selectedWorkerId}&notes=${encodeURIComponent(
-          notes
-        )}`,
+      const response = await axios.put(
+        `http://localhost:2222/booking/assign-worker/${id}`,
         {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          workerId: selectedWorkerId,
+          notes: notes,
         }
       );
 
-      if (response.ok) {
+      if (response.status === 200) {
         alert("Worker assigned successfully");
         navigate(-1);
       } else {
@@ -126,19 +121,14 @@ const AssignBookings = () => {
   // Save notes to the booking
   const saveNotes = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:2222/booking/update-notes/${id}?notes=${encodeURIComponent(
-          notes
-        )}`,
+      const response = await axios.patch(
+        `http://localhost:2222/booking/update-notes/${id}`,
         {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          notes: notes,
         }
       );
 
-      if (response.ok) {
+      if (response.status === 200) {
         alert("Notes saved successfully");
       } else {
         alert("Failed to save notes");
@@ -158,30 +148,24 @@ const AssignBookings = () => {
 
   const undoReschedule = async () => {
     try {
-      const formattedDate = encodeURIComponent(booking.date);
-      const encodedTimeSlot = encodeURIComponent(booking.timeslot);
-      const encodedReason = encodeURIComponent("Undo rescheduling");
-
-      const response = await fetch(
-        `http://localhost:2222/booking/reschedule/${id}?selectedDate=${formattedDate}&selectedTimeSlot=${encodedTimeSlot}&rescheduleReason=${encodedReason}`,
+      const response = await axios.put(
+        `http://localhost:2222/booking/reschedule/${id}`,
         {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          selectedDate: booking.date,
+          selectedTimeSlot: booking.timeslot,
+          rescheduleReason: "Undo rescheduling",
         }
       );
 
-      if (response.ok) {
+      if (response.status === 200) {
         setRescheduledDate(booking.date);
         setRescheduledTimeslot(booking.timeslot);
         localStorage.removeItem("rescheduledDate");
         localStorage.removeItem("rescheduledTimeslot");
         alert("Rescheduling undone successfully");
       } else {
-        const errorText = await response.text();
-        console.error("Failed to undo rescheduling:", errorText);
-        alert(`Failed to undo rescheduling: ${errorText}`);
+        console.error("Failed to undo rescheduling:", response.data);
+        alert(`Failed to undo rescheduling: ${response.data}`);
       }
     } catch (error) {
       console.error("Error undoing rescheduling:", error);
@@ -510,7 +494,6 @@ const AssignBookings = () => {
                           ))}
                     </div>
                   </div>
-
                   {/* Worker Details Section */}
                   {selectedWorkerDetails ? (
                     <div

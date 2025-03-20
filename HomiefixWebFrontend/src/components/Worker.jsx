@@ -123,8 +123,8 @@ const Worker = () => {
           <button
             className="btn btn-light p-2"
             style={{ marginBottom: "-20px" }}
-            onClick={() => navigate(-1)}
-          >
+            onClick={() => navigate("/worker-details")}
+            >
             <i
               className="bi bi-arrow-left"
               style={{ fontSize: "1.5rem", fontWeight: "bold" }}

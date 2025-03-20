@@ -2,13 +2,12 @@ import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import axios from "axios"; // Import axios
-import notification from "../assets/Bell.png";
-import profile from "../assets/Profile.png";
-import search from "../assets/Search.png";
 import addWorker from "../assets/addWorker.png";
 import "../styles/AddWorker.css";
 import Header from "./Header";
+import api from "../api";
+
+
 
 
 const AddWorker = () => {
@@ -39,11 +38,15 @@ const AddWorker = () => {
    const [previewImage, setPreviewImage] = useState(addWorker);
 
 
+
+
    const handleButtonClick = (item, roleHeading) => {
        setClickedButtons((prevState) => ({
            ...prevState,
            [item]: !prevState[item],
        }));
+
+
 
 
        setFormData((prevState) => {
@@ -52,9 +55,13 @@ const AddWorker = () => {
                : [...prevState.specification, item];
 
 
+
+
            const updatedRoles = prevState.role.includes(roleHeading)
                ? prevState.role
                : [...prevState.role, roleHeading];
+
+
 
 
            return {
@@ -66,6 +73,8 @@ const AddWorker = () => {
    };
 
 
+
+
    const handleChange = (e) => {
        const { name, value } = e.target;
        setFormData((prevState) => ({
@@ -73,6 +82,8 @@ const AddWorker = () => {
            [name]: value,
        }));
    };
+
+
 
 
    const handleImageUpload = (e) => {
@@ -87,9 +98,11 @@ const AddWorker = () => {
    };
 
 
+
+
    const checkContactNumberExists = async (contactNumber) => {
        try {
-           const response = await axios.get(`http://localhost:2222/workers/check-contact`, {
+           const response = await api.get(`/workers/check-contact`, {
                params: { contactNumber }, // Pass query parameters
            });
            return response.data; // Returns true if contact number is available, false otherwise
@@ -100,10 +113,15 @@ const AddWorker = () => {
    };
 
 
+   const [isLoading, setIsLoading] = useState(false);
+
+
    const handleSubmit = async (e) => {
        e.preventDefault();
-
-
+   
+       // Set loading state to true
+       setIsLoading(true);
+   
        // Validate required fields
        if (!formData.name || !formData.contactNumber || !formData.email || !formData.dateOfBirth || !formData.profilePic) {
            Swal.fire({
@@ -111,10 +129,10 @@ const AddWorker = () => {
                title: "Error",
                text: "Please fill in all required fields.",
            });
+           setIsLoading(false); // Reset loading state
            return;
        }
-
-
+   
        // Check if contactNumber and econtactNumber are the same
        if (formData.contactNumber === formData.econtactNumber) {
            Swal.fire({
@@ -122,10 +140,10 @@ const AddWorker = () => {
                title: "Error",
                text: "Contact Number and Emergency Contact Number cannot be the same.",
            });
+           setIsLoading(false); // Reset loading state
            return;
        }
-
-
+   
        // Check if contact number is available
        const isContactNumberAvailable = await checkContactNumberExists(formData.contactNumber);
        if (!isContactNumberAvailable) {
@@ -134,10 +152,10 @@ const AddWorker = () => {
                title: "Error",
                text: "Contact number is already in use by an active worker.",
            });
+           setIsLoading(false); // Reset loading state
            return;
        }
-
-
+   
        try {
            const formDataToSend = new FormData();
            for (const key in formData) {
@@ -150,18 +168,15 @@ const AddWorker = () => {
                    formDataToSend.append(key, formData[key]);
                }
            }
-
-
-           const response = await axios.post("http://localhost:2222/workers/add", formDataToSend, {
+   
+           const response = await api.post("/workers/add", formDataToSend, {
                headers: {
                    "Content-Type": "multipart/form-data", // Set the content type for file uploads
                },
            });
-
-
+   
            console.log("Success:", response.data);
-
-
+   
            Swal.fire({
                icon: "success",
                title: "Success",
@@ -176,8 +191,10 @@ const AddWorker = () => {
                title: "Error",
                text: "Failed to add worker. Please try again.",
            });
+       } finally {
+           setIsLoading(false); // Reset loading state
        }
-   };
+    };
 
 
    return (
@@ -189,16 +206,16 @@ const AddWorker = () => {
            {/* Scrollable Content */}
            <div className="container" style={{ paddingTop: "80px" }}>
                <div className="d-flex gap-4 mx-2 align-items-center">
-               <button
-                className="btn btn-light p-2"
-                style={{ marginBottom: "-20px" }}
-                onClick={() => navigate(`/worker-details`)}
-              >
-                <i
-                  className="bi bi-arrow-left"
-                  style={{ fontSize: "1.5rem", fontWeight: "bold" }}
-                ></i>
-              </button>
+                   <button
+                       className="btn btn-light p-2"
+                       style={{ marginBottom: "-20px" }}
+                       onClick={() => navigate(`/worker-details`)}
+                   >
+                       <i
+                           className="bi bi-arrow-left"
+                           style={{ fontSize: "1.5rem", fontWeight: "bold" }}
+                       ></i>
+                   </button>
                    <h5 className="px-3 pb-3 text-black"
                        style={{
                            borderBottom: "4px solid #000",
@@ -209,6 +226,8 @@ const AddWorker = () => {
                    </h5>
                </div>
            </div>
+
+
 
 
            <div className="container" style={{ height: "80vh", overflowY: "auto", overflowX: "hidden", marginTop: "20px" }}>
@@ -239,6 +258,8 @@ const AddWorker = () => {
                    </div>
 
 
+
+
                    {/* Main container */}
                    <div className="container mt-4" style={{ marginLeft: "60px", maxWidth: "100%" }}>
                        {/* Row 1 */}
@@ -265,6 +286,8 @@ const AddWorker = () => {
                                />
                            </div>
                        </div>
+
+
 
 
                        {/* Row 2 */}
@@ -295,10 +318,14 @@ const AddWorker = () => {
                        </div>
 
 
+
+
                        {/* Job Title Section */}
                        <div className="row mt-4">
                            <p className="fw-bold">Job title</p>
                        </div>
+
+
 
 
                        {/* Home Appliances */}
@@ -321,6 +348,8 @@ const AddWorker = () => {
                        </div>
 
 
+
+
                        {/* Electrician */}
                        <div className="row mt-3">
                            <p>Electrician</p>
@@ -339,6 +368,8 @@ const AddWorker = () => {
                                ))}
                            </div>
                        </div>
+
+
 
 
                        {/* Carpentry */}
@@ -361,6 +392,8 @@ const AddWorker = () => {
                        </div>
 
 
+
+
                        {/* Plumbing */}
                        <div className="row mt-3">
                            <p>Plumbing</p>
@@ -379,6 +412,8 @@ const AddWorker = () => {
                                ))}
                            </div>
                        </div>
+
+
 
 
                        {/* Vehicle Service */}
@@ -401,6 +436,8 @@ const AddWorker = () => {
                        </div>
 
 
+
+
                        {/* Address Details */}
                        <div className="row mt-4">
                            <p className="fw-bold">Address Details</p>
@@ -421,6 +458,8 @@ const AddWorker = () => {
                        </div>
 
 
+
+
                        {/* Row 2 */}
                        <div className="row mt-4">
                            <div className="col-md-3">
@@ -436,6 +475,8 @@ const AddWorker = () => {
                                <input type="text" className="form-control" name="state" id="state" required placeholder="Enter State" onChange={handleChange} />
                            </div>
                        </div>
+
+
 
 
                        {/* Identification Details */}
@@ -458,10 +499,21 @@ const AddWorker = () => {
                        </div>
 
 
+
+
                        {/* Submit Button */}
                        <div className="row mb-4">
                            <div className="col">
-                               <button type="submit" className="btn px-5" style={{ backgroundColor: "#0076CE", color: "white" }}>Submit</button>
+                               <button type="submit" className="btn px-5" style={{ backgroundColor: "#0076CE", color: "white" }} disabled={isLoading}>
+                                   {isLoading ? (
+                                       <>
+                                           <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                           <span className="visually-hidden">Loading...</span>
+                                       </>
+                                   ) : (
+                                       "Submit"
+                                   )}
+                               </button>
                            </div>
                        </div>
                    </div>

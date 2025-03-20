@@ -5,6 +5,7 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { FaStar } from "react-icons/fa";
+import axios from "axios"; // Import axios
 import "../styles/BookingDetails.css";
 import statusRescheduled from "../assets/Status Rescheduled.png";
 import statusAssigned from "../assets/Status Assigned.png";
@@ -14,6 +15,67 @@ import $ from "jquery";
 import "bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css";
 import "bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js";
 import Header from "./Header";
+
+const areNewBookingsAdded = (newBookings, prevBookings) => {
+  const newBookingIds = new Set(newBookings.map((b) => b.id));
+  const prevBookingIds = new Set(prevBookings.map((b) => b.id));
+
+  for (let id of newBookingIds) {
+    if (!prevBookingIds.has(id)) {
+      return true; // New booking detected
+    }
+  }
+  return false;
+};
+
+const fetchBookings = async (setBookings, prevBookingsRef, setLoading) => {
+  setLoading(true);
+  try {
+    const response = await axios.get("http://localhost:2222/booking/all");
+    console.log("API Data:", response.data);
+
+    const transformedBookings = response.data.map((booking) => ({
+      id: booking.id,
+      service: booking.productName,
+      name: booking.userProfile.fullName,
+      contact: booking.userProfile.mobileNumber.mobileNumber,
+      address: `${booking.deliveryAddress.houseNumber}, ${booking.deliveryAddress.town}, ${booking.deliveryAddress.district}, ${booking.deliveryAddress.state}, ${booking.deliveryAddress.pincode}`,
+      date: booking.bookedDate,
+      timeslot: booking.timeSlot,
+      cancelReason: booking.cancelReason,
+      productImage: booking.productImage,
+      status:
+        booking.bookingStatus === "COMPLETED"
+          ? "Completed"
+          : booking.bookingStatus === "CANCELLED"
+          ? "Canceled"
+          : booking.bookingStatus === "ASSIGNED"
+          ? "Assigned"
+          : booking.bookingStatus === "STARTED"
+          ? "Started"
+          : booking.bookingStatus === "RESCHEDULED"
+          ? "Rescheduled"
+          : booking.bookingStatus === "PENDING"
+          ? "Pending"
+          : "Unknown",
+      worker: booking.worker
+        ? {
+            name: booking.worker.name,
+            contact: booking.worker.contactNumber,
+          }
+        : null,
+    }));
+
+    if (areNewBookingsAdded(transformedBookings, prevBookingsRef.current)) {
+      setBookings(transformedBookings); // Update state if new bookings are detected
+      prevBookingsRef.current = transformedBookings; // Update ref with latest bookings
+    }
+  } catch (error) {
+    console.error("Error fetching bookings:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
 const BookingDetails = () => {
   const navigate = useNavigate();
@@ -26,6 +88,7 @@ const BookingDetails = () => {
   const dropdownRef = useRef(null);
   const [ratingFilter, setRatingFilter] = useState("All");
   const [loading, setLoading] = useState(true); // Loading state
+  const prevBookingsRef = useRef([]); // Store previous bookings
 
   // Separate selectedDate states for each section
   const [selectedDateBookings, setSelectedDateBookings] = useState(null);
@@ -35,62 +98,14 @@ const BookingDetails = () => {
 
   // Fetch bookings from the API
   useEffect(() => {
-    const fetchBookings = async () => {
-      setLoading(true); // Set loading to true when fetching starts
-      try {
-        const response = await fetch("http://localhost:2222/booking/all");
-        const text = await response.text();
-        console.log("Raw Response:", text);
+    fetchBookings(setBookings, prevBookingsRef, setLoading); // Initial fetch
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+    const interval = setInterval(() => {
+      fetchBookings(setBookings, prevBookingsRef, setLoading);
+    }, 20000); // 20 seconds interval
 
-        const data = JSON.parse(text);
-        console.log("API Data:", data);
-
-        const transformedBookings = data.map((booking) => ({
-          id: booking.id,
-          service: booking.productName,
-          name: booking.userProfile.fullName,
-          contact: booking.userProfile.mobileNumber.mobileNumber,
-          address: `${booking.deliveryAddress.houseNumber}, ${booking.deliveryAddress.town}, ${booking.deliveryAddress.district}, ${booking.deliveryAddress.state}, ${booking.deliveryAddress.pincode}`,
-          date: booking.bookedDate,
-          timeslot: booking.timeSlot,
-          cancelReason: booking.cancelReason,
-          productImage: booking.productImage,
-          status:
-            booking.bookingStatus === "COMPLETED"
-              ? "Completed"
-              : booking.bookingStatus === "CANCELLED"
-              ? "Canceled"
-              : booking.bookingStatus === "ASSIGNED"
-              ? "Assigned"
-              : booking.bookingStatus === "STARTED"
-              ? "Started"
-              : booking.bookingStatus === "RESCHEDULED"
-              ? "Rescheduled"
-              : booking.bookingStatus === "PENDING"
-              ? "Pending"
-              : "Unknown",
-          worker: booking.worker
-            ? {
-                name: booking.worker.name,
-                contact: booking.worker.contactNumber,
-              }
-            : null,
-        }));
-
-        setBookings(transformedBookings);
-      } catch (error) {
-        console.error("Error fetching bookings:", error);
-      } finally {
-        setLoading(false); // Set loading to false when fetching is done
-      }
-    };
-
-    fetchBookings();
-  }, []);
+    return () => clearInterval(interval); // Cleanup interval on unmount
+  }, []); // No dependency on `bookings` to avoid re-renders
 
   // Fetch ratings for completed bookings
   useEffect(() => {
@@ -102,12 +117,11 @@ const BookingDetails = () => {
 
       for (const booking of completedBookings) {
         try {
-          const response = await fetch(
+          const response = await axios.get(
             `http://localhost:2222/feedback/byBooking/${booking.id}`
           );
-          const data = await response.json();
-          if (data.length > 0) {
-            ratingsData[booking.id] = data[0].rating;
+          if (response.data.length > 0) {
+            ratingsData[booking.id] = response.data[0].rating;
           }
         } catch (error) {
           console.error("Error fetching rating:", error);

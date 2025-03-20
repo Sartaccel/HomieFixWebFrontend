@@ -88,7 +88,6 @@ const Header = () => {
                   top: "53px",
                   width: "400px",
                   maxHeight: "500px",
-                  overflowY: "auto",
                   position: "fixed",
                 }}
               >
