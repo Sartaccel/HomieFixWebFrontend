@@ -5,7 +5,6 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { FaStar } from "react-icons/fa";
-import axios from "axios"; // Import axios
 import "../styles/BookingDetails.css";
 import statusRescheduled from "../assets/Status Rescheduled.png";
 import statusAssigned from "../assets/Status Assigned.png";

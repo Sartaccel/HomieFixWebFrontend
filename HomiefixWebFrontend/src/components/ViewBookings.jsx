@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import { Spinner } from "react-bootstrap";
-import { FaStar } from "react-icons/fa";
 import Header from "./Header"; // Ensure you have a Header component
 import Reschedule from "./Reschedule"; // Ensure you have a Reschedule component
 import CancelBooking from "./CancelBooking";

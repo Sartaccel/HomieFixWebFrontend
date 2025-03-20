@@ -33,6 +33,7 @@ const Login = ({ setToken }) => {
 
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
+        localStorage.setItem("username", username);
         setToken(response.data.token);
         navigate("/dashboard");
         setIsInvalid(false);
