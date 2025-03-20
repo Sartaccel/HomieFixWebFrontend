@@ -4,13 +4,11 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-
 import alenSamImg from "../assets/home1.png";
 import Header from "./Header";
-
 import api from "../api";
 
-const WorkerDetails = () => {
+const WorkerDetails = ({ token, setToken }) => {
   const navigate = useNavigate();
   const [workers, setWorkers] = useState([]);
   const [showFilter, setShowFilter] = useState(false);
@@ -25,13 +23,19 @@ const WorkerDetails = () => {
         setWorkers(data);
       } catch (error) {
         console.error("Error fetching worker data:", error);
+        if (error.response?.status === 403) {
+          // Token is invalid or expired, redirect to login
+          localStorage.removeItem("token");
+          setToken("");
+          navigate("/");
+        }
         setWorkers([]);
       } finally {
         setLoading(false);
       }
     };
     fetchWorkers();
-  }, []);
+  }, [token, setToken, navigate]);
 
   const specifications = {
     "Home Appliances": ["AC", "Geyser", "Microwave", "Inverter & Stabilizers", "Water Purifier", "TV", "Fridge", "Washing Machine", "Fan"],

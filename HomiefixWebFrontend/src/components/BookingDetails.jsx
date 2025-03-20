@@ -5,6 +5,7 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { FaStar } from "react-icons/fa";
+import axios from "axios"; // Import axios
 import "../styles/BookingDetails.css";
 import statusRescheduled from "../assets/Status Rescheduled.png";
 import statusAssigned from "../assets/Status Assigned.png";
@@ -15,6 +16,73 @@ import "bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css";
 import "bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js";
 import Header from "./Header";
 import api from "../api";
+
+
+const areNewBookingsAdded = (newBookings, prevBookings) => {
+  const newBookingIds = new Set(newBookings.map((b) => b.id));
+  const prevBookingIds = new Set(prevBookings.map((b) => b.id));
+
+
+  for (let id of newBookingIds) {
+    if (!prevBookingIds.has(id)) {
+      return true; // New booking detected
+    }
+  }
+  return false;
+};
+
+
+const fetchBookings = async (setBookings, prevBookingsRef, setLoading) => {
+  setLoading(true);
+  try {
+    const response = await api.get("/booking/all");
+    console.log("API Data:", response.data);
+
+
+    const transformedBookings = response.data.map((booking) => ({
+      id: booking.id,
+      service: booking.productName,
+      name: booking.userProfile.fullName,
+      contact: booking.userProfile.mobileNumber.mobileNumber,
+      address: `${booking.deliveryAddress.houseNumber}, ${booking.deliveryAddress.town}, ${booking.deliveryAddress.district}, ${booking.deliveryAddress.state}, ${booking.deliveryAddress.pincode}`,
+      date: booking.bookedDate,
+      timeslot: booking.timeSlot,
+      cancelReason: booking.cancelReason,
+      productImage: booking.productImage,
+      status:
+        booking.bookingStatus === "COMPLETED"
+          ? "Completed"
+          : booking.bookingStatus === "CANCELLED"
+          ? "Canceled"
+          : booking.bookingStatus === "ASSIGNED"
+          ? "Assigned"
+          : booking.bookingStatus === "STARTED"
+          ? "Started"
+          : booking.bookingStatus === "RESCHEDULED"
+          ? "Rescheduled"
+          : booking.bookingStatus === "PENDING"
+          ? "Pending"
+          : "Unknown",
+      worker: booking.worker
+        ? {
+            name: booking.worker.name,
+            contact: booking.worker.contactNumber,
+          }
+        : null,
+    }));
+
+
+    if (areNewBookingsAdded(transformedBookings, prevBookingsRef.current)) {
+      setBookings(transformedBookings); // Update state if new bookings are detected
+      prevBookingsRef.current = transformedBookings; // Update ref with latest bookings
+    }
+  } catch (error) {
+    console.error("Error fetching bookings:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 const BookingDetails = () => {
   const navigate = useNavigate();
@@ -27,6 +95,8 @@ const BookingDetails = () => {
   const dropdownRef = useRef(null);
   const [ratingFilter, setRatingFilter] = useState("All");
   const [loading, setLoading] = useState(true); // Loading state
+  const prevBookingsRef = useRef([]); // Store previous bookings
+
 
   // Separate selectedDate states for each section
   const [selectedDateBookings, setSelectedDateBookings] = useState(null);
@@ -34,64 +104,29 @@ const BookingDetails = () => {
   const [selectedDateCompleted, setSelectedDateCompleted] = useState(null);
   const [selectedDateCanceled, setSelectedDateCanceled] = useState(null);
 
-  // Fetch bookings from the API using axios
+
+  // Fetch bookings from the API
   useEffect(() => {
-    const fetchBookings = async () => {
-      setLoading(true); // Set loading to true when fetching starts
-      try {
-        const response = await api.get("/booking/all");
-        setBookings(response.data);
+    fetchBookings(setBookings, prevBookingsRef, setLoading); // Initial fetch
 
-        const transformedBookings = response.data.map((booking) => ({
-          id: booking.id,
-          service: booking.productName,
-          name: booking.userProfile.fullName,
-          contact: booking.userProfile.mobileNumber.mobileNumber,
-          address: `${booking.deliveryAddress.houseNumber}, ${booking.deliveryAddress.town}, ${booking.deliveryAddress.district}, ${booking.deliveryAddress.state}, ${booking.deliveryAddress.pincode}`,
-          date: booking.bookedDate,
-          timeslot: booking.timeSlot,
-          cancelReason: booking.cancelReason,
-          productImage: booking.productImage,
-          status:
-            booking.bookingStatus === "COMPLETED"
-              ? "Completed"
-              : booking.bookingStatus === "CANCELLED"
-              ? "Canceled"
-              : booking.bookingStatus === "ASSIGNED"
-              ? "Assigned"
-              : booking.bookingStatus === "STARTED"
-              ? "Started"
-              : booking.bookingStatus === "RESCHEDULED"
-              ? "Rescheduled"
-              : booking.bookingStatus === "PENDING"
-              ? "Pending"
-              : "Unknown",
-          worker: booking.worker
-            ? {
-                name: booking.worker.name,
-                contact: booking.worker.contactNumber,
-              }
-            : null,
-        }));
 
-        setBookings(transformedBookings);
-      } catch (error) {
-        console.error("Error fetching bookings:", error);
-      } finally {
-        setLoading(false); // Set loading to false when fetching is done
-      }
-    };
+    const interval = setInterval(() => {
+      fetchBookings(setBookings, prevBookingsRef, setLoading);
+    }, 20000); // 20 seconds interval
 
-    fetchBookings();
-  }, []);
 
-  // Fetch ratings for completed bookings using axios
+    return () => clearInterval(interval); // Cleanup interval on unmount
+  }, []); // No dependency on `bookings` to avoid re-renders
+
+
+  // Fetch ratings for completed bookings
   useEffect(() => {
     const fetchRatings = async () => {
       const completedBookings = bookings.filter(
         (booking) => booking.status === "Completed"
       );
       const ratingsData = {};
+
 
       for (const booking of completedBookings) {
         try {
@@ -106,19 +141,23 @@ const BookingDetails = () => {
         }
       }
 
+
       setRatings(ratingsData);
     };
+
 
     if (activeTab === "completed") {
       fetchRatings();
     }
   }, [bookings, activeTab]);
 
+
   const pendingBookings = bookings.filter(
     (booking) =>
       booking.status === "Pending" ||
       (booking.status === "Rescheduled" && !booking.worker)
   );
+
 
   const inProgress = bookings.filter(
     (booking) =>
@@ -128,10 +167,12 @@ const BookingDetails = () => {
       booking.worker
   );
 
+
   const completed = bookings.filter(
     (booking) => booking.status === "Completed"
   );
   const canceled = bookings.filter((booking) => booking.status === "Canceled");
+
 
   // Update filteredBookings whenever activeTab or bookings change
   useEffect(() => {
@@ -185,6 +226,7 @@ const BookingDetails = () => {
     selectedDateCanceled,
   ]);
 
+
   // Handle date filter changes
   const handleDateChange = (date) => {
     switch (activeTab) {
@@ -227,8 +269,10 @@ const BookingDetails = () => {
     }
   };
 
+
   const filterBookingsByDate = (date, bookingsToFilter) => {
     if (!date) return bookingsToFilter;
+
 
     const formattedSelectedDate =
       date.getFullYear() +
@@ -237,10 +281,12 @@ const BookingDetails = () => {
       "-" +
       String(date.getDate()).padStart(2, "0");
 
+
     return bookingsToFilter.filter(
       (booking) => booking.date === formattedSelectedDate
     );
   };
+
 
   const truncateText = (text, maxLength = 53) => {
     if (!text) return "No Reason Provided";
@@ -248,6 +294,7 @@ const BookingDetails = () => {
       ? text.substring(0, maxLength) + "..."
       : text;
   };
+
 
   // Clear date filter
   const clearDateFilter = () => {
@@ -291,6 +338,7 @@ const BookingDetails = () => {
     }
   };
 
+
   // Get status icon based on booking status
   const getStatusIcon = (status) => {
     switch (status) {
@@ -304,6 +352,7 @@ const BookingDetails = () => {
         return null;
     }
   };
+
 
   // Initialize datepicker when dropdown is open
   useEffect(() => {
@@ -320,6 +369,7 @@ const BookingDetails = () => {
     }
   }, [dropdownOpen]);
 
+
   // Format date as "Feb 25, 2025"
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -329,6 +379,7 @@ const BookingDetails = () => {
       year: "numeric",
     });
   };
+
 
   // Skeleton loading for table rows
   const renderSkeletonRows = (count) => {
@@ -361,11 +412,29 @@ const BookingDetails = () => {
     ));
   };
 
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
           <Header />
+
 
           <div className="navigation-bar d-flex gap-3 py-3 bg-white border-bottom w-100">
             <div
@@ -406,6 +475,7 @@ const BookingDetails = () => {
             </div>
           </div>
 
+
           <div
             className="table-responsive mt-3 w-100 px-0 overflow-auto"
             style={{ maxHeight: "100%", minHeight: "100%" }}
@@ -435,6 +505,7 @@ const BookingDetails = () => {
                     Service
                   </th>
 
+
                   {/* Name Column */}
                   <th
                     className="p-3 text-left"
@@ -453,6 +524,7 @@ const BookingDetails = () => {
                   >
                     Name
                   </th>
+
 
                   {/* Worker, Contact, and Address Columns */}
                   {activeTab === "inProgress" ||
@@ -483,6 +555,7 @@ const BookingDetails = () => {
                       </th>
                     </>
                   )}
+
 
                   {/* Date Column */}
                   <th
@@ -529,6 +602,7 @@ const BookingDetails = () => {
                       />
                     ) : null}
                   </th>
+
 
                   {/* Status/Reason Column */}
                   {activeTab !== "bookings" && (
@@ -783,6 +857,7 @@ const BookingDetails = () => {
                     </th>
                   )}
 
+
                   {/* Action Column */}
                   <th className="p-3 text-left" style={{ width: "10%" }}></th>
                 </tr>
@@ -828,6 +903,7 @@ const BookingDetails = () => {
                           </div>
                         </td>
 
+
                         {/* Name Column */}
                         <td
                           className="p-3 text-left"
@@ -851,6 +927,7 @@ const BookingDetails = () => {
                             <span>{booking.contact}</span>
                           )}
                         </td>
+
 
                         {/* Worker, Contact, and Address Columns */}
                         {activeTab === "inProgress" ||
@@ -888,6 +965,7 @@ const BookingDetails = () => {
                           </>
                         )}
 
+
                         {/* Date Column */}
                         <td
                           className="p-3 text-left"
@@ -906,6 +984,7 @@ const BookingDetails = () => {
                           {formatDate(booking.date)} <br />
                           <span>{booking.timeslot}</span>
                         </td>
+
 
                         {/* Status/Reason Column */}
                         {activeTab !== "bookings" && (
@@ -949,6 +1028,7 @@ const BookingDetails = () => {
                             )}
                           </td>
                         )}
+
 
                         {/* Action Column */}
                         <td className="p-3 text-left" style={{ width: "10%" }}>
@@ -1001,5 +1081,6 @@ const BookingDetails = () => {
     </div>
   );
 };
+
 
 export default BookingDetails;

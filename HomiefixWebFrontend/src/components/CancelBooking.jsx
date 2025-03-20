@@ -1,36 +1,51 @@
 import React, { useState } from "react";
 import "../styles/AssignBookings.css";
-import Skeleton from "react-loading-skeleton"; // Import Skeleton Loader
-import "react-loading-skeleton/dist/skeleton.css"; // Skeleton styles
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+import axios from "axios"; // Import axios
 import api from "../api";
 
 
-const CancelBooking = ({ id, booking, onClose }) => {
+const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
   const [cancelReason, setCancelReason] = useState("");
   const [otherReason, setOtherReason] = useState("");
-  const [loading, setLoading] = useState(false); // New loading state
+  const [loading, setLoading] = useState(false);
 
-  // Handle cancel button click
+
   const handleCancel = async () => {
     if (!cancelReason) {
       alert("Please select a reason for cancellation");
       return;
     }
 
+
     const reason = cancelReason === "other" ? otherReason : cancelReason;
-    setLoading(true); // Start loading
+    setLoading(true);
+
 
     try {
       const encodedReason = encodeURIComponent(reason);
       const url = `/booking/cancel/${id}?reason=${encodedReason}`;
 
+
       console.log("Cancellation URL:", url);
 
-      const response = await api.put(url); // Use axios.put instead of fetch
+
+      // Use axios instead of fetch
+      const response = await api.put(url);
+
 
       if (response.status === 200) {
         alert("Booking cancelled successfully");
-        onClose(); // Close the CancelBooking modal
+
+
+        // Check if onCancelSuccess is a function before calling it
+        if (typeof onCancelSuccess === "function") {
+          onCancelSuccess(reason);
+        }
+
+
+        onClose();
       } else {
         console.error("Cancellation failed:", response.status, response.data);
         alert(`Failed to cancel booking: ${response.status} - ${response.data.message || "Unknown error"}`);
@@ -39,14 +54,14 @@ const CancelBooking = ({ id, booking, onClose }) => {
       console.error("Error cancelling booking:", error);
       alert("An error occurred during cancellation.");
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
+
 
   return (
     <div className="reschedule-slider position-fixed top-0 end-0 h-100 bg-white shadow-lg" style={{ width: "550px", zIndex: 1000 }}>
       <div className="p-4">
-        {/* Header */}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h4>Cancel Service</h4>
           <button className="btn btn-light" onClick={onClose} disabled={loading}>
@@ -55,7 +70,7 @@ const CancelBooking = ({ id, booking, onClose }) => {
         </div>
         <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
 
-        {/* Reason for Cancellation */}
+
         <div className="mb-4 mt-3">
           <h6>Reason for Cancellation</h6>
           <div className="mb-4">
@@ -78,7 +93,7 @@ const CancelBooking = ({ id, booking, onClose }) => {
                     value={option.value}
                     checked={cancelReason === option.value}
                     onChange={(e) => setCancelReason(e.target.value)}
-                    disabled={loading} // Disable input while loading
+                    disabled={loading}
                   />
                   <label className="form-check-label" style={{ marginLeft: "5px" }} htmlFor={option.value}>
                     {option.label}
@@ -87,6 +102,7 @@ const CancelBooking = ({ id, booking, onClose }) => {
               ))
             )}
           </div>
+
 
           {cancelReason === "other" && !loading && (
             <textarea
@@ -106,22 +122,31 @@ const CancelBooking = ({ id, booking, onClose }) => {
             ></textarea>
           )}
 
+
           {loading && cancelReason === "other" && <Skeleton height={200} />}
         </div>
         <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
 
-        {/* Cancel Button */}
+
         <button
           className="btn btn-primary w-100 mt-3"
           style={{ backgroundColor: "#B8141A", border: "none" }}
           onClick={handleCancel}
-          disabled={loading} // Disable button while loading
+          disabled={loading}
         >
-          {loading ? "Cancelling..." : "Cancel Service"}
+          {loading ? (
+            <>
+              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <span className="visually-hidden">Loading...</span> Cancelling...
+            </>
+          ) : (
+            "Cancel Service"
+          )}
         </button>
       </div>
     </div>
   );
 };
+
 
 export default CancelBooking;

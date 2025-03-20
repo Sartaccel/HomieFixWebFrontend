@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import logo from "../assets/HomiefixLogo.png";
@@ -15,6 +15,12 @@ const Login = ({ setToken }) => {
   const [isInvalid, setIsInvalid] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Clear token when the login page is rendered
+  useEffect(() => {
+    localStorage.removeItem("token");
+    setToken("");
+  }, [setToken]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -78,12 +84,17 @@ const Login = ({ setToken }) => {
               </div>
             )}
 
-            <button type="submit" className={`login-button ${loading ? "loading" : ""}`} disabled={loading}>
+            <button
+              type="submit"
+              className="btn w-100"
+              disabled={loading}
+              style={{ height: "50px", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#0076CE", color: "white", border: "none", borderRadius: "6px", transition: "background-color 0.3s" }}
+            >
               {loading ? (
-                <svg width="24" height="24" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" className="loader-icon" style={{ animation: "spin 1s linear infinite", display: "block", margin: "auto" }}>
-                  <circle cx="22" cy="22" r="20" stroke="white" strokeWidth="4" opacity="0.2" />
-                  <path d="M22 2 A 20 20 0 0 1 42 22" stroke="white" strokeWidth="4" strokeLinecap="round" />
-                </svg>
+                <>
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  
+                </>
               ) : (
                 "Login"
               )}

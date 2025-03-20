@@ -10,6 +10,7 @@ import bookingDetails from "../assets/BookingDetails.png";
 import Header from "./Header";
 import api from "../api";
 
+
 const AssignBookings = () => {
   const { id } = useParams();
   const location = useLocation();
@@ -31,6 +32,7 @@ const AssignBookings = () => {
   const [loadingBookingDetails, setLoadingBookingDetails] = useState(true); // Loading state for booking details
   const navigate = useNavigate();
 
+
   // Helper function to format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -40,6 +42,7 @@ const AssignBookings = () => {
       day: "numeric",
     });
   };
+
 
   // Fetch workers from the API
   useEffect(() => {
@@ -54,8 +57,10 @@ const AssignBookings = () => {
       }
     };
 
+
     fetchWorkers();
   }, []);
+
 
   // Fetch booking details from the API
   useEffect(() => {
@@ -76,8 +81,10 @@ const AssignBookings = () => {
       }
     };
 
+
     fetchBookingDetails();
   }, [id]);
+
 
   // Handle worker selection and deselection
   const handleWorkerSelection = (workerId) => {
@@ -91,14 +98,18 @@ const AssignBookings = () => {
     }
   };
 
+
   // Assign worker to booking
   const assignWorker = async () => {
     if (!selectedWorkerId) {
       alert("Please select a worker");
       return;
     }
-
+ 
     try {
+      const token = localStorage.getItem("token");
+      console.log("Token:", token); // Debugging
+ 
       const response = await api.put(
         `/booking/assign-worker/${id}`,
         {
@@ -106,7 +117,7 @@ const AssignBookings = () => {
           notes: notes,
         }
       );
-
+ 
       if (response.status === 200) {
         alert("Worker assigned successfully");
         navigate(-1);
@@ -115,8 +126,16 @@ const AssignBookings = () => {
       }
     } catch (error) {
       console.error("Error assigning worker:", error);
+      if (error.response) {
+        console.error("Server response:", error.response.data); // Debugging
+        if (error.response.status === 403) {
+          alert("You do not have permission to perform this action.");
+          navigate("/"); // Redirect to login page
+        }
+      }
     }
   };
+
 
   // Save notes to the booking
   const saveNotes = async () => {
@@ -128,6 +147,7 @@ const AssignBookings = () => {
         }
       );
 
+
       if (response.status === 200) {
         alert("Notes saved successfully");
       } else {
@@ -138,6 +158,7 @@ const AssignBookings = () => {
     }
   };
 
+
   const handleReschedule = (newDate, newTimeslot) => {
     setRescheduledDate(newDate);
     setRescheduledTimeslot(newTimeslot);
@@ -145,6 +166,7 @@ const AssignBookings = () => {
     localStorage.setItem("rescheduledTimeslot", newTimeslot);
     setShowRescheduleSlider(false);
   };
+
 
   const undoReschedule = async () => {
     try {
@@ -156,6 +178,7 @@ const AssignBookings = () => {
           rescheduleReason: "Undo rescheduling",
         }
       );
+
 
       if (response.status === 200) {
         setRescheduledDate(booking.date);
@@ -173,6 +196,7 @@ const AssignBookings = () => {
     }
   };
 
+
   useEffect(() => {
     return () => {
       localStorage.removeItem("rescheduledDate");
@@ -186,6 +210,7 @@ const AssignBookings = () => {
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
           <Header />
+
 
           {/* Navigation Bar */}
           <div className="navigation-bar d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
@@ -202,6 +227,7 @@ const AssignBookings = () => {
               </button>
               <div className="section active">Service Details</div>
             </div>
+
 
             <div className="d-flex gap-3 p-2" style={{ marginRight: "300px" }}>
               <button
@@ -220,6 +246,7 @@ const AssignBookings = () => {
                 Reschedule
               </button>
 
+
               <button
                 className="btn"
                 onClick={() => setShowCancelBookingModal(true)}
@@ -236,6 +263,7 @@ const AssignBookings = () => {
               </button>
             </div>
           </div>
+
 
           {/* Content */}
           <div className="container mt-5 pt-4">
@@ -278,6 +306,7 @@ const AssignBookings = () => {
                     )}
                   </div>
                 </div>
+
 
                 <div className="p-0 m-0">
                   <div className="mt-4">
@@ -343,6 +372,7 @@ const AssignBookings = () => {
                   )}
                 </div>
 
+
                 {/* Comment Field (Notes) */}
                 <div
                   className="mt-3 position-relative"
@@ -392,6 +422,7 @@ const AssignBookings = () => {
                 </div>
               </div>
 
+
               {/* Right Card - Service Details */}
               <div
                 className="col-md-6"
@@ -416,6 +447,7 @@ const AssignBookings = () => {
                       Workers
                     </h5>
                   </div>
+
 
                   {/* Worker List (Scrollable) */}
                   <div
@@ -495,7 +527,6 @@ const AssignBookings = () => {
                           ))}
                     </div>
                   </div>
-
                   {/* Worker Details Section */}
                   {selectedWorkerDetails ? (
                     <div
@@ -611,6 +642,7 @@ const AssignBookings = () => {
             </div>
           </div>
 
+
           {/* Reschedule Slider */}
           {showRescheduleSlider && (
             <Reschedule
@@ -620,6 +652,7 @@ const AssignBookings = () => {
               onReschedule={handleReschedule}
             />
           )}
+
 
           {/* Cancel Booking Modal */}
           {showCancelBookingModal && (
@@ -634,5 +667,6 @@ const AssignBookings = () => {
     </div>
   );
 };
+
 
 export default AssignBookings;

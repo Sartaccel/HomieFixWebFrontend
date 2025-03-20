@@ -1,18 +1,7 @@
 import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+
 const ComingSoon = () => {
-
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            navigate("/");
-        }
-    }, [navigate]);
-
 
     return (
         <div
