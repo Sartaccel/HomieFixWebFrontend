@@ -2,13 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import axios from "axios"; // Import axios
 import closeDate from "../assets/close date.png"; // Import the close date icon
 import Reschedule from "./Reschedule"; // Import the Reschedule component
 import CancelBooking from "./CancelBooking"; // Import the CancelBooking component
 import "../styles/AssignBookings.css";
 import bookingDetails from "../assets/BookingDetails.png";
 import Header from "./Header";
+import api from "../api";
 
 const AssignBookings = () => {
   const { id } = useParams();
@@ -23,10 +23,8 @@ const AssignBookings = () => {
   const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
   const [isCancelHovered, setIsCancelHovered] = useState(false);
   const [isSaveHovered, setIsSaveHovered] = useState(false);
-  const [rescheduledDate, setRescheduledDate] = useState(booking.date);
-  const [rescheduledTimeslot, setRescheduledTimeslot] = useState(
-    booking.timeslot
-  );
+  const [rescheduledDate, setRescheduledDate] = useState(booking.rescheduledDate || booking.bookedDate);
+  const [rescheduledTimeSlot, setRescheduledTimeSlot] = useState(booking.rescheduledTimeSlot || booking.timeSlot);
   const [loadingWorkers, setLoadingWorkers] = useState(true); // Loading state for workers
   const [loadingBookingDetails, setLoadingBookingDetails] = useState(true); // Loading state for booking details
   const navigate = useNavigate();
@@ -45,10 +43,19 @@ const AssignBookings = () => {
   useEffect(() => {
     const fetchWorkers = async () => {
       try {
-        const response = await axios.get("http://localhost:2222/workers/view");
+        const token = localStorage.getItem("token");
+        const response = await api.get("/workers/view", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         setWorkers(response.data);
       } catch (error) {
         console.error("Error fetching workers:", error);
+        if (error.response && error.response.status === 403) {
+          alert("You do not have permission to perform this action.");
+          navigate("/"); // Redirect to login page
+        }
       } finally {
         setLoadingWorkers(false); // Set loading to false after fetching
       }
@@ -61,16 +68,25 @@ const AssignBookings = () => {
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:2222/booking/${id}`);
+        const token = localStorage.getItem("token");
+        const response = await api.get(`/booking/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         const data = response.data;
         // Ensure the API response contains the correct fields
-        if (data.date && data.timeslot) {
-          setRescheduledDate(data.date);
-          setRescheduledTimeslot(data.timeslot);
+        if (data.bookedDate && data.timeSlot) {
+          setRescheduledDate(data.rescheduledDate || data.bookedDate);
+          setRescheduledTimeSlot(data.rescheduledTimeSlot || data.timeSlot);
         }
         setNotes(data.notes || "");
       } catch (error) {
         console.error("Error fetching booking details:", error);
+        if (error.response && error.response.status === 403) {
+          alert("You do not have permission to perform this action.");
+          navigate("/"); // Redirect to login page
+        }
       } finally {
         setLoadingBookingDetails(false); // Set loading to false after fetching
       }
@@ -97,16 +113,19 @@ const AssignBookings = () => {
       alert("Please select a worker");
       return;
     }
-
     try {
-      const response = await axios.put(
-        `http://localhost:2222/booking/assign-worker/${id}`,
+      const token = localStorage.getItem("token");
+      const response = await api.put(
+        `/booking/assign-worker/${id}?workerId=${selectedWorkerId}`,
         {
-          workerId: selectedWorkerId,
-          notes: notes,
+          notes: notes, // Send notes in the request body
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
-
       if (response.status === 200) {
         alert("Worker assigned successfully");
         navigate(-1);
@@ -115,16 +134,27 @@ const AssignBookings = () => {
       }
     } catch (error) {
       console.error("Error assigning worker:", error);
+      if (error.response) {
+        console.error("Server response:", error.response.data);
+        if (error.response.status === 403) {
+          alert("You do not have permission to perform this action.");
+          navigate("/"); // Redirect to login page
+        }
+      }
     }
   };
 
   // Save notes to the booking
   const saveNotes = async () => {
     try {
-      const response = await axios.patch(
-        `http://localhost:2222/booking/update-notes/${id}`,
+      const token = localStorage.getItem("token");
+      const response = await api.patch(
+        `/booking/update-notes/${id}?notes=${encodeURIComponent(notes)}`,
+        null, // No request body
         {
-          notes: notes,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -135,33 +165,43 @@ const AssignBookings = () => {
       }
     } catch (error) {
       console.error("Error saving notes:", error);
+      if (error.response && error.response.status === 403) {
+        alert("You do not have permission to perform this action.");
+        navigate("/"); // Redirect to login page
+      }
     }
   };
 
   const handleReschedule = (newDate, newTimeslot) => {
     setRescheduledDate(newDate);
-    setRescheduledTimeslot(newTimeslot);
+    setRescheduledTimeSlot(newTimeslot);
     localStorage.setItem("rescheduledDate", newDate);
-    localStorage.setItem("rescheduledTimeslot", newTimeslot);
+    localStorage.setItem("rescheduledTimeSlot", newTimeslot);
     setShowRescheduleSlider(false);
   };
 
   const undoReschedule = async () => {
     try {
-      const response = await axios.put(
-        `http://localhost:2222/booking/reschedule/${id}`,
+      const token = localStorage.getItem("token");
+      const response = await api.put(
+        `/booking/reschedule/${id}?selectedDate=${encodeURIComponent(
+          booking.rescheduledDate
+        )}&selectedTimeSlot=${encodeURIComponent(
+          booking.rescheduledTimeSlot
+        )}&rescheduleReason=${encodeURIComponent("Undo rescheduling")}`,
+        null, // No request body
         {
-          selectedDate: booking.date,
-          selectedTimeSlot: booking.timeslot,
-          rescheduleReason: "Undo rescheduling",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
       if (response.status === 200) {
-        setRescheduledDate(booking.date);
-        setRescheduledTimeslot(booking.timeslot);
+        setRescheduledDate(booking.bookedDate);
+        setRescheduledTimeSlot(booking.timeSlot);
         localStorage.removeItem("rescheduledDate");
-        localStorage.removeItem("rescheduledTimeslot");
+        localStorage.removeItem("rescheduledTimeSlot");
         alert("Rescheduling undone successfully");
       } else {
         console.error("Failed to undo rescheduling:", response.data);
@@ -169,14 +209,16 @@ const AssignBookings = () => {
       }
     } catch (error) {
       console.error("Error undoing rescheduling:", error);
-      alert("An error occurred while undoing rescheduling.");
+      if (error.response && error.response.status === 400) {
+        alert("Comming Soon...");
+      }
     }
   };
 
   useEffect(() => {
     return () => {
       localStorage.removeItem("rescheduledDate");
-      localStorage.removeItem("rescheduledTimeslot");
+      localStorage.removeItem("rescheduledTimeSlot");
     };
   }, []);
 
@@ -272,7 +314,9 @@ const AssignBookings = () => {
                     ) : (
                       <>
                         <p className="mb-0">{booking.service}</p>
-                        <small style={{ color: "#0076CE" }}>ID: {booking.id}</small>
+                        <small style={{ color: "#0076CE" }}>
+                          ID: {booking.id}
+                        </small>
                       </>
                     )}
                   </div>
@@ -292,24 +336,29 @@ const AssignBookings = () => {
                   ) : (
                     <>
                       <p className="mb-1">
-                        <i className="bi bi-person fw-bold me-2"></i> {booking.name}
+                        <i className="bi bi-person fw-bold me-2"></i>{" "}
+                        {booking.name}
                       </p>
                       <p className="mb-1">
-                        <i className="bi bi-telephone fw-bold me-2"></i> {booking.contact}
+                        <i className="bi bi-telephone fw-bold me-2"></i>{" "}
+                        {booking.contact}
                       </p>
                       <p
                         className="mb-1"
                         style={{
                           backgroundColor:
-                            rescheduledDate !== booking.date
+                            rescheduledDate !== booking.bookedDate
                               ? "#EDF3F7"
                               : "transparent",
                           borderRadius: "5px",
                           display: "inline-block",
-                          padding: rescheduledDate !== booking.date ? "0px 10px 0px 0px" : "0",
+                          padding:
+                            rescheduledDate !== booking.bookedDate
+                              ? "0px 10px 0px 0px"
+                              : "0",
                         }}
                       >
-                        {rescheduledDate !== booking.date ? (
+                        {rescheduledDate !== booking.bookedDate ? (
                           <img
                             src={closeDate}
                             alt="Close"
@@ -333,10 +382,11 @@ const AssignBookings = () => {
                           />
                         )}
                         {formatDate(rescheduledDate)} |{" "}
-                        {rescheduledTimeslot || "Not Available"}
+                        {rescheduledTimeSlot || "Not Available"}
                       </p>
                       <p className="mb-1">
-                        <i className="bi bi-geo-alt fw-bold me-2"></i> {booking.address}
+                        <i className="bi bi-geo-alt fw-bold me-2"></i>{" "}
+                        {booking.address}
                       </p>
                     </>
                   )}
@@ -428,7 +478,10 @@ const AssignBookings = () => {
                       marginTop: "-40px",
                     }}
                   >
-                    <div className="row d-flex flex-wrap" style={{ gap: "8px" }}>
+                    <div
+                      className="row d-flex flex-wrap"
+                      style={{ gap: "8px" }}
+                    >
                       {loadingWorkers
                         ? Array.from({ length: 4 }).map((_, index) => (
                             <div

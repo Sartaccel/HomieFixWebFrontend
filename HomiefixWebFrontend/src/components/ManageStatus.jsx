@@ -64,24 +64,23 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
   // Helper function to format date and time
   const formatDateTime = (dateString, timeString) => {
     if (!dateString || !timeString) return "Not Assigned";
-  
+
     const date = new Date(`${dateString}T${timeString}`);
-    
+
     const formattedDate = date.toLocaleDateString("en-US", {
       month: "short",
       day: "2-digit",
       year: "numeric",
     });
-  
+
     const formattedTime = date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
     });
-  
+
     return `${formattedDate} | ${formattedTime}`;
   };
-  
 
   return (
     <div className="col-md-6">
@@ -185,8 +184,8 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                       >
                         <span style={{ color: "#C14810" }}>
                           Reschedule Service On{" "}
-                          {booking.bookedDate
-                            ? new Date(booking.bookedDate).toLocaleDateString(
+                          {booking.rescheduledDate
+                            ? new Date(booking.rescheduledDate).toLocaleDateString(
                                 "en-US",
                                 {
                                   month: "short",
@@ -196,7 +195,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                               )
                             : "N/A"}
                           {" | "}
-                          {booking.timeSlot || "N/A"}
+                          {booking.rescheduledTimeSlot || "N/A"}
                         </span>
                       </span>
                       <span style={{ fontSize: "14px" }}>

@@ -26,32 +26,32 @@ const Login = ({ setToken }) => {
 
 
  const handleSubmit = async (e) => {
-   e.preventDefault();
-   setLoading(true);
-   try {
-     const response = await api.post("/admin/login", {
-       username,
-       password,
-     });
+  e.preventDefault();
+  setLoading(true);
+  try {
+    const response = await api.post("/admin/login", {
+      username,
+      password,
+    });
 
-
-     if (response.data.token) {
-       localStorage.setItem("token", response.data.token);
-       setToken(response.data.token);
-       navigate("/dashboard");
-       setIsInvalid(false);
-       setErrorMessage("");
-     } else {
-       setIsInvalid(true);
-       setErrorMessage("Invalid response. Token missing.");
-     }
-   } catch (error) {
-     console.error("Login Error:", error.response?.data || error.message);
-     setIsInvalid(true);
-     setErrorMessage("Invalid credentials");
-   }
-   setLoading(false);
- };
+    if (response.data.token) {
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("username", username); // Store username in local storage
+      setToken(response.data.token);
+      navigate("/dashboard");
+      setIsInvalid(false);
+      setErrorMessage("");
+    } else {
+      setIsInvalid(true);
+      setErrorMessage("Invalid response. Token missing.");
+    }
+  } catch (error) {
+    console.error("Login Error:", error.response?.data || error.message);
+    setIsInvalid(true);
+    setErrorMessage("Invalid credentials");
+  }
+  setLoading(false);
+};
 
 
  return (

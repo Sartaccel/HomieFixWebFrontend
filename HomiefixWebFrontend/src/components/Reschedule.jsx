@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import "../styles/AssignBookings.css";
+import axios from "axios"; // Import axios
+import api from "../api";
 
 const Reschedule = ({ id, booking, onClose, onReschedule }) => {
   const [availableDates, setAvailableDates] = useState([]);
@@ -16,8 +18,9 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
   useEffect(() => {
     const fetchAvailableDates = async () => {
       try {
-        const response = await fetch("http://localhost:2222/booking/available-dates");
-        const data = await response.json();
+        // Use axios instead of fetch
+        const response = await api.get("/booking/available-dates");
+        const data = response.data; // Access data from response
         console.log("Available Dates from API:", data);
 
         const validDates = data
@@ -44,8 +47,9 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
 
     const fetchAvailableTimes = async () => {
       try {
-        const response = await fetch("http://localhost:2222/booking/available-times");
-        const data = await response.json();
+        // Use axios instead of fetch
+        const response = await api.get("/booking/available-times");
+        const data = response.data; // Access data from response
         setAvailableTimes(data);
       } catch (error) {
         console.error("Error fetching available times:", error);
@@ -86,29 +90,32 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       return;
     }
 
-    const reason = rescheduleReason === "other" ? otherReason : rescheduleReason;
+    const reason =
+      rescheduleReason === "other" ? otherReason : rescheduleReason;
 
     try {
       const formattedDate = parsedDate.toISOString().split("T")[0];
       const encodedTimeSlot = encodeURIComponent(selectedTimeSlot);
       const encodedReason = encodeURIComponent(reason);
 
-      const url = `http://localhost:2222/booking/reschedule/${id}?selectedDate=${formattedDate}&selectedTimeSlot=${encodedTimeSlot}&rescheduleReason=${encodedReason}`;
+      const url = `/booking/reschedule/${id}?selectedDate=${formattedDate}&selectedTimeSlot=${encodedTimeSlot}&rescheduleReason=${encodedReason}`;
 
       console.log("Reschedule URL:", url);
 
-      const response = await fetch(url, {
-        method: "PUT",
-      });
+      // Use axios instead of fetch
+      const response = await api.put(url);
 
-      if (response.ok) {
+      if (response.status === 200) {
         alert("Booking rescheduled successfully");
         onReschedule(formattedDate, selectedTimeSlot);
         onClose();
       } else {
-        const errorData = await response.json();
-        console.error("Reschedule failed:", response.status, errorData);
-        alert(`Failed to reschedule booking: ${response.status} - ${errorData.message || "Unknown error"}`);
+        console.error("Reschedule failed:", response.status, response.data);
+        alert(
+          `Failed to reschedule booking: ${response.status} - ${
+            response.data.message || "Unknown error"
+          }`
+        );
       }
     } catch (error) {
       console.error("Error rescheduling booking:", error);
@@ -131,7 +138,10 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
   };
 
   return (
-    <div className="reschedule-slider position-fixed top-0 end-0 h-100 bg-white shadow-lg" style={{ width: "550px", zIndex: 1000 }}>
+    <div
+      className="reschedule-slider position-fixed top-0 end-0 h-100 bg-white shadow-lg"
+      style={{ width: "550px", zIndex: 1000 }}
+    >
       <div className="p-4">
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h4>Reschedule Service</h4>
@@ -139,7 +149,9 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
             <i className="bi bi-x-lg"></i>
           </button>
         </div>
-        <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
+        <div
+          style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
+        ></div>
 
         <div className="mb-3 mt-3">
           <h6>Date</h6>
@@ -156,7 +168,10 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
                       fontSize: "15px",
                       padding: "5px 10px",
                       borderRadius: "5px",
-                      border: selectedDate === date ? "1px solid #0076CE" : "1px solid #D2D2D2",
+                      border:
+                        selectedDate === date
+                          ? "1px solid #0076CE"
+                          : "1px solid #D2D2D2",
                       color: "#333",
                       backgroundColor: "transparent",
                     }}
@@ -167,7 +182,9 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
                 ))}
           </div>
         </div>
-        <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
+        <div
+          style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
+        ></div>
 
         <div className="mb-3 mt-3">
           <h6>Time</h6>
@@ -184,7 +201,10 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
                       fontSize: "15px",
                       padding: "5px 10px",
                       borderRadius: "5px",
-                      border: selectedTimeSlot === time ? "1px solid #0076CE" : "1px solid #D2D2D2",
+                      border:
+                        selectedTimeSlot === time
+                          ? "1px solid #0076CE"
+                          : "1px solid #D2D2D2",
                       color: "#333",
                       backgroundColor: "transparent",
                     }}
@@ -195,13 +215,18 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
                 ))}
           </div>
         </div>
-        <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
+        <div
+          style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
+        ></div>
 
         <div className="mb-3 mt-3">
           <h6>Reason for Reschedule</h6>
           <div className="mb-2">
             {[
-              { value: "technician unAvailability", label: "Technician Unavailability" },
+              {
+                value: "technician unAvailability",
+                label: "Technician Unavailability",
+              },
               { value: "customer request", label: "Customer Request" },
               { value: "weather conditions", label: "Weather Conditions" },
               { value: "part unavailability", label: "Part Unavailability" },
@@ -217,7 +242,11 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
                   checked={rescheduleReason === option.value}
                   onChange={(e) => setRescheduleReason(e.target.value)}
                 />
-                <label className="form-check-label" style={{ marginLeft: "5px" }} htmlFor={option.value}>
+                <label
+                  className="form-check-label"
+                  style={{ marginLeft: "5px" }}
+                  htmlFor={option.value}
+                >
                   {option.label}
                 </label>
               </div>
@@ -241,9 +270,15 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
             ></textarea>
           )}
         </div>
-        <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
+        <div
+          style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
+        ></div>
 
-        <button className="btn btn-primary w-100 mt-3" style={{ backgroundColor: "#0076CE" }} onClick={handleReschedule}>
+        <button
+          className="btn btn-primary w-100 mt-3"
+          style={{ backgroundColor: "#0076CE" }}
+          onClick={handleReschedule}
+        >
           Reschedule
         </button>
       </div>

@@ -7,6 +7,7 @@ import Header from "./Header"; // Ensure you have a Header component
 import Reschedule from "./Reschedule"; // Ensure you have a Reschedule component
 import CancelBooking from "./CancelBooking";
 import ManageStatus from "./ManageStatus"; // Ensure you have a CancelBooking component
+import api from "../api";
 
 const ViewBookings = () => {
   const { id } = useParams(); // Get the booking ID from the URL
@@ -25,13 +26,16 @@ const ViewBookings = () => {
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [showCancelBookingModal, setShowCancelBookingModal] = useState(false);
-  const [selectedBookingIdForCancellation, setSelectedBookingIdForCancellation] = useState(null);
+  const [
+    selectedBookingIdForCancellation,
+    setSelectedBookingIdForCancellation,
+  ] = useState(null);
   const [refresh, setRefresh] = useState(false); // State to trigger refresh
 
   const handleStatusUpdate = async (status) => {
     try {
-      const response = await axios.put(
-        `http://localhost:2222/booking/update-status/${id}?status=${status}`
+      const response = await api.put(
+        `/booking/update-status/${id}?status=${status}`
       );
 
       if (response.status === 200) {
@@ -60,16 +64,14 @@ const ViewBookings = () => {
   const fetchBookingDetails = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`http://localhost:2222/booking/${id}`);
+      const { data } = await api.get(`/booking/${id}`);
       setBooking(data);
       setNotes(data.notes || "No additional notes provided.");
 
       if (data.worker) {
         setWorker(data.worker);
       } else if (data.workerId) {
-        const workerResponse = await axios.get(
-          `http://localhost:2222/workers/view/${data.workerId}`
-        );
+        const workerResponse = await api.get(`/workers/view/${data.workerId}`);
         setWorker(workerResponse.data);
       }
 
@@ -84,9 +86,7 @@ const ViewBookings = () => {
 
   const fetchFeedback = async (bookingId, bookingDate) => {
     try {
-      const response = await axios.get(
-        `http://localhost:2222/feedback/byBooking/${bookingId}`
-      );
+      const response = await api.get(`/feedback/byBooking/${bookingId}`);
       if (response.data && response.data.length > 0) {
         const feedbackWithDate = {
           ...response.data[0],
@@ -105,8 +105,8 @@ const ViewBookings = () => {
   const saveNotes = async () => {
     setSaving(true);
     try {
-      const response = await axios.patch(
-        `http://localhost:2222/booking/update-notes/${id}?notes=${encodeURIComponent(notes)}`
+      const response = await api.patch(
+        `/booking/update-notes/${id}?notes=${encodeURIComponent(notes)}`
       );
 
       if (response.status === 200) {
@@ -190,7 +190,9 @@ const ViewBookings = () => {
                 onMouseLeave={() => setIsRescheduleHovered(false)}
                 style={{
                   border: "1px solid #0076CE",
-                  backgroundColor: isRescheduleHovered ? "#0076CE" : "transparent",
+                  backgroundColor: isRescheduleHovered
+                    ? "#0076CE"
+                    : "transparent",
                   color: isRescheduleHovered ? "white" : "#0076CE",
                 }}
               >
@@ -217,7 +219,9 @@ const ViewBookings = () => {
               <div className="mt-4 p-3 col-6">
                 <div className="d-flex align-items-center">
                   <img
-                    src={booking.productImage || "https://via.placeholder.com/50"}
+                    src={
+                      booking.productImage || "https://via.placeholder.com/50"
+                    }
                     alt="Service"
                     className="me-3 rounded"
                     style={{ width: 50, height: 50 }}
@@ -242,7 +246,13 @@ const ViewBookings = () => {
                   </p>
                   <p className="mb-1">
                     <i className="bi bi-calendar-event me-2"></i>{" "}
-                    {formatDate(booking.bookedDate)} | {booking.timeSlot}
+                    {booking.rescheduledDate && booking.rescheduledTimeSlot
+                      ? `${formatDate(booking.rescheduledDate)} | ${
+                          booking.rescheduledTimeSlot
+                        }`
+                      : `${formatDate(booking.bookedDate)} | ${
+                          booking.timeSlot
+                        }`}
                   </p>
                   <p className="mb-1">
                     <i className="bi bi-geo-alt me-2"></i>
@@ -254,8 +264,14 @@ const ViewBookings = () => {
                   </p>
                 </div>
 
-                <div className="border rounded p-3 mt-2" style={{ height: "110px" }}>
-                  <div className="d-flex justify-content-between align-items-center" style={{ marginTop: "-8px" }}>
+                <div
+                  className="border rounded p-3 mt-2"
+                  style={{ height: "110px" }}
+                >
+                  <div
+                    className="d-flex justify-content-between align-items-center"
+                    style={{ marginTop: "-8px" }}
+                  >
                     <h6 className="m-0" style={{ color: "#808080" }}>
                       Notes
                     </h6>
@@ -280,7 +296,10 @@ const ViewBookings = () => {
                       readOnly={!isEditing}
                     />
 
-                    <div className="d-flex justify-content-end" style={{ marginTop: "-95px", marginRight: "5px" }}>
+                    <div
+                      className="d-flex justify-content-end"
+                      style={{ marginTop: "-95px", marginRight: "5px" }}
+                    >
                       {!isEditing ? (
                         <a
                           href="#"
@@ -296,7 +315,9 @@ const ViewBookings = () => {
                       ) : (
                         <a
                           href="#"
-                          className={`text-primary text-decoration-none ${saving ? "disabled" : ""}`}
+                          className={`text-primary text-decoration-none ${
+                            saving ? "disabled" : ""
+                          }`}
                           onClick={(e) => {
                             e.preventDefault();
                             if (!saving) saveNotes();
@@ -318,7 +339,10 @@ const ViewBookings = () => {
                     <h6 style={{ fontWeight: "bold" }}>Worker Details</h6>
                     <div className="d-flex align-items-center">
                       <img
-                        src={worker.profilePicUrl || "https://via.placeholder.com/50"}
+                        src={
+                          worker.profilePicUrl ||
+                          "https://via.placeholder.com/50"
+                        }
                         alt="Worker"
                         className="me-3 rounded"
                         style={{
@@ -342,7 +366,8 @@ const ViewBookings = () => {
                               className="bi bi-star-fill"
                               style={{ color: "#FFD700" }}
                             ></i>
-                            {worker.rating !== undefined && worker.rating !== null
+                            {worker.rating !== undefined &&
+                            worker.rating !== null
                               ? worker.rating.toFixed(1)
                               : "4.5"}
                           </span>
@@ -353,7 +378,8 @@ const ViewBookings = () => {
                         </p>
                         <p className="mb-1">
                           <i className="bi bi-geo-alt me-2"></i>{" "}
-                          {worker.houseNumber}, {worker.town}, {worker.district}, {worker.state}, {worker.pincode}
+                          {worker.houseNumber}, {worker.town}, {worker.district}
+                          , {worker.state}, {worker.pincode}
                         </p>
                       </div>
                     </div>

@@ -15,6 +15,7 @@ import $ from "jquery";
 import "bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css";
 import "bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js";
 import Header from "./Header";
+import api from "../api";
 
 const areNewBookingsAdded = (newBookings, prevBookings) => {
   const newBookingIds = new Set(newBookings.map((b) => b.id));
@@ -31,7 +32,7 @@ const areNewBookingsAdded = (newBookings, prevBookings) => {
 const fetchBookings = async (setBookings, prevBookingsRef, setLoading) => {
   setLoading(true);
   try {
-    const response = await axios.get("http://localhost:2222/booking/all");
+    const response = await api.get("/booking/all");
     console.log("API Data:", response.data);
 
     const transformedBookings = response.data.map((booking) => ({
@@ -117,8 +118,8 @@ const BookingDetails = () => {
 
       for (const booking of completedBookings) {
         try {
-          const response = await axios.get(
-            `http://localhost:2222/feedback/byBooking/${booking.id}`
+          const response = await api.get(
+            `/feedback/byBooking/${booking.id}`
           );
           if (response.data.length > 0) {
             ratingsData[booking.id] = response.data[0].rating;
