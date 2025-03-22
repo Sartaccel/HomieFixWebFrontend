@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
+  // baseURL: "http://homiefix.in:2222",
   baseURL: "http://localhost:2222",
 });
 

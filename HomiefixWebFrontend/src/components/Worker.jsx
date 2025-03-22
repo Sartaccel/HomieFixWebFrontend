@@ -4,6 +4,9 @@ import Swal from "sweetalert2";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import Header from "./Header";
+import startedImg from "../assets/Status Started.png";
+import rescheduledImg from "../assets/Status Rescheduled.png";
+import assignedImg from "../assets/Status Assigned.png";
 
 import api from "../api";
 
@@ -211,11 +214,10 @@ const Worker = () => {
                         {Array.from({ length: 5 }, (_, i) => (
                           <i
                             key={i}
-                            className={`bi bi-star-fill ${
-                              i < (workerData.averageRating || 0)
+                            className={`bi bi-star-fill ${i < (workerData.averageRating || 0)
                                 ? "text-warning"
                                 : "text-secondary"
-                            } mx-1`}
+                              } mx-1`}
                           ></i>
                         ))}
                         {workerData.averageRating || "N/A"}
@@ -261,33 +263,30 @@ const Worker = () => {
             <div className="row">
               <div className="d-flex mt-3 pb-2">
                 <p
-                  className={`px-4 pb-2 ${
-                    activeTab === "serviceDetails"
+                  className={`px-4 pb-2 ${activeTab === "serviceDetails"
                       ? "border-bottom border-3 border-dark"
                       : ""
-                  }`}
+                    }`}
                   onClick={() => setActiveTab("serviceDetails")}
                   style={{ cursor: "pointer" }}
                 >
                   Service Details
                 </p>
                 <p
-                  className={`mx-1 px-4 pb-2 ${
-                    activeTab === "inProgress"
+                  className={`mx-1 px-4 pb-2 ${activeTab === "inProgress"
                       ? "border-bottom border-3 border-dark"
                       : ""
-                  }`}
+                    }`}
                   onClick={() => setActiveTab("inProgress")}
                   style={{ cursor: "pointer" }}
                 >
                   In Progress
                 </p>
                 <p
-                  className={`px-4 pb-2 ${
-                    activeTab === "reviews"
+                  className={`px-4 pb-2 ${activeTab === "reviews"
                       ? "border-bottom border-3 border-dark"
                       : ""
-                  }`}
+                    }`}
                   onClick={() => setActiveTab("reviews")}
                   style={{ cursor: "pointer" }}
                 >
@@ -408,19 +407,15 @@ const Worker = () => {
                             {item.date} <br /> Service pending
                           </td>
                           <td>
-                            <span
-                              className={`badge ${
-                                item.status === "STARTED"
-                                  ? "bg-warning"
-                                  : item.status === "RESCHEDULED"
-                                  ? "bg-danger"
-                                  : item.status === "ASSIGNED"
-                                  ? "bg-secondary"
-                                  : "bg-success"
-                              }`}
-                            >
-                              {item.status}
-                            </span>
+                            {item.status === "STARTED" && (
+                              <img src={startedImg} alt="Started" style={{ width: "100px", height: "40px" }} />
+                            )}
+                            {item.status === "RESCHEDULED" && (
+                              <img src={rescheduledImg} alt="Rescheduled" style={{ width: "140px", height: "40px" }} />
+                            )}
+                            {item.status === "ASSIGNED" && (
+                              <img src={assignedImg} alt="Assigned" style={{ width: "100px", height: "40px" }} />
+                            )}
                           </td>
                         </tr>
                       ))}
