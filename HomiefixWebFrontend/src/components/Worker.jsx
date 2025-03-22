@@ -215,8 +215,8 @@ const Worker = () => {
                           <i
                             key={i}
                             className={`bi bi-star-fill ${i < (workerData.averageRating || 0)
-                                ? "text-warning"
-                                : "text-secondary"
+                              ? "text-warning"
+                              : "text-secondary"
                               } mx-1`}
                           ></i>
                         ))}
@@ -264,8 +264,8 @@ const Worker = () => {
               <div className="d-flex mt-3 pb-2">
                 <p
                   className={`px-4 pb-2 ${activeTab === "serviceDetails"
-                      ? "border-bottom border-3 border-dark"
-                      : ""
+                    ? "border-bottom border-3 border-dark"
+                    : ""
                     }`}
                   onClick={() => setActiveTab("serviceDetails")}
                   style={{ cursor: "pointer" }}
@@ -274,8 +274,8 @@ const Worker = () => {
                 </p>
                 <p
                   className={`mx-1 px-4 pb-2 ${activeTab === "inProgress"
-                      ? "border-bottom border-3 border-dark"
-                      : ""
+                    ? "border-bottom border-3 border-dark"
+                    : ""
                     }`}
                   onClick={() => setActiveTab("inProgress")}
                   style={{ cursor: "pointer" }}
@@ -284,8 +284,8 @@ const Worker = () => {
                 </p>
                 <p
                   className={`px-4 pb-2 ${activeTab === "reviews"
-                      ? "border-bottom border-3 border-dark"
-                      : ""
+                    ? "border-bottom border-3 border-dark"
+                    : ""
                     }`}
                   onClick={() => setActiveTab("reviews")}
                   style={{ cursor: "pointer" }}
