@@ -23,7 +23,7 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
       const encodedReason = encodeURIComponent(reason);
       const url = `/booking/cancel/${id}?reason=${encodedReason}`;
 
-      console.log("Cancellation URL:", url);
+      // console.log("Cancellation URL:", url);
 
       // Use axios instead of fetch
       const response = await api.put(url);

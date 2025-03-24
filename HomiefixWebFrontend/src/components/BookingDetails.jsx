@@ -33,7 +33,7 @@ const fetchBookings = async (setBookings, prevBookingsRef, setLoading) => {
   setLoading(true);
   try {
     const response = await api.get("/booking/all");
-    console.log("API Data:", response.data);
+    // console.log("API Data:", response.data);
 
     const transformedBookings = response.data.map((booking) => ({
       id: booking.id,

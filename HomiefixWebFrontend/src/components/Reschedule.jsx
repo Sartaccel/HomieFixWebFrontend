@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import "../styles/AssignBookings.css";
-import axios from "axios"; // Import axios
 import api from "../api";
 
 const Reschedule = ({ id, booking, onClose, onReschedule }) => {
@@ -21,12 +20,12 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
         // Use axios instead of fetch
         const response = await api.get("/booking/available-dates");
         const data = response.data; // Access data from response
-        console.log("Available Dates from API:", data);
+        // console.log("Available Dates from API:", data);
 
         const validDates = data
           .map((date) => {
             const cleanedDate = date.replace(/\s\w+day\s/, " ");
-            console.log("Cleaned Date:", cleanedDate);
+            // console.log("Cleaned Date:", cleanedDate);
 
             const parsedDate = new Date(cleanedDate);
             if (isNaN(parsedDate.getTime())) {
