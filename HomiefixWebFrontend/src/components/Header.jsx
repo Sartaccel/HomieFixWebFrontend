@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import notification from "../assets/Bell.png";
@@ -5,7 +6,7 @@ import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
 import Notifications from "./Notifications";
 import { createPortal } from "react-dom";
-import api from "../api"; // Import your API client
+import api from "../api";
 
 
 const Header = () => {
@@ -14,7 +15,7 @@ const Header = () => {
  const [showNotifications, setShowNotifications] = useState(false);
  const [profilePhoto, setProfilePhoto] = useState(profile);
  const popupRef = useRef(null);
- const [unreadCount, setUnreadCount] = useState(0); // State for unread notification count
+ const [unreadCount, setUnreadCount] = useState(0);
 
 
  const getHeading = () => {
@@ -27,21 +28,16 @@ const Header = () => {
  };
 
 
- const toggleNotifications = () => {
+ const toggleNotifications = async () => {
    setShowNotifications(!showNotifications);
-   if (showNotifications) {
-       markNotificationsAsRead();
-   }
- };
-
-
- const markNotificationsAsRead = async () => {
+   if (!showNotifications) {
      try {
-         await api.post("/notifications/mark-read");
-         setUnreadCount(0); // Reset count after marking as read
+       await api.post("/notifications/mark-read");
+       setUnreadCount(0);
      } catch (error) {
-         console.error("Error marking notifications as read:", error);
+       console.error("Error marking notifications as read:", error);
      }
+   }
  };
 
 
@@ -57,7 +53,7 @@ const Header = () => {
 
 
    fetchUnreadCount();
-   const interval = setInterval(fetchUnreadCount, 1000); // Fetch count every 5 seconds
+   const interval = setInterval(fetchUnreadCount, 1000);
 
 
    return () => clearInterval(interval);

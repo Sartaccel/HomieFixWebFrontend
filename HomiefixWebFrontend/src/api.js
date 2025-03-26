@@ -8,8 +8,7 @@ export const setGlobalNavigate = (navigate) => {
 
 const api = axios.create({
   // baseURL: "http://localhost:2222",
-  baseURL: "http://homiefix.in:2222",
-
+  baseURL: "https://homiefix.in:2222",
 });
 
 // Add a request interceptor to include the token in headers

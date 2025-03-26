@@ -3,15 +3,17 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { Spinner } from "react-bootstrap";
 import { FaStar } from "react-icons/fa";
-import Header from "./Header"; // Ensure you have a Header component
-import Reschedule from "./Reschedule"; // Ensure you have a Reschedule component
+import Header from "./Header";
+import Reschedule from "./Reschedule";
 import CancelBooking from "./CancelBooking";
-import ManageStatus from "./ManageStatus"; // Ensure you have a CancelBooking component
+import ManageStatus from "./ManageStatus";
 import api from "../api";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 const ViewBookings = () => {
-  const { id } = useParams(); // Get the booking ID from the URL
-  const navigate = useNavigate(); // Initialize the navigate function
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [booking, setBooking] = useState(null);
   const [worker, setWorker] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ const ViewBookings = () => {
     selectedBookingIdForCancellation,
     setSelectedBookingIdForCancellation,
   ] = useState(null);
-  const [refresh, setRefresh] = useState(false); // State to trigger refresh
+  const [refresh, setRefresh] = useState(false);
 
   const handleStatusUpdate = async (status) => {
     try {
@@ -135,7 +137,7 @@ const ViewBookings = () => {
 
   const handleRescheduleSuccess = () => {
     closeRescheduleModal();
-    setRefresh(!refresh); // Trigger refresh
+    setRefresh(!refresh);
   };
 
   const handleCancelBookingButtonClick = (bookingId) => {
@@ -146,15 +148,14 @@ const ViewBookings = () => {
   const handleCancelBookingSuccess = () => {
     setShowCancelBookingModal(false);
     setSelectedBookingIdForCancellation(null);
-    setRefresh(!refresh); // Trigger refresh
+    setRefresh(!refresh);
   };
 
   useEffect(() => {
     fetchBookingDetails();
-  }, [id, refresh]); // Re-run effect when the booking ID or refresh state changes
+  }, [id, refresh]);
 
   if (error) return <p className="text-danger">{error}</p>;
-  if (!booking) return <p></p>;
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -182,159 +183,206 @@ const ViewBookings = () => {
                 Service Details
               </div>
             </div>
-            <div className="d-flex gap-3 p-2" style={{ marginRight: "300px" }}>
-              <button
-                className="btn btn-outline-primary"
-                onClick={() => handleRescheduleButtonClick(id)}
-                onMouseEnter={() => setIsRescheduleHovered(true)}
-                onMouseLeave={() => setIsRescheduleHovered(false)}
-                style={{
-                  border: "1px solid #0076CE",
-                  backgroundColor: isRescheduleHovered
-                    ? "#0076CE"
-                    : "transparent",
-                  color: isRescheduleHovered ? "white" : "#0076CE",
-                }}
-              >
-                Reschedule
-              </button>
-              <button
-                className="btn btn-outline-danger"
-                onClick={() => handleCancelBookingButtonClick(id)}
-                onMouseEnter={() => setIsCancelHovered(true)}
-                onMouseLeave={() => setIsCancelHovered(false)}
-                style={{
-                  border: "1px solid #B8141A",
-                  backgroundColor: isCancelHovered ? "#B8141A" : "transparent",
-                  color: isCancelHovered ? "white" : "#B8141A",
-                  transition: "all 0.3s ease-in-out",
-                }}
-              >
-                Cancel Service
-              </button>
-            </div>
+            {!loading && booking && (
+              <div className="d-flex gap-3 p-2" style={{ marginRight: "300px" }}>
+                <button
+                  className="btn btn-outline-primary"
+                  onClick={() => handleRescheduleButtonClick(id)}
+                  onMouseEnter={() => setIsRescheduleHovered(true)}
+                  onMouseLeave={() => setIsRescheduleHovered(false)}
+                  style={{
+                    border: "1px solid #0076CE",
+                    backgroundColor: isRescheduleHovered
+                      ? "#0076CE"
+                      : "transparent",
+                    color: isRescheduleHovered ? "white" : "#0076CE",
+                  }}
+                >
+                  Reschedule
+                </button>
+                <button
+                  className="btn btn-outline-danger"
+                  onClick={() => handleCancelBookingButtonClick(id)}
+                  onMouseEnter={() => setIsCancelHovered(true)}
+                  onMouseLeave={() => setIsCancelHovered(false)}
+                  style={{
+                    border: "1px solid #B8141A",
+                    backgroundColor: isCancelHovered ? "#B8141A" : "transparent",
+                    color: isCancelHovered ? "white" : "#B8141A",
+                    transition: "all 0.3s ease-in-out",
+                  }}
+                >
+                  Cancel Service
+                </button>
+              </div>
+            )}
           </div>
           <div className="container mt-5 pt-4">
             <div className="row justify-content-between p-3 mt-5">
               <div className="mt-4 p-3 col-6">
                 <div className="d-flex align-items-center">
-                  <img
-                    src={
-                      booking.productImage || "https://via.placeholder.com/50"
-                    }
-                    alt="Service"
-                    className="me-3 rounded"
-                    style={{ width: 50, height: 50 }}
-                  />
+                  {loading ? (
+                    <Skeleton circle width={50} height={50} className="me-3" />
+                  ) : (
+                    <img
+                      src={
+                        booking.productImage || "https://via.placeholder.com/50"
+                      }
+                      alt="Service"
+                      className="me-3 rounded"
+                      style={{ width: 50, height: 50 }}
+                    />
+                  )}
                   <div>
-                    <h6 className="mb-0">
-                      {booking.productName} - ₹{booking.totalPrice}
-                    </h6>
-                    <span className="text-primary">ID: {booking.id}</span>
+                    {loading ? (
+                      <>
+                        <Skeleton width={200} height={20} />
+                        <Skeleton width={100} height={15} />
+                      </>
+                    ) : (
+                      <>
+                        <h6 className="mb-0">
+                          {booking.productName} - ₹{booking.totalPrice}
+                        </h6>
+                        <span className="text-primary">ID: {booking.id}</span>
+                      </>
+                    )}
                   </div>
                 </div>
 
                 <div className="mt-3">
-                  <h6 className=" fw-bold">Customer Details</h6>
-                  <p className="mb-1">
-                    <i className="bi bi-person me-2"></i>
-                    {booking.userProfile.fullName}
-                  </p>
-                  <p className="mb-1">
-                    <i className="bi bi-telephone me-2"></i>{" "}
-                    {booking.userProfile.mobileNumber.mobileNumber}
-                  </p>
-                  <p className="mb-1">
-                    <i className="bi bi-calendar-event me-2"></i>{" "}
-                    {booking.rescheduledDate && booking.rescheduledTimeSlot
-                      ? `${formatDate(booking.rescheduledDate)} | ${
-                          booking.rescheduledTimeSlot
-                        }`
-                      : `${formatDate(booking.bookedDate)} | ${
-                          booking.timeSlot
-                        }`}
-                  </p>
-                  <p className="mb-1">
-                    <i className="bi bi-geo-alt me-2"></i>
-                    {booking.deliveryAddress.houseNumber},{" "}
-                    {booking.deliveryAddress.town},{" "}
-                    {booking.deliveryAddress.district},{" "}
-                    {booking.deliveryAddress.state} -{" "}
-                    {booking.deliveryAddress.pincode}
-                  </p>
+                  <h6 className="fw-bold">
+                    {loading ? <Skeleton width={150} /> : "Customer Details"}
+                  </h6>
+                  {loading ? (
+                    <>
+                      <Skeleton width={250} height={20} count={4} />
+                    </>
+                  ) : (
+                    <>
+                      <p className="mb-1">
+                        <i className="bi bi-person me-2"></i>
+                        {booking.userProfile.fullName}
+                      </p>
+                      <p className="mb-1">
+                        <i className="bi bi-telephone me-2"></i>{" "}
+                        {booking.userProfile.mobileNumber.mobileNumber}
+                      </p>
+                      <p className="mb-1">
+                        <i className="bi bi-calendar-event me-2"></i>{" "}
+                        {booking.rescheduledDate && booking.rescheduledTimeSlot
+                          ? `${formatDate(booking.rescheduledDate)} | ${
+                              booking.rescheduledTimeSlot
+                            }`
+                          : `${formatDate(booking.bookedDate)} | ${
+                              booking.timeSlot
+                            }`}
+                      </p>
+                      <p className="mb-1">
+                        <i className="bi bi-geo-alt me-2"></i>
+                        {booking.deliveryAddress.houseNumber},{" "}
+                        {booking.deliveryAddress.town},{" "}
+                        {booking.deliveryAddress.district},{" "}
+                        {booking.deliveryAddress.state} -{" "}
+                        {booking.deliveryAddress.pincode}
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 <div
                   className="border rounded p-3 mt-2"
                   style={{ height: "110px" }}
                 >
-                  <div
-                    className="d-flex justify-content-between align-items-center"
-                    style={{ marginTop: "-8px" }}
-                  >
-                    <h6 className="m-0" style={{ color: "#808080" }}>
-                      Notes
-                    </h6>
-                  </div>
+                  {loading ? (
+                    <>
+                      <Skeleton width={100} height={20} />
+                      <Skeleton height={70} />
+                    </>
+                  ) : (
+                    <>
+                      <div
+                        className="d-flex justify-content-between align-items-center"
+                        style={{ marginTop: "-8px" }}
+                      >
+                        <h6 className="m-0" style={{ color: "#808080" }}>
+                          Notes
+                        </h6>
+                      </div>
 
-                  <div className="position-relative">
-                    <textarea
-                      id="notesText"
-                      className="form-control border-0 p-2"
-                      style={{
-                        width: "100%",
-                        height: "70px",
-                        resize: "none",
-                        outline: "none",
-                        background: "transparent",
-                        boxShadow: "none",
-                        overflowY: "auto",
-                      }}
-                      rows="3"
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      readOnly={!isEditing}
-                    />
-
-                    <div
-                      className="d-flex justify-content-end"
-                      style={{ marginTop: "-95px", marginRight: "5px" }}
-                    >
-                      {!isEditing ? (
-                        <a
-                          href="#"
-                          className="text-primary text-decoration-none"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setIsEditing(true);
-                            document.getElementById("notesText").focus();
-                          }}
-                        >
-                          Edit
-                        </a>
-                      ) : (
-                        <a
-                          href="#"
-                          className={`text-primary text-decoration-none ${
-                            saving ? "disabled" : ""
-                          }`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (!saving) saveNotes();
-                          }}
+                      <div className="position-relative">
+                        <textarea
+                          id="notesText"
+                          className="form-control border-0 p-2"
                           style={{
-                            cursor: saving ? "not-allowed" : "pointer",
-                            opacity: saving ? 0.6 : 1,
+                            width: "100%",
+                            height: "70px",
+                            resize: "none",
+                            outline: "none",
+                            background: "transparent",
+                            boxShadow: "none",
+                            overflowY: "auto",
                           }}
+                          rows="3"
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          readOnly={!isEditing}
+                        />
+
+                        <div
+                          className="d-flex justify-content-end"
+                          style={{ marginTop: "-95px", marginRight: "5px" }}
                         >
-                          {saving ? "Saving..." : "Save"}
-                        </a>
-                      )}
-                    </div>
-                  </div>
+                          {!isEditing ? (
+                            <a
+                              href="#"
+                              className="text-primary text-decoration-none"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setIsEditing(true);
+                                document.getElementById("notesText").focus();
+                              }}
+                            >
+                              Edit
+                            </a>
+                          ) : (
+                            <a
+                              href="#"
+                              className={`text-primary text-decoration-none ${
+                                saving ? "disabled" : ""
+                              }`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (!saving) saveNotes();
+                              }}
+                              style={{
+                                cursor: saving ? "not-allowed" : "pointer",
+                                opacity: saving ? 0.6 : 1,
+                              }}
+                            >
+                              {saving ? "Saving..." : "Save"}
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
-                {worker && (
+                {loading ? (
+                  <div className="mt-3">
+                    <h6 style={{ fontWeight: "bold" }}>
+                      <Skeleton width={150} />
+                    </h6>
+                    <div className="d-flex align-items-center">
+                      <Skeleton circle width={80} height={80} className="me-3" />
+                      <div>
+                        <Skeleton width={200} height={20} count={3} />
+                      </div>
+                    </div>
+                    <Skeleton width={150} height={20} style={{ marginLeft: "100px" }} />
+                  </div>
+                ) : worker ? (
                   <div className="mt-3">
                     <h6 style={{ fontWeight: "bold" }}>Worker Details</h6>
                     <div className="d-flex align-items-center">
@@ -397,11 +445,23 @@ const ViewBookings = () => {
                       </a>
                     </div>
                   </div>
+                ) : (
+                  <div className="mt-3">
+                    <h6 style={{ fontWeight: "bold" }}>Worker Details</h6>
+                    <p>No worker assigned yet.</p>
+                  </div>
                 )}
 
                 <div className="mt-2">
-                  <h6>Customer Review</h6>
-                  {feedback ? (
+                  <h6>
+                    {loading ? <Skeleton width={150} /> : "Customer Review"}
+                  </h6>
+                  {loading ? (
+                    <>
+                      <Skeleton width={100} height={20} />
+                      <Skeleton width={300} height={50} />
+                    </>
+                  ) : feedback ? (
                     <>
                       <p>
                         <span
@@ -448,10 +508,16 @@ const ViewBookings = () => {
                   )}
                 </div>
               </div>
-              <ManageStatus
-                booking={booking}
-                onStatusUpdate={handleStatusUpdate}
-              />
+              {loading ? (
+                <div className="col-4">
+                  <Skeleton height={400} />
+                </div>
+              ) : (
+                <ManageStatus
+                  booking={booking}
+                  onStatusUpdate={handleStatusUpdate}
+                />
+              )}
             </div>
             {isRescheduleModalOpen && selectedBookingId && (
               <Reschedule
