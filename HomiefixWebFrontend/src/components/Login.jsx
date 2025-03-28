@@ -15,6 +15,7 @@ const Login = ({ setToken }) => {
   const [isInvalid, setIsInvalid] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Clear token when the login page is rendered
   useEffect(() => {
@@ -25,29 +26,51 @@ const Login = ({ setToken }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    
     try {
+      // Basic validation
+      if (!username.trim() || !password.trim()) {
+        throw new Error('Username and password are required');
+      }
+
       const response = await api.post("/admin/login", {
-        username,
-        password,
+        username: username.trim(),
+        password: password
       });
 
-      if (response.data.token) {
+      if (response.data?.token) {
         localStorage.setItem("token", response.data.token);
-        localStorage.setItem("username", username);
+        localStorage.setItem("username", username.trim());
         setToken(response.data.token);
         navigate("/dashboard");
         setIsInvalid(false);
         setErrorMessage("");
       } else {
-        setIsInvalid(true);
-        setErrorMessage("Invalid response. Token missing.");
+        throw new Error('Invalid response. Token missing.');
       }
     } catch (error) {
       console.error("Login Error:", error.response?.data || error.message);
       setIsInvalid(true);
-      setErrorMessage("Invalid credentials");
+      setErrorMessage(error.message || 'Invalid credentials');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const handleUsernameChange = (e) => {
+    setUsername(e.target.value);
+    if (isInvalid) {
+      setIsInvalid(false);
+      setErrorMessage("");
+    }
+  };
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    if (isInvalid) {
+      setIsInvalid(false);
+      setErrorMessage("");
+    }
   };
 
   return (
@@ -66,7 +89,17 @@ const Login = ({ setToken }) => {
                 <span className="input-group-text border-0 bg-transparent" style={{ width: "auto", padding: "0 12px" }}>
                   <img src={usernameIcon} alt="User Icon" width="18" height="18" />
                 </span>
-                <input type="text" className="form-control border-0 bg-transparent" placeholder="Username" value={username} onChange={(e) => { setUsername(e.target.value); setIsInvalid(false); }} onFocus={() => setFocusedField("username")} onBlur={() => setFocusedField(null)} required style={{ height: "50px", flex: "1", outline: "none", boxShadow: "none" }} />
+                <input 
+                  type="text" 
+                  className="form-control border-0 bg-transparent" 
+                  placeholder="Username" 
+                  value={username} 
+                  onChange={handleUsernameChange} 
+                  onFocus={() => setFocusedField("username")} 
+                  onBlur={() => setFocusedField(null)} 
+                  required 
+                  style={{ height: "50px", flex: "1", outline: "none", boxShadow: "none" }} 
+                />
               </div>
             </div>
 
@@ -75,7 +108,32 @@ const Login = ({ setToken }) => {
                 <span className="input-group-text border-0 bg-transparent" style={{ width: "auto", padding: "0 12px" }}>
                   <img src={passwordIcon} alt="Password Icon" width="18" height="18" />
                 </span>
-                <input type="password" className="form-control border-0 bg-transparent" placeholder="Password" value={password} onChange={(e) => { setPassword(e.target.value); setIsInvalid(false); }} onFocus={() => setFocusedField("password")} onBlur={() => setFocusedField(null)} required style={{ height: "50px", flex: "1", outline: "none", boxShadow: "none" }} />
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  className="form-control border-0 bg-transparent" 
+                  placeholder="Password" 
+                  value={password} 
+                  onChange={handlePasswordChange} 
+                  onFocus={() => setFocusedField("password")} 
+                  onBlur={() => setFocusedField(null)} 
+                  required 
+                  style={{ height: "50px", flex: "1", outline: "none", boxShadow: "none" }} 
+                />
+                <button
+                  type="button"
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    padding: '0 10px',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  <i 
+                    className={`bi bi-eye${showPassword ? '-slash' : ''}`} 
+                    style={{ color: '#6c757d' }}
+                  ></i>
+                </button>
               </div>
             </div>
 
@@ -94,7 +152,6 @@ const Login = ({ setToken }) => {
               {loading ? (
                 <>
                   <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                  
                 </>
               ) : (
                 "Login"

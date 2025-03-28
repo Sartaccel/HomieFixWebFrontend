@@ -7,6 +7,7 @@ import "../styles/AddWorker.css";
 import Header from "./Header";
 import api from "../api";
 
+
 const Profile = () => {
   const { username } = useParams(); // Get username from URL
   const navigate = useNavigate();
@@ -31,12 +32,14 @@ const Profile = () => {
   const [previewImage, setPreviewImage] = useState(addWorker);
   const [isLoading, setIsLoading] = useState(false); // Loading state
 
+
   // Fetch profile data
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
         const response = await api.get(`/admin/${username}`);
         const data = response.data;
+
 
         // Map API response to form fields
         setFormData({
@@ -58,6 +61,7 @@ const Profile = () => {
           joiningDate: data.joiningDate,
         });
 
+
         // Set preview image and update local storage
         if (data.profilePicUrl) {
           setPreviewImage(data.profilePicUrl);
@@ -68,8 +72,10 @@ const Profile = () => {
       }
     };
 
+
     fetchProfileData();
   }, [username]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -78,6 +84,7 @@ const Profile = () => {
       [name]: value,
     }));
   };
+
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -92,9 +99,11 @@ const Profile = () => {
     }
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true); // Set loading state to true
+
 
     try {
       const formDataToSend = new FormData();
@@ -108,10 +117,12 @@ const Profile = () => {
       formDataToSend.append("district", formData.district);
       formDataToSend.append("state", formData.state);
 
+
       // Append the profile picture if it exists
       if (formData.profilePic) {
         formDataToSend.append("profilePic", formData.profilePic);
       }
+
 
       const response = await api.post(
         "/admin/completeProfile",
@@ -122,6 +133,7 @@ const Profile = () => {
           },
         }
       );
+
 
       // Show success message
       Swal.fire({
@@ -144,6 +156,7 @@ const Profile = () => {
       setIsLoading(false); // Reset loading state
     }
   };
+
 
   return (
     <>
@@ -173,6 +186,7 @@ const Profile = () => {
         </div>
       </div>
 
+
       <div
         className="container"
         style={{
@@ -184,7 +198,10 @@ const Profile = () => {
       >
         <form onSubmit={handleSubmit}>
           {/* Profile Photo */}
-          <div className="container mt-2" style={{ marginLeft: "64px", maxWidth: "100%" }}>
+          <div
+            className="container mt-2"
+            style={{ marginLeft: "64px", maxWidth: "100%" }}
+          >
             <p>Profile Photo</p>
             <div style={{ marginTop: "-5px" }}>
               <img
@@ -205,19 +222,30 @@ const Profile = () => {
               <label
                 htmlFor="profilePic"
                 className="btn mx-5"
-                style={{ marginTop: "63px", borderColor: "#0076CE", color: "#0076CE", borderRadius: "2px" }}
+                style={{
+                  marginTop: "63px",
+                  borderColor: "#0076CE",
+                  color: "#0076CE",
+                  borderRadius: "2px",
+                }}
               >
                 Edit Profile
               </label>
             </div>
           </div>
 
+
           {/* Main container */}
-          <div className="container mt-2" style={{ marginLeft: "60px", maxWidth: "100%" }}>
+          <div
+            className="container mt-2"
+            style={{ marginLeft: "60px", maxWidth: "100%" }}
+          >
             {/* Row 1 */}
             <div className="row" style={{ maxWidth: "100%" }}>
               <div className="col-md-2">
-                <label htmlFor="name" className="form-label">Full Name</label>
+                <label htmlFor="name" className="form-label">
+                  Full Name
+                </label>
                 <input
                   type="text"
                   className="form-control"
@@ -227,12 +255,20 @@ const Profile = () => {
                   placeholder="Enter Name"
                   value={formData.name}
                   onChange={handleChange}
-                  style={{ width: "350px", height: "40px", border: "2px solid #E6E6E6", background: "#F7F7F7", color: "#636363" }}
+                  style={{
+                    width: "350px",
+                    height: "40px",
+                    border: "2px solid #E6E6E6",
+                    background: "#F7F7F7",
+                    color: "#636363",
+                  }}
                   disabled
                 />
               </div>
               <div className="col-md-3" style={{ marginLeft: "170px" }}>
-                <label htmlFor="contactNumber" className="form-label">Contact Number</label>
+                <label htmlFor="contactNumber" className="form-label">
+                  Contact Number
+                </label>
                 <input
                   type="text"
                   className="form-control"
@@ -242,12 +278,20 @@ const Profile = () => {
                   placeholder="Enter Contact Number"
                   value={formData.contactNumber}
                   onChange={handleChange}
-                  style={{ width: "350px", height: "40px", border: "2px solid #E6E6E6", background: "#F7F7F7", color: "#636363" }}
+                  style={{
+                    width: "350px",
+                    height: "40px",
+                    border: "2px solid #E6E6E6",
+                    background: "#F7F7F7",
+                    color: "#636363",
+                  }}
                   disabled
                 />
               </div>
               <div className="col-md-3" style={{ marginLeft: "60px" }}>
-                <label htmlFor="dateOfBirth" className="form-label">Joining Date</label>
+                <label htmlFor="dateOfBirth" className="form-label">
+                  Joining Date
+                </label>
                 <input
                   type="date"
                   className="form-control"
@@ -256,16 +300,25 @@ const Profile = () => {
                   required
                   value={formData.joiningDate}
                   onChange={handleChange}
-                  style={{ width: "150px", height: "40px", border: "2px solid #E6E6E6", background: "#F7F7F7", color: "#636363" }}
+                  style={{
+                    width: "150px",
+                    height: "40px",
+                    border: "2px solid #E6E6E6",
+                    background: "#F7F7F7",
+                    color: "#636363",
+                  }}
                   disabled
                 />
               </div>
             </div>
 
+
             {/* Row 2 */}
             <div className="row mt-2">
               <div className="col-md-3">
-                <label htmlFor="email" className="form-label">Email</label>
+                <label htmlFor="email" className="form-label">
+                  Email
+                </label>
                 <input
                   type="email"
                   className="form-control"
@@ -275,12 +328,20 @@ const Profile = () => {
                   placeholder="Enter Email"
                   value={formData.email}
                   onChange={handleChange}
-                  style={{ width: "350px", height: "40px", border: "2px solid #E6E6E6", background: "#F7F7F7", color: "#636363" }}
+                  style={{
+                    width: "350px",
+                    height: "40px",
+                    border: "2px solid #E6E6E6",
+                    background: "#F7F7F7",
+                    color: "#636363",
+                  }}
                   disabled
                 />
               </div>
               <div className="col-md-3" style={{ marginLeft: "60px" }}>
-                <label htmlFor="econtactNumber" className="form-label">Emergency Contact Number</label>
+                <label htmlFor="econtactNumber" className="form-label">
+                  Emergency Contact Number
+                </label>
                 <input
                   type="text"
                   className="form-control"
@@ -294,7 +355,9 @@ const Profile = () => {
                 />
               </div>
               <div className="col-md-3" style={{ marginLeft: "60px" }}>
-                <label htmlFor="dateOfBirth" className="form-label">Date of Birth</label>
+                <label htmlFor="dateOfBirth" className="form-label">
+                  Date of Birth
+                </label>
                 <input
                   type="date"
                   className="form-control"
@@ -308,13 +371,16 @@ const Profile = () => {
               </div>
             </div>
 
+
             {/* Address Details */}
             <div className="row mt-3">
               <p className="fw-bold">Address Details</p>
             </div>
             <div className="row" style={{ marginTop: "-5px" }}>
               <div className="col-md-3">
-                <label htmlFor="houseNumber" className="form-label">House no/ Building name</label>
+                <label htmlFor="houseNumber" className="form-label">
+                  House no/ Building name
+                </label>
                 <input
                   type="text"
                   className="form-control"
@@ -328,7 +394,9 @@ const Profile = () => {
                 />
               </div>
               <div className="col-md-3" style={{ marginLeft: "60px" }}>
-                <label htmlFor="town" className="form-label">Locality/ Town</label>
+                <label htmlFor="town" className="form-label">
+                  Locality/ Town
+                </label>
                 <input
                   type="text"
                   className="form-control"
@@ -342,7 +410,9 @@ const Profile = () => {
                 />
               </div>
               <div className="col-md-3" style={{ marginLeft: "60px" }}>
-                <label htmlFor="pincode" className="form-label">Pin code</label>
+                <label htmlFor="pincode" className="form-label">
+                  Pin code
+                </label>
                 <input
                   type="text"
                   className="form-control"
@@ -357,10 +427,13 @@ const Profile = () => {
               </div>
             </div>
 
+
             {/* Row 2 */}
             <div className="row mt-2">
               <div className="col-md-3">
-                <label htmlFor="nearbyLandmark" className="form-label">Nearby Landmark</label>
+                <label htmlFor="nearbyLandmark" className="form-label">
+                  Nearby Landmark
+                </label>
                 <input
                   type="text"
                   className="form-control"
@@ -374,7 +447,9 @@ const Profile = () => {
                 />
               </div>
               <div className="col-md-3" style={{ marginLeft: "60px" }}>
-                <label htmlFor="district" className="form-label">District</label>
+                <label htmlFor="district" className="form-label">
+                  District
+                </label>
                 <input
                   type="text"
                   className="form-control"
@@ -388,7 +463,9 @@ const Profile = () => {
                 />
               </div>
               <div className="col-md-3" style={{ marginLeft: "60px" }}>
-                <label htmlFor="state" className="form-label">State</label>
+                <label htmlFor="state" className="form-label">
+                  State
+                </label>
                 <input
                   type="text"
                   className="form-control"
@@ -403,6 +480,7 @@ const Profile = () => {
               </div>
             </div>
 
+
             {/* Submit Button */}
             <div className="row mb-3 mt-3">
               <div className="col">
@@ -414,7 +492,11 @@ const Profile = () => {
                 >
                   {isLoading ? (
                     <>
-                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      <span
+                        className="spinner-border spinner-border-sm"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
                       <span className="visually-hidden">Loading...</span>
                     </>
                   ) : (
@@ -429,5 +511,6 @@ const Profile = () => {
     </>
   );
 };
+
 
 export default Profile;

@@ -1,37 +1,57 @@
-import React, { useEffect, useState, useRef } from "react"; // Add useRef here
+import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import notification from "../assets/Bell.png";
 import profile from "../assets/Profile.png";
 import search from "../assets/Search.png";
 import Notifications from "./Notifications";
 import { createPortal } from "react-dom";
-
+import api from "../api";
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [profilePhoto, setProfilePhoto] = useState(profile); // State for profile photo
-  const popupRef = useRef(null); // useRef is now defined
+  const [profilePhoto, setProfilePhoto] = useState(profile);
+  const popupRef = useRef(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-
-  // Function to determine heading based on URL
   const getHeading = () => {
     if (location.pathname.startsWith("/booking-details")) return "Booking Details";
     if (location.pathname.startsWith("/worker-details")) return "Worker Details";
     if (location.pathname.startsWith("/services")) return "Services";
     if (location.pathname.startsWith("/reviews")) return "Reviews";
     if (location.pathname.startsWith("/profile")) return "Profile";
-    return "Dashboard"; // Default heading
+    return "Dashboard";
   };
 
-
-  const toggleNotifications = () => {
+  const toggleNotifications = async () => {
     setShowNotifications(!showNotifications);
+    if (!showNotifications) {
+      try {
+        await api.post("/notifications/mark-read");
+        setUnreadCount(0);
+      } catch (error) {
+        console.error("Error marking notifications as read:", error);
+      }
+    }
   };
 
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await api.get("/notifications/unread-count");
+        setUnreadCount(response.data);
+      } catch (error) {
+        console.error("Error fetching unread notification count:", error);
+      }
+    };
 
-  // Close popup when clicking outside
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (popupRef.current && !popupRef.current.contains(event.target)) {
@@ -44,19 +64,14 @@ const Header = () => {
     };
   }, []);
 
-
-  // Retrieve username from local storage
   const username = localStorage.getItem("username");
 
-
-  // Read profile photo from local storage on component mount
   useEffect(() => {
     const savedProfilePhoto = localStorage.getItem("profilePhoto");
     if (savedProfilePhoto) {
       setProfilePhoto(savedProfilePhoto);
     }
   }, []);
-
 
   return (
     <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
@@ -74,7 +89,6 @@ const Header = () => {
             <img src={search} alt="Search" width="20" />
           </span>
         </div>
-        {/* Notification Icon with Popup */}
         <div className="position-relative" ref={popupRef}>
           <img
             src={notification}
@@ -84,13 +98,20 @@ const Header = () => {
             onClick={toggleNotifications}
             style={{ cursor: "pointer" }}
           />
-          {/* Render Notifications outside the Header using a portal */}
+          {unreadCount > 0 && (
+            <span
+              className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary"
+              style={{ fontSize: "0.7rem" }}
+            >
+              {unreadCount}
+            </span>
+          )}
           {showNotifications &&
             createPortal(
               <div
                 className="position-fixed rounded p-3 "
                 style={{
-                  zIndex: 1050, // Ensure it's above everything
+                  zIndex: 1050,
                   right: "50px",
                   top: "53px",
                   width: "400px",
@@ -100,7 +121,7 @@ const Header = () => {
               >
                 <Notifications />
               </div>,
-              document.body // Render the Notifications card in the body
+              document.body
             )}
         </div>
         <img
@@ -115,6 +136,5 @@ const Header = () => {
     </header>
   );
 };
-
 
 export default Header;
