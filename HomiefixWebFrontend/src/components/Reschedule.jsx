@@ -22,13 +22,13 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
         // Use axios instead of fetch
         const response = await api.get("/booking/available-dates");
         const data = response.data; // Access data from response
-        console.log("Available Dates from API:", data);
+        // console.log("Available Dates from API:", data);
 
 
         const validDates = data
           .map((date) => {
             const cleanedDate = date.replace(/\s\w+day\s/, " ");
-            console.log("Cleaned Date:", cleanedDate);
+            // console.log("Cleaned Date:", cleanedDate);
 
 
             const parsedDate = new Date(cleanedDate);
@@ -101,7 +101,8 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
     }
 
 
-    const reason = rescheduleReason === "other" ? otherReason : rescheduleReason;
+    const reason =
+      rescheduleReason === "other" ? otherReason : rescheduleReason;
 
 
     try {
@@ -126,7 +127,11 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
         onClose();
       } else {
         console.error("Reschedule failed:", response.status, response.data);
-        alert(`Failed to reschedule booking: ${response.status} - ${response.data.message || "Unknown error"}`);
+        alert(
+          `Failed to reschedule booking: ${response.status} - ${
+            response.data.message || "Unknown error"
+          }`
+        );
       }
     } catch (error) {
       console.error("Error rescheduling booking:", error);
@@ -152,7 +157,10 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
 
 
   return (
-    <div className="reschedule-slider position-fixed top-0 end-0 h-100 bg-white shadow-lg" style={{ width: "550px", zIndex: 1000 }}>
+    <div
+      className="reschedule-slider position-fixed top-0 end-0 h-100 bg-white shadow-lg"
+      style={{ width: "550px", zIndex: 1000 }}
+    >
       <div className="p-4">
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h4>Reschedule Service</h4>
@@ -160,7 +168,9 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
             <i className="bi bi-x-lg"></i>
           </button>
         </div>
-        <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
+        <div
+          style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
+        ></div>
 
 
         <div className="mb-3 mt-3">
@@ -178,7 +188,10 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
                       fontSize: "15px",
                       padding: "5px 10px",
                       borderRadius: "5px",
-                      border: selectedDate === date ? "1px solid #0076CE" : "1px solid #D2D2D2",
+                      border:
+                        selectedDate === date
+                          ? "1px solid #0076CE"
+                          : "1px solid #D2D2D2",
                       color: "#333",
                       backgroundColor: "transparent",
                     }}
@@ -189,7 +202,9 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
                 ))}
           </div>
         </div>
-        <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
+        <div
+          style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
+        ></div>
 
 
         <div className="mb-3 mt-3">
@@ -207,7 +222,10 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
                       fontSize: "15px",
                       padding: "5px 10px",
                       borderRadius: "5px",
-                      border: selectedTimeSlot === time ? "1px solid #0076CE" : "1px solid #D2D2D2",
+                      border:
+                        selectedTimeSlot === time
+                          ? "1px solid #0076CE"
+                          : "1px solid #D2D2D2",
                       color: "#333",
                       backgroundColor: "transparent",
                     }}
@@ -218,14 +236,19 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
                 ))}
           </div>
         </div>
-        <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
+        <div
+          style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
+        ></div>
 
 
         <div className="mb-3 mt-3">
           <h6>Reason for Reschedule</h6>
           <div className="mb-2">
             {[
-              { value: "technician unAvailability", label: "Technician Unavailability" },
+              {
+                value: "technician unAvailability",
+                label: "Technician Unavailability",
+              },
               { value: "customer request", label: "Customer Request" },
               { value: "weather conditions", label: "Weather Conditions" },
               { value: "part unavailability", label: "Part Unavailability" },
@@ -241,7 +264,11 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
                   checked={rescheduleReason === option.value}
                   onChange={(e) => setRescheduleReason(e.target.value)}
                 />
-                <label className="form-check-label" style={{ marginLeft: "5px" }} htmlFor={option.value}>
+                <label
+                  className="form-check-label"
+                  style={{ marginLeft: "5px" }}
+                  htmlFor={option.value}
+                >
                   {option.label}
                 </label>
               </div>
@@ -266,10 +293,16 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
             ></textarea>
           )}
         </div>
-        <div style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}></div>
+        <div
+          style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
+        ></div>
 
 
-        <button className="btn btn-primary w-100 mt-3" style={{ backgroundColor: "#0076CE" }} onClick={handleReschedule}>
+        <button
+          className="btn btn-primary w-100 mt-3"
+          style={{ backgroundColor: "#0076CE" }}
+          onClick={handleReschedule}
+        >
           Reschedule
         </button>
       </div>

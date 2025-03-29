@@ -26,23 +26,16 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
       const encodedReason = encodeURIComponent(reason);
       const url = `/booking/cancel/${id}?reason=${encodedReason}`;
 
-
-      console.log("Cancellation URL:", url);
-
-
       // Use axios instead of fetch
       const response = await api.put(url);
 
-
       if (response.status === 200) {
         alert("Booking cancelled successfully");
-
 
         // Check if onCancelSuccess is a function before calling it
         if (typeof onCancelSuccess === "function") {
           onCancelSuccess(reason);
         }
-
 
         onClose();
       } else {
@@ -146,6 +139,5 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
     </div>
   );
 };
-
 
 export default CancelBooking;

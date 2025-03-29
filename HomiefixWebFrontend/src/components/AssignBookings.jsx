@@ -24,10 +24,13 @@ const AssignBookings = () => {
   const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
   const [isCancelHovered, setIsCancelHovered] = useState(false);
   const [isSaveHovered, setIsSaveHovered] = useState(false);
-  const [rescheduledDate, setRescheduledDate] = useState(booking.date);
-  const [rescheduledTimeslot, setRescheduledTimeslot] = useState(
-    booking.timeslot
+  const [rescheduledDate, setRescheduledDate] = useState(
+    booking.rescheduledDate || booking.bookedDate
   );
+  const [rescheduledTimeSlot, setRescheduledTimeSlot] = useState(
+    booking.rescheduledTimeSlot || booking.timeSlot
+  );
+  const [rescheduleHistory, setRescheduleHistory] = useState([]); // Track reschedule history
   const [loadingWorkers, setLoadingWorkers] = useState(true); // Loading state for workers
   const [loadingBookingDetails, setLoadingBookingDetails] = useState(true); // Loading state for booking details
   const navigate = useNavigate();
@@ -44,14 +47,34 @@ const AssignBookings = () => {
   };
 
 
+  // Helper function to decode URL-encoded time slot
+  const decodeTimeSlot = (timeSlot) => {
+    try {
+      return decodeURIComponent(timeSlot);
+    } catch (error) {
+      console.error("Error decoding time slot:", error);
+      return timeSlot; // Return the original time slot if decoding fails
+    }
+  };
+
+
   // Fetch workers from the API
   useEffect(() => {
     const fetchWorkers = async () => {
       try {
-        const response = await api.get("/workers/view");
+        const token = localStorage.getItem("token");
+        const response = await api.get("/workers/view", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         setWorkers(response.data);
       } catch (error) {
         console.error("Error fetching workers:", error);
+        if (error.response && error.response.status === 403) {
+          alert("You do not have permission to perform this action.");
+          navigate("/"); // Redirect to login page
+        }
       } finally {
         setLoadingWorkers(false); // Set loading to false after fetching
       }
@@ -66,16 +89,31 @@ const AssignBookings = () => {
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
-        const response = await api.get(`/booking/${id}`);
+        const token = localStorage.getItem("token");
+        const response = await api.get(`/booking/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         const data = response.data;
+
+
         // Ensure the API response contains the correct fields
-        if (data.date && data.timeslot) {
-          setRescheduledDate(data.date);
-          setRescheduledTimeslot(data.timeslot);
+        if (data.bookedDate && data.timeSlot) {
+          setRescheduledDate(data.rescheduledDate || data.bookedDate);
+          setRescheduledTimeSlot(decodeTimeSlot(data.rescheduledTimeSlot || data.timeSlot));
+        } else {
+          console.error("Booking details are incomplete:", data);
         }
+
+
         setNotes(data.notes || "");
       } catch (error) {
         console.error("Error fetching booking details:", error);
+        if (error.response && error.response.status === 403) {
+          alert("You do not have permission to perform this action.");
+          navigate("/"); // Redirect to login page
+        }
       } finally {
         setLoadingBookingDetails(false); // Set loading to false after fetching
       }
@@ -105,12 +143,8 @@ const AssignBookings = () => {
       alert("Please select a worker");
       return;
     }
-  
     try {
       const token = localStorage.getItem("token");
-      console.log("Token:", token); // Debugging: Log the token
-  
-      // Send workerId as a query parameter
       const response = await api.put(
         `/booking/assign-worker/${id}?workerId=${selectedWorkerId}`,
         {
@@ -122,7 +156,6 @@ const AssignBookings = () => {
           },
         }
       );
-  
       if (response.status === 200) {
         alert("Worker assigned successfully");
         navigate(-1);
@@ -132,7 +165,7 @@ const AssignBookings = () => {
     } catch (error) {
       console.error("Error assigning worker:", error);
       if (error.response) {
-        console.error("Server response:", error.response.data); // Debugging: Log the server response
+        console.error("Server response:", error.response.data);
         if (error.response.status === 403) {
           alert("You do not have permission to perform this action.");
           navigate("/"); // Redirect to login page
@@ -145,10 +178,14 @@ const AssignBookings = () => {
   // Save notes to the booking
   const saveNotes = async () => {
     try {
+      const token = localStorage.getItem("token");
       const response = await api.patch(
-        `/booking/update-notes/${id}`,
+        `/booking/update-notes/${id}?notes=${encodeURIComponent(notes)}`,
+        null, // No request body
         {
-          notes: notes,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -160,53 +197,141 @@ const AssignBookings = () => {
       }
     } catch (error) {
       console.error("Error saving notes:", error);
+      if (error.response && error.response.status === 403) {
+        alert("You do not have permission to perform this action.");
+        navigate("/"); // Redirect to login page
+      }
     }
   };
 
 
+  // Handle rescheduling
   const handleReschedule = (newDate, newTimeslot) => {
+    // Add the current rescheduled date and time slot to the history
+    setRescheduleHistory((prevHistory) => [
+      ...prevHistory,
+      { date: rescheduledDate, timeSlot: rescheduledTimeSlot },
+    ]);
+
+
+    // Update the rescheduled date and time slot
     setRescheduledDate(newDate);
-    setRescheduledTimeslot(newTimeslot);
+    setRescheduledTimeSlot(newTimeslot);
+
+
+    // Store the rescheduled date and time slot in localStorage
     localStorage.setItem("rescheduledDate", newDate);
-    localStorage.setItem("rescheduledTimeslot", newTimeslot);
+    localStorage.setItem("rescheduledTimeSlot", newTimeslot); // Store the decoded time slot
+
+
     setShowRescheduleSlider(false);
   };
 
 
+  // Undo rescheduling
   const undoReschedule = async () => {
     try {
-      const response = await api.put(
+      const token = localStorage.getItem("token");
+
+
+      // Get the previous rescheduled date and time slot from the history
+      const previousReschedule =
+        rescheduleHistory[rescheduleHistory.length - 1];
+      const previousDate = previousReschedule
+        ? previousReschedule.date
+        : booking.bookedDate;
+      const previousTimeSlot = previousReschedule
+        ? decodeTimeSlot(previousReschedule.timeSlot) // Decode the time slot
+        : booking.timeSlot;
+
+
+      // Make the API call to undo rescheduling
+      const undoResponse = await api.put(
         `/booking/reschedule/${id}`,
+        null, // No request body
         {
-          selectedDate: booking.date,
-          selectedTimeSlot: booking.timeslot,
-          rescheduleReason: "Undo rescheduling",
+          params: {
+            selectedDate: previousDate,
+            selectedTimeSlot: encodeURIComponent(previousTimeSlot), // Encode only for the API call
+            rescheduleReason: "Undo rescheduling",
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
 
-      if (response.status === 200) {
-        setRescheduledDate(booking.date);
-        setRescheduledTimeslot(booking.timeslot);
-        localStorage.removeItem("rescheduledDate");
-        localStorage.removeItem("rescheduledTimeslot");
+      if (undoResponse.status === 200) {
+        // Update local state to reflect the previous booking details
+        setRescheduledDate(previousDate);
+        setRescheduledTimeSlot(previousTimeSlot);
+
+
+        // Remove the last entry from the reschedule history
+        setRescheduleHistory((prevHistory) => {
+          const updatedHistory = prevHistory.slice(0, -1);
+
+
+          // Clear local storage if no more reschedules
+          if (updatedHistory.length === 0) {
+            localStorage.removeItem("rescheduledDate");
+            localStorage.removeItem("rescheduledTimeSlot");
+          } else {
+            // Store the last available reschedule in local storage
+            localStorage.setItem("rescheduledDate", updatedHistory[updatedHistory.length - 1].date);
+            localStorage.setItem("rescheduledTimeSlot", updatedHistory[updatedHistory.length - 1].timeSlot);
+          }
+
+
+          return updatedHistory;
+        });
+
+
         alert("Rescheduling undone successfully");
       } else {
-        console.error("Failed to undo rescheduling:", response.data);
-        alert(`Failed to undo rescheduling: ${response.data}`);
+        console.error("Failed to undo rescheduling:", undoResponse.data);
+        alert(`Failed to undo rescheduling: ${undoResponse.data}`);
       }
     } catch (error) {
       console.error("Error undoing rescheduling:", error);
-      alert("An error occurred while undoing rescheduling.");
+
+
+      if (error.response) {
+        if (error.response.status === 400) {
+          alert(
+            "Invalid request: Please check the selected date and time slot."
+          );
+        } else if (error.response.status === 403) {
+          alert("You do not have permission to perform this action.");
+          navigate("/"); // Redirect to login page
+        }
+      } else {
+        alert("An unexpected error occurred. Please try again.");
+      }
     }
   };
 
 
+  // Clear localStorage on component unmount
   useEffect(() => {
     return () => {
       localStorage.removeItem("rescheduledDate");
-      localStorage.removeItem("rescheduledTimeslot");
+      localStorage.removeItem("rescheduledTimeSlot");
     };
+  }, []);
+
+
+  // Check for reschedule history on component mount
+  useEffect(() => {
+    const storedRescheduledDate = localStorage.getItem("rescheduledDate");
+    const storedRescheduledTimeSlot = localStorage.getItem("rescheduledTimeSlot");
+
+
+    if (storedRescheduledDate && storedRescheduledTimeSlot) {
+      setRescheduledDate(storedRescheduledDate);
+      setRescheduledTimeSlot(decodeTimeSlot(storedRescheduledTimeSlot)); // Decode the time slot
+    }
   }, []);
 
 
@@ -306,7 +431,9 @@ const AssignBookings = () => {
                     ) : (
                       <>
                         <p className="mb-0">{booking.service}</p>
-                        <small style={{ color: "#0076CE" }}>ID: {booking.id}</small>
+                        <small style={{ color: "#0076CE" }}>
+                          ID: {booking.id}
+                        </small>
                       </>
                     )}
                   </div>
@@ -327,24 +454,32 @@ const AssignBookings = () => {
                   ) : (
                     <>
                       <p className="mb-1">
-                        <i className="bi bi-person fw-bold me-2"></i> {booking.name}
+                        <i className="bi bi-person fw-bold me-2"></i>{" "}
+                        {booking.name}
                       </p>
                       <p className="mb-1">
-                        <i className="bi bi-telephone fw-bold me-2"></i> {booking.contact}
+                        <i className="bi bi-telephone fw-bold me-2"></i>{" "}
+                        {booking.contact}
                       </p>
                       <p
                         className="mb-1"
                         style={{
                           backgroundColor:
-                            rescheduledDate !== booking.date
+                            localStorage.getItem("rescheduledDate") &&
+                            localStorage.getItem("rescheduledTimeSlot")
                               ? "#EDF3F7"
                               : "transparent",
                           borderRadius: "5px",
                           display: "inline-block",
-                          padding: rescheduledDate !== booking.date ? "0px 10px 0px 0px" : "0",
+                          padding:
+                            localStorage.getItem("rescheduledDate") &&
+                            localStorage.getItem("rescheduledTimeSlot")
+                              ? "0px 10px 0px 0px"
+                              : "0",
                         }}
                       >
-                        {rescheduledDate !== booking.date ? (
+                        {localStorage.getItem("rescheduledDate") &&
+                        localStorage.getItem("rescheduledTimeSlot") ? (
                           <img
                             src={closeDate}
                             alt="Close"
@@ -368,10 +503,13 @@ const AssignBookings = () => {
                           />
                         )}
                         {formatDate(rescheduledDate)} |{" "}
-                        {rescheduledTimeslot || "Not Available"}
+                        {decodeTimeSlot(rescheduledTimeSlot) || "Not Available"}
                       </p>
+
+
                       <p className="mb-1">
-                        <i className="bi bi-geo-alt fw-bold me-2"></i> {booking.address}
+                        <i className="bi bi-geo-alt fw-bold me-2"></i>{" "}
+                        {booking.address}
                       </p>
                     </>
                   )}
@@ -452,8 +590,6 @@ const AssignBookings = () => {
                       Workers
                     </h5>
                   </div>
-
-
                   {/* Worker List (Scrollable) */}
                   <div
                     style={{
@@ -466,7 +602,10 @@ const AssignBookings = () => {
                       marginTop: "-40px",
                     }}
                   >
-                    <div className="row d-flex flex-wrap" style={{ gap: "8px" }}>
+                    <div
+                      className="row d-flex flex-wrap"
+                      style={{ gap: "8px" }}
+                    >
                       {loadingWorkers
                         ? Array.from({ length: 4 }).map((_, index) => (
                             <div

@@ -9,7 +9,8 @@ export const setGlobalNavigate = (navigate) => {
 
 
 const api = axios.create({
-  baseURL: "https://admin.homiefix.in/api",
+  // baseURL: "https://admin.homiefix.in/api",
+  baseURL:"http://localhost:1212",
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json"
