@@ -28,29 +28,34 @@ const Login = ({ setToken }) => {
  const handleSubmit = async (e) => {
   e.preventDefault();
   setLoading(true);
+  setErrorMessage("");
+  setIsInvalid(false);
+
   try {
     const response = await api.post("/admin/login", {
       username,
       password,
     });
 
-    if (response.data.token) {
+    if (response.data?.token) {
       localStorage.setItem("token", response.data.token);
-      localStorage.setItem("username", username); // Store username in local storage
+      localStorage.setItem("username", username);
       setToken(response.data.token);
       navigate("/dashboard");
-      setIsInvalid(false);
-      setErrorMessage("");
     } else {
-      setIsInvalid(true);
-      setErrorMessage("Invalid response. Token missing.");
+      throw new Error("No token in response");
     }
   } catch (error) {
-    console.error("Login Error:", error.response?.data || error.message);
+    console.error("Login error:", error);
     setIsInvalid(true);
-    setErrorMessage("Invalid credentials");
+    setErrorMessage(
+      error.response?.data?.error || 
+      error.message || 
+      "Login failed. Please try again."
+    );
+  } finally {
+    setLoading(false);
   }
-  setLoading(false);
 };
 
 

@@ -7,11 +7,14 @@ export const setGlobalNavigate = (navigate) => {
 };
 
 const api = axios.create({
-  // baseURL: "http://localhost:2222",
-   baseURL: "https://admin.homiefix.in/api/",
+  baseURL: "http://localhost:2222",
+  headers: {
+    "Content-Type": "application/json",
+    "Accept": "application/json"
+  }
 });
 
-// Add a request interceptor to include the token in headers
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -23,13 +26,21 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Add a response interceptor to handle token expiration
+// Response interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Clear auth data
       localStorage.removeItem("token");
-      if (globalNavigate) globalNavigate("/"); // Redirect properly
+      localStorage.removeItem("username");
+      
+      // Redirect to login
+      if (globalNavigate) {
+        globalNavigate("/", { replace: true });
+      } else {
+        window.location.href = "/";
+      }
     }
     return Promise.reject(error);
   }
