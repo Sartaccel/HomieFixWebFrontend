@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import { Spinner } from "react-bootstrap";
 import { FaStar } from "react-icons/fa";
 import Header from "./Header";
 import Reschedule from "./Reschedule";
@@ -39,12 +37,8 @@ const ViewBookings = () => {
       const response = await api.put(
         `/booking/update-status/${id}?status=${status}`
       );
-
       if (response.status === 200) {
-        setBooking((prevBooking) => ({
-          ...prevBooking,
-          bookingStatus: status,
-        }));
+        setBooking((prev) => ({ ...prev, bookingStatus: status }));
         alert(`Booking status updated to ${status}`);
       } else {
         alert("Failed to update booking status");
@@ -57,10 +51,11 @@ const ViewBookings = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const month = date.toLocaleString("default", { month: "short" });
-    const day = date.getDate().toString().padStart(2, "0");
-    const year = date.getFullYear();
-    return `${month} ${day}, ${year}`;
+    return date.toLocaleString("default", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
   };
 
   const fetchBookingDetails = async () => {
@@ -89,12 +84,8 @@ const ViewBookings = () => {
   const fetchFeedback = async (bookingId, bookingDate) => {
     try {
       const response = await api.get(`/feedback/byBooking/${bookingId}`);
-      if (response.data && response.data.length > 0) {
-        const feedbackWithDate = {
-          ...response.data[0],
-          bookingDate: bookingDate,
-        };
-        setFeedback(feedbackWithDate);
+      if (response.data?.length > 0) {
+        setFeedback({ ...response.data[0], bookingDate });
       } else {
         setFeedback(null);
       }
@@ -107,16 +98,11 @@ const ViewBookings = () => {
   const saveNotes = async () => {
     setSaving(true);
     try {
-      const response = await api.patch(
+      await api.patch(
         `/booking/update-notes/${id}?notes=${encodeURIComponent(notes)}`
       );
-
-      if (response.status === 200) {
-        alert("Notes saved successfully ✅");
-        setIsEditing(false);
-      } else {
-        alert("Failed to save notes ❌");
-      }
+      alert("Notes saved successfully ✅");
+      setIsEditing(false);
     } catch (error) {
       console.error("Error saving notes:", error);
       alert("An error occurred while saving ❌");
@@ -184,7 +170,10 @@ const ViewBookings = () => {
               </div>
             </div>
             {!loading && booking && (
-              <div className="d-flex gap-3 p-2" style={{ marginRight: "300px" }}>
+              <div
+                className="d-flex gap-3 p-2"
+                style={{ marginRight: "300px" }}
+              >
                 <button
                   className="btn btn-outline-primary"
                   onClick={() => handleRescheduleButtonClick(id)}
@@ -207,7 +196,9 @@ const ViewBookings = () => {
                   onMouseLeave={() => setIsCancelHovered(false)}
                   style={{
                     border: "1px solid #B8141A",
-                    backgroundColor: isCancelHovered ? "#B8141A" : "transparent",
+                    backgroundColor: isCancelHovered
+                      ? "#B8141A"
+                      : "transparent",
                     color: isCancelHovered ? "white" : "#B8141A",
                     transition: "all 0.3s ease-in-out",
                   }}
@@ -220,84 +211,94 @@ const ViewBookings = () => {
           <div className="container mt-5 pt-4">
             <div className="row justify-content-between p-3 mt-5">
               <div className="mt-4 p-3 col-6">
+                {/* Service Details */}
                 <div className="d-flex align-items-center">
                   {loading ? (
-                    <Skeleton circle width={50} height={50} className="me-3" />
+                    <>
+                      <Skeleton
+                        circle
+                        width={50}
+                        height={50}
+                        className="me-3"
+                      />
+                      <div>
+                        <Skeleton width={180} height={20} className="mb-1" />
+                        <Skeleton width={100} height={16} />
+                      </div>
+                    </>
                   ) : (
-                    <img
-                      src={
-                        booking.productImage || "https://via.placeholder.com/50"
-                      }
-                      alt="Service"
-                      className="me-3 rounded"
-                      style={{ width: 50, height: 50 }}
-                    />
-                  )}
-                  <div>
-                    {loading ? (
-                      <>
-                        <Skeleton width={200} height={20} />
-                        <Skeleton width={100} height={15} />
-                      </>
-                    ) : (
-                      <>
+                    <>
+                      <img
+                        src={
+                          booking?.productImage ||
+                          "https://via.placeholder.com/50"
+                        }
+                        alt="Service"
+                        className="me-3 rounded"
+                        style={{ width: 50, height: 50 }}
+                      />
+                      <div>
                         <h6 className="mb-0">
-                          {booking.productName} - ₹{booking.totalPrice}
+                          {booking?.productName} - ₹{booking?.totalPrice}
                         </h6>
-                        <span className="text-primary">ID: {booking.id}</span>
-                      </>
-                    )}
-                  </div>
+                        <span className="text-primary">ID: {booking?.id}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
+                {/* Customer Details */}
                 <div className="mt-3">
-                  <h6 className="fw-bold">
-                    {loading ? <Skeleton width={150} /> : "Customer Details"}
-                  </h6>
+                  <h6 className="fw-bold">Customer Details</h6>
                   {loading ? (
-                    <>
-                      <Skeleton width={250} height={20} count={4} />
-                    </>
+                    <div className="mt-2">
+                      <Skeleton width="80%" height={18} className="mb-2" />
+                      <Skeleton width="75%" height={18} className="mb-2" />
+                      <Skeleton width="85%" height={18} className="mb-2" />
+                      <Skeleton width="90%" height={18} />
+                    </div>
                   ) : (
                     <>
                       <p className="mb-1">
                         <i className="bi bi-person me-2"></i>
-                        {booking.userProfile.fullName}
+                        {booking?.userProfile?.fullName}
                       </p>
                       <p className="mb-1">
                         <i className="bi bi-telephone me-2"></i>{" "}
-                        {booking.userProfile.mobileNumber.mobileNumber}
+                        {booking?.userProfile?.mobileNumber?.mobileNumber}
                       </p>
                       <p className="mb-1">
                         <i className="bi bi-calendar-event me-2"></i>{" "}
-                        {booking.rescheduledDate && booking.rescheduledTimeSlot
+                        {booking?.rescheduledDate &&
+                        booking?.rescheduledTimeSlot
                           ? `${formatDate(booking.rescheduledDate)} | ${
                               booking.rescheduledTimeSlot
                             }`
-                          : `${formatDate(booking.bookedDate)} | ${
-                              booking.timeSlot
+                          : `${formatDate(booking?.bookedDate)} | ${
+                              booking?.timeSlot
                             }`}
                       </p>
                       <p className="mb-1">
                         <i className="bi bi-geo-alt me-2"></i>
-                        {booking.deliveryAddress.houseNumber},{" "}
-                        {booking.deliveryAddress.town},{" "}
-                        {booking.deliveryAddress.district},{" "}
-                        {booking.deliveryAddress.state} -{" "}
-                        {booking.deliveryAddress.pincode}
+                        {booking?.deliveryAddress?.houseNumber},{" "}
+                        {booking?.deliveryAddress?.town},{" "}
+                        {booking?.deliveryAddress?.district},{" "}
+                        {booking?.deliveryAddress?.state} -{" "}
+                        {booking?.deliveryAddress?.pincode}
                       </p>
                     </>
                   )}
                 </div>
 
+                {/* Notes Section */}
                 <div
                   className="border rounded p-3 mt-2"
                   style={{ height: "110px" }}
                 >
                   {loading ? (
                     <>
-                      <Skeleton width={100} height={20} />
-                      <Skeleton height={70} />
+                      <Skeleton width={100} height={20} className="mb-2" />
+                      <Skeleton height={40} />
                     </>
                   ) : (
                     <>
@@ -309,7 +310,6 @@ const ViewBookings = () => {
                           Notes
                         </h6>
                       </div>
-
                       <div className="position-relative">
                         <textarea
                           id="notesText"
@@ -328,7 +328,6 @@ const ViewBookings = () => {
                           onChange={(e) => setNotes(e.target.value)}
                           readOnly={!isEditing}
                         />
-
                         <div
                           className="d-flex justify-content-end"
                           style={{ marginTop: "-95px", marginRight: "5px" }}
@@ -369,98 +368,104 @@ const ViewBookings = () => {
                   )}
                 </div>
 
-                {loading ? (
-                  <div className="mt-3">
-                    <h6 style={{ fontWeight: "bold" }}>
-                      <Skeleton width={150} />
-                    </h6>
-                    <div className="d-flex align-items-center">
-                      <Skeleton circle width={80} height={80} className="me-3" />
-                      <div>
-                        <Skeleton width={200} height={20} count={3} />
-                      </div>
-                    </div>
-                    <Skeleton width={150} height={20} style={{ marginLeft: "100px" }} />
-                  </div>
-                ) : worker ? (
-                  <div className="mt-3">
-                    <h6 style={{ fontWeight: "bold" }}>Worker Details</h6>
-                    <div className="d-flex align-items-center">
-                      <img
-                        src={
-                          worker.profilePicUrl ||
-                          "https://via.placeholder.com/50"
-                        }
-                        alt="Worker"
-                        className="me-3 rounded"
-                        style={{
-                          width: "80px",
-                          height: "80px",
-                          backgroundPosition: "center",
-                        }}
-                      />
-                      <div>
-                        <p className="mb-1">
-                          <i className="bi bi-person me-1"></i> {worker.name}
-                          <span
-                            className="ms-1 px-1 border rounded-1"
-                            style={{
-                              fontSize: "15px",
-                              backgroundColor: "#EDF3F7",
-                              width: "50px",
-                            }}
-                          >
-                            <i
-                              className="bi bi-star-fill"
-                              style={{ color: "#FFD700" }}
-                            ></i>
-                            {worker.rating !== undefined &&
-                            worker.rating !== null
-                              ? worker.rating.toFixed(1)
-                              : "4.5"}
-                          </span>
-                        </p>
-                        <p className="mb-1">
-                          <i className="bi bi-telephone me-2"></i>{" "}
-                          {worker.contactNumber}
-                        </p>
-                        <p className="mb-1">
-                          <i className="bi bi-geo-alt me-2"></i>{" "}
-                          {worker.houseNumber}, {worker.town}, {worker.district}
-                          , {worker.state}, {worker.pincode}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="">
-                      <a
-                        href="#"
-                        className="text-primary text-decoration-none d-block"
-                        style={{ marginLeft: "100px", color: "#0076CE" }}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          navigate(`/worker-details/worker/${worker.id}`);
-                        }}
-                      >
-                        View full profile &gt;
-                      </a>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-3">
-                    <h6 style={{ fontWeight: "bold" }}>Worker Details</h6>
-                    <p>No worker assigned yet.</p>
-                  </div>
-                )}
-
-                <div className="mt-2">
-                  <h6>
-                    {loading ? <Skeleton width={150} /> : "Customer Review"}
-                  </h6>
+                {/* Worker Details */}
+                <div className="mt-3">
+                  <h6 style={{ fontWeight: "bold" }}>Worker Details</h6>
                   {loading ? (
+                    <div className="d-flex align-items-center mt-2">
+                      <Skeleton
+                        circle
+                        width={80}
+                        height={80}
+                        className="me-3"
+                      />
+                      <div style={{ width: "100%" }}>
+                        <Skeleton width="70%" height={18} className="mb-2" />
+                        <Skeleton width="60%" height={18} className="mb-2" />
+                        <Skeleton width="80%" height={18} />
+                      </div>
+                      <Skeleton
+                        width={150}
+                        height={20}
+                        className="mt-2"
+                        style={{ marginLeft: "100px" }}
+                      />
+                    </div>
+                  ) : worker ? (
                     <>
-                      <Skeleton width={100} height={20} />
-                      <Skeleton width={300} height={50} />
+                      <div className="d-flex align-items-center">
+                        <img
+                          src={
+                            worker.profilePicUrl ||
+                            "https://via.placeholder.com/50"
+                          }
+                          alt="Worker"
+                          className="me-3 rounded"
+                          style={{
+                            width: "80px",
+                            height: "80px",
+                            backgroundPosition: "center",
+                          }}
+                        />
+                        <div>
+                          <p className="mb-1">
+                            <i className="bi bi-person me-1"></i> {worker.name}
+                            <span
+                              className="ms-1 px-1 border rounded-1"
+                              style={{
+                                fontSize: "15px",
+                                backgroundColor: "#EDF3F7",
+                                width: "50px",
+                              }}
+                            >
+                              <i
+                                className="bi bi-star-fill"
+                                style={{ color: "#FFD700" }}
+                              ></i>
+                              {worker.rating?.toFixed(1) || "4.5"}
+                            </span>
+                          </p>
+                          <p className="mb-1">
+                            <i className="bi bi-telephone me-2"></i>{" "}
+                            {worker.contactNumber}
+                          </p>
+                          <p className="mb-1">
+                            <i className="bi bi-geo-alt me-2"></i>{" "}
+                            {worker.houseNumber}, {worker.town},{" "}
+                            {worker.district}, {worker.state}, {worker.pincode}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="">
+                        <a
+                          href="#"
+                          className="text-primary text-decoration-none d-block"
+                          style={{ marginLeft: "100px", color: "#0076CE" }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            navigate(`/worker-details/worker/${worker.id}`);
+                          }}
+                        >
+                          View full profile &gt;
+                        </a>
+                      </div>
                     </>
+                  ) : (
+                    <p>No worker assigned yet.</p>
+                  )}
+                </div>
+
+                {/* Customer Review */}
+                <div className="mt-2">
+                  <h6>Customer Review</h6>
+                  {loading ? (
+                    <div className="mt-2">
+                      <div className="d-flex align-items-center mb-2">
+                        <Skeleton width={50} height={20} />
+                        <Skeleton width={100} height={16} className="ms-2" />
+                      </div>
+                      <Skeleton width="100%" height={50} count={1} />
+                    </div>
                   ) : feedback ? (
                     <>
                       <p>
@@ -508,17 +513,17 @@ const ViewBookings = () => {
                   )}
                 </div>
               </div>
-              {loading ? (
-                <div className="col-4">
-                  <Skeleton height={400} />
-                </div>
-              ) : (
+
+              {/* Status Management - No skeleton loading */}
+              <div className="col-6">
                 <ManageStatus
                   booking={booking}
                   onStatusUpdate={handleStatusUpdate}
                 />
-              )}
+              </div>
             </div>
+
+            {/* Modals */}
             {isRescheduleModalOpen && selectedBookingId && (
               <Reschedule
                 id={selectedBookingId}
