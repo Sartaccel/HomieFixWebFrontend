@@ -9,7 +9,7 @@ import api from "../api";
 
 
 const Profile = () => {
-  const { username } = useParams(); // Get username from URL
+  const { username } = useParams();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
@@ -30,10 +30,9 @@ const Profile = () => {
     joiningDate: "",
   });
   const [previewImage, setPreviewImage] = useState(addWorker);
-  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [isLoading, setIsLoading] = useState(false);
 
 
-  // Fetch profile data
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
@@ -41,7 +40,6 @@ const Profile = () => {
         const data = response.data;
 
 
-        // Map API response to form fields
         setFormData({
           name: data.name,
           email: data.email,
@@ -49,23 +47,21 @@ const Profile = () => {
           workExperience: data.workExperience,
           dateOfBirth: data.dateOfBirth,
           gender: data.gender,
-          houseNumber: data.houseNo, // Map houseNo to houseNumber
+          houseNumber: data.houseNo,
           town: data.town,
           pincode: data.pincode,
           nearbyLandmark: data.nearbyLandmark,
           district: data.district,
           state: data.state,
-          econtactNumber: data.eContactNumber, // Map eContactNumber to econtactNumber
+          econtactNumber: data.eContactNumber,
           language: data.language ? data.language.split(",") : [],
           profilePic: null,
           joiningDate: data.joiningDate,
         });
 
 
-        // Set preview image and update local storage
         if (data.profilePicUrl) {
           setPreviewImage(data.profilePicUrl);
-          localStorage.setItem("profilePhoto", data.profilePicUrl); // Save to local storage
         }
       } catch (error) {
         console.error("Error fetching profile data:", error);
@@ -91,7 +87,6 @@ const Profile = () => {
     if (file) {
       const imageUrl = URL.createObjectURL(file);
       setPreviewImage(imageUrl);
-      localStorage.setItem("profilePhoto", imageUrl); // Save to local storage
       setFormData((prevState) => ({
         ...prevState,
         profilePic: file,
@@ -102,7 +97,7 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // Set loading state to true
+    setIsLoading(true);
 
 
     try {
@@ -118,24 +113,18 @@ const Profile = () => {
       formDataToSend.append("state", formData.state);
 
 
-      // Append the profile picture if it exists
       if (formData.profilePic) {
         formDataToSend.append("profilePic", formData.profilePic);
       }
 
 
-      const response = await api.post(
-        "/admin/completeProfile",
-        formDataToSend,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      await api.post("/admin/completeProfile", formDataToSend, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
 
-      // Show success message
       Swal.fire({
         icon: "success",
         title: "Success!",
@@ -153,7 +142,7 @@ const Profile = () => {
         confirmButtonText: "OK",
       });
     } finally {
-      setIsLoading(false); // Reset loading state
+      setIsLoading(false);
     }
   };
 
@@ -511,5 +500,6 @@ const Profile = () => {
     </>
   );
 };
+
 
 export default Profile;

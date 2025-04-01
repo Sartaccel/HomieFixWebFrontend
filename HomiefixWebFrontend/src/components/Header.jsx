@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import notification from "../assets/Bell.png";
-import profile from "../assets/Profile.png";
+import profile from "../assets/addWorker.png";
 import search from "../assets/Search.png";
 import Notifications from "./Notifications";
 import { createPortal } from "react-dom";
 import api from "../api";
+
 
 const Header = () => {
   const location = useLocation();
@@ -15,6 +16,7 @@ const Header = () => {
   const popupRef = useRef(null);
   const [unreadCount, setUnreadCount] = useState(0);
 
+
   const getHeading = () => {
     if (location.pathname.startsWith("/booking-details")) return "Booking Details";
     if (location.pathname.startsWith("/worker-details")) return "Worker Details";
@@ -23,6 +25,7 @@ const Header = () => {
     if (location.pathname.startsWith("/profile")) return "Profile";
     return "Dashboard";
   };
+
 
   const toggleNotifications = async () => {
     setShowNotifications(!showNotifications);
@@ -36,6 +39,23 @@ const Header = () => {
     }
   };
 
+
+  // Fetch current user's profile photo
+  const fetchProfilePhoto = async () => {
+    try {
+      const username = localStorage.getItem("username");
+      if (username) {
+        const response = await api.get(`/admin/${username}`);
+        if (response.data.profilePicUrl) {
+          setProfilePhoto(response.data.profilePicUrl);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching profile photo:", error);
+    }
+  };
+
+
   useEffect(() => {
     const fetchUnreadCount = async () => {
       try {
@@ -46,11 +66,19 @@ const Header = () => {
       }
     };
 
+
     fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 1000);
+    fetchProfilePhoto(); // Fetch profile photo on mount
+   
+    const interval = setInterval(() => {
+      fetchUnreadCount();
+      fetchProfilePhoto(); // Periodically check for updates
+    }, 30000); // Check every 30 seconds
+
 
     return () => clearInterval(interval);
   }, []);
+
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -64,14 +92,9 @@ const Header = () => {
     };
   }, []);
 
+
   const username = localStorage.getItem("username");
 
-  useEffect(() => {
-    const savedProfilePhoto = localStorage.getItem("profilePhoto");
-    if (savedProfilePhoto) {
-      setProfilePhoto(savedProfilePhoto);
-    }
-  }, []);
 
   return (
     <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
@@ -128,6 +151,7 @@ const Header = () => {
           src={profilePhoto || profile}
           alt="Profile"
           width="40"
+          height="35"
           className="cursor-pointer rounded-circle"
           onClick={() => navigate(`/profile/${username}`)}
           style={{ cursor: "pointer" }}
@@ -136,5 +160,6 @@ const Header = () => {
     </header>
   );
 };
+
 
 export default Header;

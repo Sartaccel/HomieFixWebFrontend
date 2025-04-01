@@ -151,8 +151,7 @@ const Notifications = () => {
                                     {getStatusBadge(notification.notificationType)}
                                     <small className="text-muted text-nowrap">{formatDateTime(notification.createdAt)}</small>
                                 </div>
-                                <p className="fw-bold">{notification.productName || "No Product"}</p>
-                                <p className="mb-0 text-muted">{notification.message}</p>
+                                <p className="fw-bold"> <span style={{ color: "#0076CE" }}>ID: {notification.bookingId}</span> - {notification.productName || "No Product"}</p>
                             </div>
                         </div>
                     ))

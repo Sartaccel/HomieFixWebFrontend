@@ -14,23 +14,18 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
   const [otherReason, setOtherReason] = useState("");
   const [loadingDates, setLoadingDates] = useState(true);
   const [loadingTimes, setLoadingTimes] = useState(true);
+  const [isRescheduling, setIsRescheduling] = useState(false);
 
 
   useEffect(() => {
     const fetchAvailableDates = async () => {
       try {
-        // Use axios instead of fetch
         const response = await api.get("/booking/available-dates");
-        const data = response.data; // Access data from response
-        // console.log("Available Dates from API:", data);
-
+        const data = response.data;
 
         const validDates = data
           .map((date) => {
             const cleanedDate = date.replace(/\s\w+day\s/, " ");
-            // console.log("Cleaned Date:", cleanedDate);
-
-
             const parsedDate = new Date(cleanedDate);
             if (isNaN(parsedDate.getTime())) {
               console.warn("Invalid date found:", date);
@@ -39,8 +34,6 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
             return parsedDate.toISOString().split("T")[0];
           })
           .filter((date) => date !== null);
-
-
         setAvailableDates(validDates);
       } catch (error) {
         console.error("Error fetching available dates:", error);
@@ -49,12 +42,10 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       }
     };
 
-
     const fetchAvailableTimes = async () => {
       try {
-        // Use axios instead of fetch
         const response = await api.get("/booking/available-times");
-        const data = response.data; // Access data from response
+        const data = response.data;
         setAvailableTimes(data);
       } catch (error) {
         console.error("Error fetching available times:", error);
@@ -63,11 +54,9 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       }
     };
 
-
     fetchAvailableDates();
     fetchAvailableTimes();
   }, []);
-
 
   const handleDateSelection = (date) => {
     if (selectedDate === date) {
@@ -77,7 +66,6 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
     }
   };
 
-
   const handleTimeSlotSelection = (time) => {
     if (selectedTimeSlot === time) {
       setSelectedTimeSlot("");
@@ -86,13 +74,11 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
     }
   };
 
-
   const handleReschedule = async () => {
     if (!selectedDate || !selectedTimeSlot || !rescheduleReason) {
       alert("Please select a date, time slot, and reason for reschedule");
       return;
     }
-
 
     const parsedDate = new Date(selectedDate);
     if (isNaN(parsedDate.getTime())) {
@@ -100,26 +86,17 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       return;
     }
 
-
-    const reason =
-      rescheduleReason === "other" ? otherReason : rescheduleReason;
-
+    const reason = rescheduleReason === "other" ? otherReason : rescheduleReason;
 
     try {
+      setIsRescheduling(true); // Start loading
       const formattedDate = parsedDate.toISOString().split("T")[0];
       const encodedTimeSlot = encodeURIComponent(selectedTimeSlot);
       const encodedReason = encodeURIComponent(reason);
 
-
       const url = `/booking/reschedule/${id}?selectedDate=${formattedDate}&selectedTimeSlot=${encodedTimeSlot}&rescheduleReason=${encodedReason}`;
 
-
-      console.log("Reschedule URL:", url);
-
-
-      // Use axios instead of fetch
       const response = await api.put(url);
-
 
       if (response.status === 200) {
         alert("Booking rescheduled successfully");
@@ -128,24 +105,23 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       } else {
         console.error("Reschedule failed:", response.status, response.data);
         alert(
-          `Failed to reschedule booking: ${response.status} - ${
-            response.data.message || "Unknown error"
+          `Failed to reschedule booking: ${response.status} - ${response.data.message || "Unknown error"
           }`
         );
       }
     } catch (error) {
       console.error("Error rescheduling booking:", error);
       alert("An error occurred during reschedule.");
+    } finally {
+      setIsRescheduling(false); // Stop loading regardless of success/failure
     }
   };
-
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const day = date.getDate();
     const month = date.toLocaleString("en-US", { month: "short" });
     const dayOfWeek = date.toLocaleString("en-US", { weekday: "long" });
-
 
     return (
       <div>
@@ -154,7 +130,6 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       </div>
     );
   };
-
 
   return (
     <div
@@ -172,74 +147,71 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
 
-
         <div className="mb-3 mt-3">
           <h6>Date</h6>
           <div className="d-flex flex-wrap gap-2">
             {loadingDates
               ? Array.from({ length: 5 }).map((_, index) => (
-                  <Skeleton key={index} width={100} height={50} />
-                ))
+                <Skeleton key={index} width={100} height={50} />
+              ))
               : availableDates.map((date, index) => (
-                  <button
-                    key={index}
-                    className="btn btn-sm"
-                    style={{
-                      fontSize: "15px",
-                      padding: "5px 10px",
-                      borderRadius: "5px",
-                      border:
-                        selectedDate === date
-                          ? "1px solid #0076CE"
-                          : "1px solid #D2D2D2",
-                      color: "#333",
-                      backgroundColor: "transparent",
-                    }}
-                    onClick={() => handleDateSelection(date)}
-                  >
-                    {formatDate(date)}
-                  </button>
-                ))}
+                <button
+                  key={index}
+                  className="btn btn-sm"
+                  style={{
+                    fontSize: "15px",
+                    padding: "5px 10px",
+                    borderRadius: "5px",
+                    border:
+                      selectedDate === date
+                        ? "1px solid #0076CE"
+                        : "1px solid #D2D2D2",
+                    color: "#333",
+                    backgroundColor: "transparent",
+                  }}
+                  onClick={() => handleDateSelection(date)}
+                >
+                  {formatDate(date)}
+                </button>
+              ))}
           </div>
         </div>
         <div
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
-
 
         <div className="mb-3 mt-3">
           <h6>Time</h6>
           <div className="d-flex flex-wrap gap-2">
             {loadingTimes
               ? Array.from({ length: 5 }).map((_, index) => (
-                  <Skeleton key={index} width={80} height={30} />
-                ))
+                <Skeleton key={index} width={80} height={30} />
+              ))
               : availableTimes.map((time, index) => (
-                  <button
-                    key={index}
-                    className="btn btn-sm"
-                    style={{
-                      fontSize: "15px",
-                      padding: "5px 10px",
-                      borderRadius: "5px",
-                      border:
-                        selectedTimeSlot === time
-                          ? "1px solid #0076CE"
-                          : "1px solid #D2D2D2",
-                      color: "#333",
-                      backgroundColor: "transparent",
-                    }}
-                    onClick={() => handleTimeSlotSelection(time)}
-                  >
-                    {time}
-                  </button>
-                ))}
+                <button
+                  key={index}
+                  className="btn btn-sm"
+                  style={{
+                    fontSize: "15px",
+                    padding: "5px 10px",
+                    borderRadius: "5px",
+                    border:
+                      selectedTimeSlot === time
+                        ? "1px solid #0076CE"
+                        : "1px solid #D2D2D2",
+                    color: "#333",
+                    backgroundColor: "transparent",
+                  }}
+                  onClick={() => handleTimeSlotSelection(time)}
+                >
+                  {time}
+                </button>
+              ))}
           </div>
         </div>
         <div
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
-
 
         <div className="mb-3 mt-3">
           <h6>Reason for Reschedule</h6>
@@ -302,13 +274,24 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
           className="btn btn-primary w-100 mt-3"
           style={{ backgroundColor: "#0076CE" }}
           onClick={handleReschedule}
+          disabled={isRescheduling} // Disable button while loading
         >
-          Reschedule
+          {isRescheduling ? (
+            <>
+              <span
+                className="spinner-border spinner-border-sm me-2"
+                role="status"
+                aria-hidden="true"
+              ></span>
+              Rescheduling...
+            </>
+          ) : (
+            "Reschedule"
+          )}
         </button>
       </div>
     </div>
   );
 };
-
 
 export default Reschedule;
