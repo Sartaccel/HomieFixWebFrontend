@@ -5,9 +5,10 @@ let globalNavigate = null;
 export const setGlobalNavigate = (navigate) => {
   globalNavigate = navigate;
 };
-
+// https://admin.homiefix.in/api
+// http://localhost:2222
 const api = axios.create({
-  baseURL: "http://localhost:2222",
+  baseURL: "https://admin.homiefix.in/api",
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json"
