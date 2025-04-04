@@ -7,9 +7,15 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
   const [otherReason, setOtherReason] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const isCancelDisabled = () => {
+    if (!cancelReason) return true;
+    if (cancelReason === "other" && !otherReason.trim()) return true;
+    return false;
+  };
+
   const handleCancel = async () => {
-    if (!cancelReason) {
-      alert("Please select a reason for cancellation");
+    if (isCancelDisabled()) {
+      alert("Please provide a complete reason for cancellation");
       return;
     }
 
@@ -107,7 +113,7 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
           {cancelReason === "other" && (
             <textarea
               className="form-control"
-              placeholder="Other reason"
+              placeholder="Please specify the reason (required)"
               rows="6"
               value={otherReason}
               onChange={(e) => setOtherReason(e.target.value)}
@@ -119,6 +125,7 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
                 boxSizing: "border-box",
               }}
               disabled={loading}
+              required
             ></textarea>
           )}
         </div>
@@ -130,16 +137,16 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
           className="btn btn-primary w-100 mt-3"
           style={{ backgroundColor: "#B8141A", border: "none" }}
           onClick={handleCancel}
-          disabled={loading}
+          disabled={isCancelDisabled() || loading}
         >
           {loading ? (
             <>
               <span
-                className="spinner-border spinner-border-sm"
+                className="spinner-border spinner-border-sm me-2"
                 role="status"
                 aria-hidden="true"
               ></span>
-              <span className="visually-hidden">Loading...</span> Cancelling...
+              Cancelling...
             </>
           ) : (
             "Cancel Service"

@@ -169,7 +169,7 @@ const ViewBookings = () => {
                 Service Details
               </div>
             </div>
-            {!loading && booking && (
+            {!loading && booking && !["CANCELLED", "COMPLETED"].includes(booking.bookingStatus) && (
               <div
                 className="d-flex gap-3 p-2"
                 style={{ marginRight: "300px" }}

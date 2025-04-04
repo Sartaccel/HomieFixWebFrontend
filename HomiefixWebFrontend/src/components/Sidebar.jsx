@@ -3,7 +3,6 @@ import { useLocation, Link, useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css"; 
 import "../styles/Sidebar.css";
-
 import logo from "../assets/HomiefixLogo.png";
 import dashboardIcon from "../assets/Dashboard.svg";
 import workersIcon from "../assets/WorkerDetails.svg";
@@ -12,30 +11,34 @@ import servicesIcon from "../assets/Service.svg";
 import logoutIcon from "../assets/Logout.svg";
 import bookingDetails from "../assets/BookingDetails.png";
 
-const Sidebar = () => {
+const Sidebar = ({ onLogout }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
-  // ✅ Updated Logout Function
   const handleLogout = () => {
-    localStorage.removeItem("token"); // Clear token
-    sessionStorage.clear(); // Clear session storage (optional)
+    // Clear all user data
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    sessionStorage.clear();
     
+    // Trigger the loading screen through parent component
+    if (typeof onLogout === "function") {
+      onLogout();
+    }
+    
+    // Navigate to login after a small delay
     setTimeout(() => {
       navigate("/", { replace: true });
-      window.location.reload(); // Force redirect to login page
-    }, 500); // Small delay to ensure token is removed
+    }, 100);
   };
 
   return (
     <>
-      {/* Toggle Button */}
       <button className="menu-toggle" onClick={() => setIsOpen(!isOpen)}>
         <i className={`bi ${isOpen ? "bi-x" : "bi-list"}`} style={{ fontSize: "30px" }}></i>
       </button>
 
-      {/* Sidebar Navigation */}
       <div className={`sidebar ${isOpen ? "show" : ""}`}>
         <div className="logo-container">
           <img src={logo} alt="Logo" className="logo" />
@@ -68,7 +71,6 @@ const Sidebar = () => {
           </Link>
         </nav>
 
-        {/* Logout Button */}
         <div className="logout-container" style={{ marginTop: "200px" }}>
           <button onClick={handleLogout} className="logout-button" style={{ height: "54px", border: "none" }}>
             <img src={logoutIcon} alt="Logout" className="menu-icon" />

@@ -6,6 +6,7 @@ import usernameIcon from "../assets/Username.png";
 import passwordIcon from "../assets/Password.png";
 import "../styles/Login.css";
 import api from "../api";
+import LoginLoading from "./LoginLoading";
 
 const Login = ({ setToken }) => {
   const navigate = useNavigate();
@@ -15,7 +16,12 @@ const Login = ({ setToken }) => {
   const [isInvalid, setIsInvalid] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showLoading, setShowLoading] = useState(true);
 
+
+  useEffect(() => {
+    setTimeout(() => setShowLoading(false), 3000); // Show loading for 3 seconds
+  }, []);
   useEffect(() => {
     localStorage.removeItem("token");
     setToken("");
@@ -53,6 +59,10 @@ const Login = ({ setToken }) => {
       setLoading(false);
     }
   };
+
+  if (showLoading) {
+    return <LoginLoading onFinish={() => setShowLoading(false)} />;
+  }
 
   return (
     <div
@@ -219,6 +229,7 @@ const Login = ({ setToken }) => {
                 color: "white",
                 border: "none",
                 borderRadius: "6px",
+                opacity: loading ? 1 : 1, // Force full opacity even when disabled
                 transition: "background-color 0.3s",
               }}
             >

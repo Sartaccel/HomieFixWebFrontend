@@ -13,28 +13,31 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
   const [otherReason, setOtherReason] = useState("");
   const [loadingDates, setLoadingDates] = useState(true);
   const [loadingTimes, setLoadingTimes] = useState(true);
+  const [isRescheduling, setIsRescheduling] = useState(false);
 
   useEffect(() => {
     const fetchAvailableDates = async () => {
       try {
-        // Use axios instead of fetch
         const response = await api.get("/booking/available-dates");
-        const data = response.data; // Access data from response
-        // console.log("Available Dates from API:", data);
-
-        const validDates = data
-          .map((date) => {
-            const cleanedDate = date.replace(/\s\w+day\s/, " ");
-            // console.log("Cleaned Date:", cleanedDate);
-
-            const parsedDate = new Date(cleanedDate);
-            if (isNaN(parsedDate.getTime())) {
-              console.warn("Invalid date found:", date);
-              return null;
-            }
-            return parsedDate.toISOString().split("T")[0];
-          })
-          .filter((date) => date !== null);
+        const data = response.data;
+        
+        const validDates = data.map((dateStr) => {
+          const parts = dateStr.split(' ');
+          if (parts.length < 4) return null;
+          
+          const day = parts[0];
+          const month = parts[1];
+          const year = parts[3];
+          
+          const date = new Date(`${month} ${day}, ${year} 12:00:00`);
+          
+          if (isNaN(date.getTime())) {
+            console.warn("Invalid date found:", dateStr);
+            return null;
+          }
+          
+          return date.toISOString().split("T")[0];
+        }).filter(date => date !== null);
 
         setAvailableDates(validDates);
       } catch (error) {
@@ -46,10 +49,16 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
 
     const fetchAvailableTimes = async () => {
       try {
-        // Use axios instead of fetch
         const response = await api.get("/booking/available-times");
-        const data = response.data; // Access data from response
-        setAvailableTimes(data);
+        const data = response.data;
+        
+        const formattedTimes = data.map(time => {
+          return time.replace(/(\d{1,2}):(\d{2})/g, (match, hour, minute) => {
+            return hour.padStart(2, '0') + ':' + minute;
+          });
+        });
+        
+        setAvailableTimes(formattedTimes);
       } catch (error) {
         console.error("Error fetching available times:", error);
       } finally {
@@ -77,9 +86,49 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
     }
   };
 
+  const isSameAsExistingBooking = () => {
+    if (booking.rescheduledDate && booking.rescheduledTimeSlot) {
+      return (
+        selectedDate === booking.rescheduledDate && 
+        selectedTimeSlot === booking.rescheduledTimeSlot
+      );
+    }
+    return (
+      selectedDate === booking.date && 
+      selectedTimeSlot === booking.timeslot
+    );
+  };
+
+  const isRescheduleDisabled = () => {
+    const isOtherReasonEmpty = rescheduleReason === "other" && !otherReason.trim();
+    
+    return (
+      !selectedDate || 
+      !selectedTimeSlot || 
+      !rescheduleReason || 
+      isSameAsExistingBooking() || 
+      isOtherReasonEmpty ||
+      (
+        (booking.rescheduledDate === null && booking.rescheduledTimeSlot === null) 
+          ? (selectedDate === booking.bookedDate && selectedTimeSlot === booking.timeSlot) 
+          : (selectedDate === booking.rescheduledDate && selectedTimeSlot === booking.rescheduledTimeSlot)
+      )
+    );
+  };
+
   const handleReschedule = async () => {
+    if (isSameAsExistingBooking()) {
+      alert("Please select a different date or time slot for rescheduling");
+      return;
+    }
+
     if (!selectedDate || !selectedTimeSlot || !rescheduleReason) {
       alert("Please select a date, time slot, and reason for reschedule");
+      return;
+    }
+
+    if (rescheduleReason === "other" && !otherReason.trim()) {
+      alert("Please provide a reason for rescheduling");
       return;
     }
 
@@ -89,19 +138,16 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       return;
     }
 
-    const reason =
-      rescheduleReason === "other" ? otherReason : rescheduleReason;
+    const reason = rescheduleReason === "other" ? otherReason : rescheduleReason;
 
     try {
+      setIsRescheduling(true);
       const formattedDate = parsedDate.toISOString().split("T")[0];
       const encodedTimeSlot = encodeURIComponent(selectedTimeSlot);
       const encodedReason = encodeURIComponent(reason);
 
       const url = `/booking/reschedule/${id}?selectedDate=${formattedDate}&selectedTimeSlot=${encodedTimeSlot}&rescheduleReason=${encodedReason}`;
 
-      console.log("Reschedule URL:", url);
-
-      // Use axios instead of fetch
       const response = await api.put(url);
 
       if (response.status === 200) {
@@ -119,6 +165,8 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
     } catch (error) {
       console.error("Error rescheduling booking:", error);
       alert("An error occurred during reschedule.");
+    } finally {
+      setIsRescheduling(false);
     }
   };
 
@@ -255,7 +303,7 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
           {rescheduleReason === "other" && (
             <textarea
               className="form-control"
-              placeholder="Other reason"
+              placeholder="Other reason (required)"
               rows="3"
               value={otherReason}
               onChange={(e) => setOtherReason(e.target.value)}
@@ -266,6 +314,7 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
                 width: "100%",
                 boxSizing: "border-box",
               }}
+              required
             ></textarea>
           )}
         </div>
@@ -277,8 +326,20 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
           className="btn btn-primary w-100 mt-3"
           style={{ backgroundColor: "#0076CE" }}
           onClick={handleReschedule}
+          disabled={isRescheduleDisabled() || isRescheduling}
         >
-          Reschedule
+          {isRescheduling ? (
+            <>
+              <span
+                className="spinner-border spinner-border-sm me-2"
+                role="status"
+                aria-hidden="true"
+              ></span>
+              Rescheduling...
+            </>
+          ) : (
+            "Reschedule"
+          )}
         </button>
       </div>
     </div>

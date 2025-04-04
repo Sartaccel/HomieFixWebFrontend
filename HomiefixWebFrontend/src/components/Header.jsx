@@ -11,9 +11,10 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [profilePhoto, setProfilePhoto] = useState(profile);
+  const [profilePhoto, setProfilePhoto] = useState(profile); // Start with default image
   const popupRef = useRef(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [currentUsername, setCurrentUsername] = useState("");
 
   const getHeading = () => {
     if (location.pathname.startsWith("/booking-details"))
@@ -39,21 +40,26 @@ const Header = () => {
   };
 
   // Fetch current user's profile photo
-  const fetchProfilePhoto = async () => {
+  const fetchProfilePhoto = async (username) => {
     try {
-      const username = localStorage.getItem("username");
       if (username) {
         const response = await api.get(`/admin/${username}`);
         if (response.data.profilePicUrl) {
+          // Store in sessionStorage instead of localStorage
+          sessionStorage.setItem(`profilePhoto_${username}`, response.data.profilePicUrl);
           setProfilePhoto(response.data.profilePicUrl);
         }
       }
     } catch (error) {
       console.error("Error fetching profile photo:", error);
+      setProfilePhoto(profile); // Fallback to default image
     }
   };
 
   useEffect(() => {
+    const username = localStorage.getItem("username");
+    setCurrentUsername(username);
+
     const fetchUnreadCount = async () => {
       try {
         const response = await api.get("/notifications/unread-count");
@@ -64,15 +70,23 @@ const Header = () => {
     };
 
     fetchUnreadCount();
-    fetchProfilePhoto(); // Fetch profile photo on mount
+
+    // Check for cached photo in sessionStorage
+    if (username) {
+      const cachedPhoto = sessionStorage.getItem(`profilePhoto_${username}`);
+      if (cachedPhoto) {
+        setProfilePhoto(cachedPhoto);
+      } else {
+        fetchProfilePhoto(username);
+      }
+    }
 
     const interval = setInterval(() => {
       fetchUnreadCount();
-      fetchProfilePhoto(); // Periodically check for updates
-    }, 30000); // Check every 30 seconds
+    }, 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [location.pathname]); // Add dependency to detect route changes
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -85,8 +99,6 @@ const Header = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  const username = localStorage.getItem("username");
 
   return (
     <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
@@ -143,13 +155,16 @@ const Header = () => {
             )}
         </div>
         <img
-          src={profilePhoto || profile}
+          src={profilePhoto}
           alt="Profile"
           width="40"
-          height="35"
+          height="40"
           className="cursor-pointer rounded-circle"
-          onClick={() => navigate(`/profile/${username}`)}
+          onClick={() => navigate(`/profile/${currentUsername}`)}
           style={{ cursor: "pointer" }}
+          onError={(e) => {
+            e.target.src = profile; // Fallback to default image if the stored photo fails to load
+          }}
         />
       </div>
     </header>

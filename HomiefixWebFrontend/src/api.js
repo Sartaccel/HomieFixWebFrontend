@@ -27,20 +27,28 @@ api.interceptors.request.use(
 );
 
 // Response interceptor
+// api.js
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear auth data
+      // Handle unauthorized (token expired/invalid)
       localStorage.removeItem("token");
       localStorage.removeItem("username");
-      
-      // Redirect to login
       if (globalNavigate) {
         globalNavigate("/", { replace: true });
       } else {
         window.location.href = "/";
       }
+    } else if (error.response?.status === 403) {
+      // Handle forbidden (permission denied)
+      console.error("403 Forbidden - Possible reasons:", {
+        endpoint: error.config.url,
+        method: error.config.method,
+        token: localStorage.getItem("token"),
+        user: localStorage.getItem("username")
+      });
+      // You can redirect or show a specific message
     }
     return Promise.reject(error);
   }
