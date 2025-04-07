@@ -22,18 +22,26 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       try {
         const response = await api.get("/booking/available-dates");
         const data = response.data;
+       
+        const validDates = data.map((dateStr) => {
+          const parts = dateStr.split(' ');
+          if (parts.length < 4) return null;
+         
+          const day = parts[0];
+          const month = parts[1];
+          const year = parts[3];
+         
+          const date = new Date(`${month} ${day}, ${year} 12:00:00`);
+         
+          if (isNaN(date.getTime())) {
+            console.warn("Invalid date found:", dateStr);
+            return null;
+          }
+         
+          return date.toISOString().split("T")[0];
+        }).filter(date => date !== null);
 
-        const validDates = data
-          .map((date) => {
-            const cleanedDate = date.replace(/\s\w+day\s/, " ");
-            const parsedDate = new Date(cleanedDate);
-            if (isNaN(parsedDate.getTime())) {
-              console.warn("Invalid date found:", date);
-              return null;
-            }
-            return parsedDate.toISOString().split("T")[0];
-          })
-          .filter((date) => date !== null);
+
         setAvailableDates(validDates);
       } catch (error) {
         console.error("Error fetching available dates:", error);
@@ -42,11 +50,19 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       }
     };
 
+
     const fetchAvailableTimes = async () => {
       try {
         const response = await api.get("/booking/available-times");
         const data = response.data;
-        setAvailableTimes(data);
+       
+        const formattedTimes = data.map(time => {
+          return time.replace(/(\d{1,2}):(\d{2})/g, (match, hour, minute) => {
+            return hour.padStart(2, '0') + ':' + minute;
+          });
+        });
+       
+        setAvailableTimes(formattedTimes);
       } catch (error) {
         console.error("Error fetching available times:", error);
       } finally {
@@ -54,9 +70,11 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       }
     };
 
+
     fetchAvailableDates();
     fetchAvailableTimes();
   }, []);
+
 
   const handleDateSelection = (date) => {
     if (selectedDate === date) {
@@ -66,6 +84,7 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
     }
   };
 
+
   const handleTimeSlotSelection = (time) => {
     if (selectedTimeSlot === time) {
       setSelectedTimeSlot("");
@@ -74,11 +93,57 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
     }
   };
 
+
+  const isSameAsExistingBooking = () => {
+    if (booking.rescheduledDate && booking.rescheduledTimeSlot) {
+      return (
+        selectedDate === booking.rescheduledDate &&
+        selectedTimeSlot === booking.rescheduledTimeSlot
+      );
+    }
+    return (
+      selectedDate === booking.date &&
+      selectedTimeSlot === booking.timeslot
+    );
+  };
+
+
+  const isRescheduleDisabled = () => {
+    const isOtherReasonEmpty = rescheduleReason === "other" && !otherReason.trim();
+   
+    return (
+      !selectedDate ||
+      !selectedTimeSlot ||
+      !rescheduleReason ||
+      isSameAsExistingBooking() ||
+      isOtherReasonEmpty ||
+      (
+        (booking.rescheduledDate === null && booking.rescheduledTimeSlot === null)
+          ? (selectedDate === booking.bookedDate && selectedTimeSlot === booking.timeSlot)
+          : (selectedDate === booking.rescheduledDate && selectedTimeSlot === booking.rescheduledTimeSlot)
+      )
+    );
+  };
+
+
   const handleReschedule = async () => {
+    if (isSameAsExistingBooking()) {
+      alert("Please select a different date or time slot for rescheduling");
+      return;
+    }
+
+
     if (!selectedDate || !selectedTimeSlot || !rescheduleReason) {
       alert("Please select a date, time slot, and reason for reschedule");
       return;
     }
+
+
+    if (rescheduleReason === "other" && !otherReason.trim()) {
+      alert("Please provide a reason for rescheduling");
+      return;
+    }
+
 
     const parsedDate = new Date(selectedDate);
     if (isNaN(parsedDate.getTime())) {
@@ -86,17 +151,22 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       return;
     }
 
+
     const reason = rescheduleReason === "other" ? otherReason : rescheduleReason;
 
+
     try {
-      setIsRescheduling(true); // Start loading
+      setIsRescheduling(true);
       const formattedDate = parsedDate.toISOString().split("T")[0];
       const encodedTimeSlot = encodeURIComponent(selectedTimeSlot);
       const encodedReason = encodeURIComponent(reason);
 
+
       const url = `/booking/reschedule/${id}?selectedDate=${formattedDate}&selectedTimeSlot=${encodedTimeSlot}&rescheduleReason=${encodedReason}`;
 
+
       const response = await api.put(url);
+
 
       if (response.status === 200) {
         alert("Booking rescheduled successfully");
@@ -105,7 +175,8 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       } else {
         console.error("Reschedule failed:", response.status, response.data);
         alert(
-          `Failed to reschedule booking: ${response.status} - ${response.data.message || "Unknown error"
+          `Failed to reschedule booking: ${response.status} - ${
+            response.data.message || "Unknown error"
           }`
         );
       }
@@ -113,15 +184,17 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       console.error("Error rescheduling booking:", error);
       alert("An error occurred during reschedule.");
     } finally {
-      setIsRescheduling(false); // Stop loading regardless of success/failure
+      setIsRescheduling(false);
     }
   };
+
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const day = date.getDate();
     const month = date.toLocaleString("en-US", { month: "short" });
     const dayOfWeek = date.toLocaleString("en-US", { weekday: "long" });
+
 
     return (
       <div>
@@ -130,6 +203,7 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       </div>
     );
   };
+
 
   return (
     <div
@@ -147,71 +221,74 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
 
+
         <div className="mb-3 mt-3">
           <h6>Date</h6>
           <div className="d-flex flex-wrap gap-2">
             {loadingDates
               ? Array.from({ length: 5 }).map((_, index) => (
-                <Skeleton key={index} width={100} height={50} />
-              ))
+                  <Skeleton key={index} width={100} height={50} />
+                ))
               : availableDates.map((date, index) => (
-                <button
-                  key={index}
-                  className="btn btn-sm"
-                  style={{
-                    fontSize: "15px",
-                    padding: "5px 10px",
-                    borderRadius: "5px",
-                    border:
-                      selectedDate === date
-                        ? "1px solid #0076CE"
-                        : "1px solid #D2D2D2",
-                    color: "#333",
-                    backgroundColor: "transparent",
-                  }}
-                  onClick={() => handleDateSelection(date)}
-                >
-                  {formatDate(date)}
-                </button>
-              ))}
+                  <button
+                    key={index}
+                    className="btn btn-sm"
+                    style={{
+                      fontSize: "15px",
+                      padding: "5px 10px",
+                      borderRadius: "5px",
+                      border:
+                        selectedDate === date
+                          ? "1px solid #0076CE"
+                          : "1px solid #D2D2D2",
+                      color: "#333",
+                      backgroundColor: "transparent",
+                    }}
+                    onClick={() => handleDateSelection(date)}
+                  >
+                    {formatDate(date)}
+                  </button>
+                ))}
           </div>
         </div>
         <div
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
 
+
         <div className="mb-3 mt-3">
           <h6>Time</h6>
           <div className="d-flex flex-wrap gap-2">
             {loadingTimes
               ? Array.from({ length: 5 }).map((_, index) => (
-                <Skeleton key={index} width={80} height={30} />
-              ))
+                  <Skeleton key={index} width={80} height={30} />
+                ))
               : availableTimes.map((time, index) => (
-                <button
-                  key={index}
-                  className="btn btn-sm"
-                  style={{
-                    fontSize: "15px",
-                    padding: "5px 10px",
-                    borderRadius: "5px",
-                    border:
-                      selectedTimeSlot === time
-                        ? "1px solid #0076CE"
-                        : "1px solid #D2D2D2",
-                    color: "#333",
-                    backgroundColor: "transparent",
-                  }}
-                  onClick={() => handleTimeSlotSelection(time)}
-                >
-                  {time}
-                </button>
-              ))}
+                  <button
+                    key={index}
+                    className="btn btn-sm"
+                    style={{
+                      fontSize: "15px",
+                      padding: "5px 10px",
+                      borderRadius: "5px",
+                      border:
+                        selectedTimeSlot === time
+                          ? "1px solid #0076CE"
+                          : "1px solid #D2D2D2",
+                      color: "#333",
+                      backgroundColor: "transparent",
+                    }}
+                    onClick={() => handleTimeSlotSelection(time)}
+                  >
+                    {time}
+                  </button>
+                ))}
           </div>
         </div>
         <div
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
+
 
         <div className="mb-3 mt-3">
           <h6>Reason for Reschedule</h6>
@@ -251,7 +328,7 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
           {rescheduleReason === "other" && (
             <textarea
               className="form-control"
-              placeholder="Other reason"
+              placeholder="Other reason (required)"
               rows="3"
               value={otherReason}
               onChange={(e) => setOtherReason(e.target.value)}
@@ -262,6 +339,7 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
                 width: "100%",
                 boxSizing: "border-box",
               }}
+              required
             ></textarea>
           )}
         </div>
@@ -274,7 +352,7 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
           className="btn btn-primary w-100 mt-3"
           style={{ backgroundColor: "#0076CE" }}
           onClick={handleReschedule}
-          disabled={isRescheduling} // Disable button while loading
+          disabled={isRescheduleDisabled() || isRescheduling}
         >
           {isRescheduling ? (
             <>
@@ -293,5 +371,6 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
     </div>
   );
 };
+
 
 export default Reschedule;

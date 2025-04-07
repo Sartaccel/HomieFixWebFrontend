@@ -34,6 +34,7 @@ const AssignBookings = () => {
   const [loadingWorkers, setLoadingWorkers] = useState(true); // Loading state for workers
   const [loadingBookingDetails, setLoadingBookingDetails] = useState(true); // Loading state for booking details
   const navigate = useNavigate();
+  const [assigningWorker, setAssigningWorker] = useState(false);
 
 
   // Helper function to format date
@@ -101,7 +102,9 @@ const AssignBookings = () => {
         // Ensure the API response contains the correct fields
         if (data.bookedDate && data.timeSlot) {
           setRescheduledDate(data.rescheduledDate || data.bookedDate);
-          setRescheduledTimeSlot(decodeTimeSlot(data.rescheduledTimeSlot || data.timeSlot));
+          setRescheduledTimeSlot(
+            decodeTimeSlot(data.rescheduledTimeSlot || data.timeSlot)
+          );
         } else {
           console.error("Booking details are incomplete:", data);
         }
@@ -143,6 +146,7 @@ const AssignBookings = () => {
       alert("Please select a worker");
       return;
     }
+    setAssigningWorker(true);
     try {
       const token = localStorage.getItem("token");
       const response = await api.put(
@@ -171,6 +175,8 @@ const AssignBookings = () => {
           navigate("/"); // Redirect to login page
         }
       }
+    } finally {
+      setAssigningWorker(false); // Stop loading regardless of success/failure
     }
   };
 
@@ -279,8 +285,14 @@ const AssignBookings = () => {
             localStorage.removeItem("rescheduledTimeSlot");
           } else {
             // Store the last available reschedule in local storage
-            localStorage.setItem("rescheduledDate", updatedHistory[updatedHistory.length - 1].date);
-            localStorage.setItem("rescheduledTimeSlot", updatedHistory[updatedHistory.length - 1].timeSlot);
+            localStorage.setItem(
+              "rescheduledDate",
+              updatedHistory[updatedHistory.length - 1].date
+            );
+            localStorage.setItem(
+              "rescheduledTimeSlot",
+              updatedHistory[updatedHistory.length - 1].timeSlot
+            );
           }
 
 
@@ -325,7 +337,9 @@ const AssignBookings = () => {
   // Check for reschedule history on component mount
   useEffect(() => {
     const storedRescheduledDate = localStorage.getItem("rescheduledDate");
-    const storedRescheduledTimeSlot = localStorage.getItem("rescheduledTimeSlot");
+    const storedRescheduledTimeSlot = localStorage.getItem(
+      "rescheduledTimeSlot"
+    );
 
 
     if (storedRescheduledDate && storedRescheduledTimeSlot) {
@@ -746,8 +760,20 @@ const AssignBookings = () => {
                             borderRadius: "14px",
                           }}
                           onClick={assignWorker}
+                          disabled={assigningWorker}
                         >
-                          Assign Worker
+                          {assigningWorker ? (
+                            <>
+                              <span
+                                className="spinner-border spinner-border-sm me-2"
+                                role="status"
+                                aria-hidden="true"
+                              ></span>
+                              Assigning...
+                            </>
+                          ) : (
+                            "Assign Worker"
+                          )}
                         </button>
                       </div>
                     </div>
@@ -775,9 +801,20 @@ const AssignBookings = () => {
                           borderRadius: "14px",
                         }}
                         onClick={assignWorker}
-                        disabled={!selectedWorkerId}
+                        disabled={!selectedWorkerId || assigningWorker}
                       >
-                        Assign Worker
+                        {assigningWorker ? (
+                          <>
+                            <span
+                              className="spinner-border spinner-border-sm me-2"
+                              role="status"
+                              aria-hidden="true"
+                            ></span>
+                            Assigning...
+                          </>
+                        ) : (
+                          "Assign Worker"
+                        )}
                       </button>
                     </div>
                   )}
