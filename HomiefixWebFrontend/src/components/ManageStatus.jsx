@@ -7,8 +7,8 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
   const [serviceCompleted, setServiceCompleted] = useState("No");
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-
   const [loading, setLoading] = useState(false);
+  const [isServiceDateFuture, setIsServiceDateFuture] = useState(false);
 
   const handleClick = async () => {
     setLoading(true); // Start loading
@@ -40,6 +40,14 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
   };
 
   useEffect(() => {
+    // Check if service date is in the future
+    if (safeBooking.bookingDate) {
+      const serviceDate = new Date(`${safeBooking.bookedDate}T00:00:00`);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      setIsServiceDateFuture(serviceDate > today);
+    }
+
     // Simulate loading delay
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -63,6 +71,11 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
   const handleUpdateStatus = async () => {
     if (serviceCompleted === "Yes" && serviceStarted === "No") {
       setErrorMessage("Service must be started before it can be completed.");
+      return;
+    }
+
+    if (serviceCompleted === "Yes" && isServiceDateFuture) {
+      setErrorMessage("Cannot mark as completed before the service date.");
       return;
     }
 
@@ -97,7 +110,6 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
     if (rowType === "RESCHEDULED" && safeBooking.rescheduleReason) {
       return highlightStyles.RESCHEDULED || {};
     }
-
     // No highlight for other rows
     return {};
   };
@@ -119,7 +131,6 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       minute: "2-digit",
       hour12: true,
     });
-
     return `${formattedDate} | ${formattedTime}`;
   };
 
@@ -643,6 +654,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                         <select
                           onChange={(e) => setServiceCompleted(e.target.value)}
                           value={serviceCompleted}
+                          disabled={isServiceDateFuture}
                           style={{
                             border: "none",
                             background: "transparent",
@@ -650,10 +662,15 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                             outline: "none",
                             appearance: "none",
                             paddingRight: "20px",
+                            color: isServiceDateFuture ? "#ccc" : "inherit",
                           }}
                         >
                           <option value="No">No</option>
-                          <option value="Yes">Yes</option>
+                          <option value="Yes" disabled={isServiceDateFuture}>
+                            {isServiceDateFuture
+                              ? "Yes (Not available yet)"
+                              : "Yes"}
+                          </option>
                         </select>
                         <span
                           style={{
@@ -756,12 +773,12 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       </div>
       <style>
         {`
-          @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 0.3; }
-            100% { opacity: 0.6; }
-          }
-        `}
+         @keyframes pulse {
+           0% { opacity: 0.6; }
+           50% { opacity: 0.3; }
+           100% { opacity: 0.6; }
+         }
+       `}
       </style>
     </div>
   );

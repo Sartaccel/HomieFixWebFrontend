@@ -5,10 +5,11 @@ let globalNavigate = null;
 export const setGlobalNavigate = (navigate) => {
   globalNavigate = navigate;
 };
+
 // https://admin.homiefix.in/api
 // http://localhost:2222
 const api = axios.create({
-  baseURL: "https://admin.homiefix.in/api",
+  baseURL: "http://localhost:2222",
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json"
@@ -28,7 +29,6 @@ api.interceptors.request.use(
 );
 
 // Response interceptor
-// api.js
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -43,12 +43,6 @@ api.interceptors.response.use(
       }
     } else if (error.response?.status === 403) {
       // Handle forbidden (permission denied)
-      console.error("403 Forbidden - Possible reasons:", {
-        endpoint: error.config.url,
-        method: error.config.method,
-        token: localStorage.getItem("token"),
-        user: localStorage.getItem("username")
-      });
       // You can redirect or show a specific message
     }
     return Promise.reject(error);
