@@ -8,6 +8,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [isServiceDateFuture, setIsServiceDateFuture] = useState(false);
 
   const handleClick = async () => {
     setLoading(true); // Start loading
@@ -39,6 +40,14 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
   };
 
   useEffect(() => {
+    // Check if service date is in the future
+    if (safeBooking.bookingDate) {
+      const serviceDate = new Date(`${safeBooking.bookedDate}T00:00:00`);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      setIsServiceDateFuture(serviceDate > today);
+    }
+
     // Simulate loading delay
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -65,6 +74,11 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       return;
     }
 
+    if (serviceCompleted === "Yes" && isServiceDateFuture) {
+      setErrorMessage("Cannot mark as completed before the service date.");
+      return;
+    }
+
     if (serviceStarted === "No") {
       await onStatusUpdate("ASSIGNED");
     } else if (serviceCompleted === "No") {
@@ -72,7 +86,6 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
     } else if (serviceCompleted === "Yes") {
       await onStatusUpdate("COMPLETED");
     }
-
 
     setErrorMessage(""); // Clear any previous error messages
   };
@@ -643,6 +656,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                         <select
                           onChange={(e) => setServiceCompleted(e.target.value)}
                           value={serviceCompleted}
+                          disabled={isServiceDateFuture}
                           style={{
                             border: "none",
                             background: "transparent",
@@ -650,10 +664,13 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                             outline: "none",
                             appearance: "none",
                             paddingRight: "20px",
+                            color: isServiceDateFuture ? "#ccc" : "inherit",
                           }}
                         >
                           <option value="No">No</option>
-                          <option value="Yes">Yes</option>
+                          <option value="Yes" disabled={isServiceDateFuture}>
+                            {isServiceDateFuture ? "Yes (Not available yet)" : "Yes"}
+                          </option>
                         </select>
                         <span
                           style={{

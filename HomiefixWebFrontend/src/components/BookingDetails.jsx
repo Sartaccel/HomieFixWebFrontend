@@ -36,12 +36,12 @@ const hasBookingChanges = (newBookings, prevBookings) => {
 };
 
 const transformBookingData = (booking) => ({
-  id: booking.id,
+  id: Number(booking.id),
   service: booking.productName,
   name: booking.userProfile.fullName,
   contact: booking.userProfile.mobileNumber.mobileNumber,
   address: `${booking.deliveryAddress.houseNumber}, ${booking.deliveryAddress.town}, ${booking.deliveryAddress.district}, ${booking.deliveryAddress.state}, ${booking.deliveryAddress.pincode}`,
-  date: booking.bookedDate,
+  date: new Date(booking.bookedDate),
   timeslot: booking.timeSlot,
   cancelReason: booking.cancelReason,
   productImage: booking.productImage,
@@ -69,7 +69,7 @@ const transformBookingData = (booking) => ({
 const fetchBookings = async (setBookings, prevBookingsRef, setInitialLoad) => {
   try {
     const response = await api.get("/booking/all");
-    const transformedBookings = response.data.map(transformBookingData);
+    const transformedBookings = response.data.map(transformBookingData).sort((a, b) => b.id - a.id); // Sort by ID in descending order
 
     if (hasBookingChanges(transformedBookings, prevBookingsRef.current)) {
       setBookings(transformedBookings);

@@ -98,8 +98,11 @@ const AssignBookings = () => {
         });
         const data = response.data;
 
+        // Check if booking is expired
+        const expired = isBookingExpired(data.bookedDate);
+        setIsExpired(expired);
 
-        // Ensure the API response contains the correct fields
+        // Rest of your existing code...
         if (data.bookedDate && data.timeSlot) {
           setRescheduledDate(data.rescheduledDate || data.bookedDate);
           setRescheduledTimeSlot(
@@ -109,19 +112,17 @@ const AssignBookings = () => {
           console.error("Booking details are incomplete:", data);
         }
 
-
         setNotes(data.notes || "");
       } catch (error) {
         console.error("Error fetching booking details:", error);
         if (error.response && error.response.status === 403) {
           alert("You do not have permission to perform this action.");
-          navigate("/"); // Redirect to login page
+          navigate("/");
         }
       } finally {
-        setLoadingBookingDetails(false); // Set loading to false after fetching
+        setLoadingBookingDetails(false);
       }
     };
-
 
     fetchBookingDetails();
   }, [id]);
@@ -142,6 +143,12 @@ const AssignBookings = () => {
 
   // Assign worker to booking
   const assignWorker = async () => {
+
+    if (isExpired) {
+      alert("Cannot assign worker to an expired booking");
+      return;
+    }
+
     if (!selectedWorkerId) {
       alert("Please select a worker");
       return;
@@ -348,6 +355,16 @@ const AssignBookings = () => {
     }
   }, []);
 
+  // Add this helper function to check if booking date is expired
+  const isBookingExpired = (bookingDate) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time part for accurate date comparison
+    const bookingDateObj = new Date(bookingDate);
+    return bookingDateObj < today;
+  };
+
+  const [isExpired, setIsExpired] = useState(false);
+
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -480,20 +497,20 @@ const AssignBookings = () => {
                         style={{
                           backgroundColor:
                             localStorage.getItem("rescheduledDate") &&
-                            localStorage.getItem("rescheduledTimeSlot")
+                              localStorage.getItem("rescheduledTimeSlot")
                               ? "#EDF3F7"
                               : "transparent",
                           borderRadius: "5px",
                           display: "inline-block",
                           padding:
                             localStorage.getItem("rescheduledDate") &&
-                            localStorage.getItem("rescheduledTimeSlot")
+                              localStorage.getItem("rescheduledTimeSlot")
                               ? "0px 10px 0px 0px"
                               : "0",
                         }}
                       >
                         {localStorage.getItem("rescheduledDate") &&
-                        localStorage.getItem("rescheduledTimeSlot") ? (
+                          localStorage.getItem("rescheduledTimeSlot") ? (
                           <img
                             src={closeDate}
                             alt="Close"
@@ -622,67 +639,67 @@ const AssignBookings = () => {
                     >
                       {loadingWorkers
                         ? Array.from({ length: 4 }).map((_, index) => (
-                            <div
-                              key={index}
-                              className="col-6"
-                              style={{
-                                width: "48%",
-                                border: "1px solid #ddd",
-                                borderRadius: "8px",
-                                padding: "8px",
-                                background: "#f9f9f9",
-                              }}
-                            >
-                              <div className="d-flex align-items-center gap-2">
-                                <Skeleton circle width={40} height={40} />
-                                <div>
-                                  <Skeleton width={100} height={15} />
-                                  <Skeleton width={80} height={12} />
-                                </div>
+                          <div
+                            key={index}
+                            className="col-6"
+                            style={{
+                              width: "48%",
+                              border: "1px solid #ddd",
+                              borderRadius: "8px",
+                              padding: "8px",
+                              background: "#f9f9f9",
+                            }}
+                          >
+                            <div className="d-flex align-items-center gap-2">
+                              <Skeleton circle width={40} height={40} />
+                              <div>
+                                <Skeleton width={100} height={15} />
+                                <Skeleton width={80} height={12} />
                               </div>
                             </div>
-                          ))
+                          </div>
+                        ))
                         : workers.map((worker, index) => (
-                            <div
-                              key={index}
-                              className="col-6"
-                              style={{
-                                width: "48%",
-                                border:
-                                  selectedWorkerId === worker.id
-                                    ? "2px solid #0076CE"
-                                    : "1px solid #ddd",
-                                borderRadius: "8px",
-                                padding: "8px",
-                                background:
-                                  selectedWorkerId === worker.id
-                                    ? "#e6f3ff"
-                                    : "#f9f9f9",
-                                cursor: "pointer",
-                              }}
-                              onClick={() => handleWorkerSelection(worker.id)}
-                            >
-                              <div className="d-flex align-items-center gap-2">
-                                <div
-                                  className="rounded-circle bg-secondary"
-                                  style={{
-                                    width: "40px",
-                                    height: "40px",
-                                    flexShrink: 0,
-                                    backgroundImage: `url(${worker.profilePicUrl})`,
-                                    backgroundSize: "cover",
-                                    backgroundPosition: "center",
-                                  }}
-                                ></div>
-                                <div>
-                                  <p className="mb-0">{worker.name}</p>
-                                  <small style={{ color: "#666666" }}>
-                                    {worker.town}, {worker.pincode}
-                                  </small>
-                                </div>
+                          <div
+                            key={index}
+                            className="col-6"
+                            style={{
+                              width: "48%",
+                              border:
+                                selectedWorkerId === worker.id
+                                  ? "2px solid #0076CE"
+                                  : "1px solid #ddd",
+                              borderRadius: "8px",
+                              padding: "8px",
+                              background:
+                                selectedWorkerId === worker.id
+                                  ? "#e6f3ff"
+                                  : "#f9f9f9",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => handleWorkerSelection(worker.id)}
+                          >
+                            <div className="d-flex align-items-center gap-2">
+                              <div
+                                className="rounded-circle bg-secondary"
+                                style={{
+                                  width: "40px",
+                                  height: "40px",
+                                  flexShrink: 0,
+                                  backgroundImage: `url(${worker.profilePicUrl})`,
+                                  backgroundSize: "cover",
+                                  backgroundPosition: "center",
+                                }}
+                              ></div>
+                              <div>
+                                <p className="mb-0">{worker.name}</p>
+                                <small style={{ color: "#666666" }}>
+                                  {worker.town}, {worker.pincode}
+                                </small>
                               </div>
                             </div>
-                          ))}
+                          </div>
+                        ))}
                     </div>
                   </div>
                   {/* Worker Details Section */}
@@ -795,26 +812,23 @@ const AssignBookings = () => {
                       <button
                         className="btn"
                         style={{
-                          background: selectedWorkerId ? "#0076CE" : "#999999",
+                          background: isExpired
+                            ? "#CCCCCC"
+                            : selectedWorkerId ? "#0076CE" : "#999999",
                           color: "white",
                           width: "350px",
                           borderRadius: "14px",
                         }}
                         onClick={assignWorker}
-                        disabled={!selectedWorkerId || assigningWorker}
+                        disabled={isExpired || !selectedWorkerId || assigningWorker}
                       >
-                        {assigningWorker ? (
-                          <>
-                            <span
-                              className="spinner-border spinner-border-sm me-2"
-                              role="status"
-                              aria-hidden="true"
-                            ></span>
-                            Assigning...
-                          </>
-                        ) : (
-                          "Assign Worker"
-                        )}
+                        {
+                          assigningWorker ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-2"></span>
+                              Assigning...
+                            </>
+                          ) : "Assign Worker"}
                       </button>
                     </div>
                   )}
