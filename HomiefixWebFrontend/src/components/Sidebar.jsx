@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -11,12 +10,14 @@ import reviewsIcon from "../assets/Reviews.svg";
 import servicesIcon from "../assets/Service.svg";
 import logoutIcon from "../assets/Logout.svg";
 import bookingDetails from "../assets/BookingDetails.png";
+import ConfirmationDialog from "./ConfirmationDialog";
 
 
 const Sidebar = ({ onLogout }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
 
 
   const handleLogout = () => {
@@ -34,6 +35,22 @@ const Sidebar = ({ onLogout }) => {
     setTimeout(() => {
       navigate("/", { replace: true });
     }, 100);
+  };
+
+
+  const handleLogoutClick = () => {
+    setShowLogoutConfirmation(true);
+  };
+
+
+  const handleConfirmLogout = () => {
+    setShowLogoutConfirmation(false);
+    handleLogout();
+  };
+
+
+  const handleCancelLogout = () => {
+    setShowLogoutConfirmation(false);
   };
 
 
@@ -83,12 +100,23 @@ const Sidebar = ({ onLogout }) => {
 
 
         <div className="logout-container" style={{ marginTop: "200px" }}>
-          <button onClick={handleLogout} className="logout-button" style={{ height: "54px", border: "none" }}>
+          <button onClick={handleLogoutClick} className="logout-button" style={{ height: "54px", border: "none" }}>
             <img src={logoutIcon} alt="Logout" className="menu-icon" />
             Logout
           </button>
         </div>
       </div>
+
+
+      <ConfirmationDialog
+        show={showLogoutConfirmation}
+        onClose={handleCancelLogout}
+        onConfirm={handleConfirmLogout}
+        title="Confirm Logout"
+        message="Are you sure you want to logout?"
+        confirmText="Logout"
+        cancelText="Cancel"
+      />
     </>
   );
 };

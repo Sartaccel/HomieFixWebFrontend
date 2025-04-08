@@ -1,5 +1,6 @@
-
 import axios from "axios";
+
+
 let globalNavigate = null;
 
 
@@ -8,9 +9,10 @@ export const setGlobalNavigate = (navigate) => {
 };
 
 
+// https://admin.homiefix.in/api
+// http://localhost:2222
 const api = axios.create({
-  // baseURL: "https://admin.homiefix.in/api",
-  baseURL:"http://localhost:1212",
+  baseURL: "http://localhost:1212",
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json"
@@ -36,16 +38,17 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear auth data
+      // Handle unauthorized (token expired/invalid)
       localStorage.removeItem("token");
       localStorage.removeItem("username");
-     
-      // Redirect to login
       if (globalNavigate) {
         globalNavigate("/", { replace: true });
       } else {
         window.location.href = "/";
       }
+    } else if (error.response?.status === 403) {
+      // Handle forbidden (permission denied)
+      // You can redirect or show a specific message
     }
     return Promise.reject(error);
   }
@@ -53,3 +56,6 @@ api.interceptors.response.use(
 
 
 export default api;
+
+
+
