@@ -66,7 +66,7 @@ const Notifications = () => {
       }
       setError(null);
     } catch (err) {
-      setError("Error fetching notifications");
+      setError("No internet connection. Please check your network.");
     } finally {
       if (isInitialLoad) {
         setInitialLoading(false);
