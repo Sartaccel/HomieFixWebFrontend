@@ -27,11 +27,12 @@ const ViewBookings = () => {
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [showCancelBookingModal, setShowCancelBookingModal] = useState(false);
-  const [
-    selectedBookingIdForCancellation,
-    setSelectedBookingIdForCancellation,
-  ] = useState(null);
+  const [selectedBookingIdForCancellation, setSelectedBookingIdForCancellation] = useState(null);
   const [refresh, setRefresh] = useState(false);
+  const [showFullComment, setShowFullComment] = useState(false);
+  const [currentComment, setCurrentComment] = useState("");
+  const [workerError, setWorkerError] = useState(null);
+  const [allWorkers, setAllWorkers] = useState([]);
 
 
   const handleStatusUpdate = async (status) => {
@@ -62,6 +63,16 @@ const ViewBookings = () => {
   };
 
 
+  const fetchAllWorkers = async () => {
+    try {
+      const response = await api.get("/workers/view");
+      setAllWorkers(response.data);
+    } catch (err) {
+      console.error("Error fetching all workers:", err);
+    }
+  };
+
+
   const fetchBookingDetails = async () => {
     try {
       setLoading(true);
@@ -73,8 +84,21 @@ const ViewBookings = () => {
       if (data.worker) {
         setWorker(data.worker);
       } else if (data.workerId) {
-        const workerResponse = await api.get(`/workers/view/${data.workerId}`);
-        setWorker(workerResponse.data);
+        try {
+          const workerResponse = await api.get(`/workers/view/${data.workerId}`);
+          if (workerResponse.data && workerResponse.data.active) {
+            setWorker(workerResponse.data);
+            setWorkerError(null);
+          } else {
+            setWorkerError("Worker no longer exists or is inactive");
+          }
+        } catch (err) {
+          if (err.response && err.response.status === 404) {
+            setWorkerError("Worker no longer exists or is inactive");
+          } else {
+            setWorkerError("Error loading worker details");
+          }
+        }
       }
 
 
@@ -151,7 +175,22 @@ const ViewBookings = () => {
   };
 
 
+  const handleViewWorkerProfile = async (e, workerId) => {
+    e.preventDefault();
+   
+    // Check if worker exists in the allWorkers list
+    const workerExists = allWorkers.some(w => w.id === workerId && w.active);
+   
+    if (!workerExists || workerError) {
+      alert("This worker profile is no longer available");
+    } else {
+      navigate(`/worker-details/worker/${workerId}`);
+    }
+  };
+
+
   useEffect(() => {
+    fetchAllWorkers();
     fetchBookingDetails();
   }, [id, refresh]);
 
@@ -226,7 +265,7 @@ const ViewBookings = () => {
           </div>
           <div className="container mt-5 pt-4">
             <div className="row justify-content-between p-3 mt-5">
-              <div className="mt-4 p-3 col-6">
+              <div className="mt-1 p-3 col-6">
                 {/* Service Details */}
                 <div className="d-flex align-items-center">
                   {loading ? (
@@ -265,7 +304,7 @@ const ViewBookings = () => {
 
 
                 {/* Customer Details */}
-                <div className="mt-3">
+                <div className="mt-2">
                   <h6 className="fw-bold">Customer Details</h6>
                   {loading ? (
                     <div className="mt-2">
@@ -388,7 +427,7 @@ const ViewBookings = () => {
 
 
                 {/* Worker Details */}
-                <div className="mt-3">
+                <div className="mt-1">
                   <h6 style={{ fontWeight: "bold" }}>Worker Details</h6>
                   {loading ? (
                     <div className="d-flex align-items-center mt-2">
@@ -409,6 +448,10 @@ const ViewBookings = () => {
                         className="mt-2"
                         style={{ marginLeft: "100px" }}
                       />
+                    </div>
+                  ) : workerError ? (
+                    <div className="alert alert-warning">
+                      {workerError}
                     </div>
                   ) : worker ? (
                     <>
@@ -460,10 +503,7 @@ const ViewBookings = () => {
                           href="#"
                           className="text-primary text-decoration-none d-block"
                           style={{ marginLeft: "100px", color: "#0076CE" }}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            navigate(`/worker-details/worker/${worker.id}`);
-                          }}
+                          onClick={(e) => handleViewWorkerProfile(e, worker.id)}
                         >
                           View full profile &gt;
                         </a>
@@ -476,7 +516,7 @@ const ViewBookings = () => {
 
 
                 {/* Customer Review */}
-                <div className="mt-2">
+                <div className="mt-1">
                   <h6>Customer Review</h6>
                   {loading ? (
                     <div className="mt-2">
@@ -524,7 +564,25 @@ const ViewBookings = () => {
                             whiteSpace: "normal",
                           }}
                         >
-                          {feedback.comment}
+                          {feedback.comment.split(' ').slice(0, 8).join(' ')}
+                          {feedback.comment.split(' ').length > 8 && (
+                            <>
+                              ...{" "}
+                              <span
+                                onClick={() => {
+                                  setCurrentComment(feedback.comment);
+                                  setShowFullComment(true);
+                                }}
+                                style={{
+                                  color: "#0076CE",
+                                  cursor: "pointer",
+                                  fontWeight: "500",
+                                }}
+                              >
+                                Read More
+                              </span>
+                            </>
+                          )}
                         </p>
                       </p>
                     </>
@@ -532,6 +590,55 @@ const ViewBookings = () => {
                     <p>No feedback available.</p>
                   )}
                 </div>
+
+
+                {/* Full Comment Modal */}
+                {showFullComment && (
+                  <div
+                    style={{
+                      position: "fixed",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: "rgba(0,0,0,0.5)",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      zIndex: 1000,
+                    }}
+                    onClick={() => setShowFullComment(false)}
+                  >
+                    <div
+                      style={{
+                        backgroundColor: "white",
+                        padding: "20px",
+                        borderRadius: "8px",
+                        maxWidth: "500px",
+                        width: "90%",
+                        position: "relative",
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        style={{
+                          position: "absolute",
+                          top: "10px",
+                          right: "10px",
+                          background: "none",
+                          border: "none",
+                          fontSize: "20px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => setShowFullComment(false)}
+                      >
+                        ×
+                      </button>
+                      <h4>Full Review</h4>
+                      <p>{currentComment}</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
 

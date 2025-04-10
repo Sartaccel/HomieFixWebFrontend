@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
+
 const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
   const { id } = useParams();
   const [serviceStarted, setServiceStarted] = useState("No");
@@ -10,11 +11,13 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const [isServiceDateFuture, setIsServiceDateFuture] = useState(false);
 
+
   const handleClick = async () => {
     setLoading(true); // Start loading
     await handleUpdateStatus(); // Call your function
     setLoading(false); // Stop loading
   };
+
 
   // Initialize a safeBooking object to prevent null reference errors
   const safeBooking = booking || {
@@ -39,6 +42,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
     serviceCompletedTime: null,
   };
 
+
   useEffect(() => {
     // Check if service date is in the future
     if (safeBooking.bookingDate) {
@@ -48,10 +52,12 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       setIsServiceDateFuture(serviceDate > today);
     }
 
+
     // Simulate loading delay
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
+
 
     if (safeBooking.bookingStatus) {
       setServiceStarted(
@@ -65,8 +71,10 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       );
     }
 
+
     return () => clearTimeout(timer);
   }, [safeBooking]);
+
 
   const handleUpdateStatus = async () => {
     if (serviceCompleted === "Yes" && serviceStarted === "No") {
@@ -74,10 +82,12 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       return;
     }
 
+
     if (serviceCompleted === "Yes" && isServiceDateFuture) {
       setErrorMessage("Cannot mark as completed before the service date.");
       return;
     }
+
 
     if (serviceStarted === "No") {
       await onStatusUpdate("ASSIGNED");
@@ -87,8 +97,10 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       await onStatusUpdate("COMPLETED");
     }
 
+
     setErrorMessage(""); // Clear any previous error messages
   };
+
 
   const getHighlightStyle = (rowType) => {
     // Define the highlight style for each row type
@@ -101,10 +113,12 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       COMPLETED: { borderLeft: "4px solid #2FB467" },
     };
 
+
     // Only highlight the row if it matches the current status or scenario
     if (rowType === safeBooking.bookingStatus) {
       return highlightStyles[rowType] || {};
     }
+
 
     // Highlight the rescheduled row only if the status is RESCHEDULED
     if (rowType === "RESCHEDULED" && safeBooking.rescheduleReason) {
@@ -114,17 +128,21 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
     return {};
   };
 
+
   // Helper function to format date and time
   const formatDateTime = (dateString, timeString) => {
     if (!dateString || !timeString) return "Not Assigned";
 
+
     const date = new Date(`${dateString}T${timeString}`);
+
 
     const formattedDate = date.toLocaleDateString("en-US", {
       month: "short",
       day: "2-digit",
       year: "numeric",
     });
+
 
     const formattedTime = date.toLocaleTimeString("en-US", {
       hour: "2-digit",
@@ -133,6 +151,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
     });
     return `${formattedDate} | ${formattedTime}`;
   };
+
 
   // Skeleton loader component
   const SkeletonLoader = ({
@@ -151,6 +170,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       }}
     ></div>
   );
+
 
   return (
     <div>
@@ -215,13 +235,13 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                       Booking Successful on{" "}
                       {safeBooking.bookedDate
                         ? new Date(safeBooking.bookedDate).toLocaleDateString(
-                          "en-US",
-                          {
-                            month: "short",
-                            day: "2-digit",
-                            year: "numeric",
-                          }
-                        )
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "2-digit",
+                              year: "numeric",
+                            }
+                          )
                         : "Not Assigned"}
                       {safeBooking.timeSlot ? ` | ${safeBooking.timeSlot}` : ""}
                     </>
@@ -236,6 +256,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                   }}
                 ></td>
               </tr>
+
 
               {safeBooking.rescheduleReason && (
                 <tr
@@ -288,12 +309,12 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                               Reschedule Service On{" "}
                               {safeBooking.rescheduledDate
                                 ? new Date(
-                                  safeBooking.rescheduledDate
-                                ).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "2-digit",
-                                  year: "numeric",
-                                })
+                                    safeBooking.rescheduledDate
+                                  ).toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "2-digit",
+                                    year: "numeric",
+                                  })
                                 : "Not Assigned"}
                               {" | "}
                               {safeBooking.rescheduledTimeSlot ||
@@ -305,9 +326,9 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                               ? safeBooking.rescheduleReason.split(" ").length >
                                 7
                                 ? safeBooking.rescheduleReason
-                                  .split(" ")
-                                  .slice(0, 7)
-                                  .join(" ") + "..."
+                                    .split(" ")
+                                    .slice(0, 7)
+                                    .join(" ") + "..."
                                 : safeBooking.rescheduleReason
                               : ""}
                           </span>
@@ -324,6 +345,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                   ></td>
                 </tr>
               )}
+
 
               {/* Cancelled Row */}
               {safeBooking.bookingStatus === "CANCELLED" && (
@@ -378,9 +400,9 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                             {safeBooking.cancelReason
                               ? safeBooking.cancelReason.split(" ").length > 7
                                 ? safeBooking.cancelReason
-                                  .split(" ")
-                                  .slice(0, 7)
-                                  .join(" ") + "..."
+                                    .split(" ")
+                                    .slice(0, 7)
+                                    .join(" ") + "..."
                                 : safeBooking.cancelReason
                               : ""}
                           </span>
@@ -398,6 +420,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                   ></td>
                 </tr>
               )}
+
 
               {/* Worker Assigned Row */}
               <tr
@@ -449,6 +472,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                   )}
                 </td>
 
+
                 <td
                   className="text-end"
                   style={{
@@ -458,6 +482,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                   }}
                 ></td>
               </tr>
+
 
               {/* Service Started Row */}
               <tr
@@ -489,9 +514,9 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                       <span style={{ color: "grey" }}>
                         {serviceStarted === "Yes"
                           ? formatDateTime(
-                            safeBooking.serviceStartedDate,
-                            safeBooking.serviceStartedTime
-                          )
+                              safeBooking.serviceStartedDate,
+                              safeBooking.serviceStartedTime
+                            )
                           : "Not Assigned"}
                       </span>
                       <br />
@@ -603,9 +628,9 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                       <span style={{ color: "grey" }}>
                         {serviceCompleted === "Yes"
                           ? formatDateTime(
-                            safeBooking.serviceCompletedDate,
-                            safeBooking.serviceCompletedTime
-                          )
+                              safeBooking.serviceCompletedDate,
+                              safeBooking.serviceCompletedTime
+                            )
                           : "Not Assigned"}
                       </span>
                       <br />
@@ -633,6 +658,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                     </div>
                   )}
                 </td>
+
 
                 {safeBooking.status !== "COMPLETED" && (
                   <td
@@ -669,7 +695,9 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                         >
                           <option value="No">No</option>
                           <option value="Yes" disabled={isServiceDateFuture}>
-                            {isServiceDateFuture ? "Yes (Not available yet)" : "Yes"}
+                            {isServiceDateFuture
+                              ? "Yes (Not available yet)"
+                              : "Yes"}
                           </option>
                         </select>
                         <span
@@ -698,6 +726,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                   </td>
                 )}
               </tr>
+
 
               {/* Update Button Row */}
               <tr>
@@ -774,15 +803,16 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       </div>
       <style>
         {`
-          @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 0.3; }
-            100% { opacity: 0.6; }
-          }
-        `}
+         @keyframes pulse {
+           0% { opacity: 0.6; }
+           50% { opacity: 0.3; }
+           100% { opacity: 0.6; }
+         }
+       `}
       </style>
     </div>
   );
 };
+
 
 export default ManageStatus;
