@@ -69,7 +69,7 @@ const transformBookingData = (booking) => ({
 const fetchBookings = async (setBookings, prevBookingsRef, setInitialLoad) => {
   try {
     const response = await api.get("/booking/all");
-    const transformedBookings = response.data.map(transformBookingData).sort((a, b) => b.id - a.id); // Sort by ID in descending order
+    const transformedBookings = response.data.map(transformBookingData).sort((a, b) => b.id - a.id);
 
     if (hasBookingChanges(transformedBookings, prevBookingsRef.current)) {
       setBookings(transformedBookings);
@@ -171,7 +171,7 @@ const BookingDetails = () => {
       String(date.getDate()).padStart(2, "0");
 
     return bookingsToFilter.filter(
-      (booking) => booking.date === formattedSelectedDate
+      (booking) => booking.date.toISOString().split('T')[0] === formattedSelectedDate
     );
   }, []);
 
@@ -400,7 +400,7 @@ const BookingDetails = () => {
               Bookings{" "}
               {!initialLoad && (
                 <span className="badge bg-dark ms-1" style={{ borderRadius: "45%" }}>
-                  {pendingBookings.length}
+                  {activeTab === "bookings" ? filteredBookings.length : pendingBookings.length}
                 </span>
               )}
             </div>
@@ -411,7 +411,7 @@ const BookingDetails = () => {
               In Progress{" "}
               {!initialLoad && (
                 <span className="badge bg-dark ms-1" style={{ borderRadius: "45%" }}>
-                  {inProgress.length}
+                  {activeTab === "inProgress" ? filteredBookings.length : inProgress.length}
                 </span>
               )}
             </div>
@@ -422,7 +422,7 @@ const BookingDetails = () => {
               Completed{" "}
               {!initialLoad && (
                 <span className="badge bg-dark ms-1" style={{ borderRadius: "45%" }}>
-                  {completed.length}
+                  {activeTab === "completed" ? filteredBookings.length : completed.length}
                 </span>
               )}
             </div>
@@ -433,7 +433,7 @@ const BookingDetails = () => {
               Canceled{" "}
               {!initialLoad && (
                 <span className="badge bg-dark ms-1" style={{ borderRadius: "45%" }}>
-                  {canceled.length}
+                  {activeTab === "canceled" ? filteredBookings.length : canceled.length}
                 </span>
               )}
             </div>
@@ -680,7 +680,7 @@ const BookingDetails = () => {
               <tbody>
                 {initialLoad ? (
                   renderSkeletonRows(5)
-                ) : (
+                ) : filteredBookings.length > 0 ? (
                   filteredBookings.map((booking) => (
                     <tr key={booking.id}>
                       <td
@@ -827,7 +827,7 @@ const BookingDetails = () => {
                                 <FaStar style={{ color: "gold" }} />
                               )}
                               <span className="ms-1">
-                                {ratings[booking.id] || "No Rating"}
+                                {ratings[booking.id] || "No ratings available."}
                               </span>
                             </div>
                           ) : (
@@ -878,6 +878,30 @@ const BookingDetails = () => {
                       </td>
                     </tr>
                   ))
+                ) : (
+                  <tr>
+                    <td colSpan={activeTab === "bookings" ? 6 : 7} className="text-center py-5">
+                      <div className="d-flex flex-column align-items-center justify-content-center"  >
+                        <img
+                          src="https://cdn-icons-png.flaticon.com/512/4076/4076478.png"
+                          alt="No bookings"
+                          width="100"
+                          className="mb-3"
+                        />
+                        <h5 className="text-muted">No bookings found</h5>
+                        <p className="text-muted">
+                          {selectedDateBookings || selectedDateInProgress || selectedDateCompleted || selectedDateCanceled
+                            ? "No bookings match your selected filters."
+                            : statusFilter !== "All"
+                              ? `No ${statusFilter.toLowerCase()} bookings available.`
+                              : ratingFilter !== "All"
+                                ? `No bookings with ${ratingFilter === "No Rating" ? "no rating" : `${ratingFilter} star rating`}.`
+                                : "No bookings available at the moment."}
+                        </p>
+
+                      </div>
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
