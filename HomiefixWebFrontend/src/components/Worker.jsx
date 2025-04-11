@@ -48,10 +48,10 @@ const Worker = () => {
       if (response.data && response.data.length > 0) {
         return response.data[0].rating;
       }
-      return 0;
+      return null; // Return null when no rating exists
     } catch (error) {
       console.error(`Error fetching rating for booking ${bookingId}:`, error);
-      return 0;
+      return null;
     }
   };
 
@@ -137,6 +137,30 @@ const Worker = () => {
           });
       }
     });
+  };
+
+  // Function to render stars based on rating
+  const renderStars = (rating) => {
+    if (rating === null || rating === undefined) return "N/A";
+    
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    return (
+      <>
+        {Array(fullStars).fill().map((_, i) => (
+          <i key={`full-${i}`} className="bi bi-star-fill text-warning mx-1"></i>
+        ))}
+        {hasHalfStar && (
+          <i key="half" className="bi bi-star-half text-warning mx-1"></i>
+        )}
+        {Array(emptyStars).fill().map((_, i) => (
+          <i key={`empty-${i}`} className="bi bi-star text-warning mx-1"></i>
+        ))}
+        <span className="mx-1">{rating.toFixed(1)}</span>
+      </>
+    );
   };
 
   return (
@@ -235,18 +259,7 @@ const Worker = () => {
                         {workerData.contactNumber}
                       </p>
                       <p className="mx-1">
-                        Rating:
-                        {Array.from({ length: 5 }, (_, i) => (
-                          <i
-                            key={i}
-                            className={`bi bi-star-fill ${
-                              i < (workerData.averageRating || 0)
-                                ? "text-warning"
-                                : "text-secondary"
-                            } mx-1`}
-                          ></i>
-                        ))}
-                        {workerData.averageRating || "N/A"}
+                        Rating: {workerData.averageRating ? renderStars(workerData.averageRating) : "N/A"}
                       </p>
                     </div>
                   </div>
@@ -342,31 +355,46 @@ const Worker = () => {
                 {loading ? (
                   <Skeleton height={30} />
                 ) : activeTab === "serviceDetails" ? (
-                  <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-                    <table className="table table-bordered table-hover" style={{ marginBottom: 0 }}>
-                      <thead
-                        className="table-light"
-                        style={{
-                          position: "sticky",
-                          top: 0,
-                          zIndex: 3,
-                          backgroundColor: "white",
-                        }}
-                      >
-                        <tr className="border">
-                          <th width="7.7%">S.no</th>
-                          <th width="31.3%">Service</th>
-                          <th width="24%">Name</th>
-                          <th width="24.1%">Date</th>
-                          <th>Rating</th>
-                        </tr>
-                      </thead>
-                    </table>
+                  <div
+                    style={{
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      boxShadow: "0 -2px 0 0 #dee2e6",
+                    }}
+                  >
                     <div style={{ overflowY: "auto", flex: 1 }}>
-                      <table className="table table-bordered table-hover" style={{ marginTop: 0 }}>
+                      <table className="table table-bordered table-hover" style={{ marginBottom: 0 }}>
+                        <thead
+                          className="table-light"
+                          style={{
+                            position: "sticky",
+                            top: 0,
+                            zIndex: 3,
+                            backgroundColor: "white",
+                            borderTop: "2px solid #dee2e6",
+                            boxShadow: "0 -2px 0 0 #dee2e6, 0 2px 0 0 #dee2e6",
+                          }}
+                        >
+                          <tr>
+                            <th style={{ width: "7.7%" }}>S.no</th>
+                            <th style={{ width: "31.3%" }}>Service</th>
+                            <th style={{ width: "24%" }}>Name</th>
+                            <th style={{ width: "24.1%" }}>Date</th>
+                            <th>Rating</th>
+                          </tr>
+                        </thead>
                         <tbody>
                           {serviceDetailsData.map((item, index) => (
-                            <tr key={item.id}>
+                            <tr
+                              key={item.id}
+                              style={{
+                                borderBottom:
+                                  index === serviceDetailsData.length - 1
+                                    ? "2px solid #dee2e6"
+                                    : undefined,
+                              }}
+                            >
                               <td>{index + 1}</td>
                               <td>
                                 {item.service} <br />
@@ -379,14 +407,18 @@ const Worker = () => {
                                 {item.date} <br /> {item.status}
                               </td>
                               <td>
-                                {ratings[item.id] !== undefined ? (
-                                  <>
-                                    <i className="bi bi-star-fill text-warning"></i> {ratings[item.id]}
-                                  </>
-                                ) : (
-                                  <Skeleton width={25} />
-                                )}
-                              </td>
+              {ratings[item.id] !== null ? (
+                ratings[item.id] !== undefined ? (
+                  <>
+                    <i className="bi bi-star-fill text-warning"></i> {ratings[item.id]}
+                  </>
+                ) : (
+                  <Skeleton width={25} />
+                )
+              ) : (
+                "N/A"
+              )}
+            </td>
                             </tr>
                           ))}
                         </tbody>
@@ -395,30 +427,38 @@ const Worker = () => {
                   </div>
                 ) : activeTab === "inProgress" ? (
                   <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-                    <table className="table table-bordered table-hover" style={{ marginBottom: 0 }}>
-                      <thead
-                        className="table-light border"
-                        style={{
-                          position: "sticky",
-                          top: 0,
-                          zIndex: 3,
-                          backgroundColor: "white",
-                        }}
-                      >
-                        <tr>
-                          <th width="5%">S.no</th>
-                          <th width="23%">Service</th>
-                          <th width="17.7%">Name</th>
-                          <th width="21.7%">Date</th>
-                          <th>Status</th>
-                        </tr>
-                      </thead>
-                    </table>
-                    <div style={{ overflowY: "auto", flex: 1 }}>
-                      <table className="table table-bordered table-hover" style={{ marginTop: 0 }}>
+                    <div style={{ flex: 1, overflowY: "auto" }}>
+                      <table className="table table-bordered table-hover" style={{ margin: 0 }}>
+                        <thead
+                          className="table-light"
+                          style={{
+                            position: "sticky",
+                            top: 0,
+                            zIndex: 3,
+                            backgroundColor: "white",
+                            borderTop: "2px solid #dee2e6",
+                            boxShadow: "0 -2px 0 0 #dee2e6, 0 2px 0 0 #dee2e6",
+                          }}
+                        >
+                          <tr>
+                            <th style={{ width: "5%" }}>S.no</th>
+                            <th style={{ width: "25%" }}>Service</th>
+                            <th style={{ width: "20%" }}>Name</th>
+                            <th style={{ width: "25%" }}>Date</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
                         <tbody>
                           {inProgressData.map((item, index) => (
-                            <tr key={item.id}>
+                            <tr
+                              key={item.id}
+                              style={{
+                                borderBottom:
+                                  index === inProgressData.length - 1
+                                    ? "2px solid #dee2e6"
+                                    : undefined,
+                              }}
+                            >
                               <td>{index + 1}</td>
                               <td>
                                 {item.service}
@@ -427,20 +467,35 @@ const Worker = () => {
                               </td>
                               <td>
                                 {item.name}
-                                <br /> {item.phone}
+                                <br />
+                                {item.phone}
                               </td>
                               <td>
-                                {item.date} <br /> Service pending
+                                {item.date}
+                                <br />
+                                Service pending
                               </td>
                               <td>
                                 {item.status === "STARTED" && (
-                                  <img src={startedImg} alt="Started" style={{ width: "100px", height: "40px" }} />
+                                  <img
+                                    src={startedImg}
+                                    alt="Started"
+                                    style={{ width: "100px", height: "40px" }}
+                                  />
                                 )}
                                 {item.status === "RESCHEDULED" && (
-                                  <img src={rescheduledImg} alt="Rescheduled" style={{ width: "140px", height: "40px" }} />
+                                  <img
+                                    src={rescheduledImg}
+                                    alt="Rescheduled"
+                                    style={{ width: "140px", height: "40px" }}
+                                  />
                                 )}
                                 {item.status === "ASSIGNED" && (
-                                  <img src={assignedImg} alt="Assigned" style={{ width: "100px", height: "40px" }} />
+                                  <img
+                                    src={assignedImg}
+                                    alt="Assigned"
+                                    style={{ width: "100px", height: "40px" }}
+                                  />
                                 )}
                               </td>
                             </tr>
