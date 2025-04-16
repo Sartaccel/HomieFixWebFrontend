@@ -3,8 +3,8 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import closeDate from "../assets/close date.png"; // Import the close date icon
-import Reschedule from "./Reschedule"; // Import the Reschedule component
-import CancelBooking from "./CancelBooking"; // Import the CancelBooking component
+import Reschedule from "./Reschedule";
+import CancelBooking from "./CancelBooking";
 import "../styles/AssignBookings.css";
 import bookingDetails from "../assets/BookingDetails.png";
 import Header from "./Header";
