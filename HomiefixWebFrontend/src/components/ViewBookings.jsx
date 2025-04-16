@@ -9,7 +9,6 @@ import api from "../api";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
-
 const ViewBookings = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -25,35 +24,15 @@ const ViewBookings = () => {
   const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
   const [isCancelHovered, setIsCancelHovered] = useState(false);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
-  const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [showCancelBookingModal, setShowCancelBookingModal] = useState(false);
-  const [selectedBookingIdForCancellation, setSelectedBookingIdForCancellation] = useState(null);
-  const [refresh, setRefresh] = useState(false);
   const [showFullComment, setShowFullComment] = useState(false);
   const [currentComment, setCurrentComment] = useState("");
   const [workerError, setWorkerError] = useState(null);
   const [allWorkers, setAllWorkers] = useState([]);
-
-
-  const handleStatusUpdate = async (status) => {
-    try {
-      const response = await api.put(
-        `/booking/update-status/${id}?status=${status}`
-      );
-      if (response.status === 200) {
-        setBooking((prev) => ({ ...prev, bookingStatus: status }));
-        alert(`Booking status updated to ${status}`);
-      } else {
-        alert("Failed to update booking status");
-      }
-    } catch (error) {
-      console.error("Error updating booking status:", error);
-      alert("Network error while updating booking status.");
-    }
-  };
-
+  const [refresh, setRefresh] = useState(false);
 
   const formatDate = (dateString) => {
+    if (!dateString) return "Not Assigned";
     const date = new Date(dateString);
     return date.toLocaleString("default", {
       month: "short",
@@ -61,7 +40,6 @@ const ViewBookings = () => {
       year: "numeric",
     });
   };
-
 
   const fetchAllWorkers = async () => {
     try {
@@ -72,14 +50,12 @@ const ViewBookings = () => {
     }
   };
 
-
   const fetchBookingDetails = async () => {
     try {
       setLoading(true);
       const { data } = await api.get(`/booking/${id}`);
       setBooking(data);
       setNotes(data.notes || "No additional notes provided.");
-
 
       if (data.worker) {
         setWorker(data.worker);
@@ -101,7 +77,6 @@ const ViewBookings = () => {
         }
       }
 
-
       await fetchFeedback(data.id, data.bookedDate);
     } catch (err) {
       console.error("Error fetching booking details:", err);
@@ -110,7 +85,6 @@ const ViewBookings = () => {
       setLoading(false);
     }
   };
-
 
   const fetchFeedback = async (bookingId, bookingDate) => {
     try {
@@ -126,12 +100,19 @@ const ViewBookings = () => {
     }
   };
 
-
   const saveNotes = async () => {
+    const trimmedNotes = notes.trim();
+
+    if (!trimmedNotes) {
+      alert("Please enter some notes before saving"); // Show alert instead of setting validation error
+      return;
+    }
+
     setSaving(true);
+
     try {
       await api.patch(
-        `/booking/update-notes/${id}?notes=${encodeURIComponent(notes)}`
+        `/booking/update-notes/${id}?notes=${encodeURIComponent(trimmedNotes)}`
       );
       alert("Notes saved successfully ✅");
       setIsEditing(false);
@@ -143,44 +124,76 @@ const ViewBookings = () => {
     }
   };
 
+  const handleStatusUpdate = async (newStatus, startedDate, startedTime, completedDate, completedTime) => {
+    try {
+      // Prepare the data to send to the backend
+      const updateData = {
+        status: newStatus,
+        serviceStartedDate: startedDate,
+        serviceStartedTime: startedTime,
+        serviceCompletedDate: completedDate,
+        serviceCompletedTime: completedTime
+      };
 
-  const handleRescheduleButtonClick = (bookingId) => {
-    setSelectedBookingId(bookingId);
+      const response = await api.put(
+        `/booking/update-status/${id}?status=${newStatus}` +
+        `&serviceStartedDate=${startedDate}&serviceStartedTime=${startedTime}` +
+        `&serviceCompletedDate=${completedDate}&serviceCompletedTime=${completedTime}`
+      );
+
+      if (response.status === 200) {
+        // Update local state with the new status and dates
+        setBooking(prev => ({
+          ...prev,
+          bookingStatus: newStatus,
+          serviceStartedDate: startedDate,
+          serviceStartedTime: startedTime,
+          serviceCompletedDate: completedDate,
+          serviceCompletedTime: completedTime
+        }));
+
+        // If status changed to COMPLETED and worker exists, increment their completed count
+        if (newStatus === "COMPLETED" && worker) {
+          setWorker(prev => ({
+            ...prev,
+            totalWorkAssigned: (prev.totalWorkAssigned || 0) + 1
+          }));
+        }
+
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error updating status:", error);
+      throw error;
+    }
+  };
+
+  const handleRescheduleButtonClick = () => {
     setIsRescheduleModalOpen(true);
   };
 
-
   const closeRescheduleModal = () => {
     setIsRescheduleModalOpen(false);
-    setSelectedBookingId(null);
   };
-
 
   const handleRescheduleSuccess = () => {
     closeRescheduleModal();
-    setRefresh(!refresh);
+    setRefresh(!refresh); // Trigger a refresh of booking data
   };
 
-
-  const handleCancelBookingButtonClick = (bookingId) => {
-    setSelectedBookingIdForCancellation(bookingId);
+  const handleCancelBookingButtonClick = () => {
     setShowCancelBookingModal(true);
   };
 
-
   const handleCancelBookingSuccess = () => {
     setShowCancelBookingModal(false);
-    setSelectedBookingIdForCancellation(null);
-    setRefresh(!refresh);
+    setRefresh(!refresh); // Trigger a refresh of booking data
   };
-
 
   const handleViewWorkerProfile = async (e, workerId) => {
     e.preventDefault();
-   
-    // Check if worker exists in the allWorkers list
     const workerExists = allWorkers.some(w => w.id === workerId && w.active);
-   
     if (!workerExists || workerError) {
       alert("This worker profile is no longer available");
     } else {
@@ -188,15 +201,12 @@ const ViewBookings = () => {
     }
   };
 
-
   useEffect(() => {
     fetchAllWorkers();
     fetchBookingDetails();
   }, [id, refresh]);
 
-
   if (error) return <p className="text-danger">{error}</p>;
-
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -216,29 +226,23 @@ const ViewBookings = () => {
                 ></i>
               </button>
               <div
-                className={`section ${
-                  activeTab === "serviceDetails" ? "active" : ""
-                }`}
+                className={`section ${activeTab === "serviceDetails" ? "active" : ""
+                  }`}
                 onClick={() => setActiveTab("serviceDetails")}
               >
                 Service Details
               </div>
             </div>
             {!loading && booking && !["CANCELLED", "COMPLETED"].includes(booking.bookingStatus) && (
-              <div
-                className="d-flex gap-3 p-2"
-                style={{ marginRight: "300px" }}
-              >
+              <div className="d-flex gap-3 p-2" style={{ marginRight: "300px" }}>
                 <button
                   className="btn btn-outline-primary"
-                  onClick={() => handleRescheduleButtonClick(id)}
+                  onClick={handleRescheduleButtonClick}
                   onMouseEnter={() => setIsRescheduleHovered(true)}
                   onMouseLeave={() => setIsRescheduleHovered(false)}
                   style={{
                     border: "1px solid #0076CE",
-                    backgroundColor: isRescheduleHovered
-                      ? "#0076CE"
-                      : "transparent",
+                    backgroundColor: isRescheduleHovered ? "#0076CE" : "transparent",
                     color: isRescheduleHovered ? "white" : "#0076CE",
                   }}
                 >
@@ -246,14 +250,12 @@ const ViewBookings = () => {
                 </button>
                 <button
                   className="btn btn-outline-danger"
-                  onClick={() => handleCancelBookingButtonClick(id)}
+                  onClick={handleCancelBookingButtonClick}
                   onMouseEnter={() => setIsCancelHovered(true)}
                   onMouseLeave={() => setIsCancelHovered(false)}
                   style={{
                     border: "1px solid #B8141A",
-                    backgroundColor: isCancelHovered
-                      ? "#B8141A"
-                      : "transparent",
+                    backgroundColor: isCancelHovered ? "#B8141A" : "transparent",
                     color: isCancelHovered ? "white" : "#B8141A",
                     transition: "all 0.3s ease-in-out",
                   }}
@@ -270,12 +272,7 @@ const ViewBookings = () => {
                 <div className="d-flex align-items-center">
                   {loading ? (
                     <>
-                      <Skeleton
-                        circle
-                        width={50}
-                        height={50}
-                        className="me-3"
-                      />
+                      <Skeleton circle width={50} height={50} className="me-3" />
                       <div>
                         <Skeleton width={180} height={20} className="mb-1" />
                         <Skeleton width={100} height={16} />
@@ -284,10 +281,7 @@ const ViewBookings = () => {
                   ) : (
                     <>
                       <img
-                        src={
-                          booking?.productImage ||
-                          "https://via.placeholder.com/50"
-                        }
+                        src={booking?.productImage || "https://via.placeholder.com/50"}
                         alt="Service"
                         className="me-3 rounded"
                         style={{ width: 50, height: 50 }}
@@ -301,7 +295,6 @@ const ViewBookings = () => {
                     </>
                   )}
                 </div>
-
 
                 {/* Customer Details */}
                 <div className="mt-2">
@@ -325,14 +318,9 @@ const ViewBookings = () => {
                       </p>
                       <p className="mb-1">
                         <i className="bi bi-calendar-event me-2"></i>{" "}
-                        {booking?.rescheduledDate &&
-                        booking?.rescheduledTimeSlot
-                          ? `${formatDate(booking.rescheduledDate)} | ${
-                              booking.rescheduledTimeSlot
-                            }`
-                          : `${formatDate(booking?.bookedDate)} | ${
-                              booking?.timeSlot
-                            }`}
+                        {booking?.rescheduledDate && booking?.rescheduledTimeSlot
+                          ? `${formatDate(booking.rescheduledDate)} | ${booking.rescheduledTimeSlot}`
+                          : `${formatDate(booking?.bookedDate)} | ${booking?.timeSlot}`}
                       </p>
                       <p className="mb-1">
                         <i className="bi bi-geo-alt me-2"></i>
@@ -346,12 +334,8 @@ const ViewBookings = () => {
                   )}
                 </div>
 
-
                 {/* Notes Section */}
-                <div
-                  className="border rounded p-3 mt-2"
-                  style={{ height: "110px" }}
-                >
+                <div className="border rounded p-3 mt-2" style={{ height: "110px" }}>
                   {loading ? (
                     <>
                       <Skeleton width={100} height={20} className="mb-2" />
@@ -359,13 +343,8 @@ const ViewBookings = () => {
                     </>
                   ) : (
                     <>
-                      <div
-                        className="d-flex justify-content-between align-items-center"
-                        style={{ marginTop: "-8px" }}
-                      >
-                        <h6 className="m-0" style={{ color: "#808080" }}>
-                          Notes
-                        </h6>
+                      <div className="d-flex justify-content-between align-items-center" style={{ marginTop: "-8px" }}>
+                        <h6 className="m-0" style={{ color: "#808080" }}>Notes</h6>
                       </div>
                       <div className="position-relative">
                         <textarea
@@ -385,10 +364,7 @@ const ViewBookings = () => {
                           onChange={(e) => setNotes(e.target.value)}
                           readOnly={!isEditing}
                         />
-                        <div
-                          className="d-flex justify-content-end"
-                          style={{ marginTop: "-95px", marginRight: "5px" }}
-                        >
+                        <div className="d-flex justify-content-end" style={{ marginTop: "-95px", marginRight: "5px" }}>
                           {!isEditing ? (
                             <a
                               href="#"
@@ -404,9 +380,7 @@ const ViewBookings = () => {
                           ) : (
                             <a
                               href="#"
-                              className={`text-primary text-decoration-none ${
-                                saving ? "disabled" : ""
-                              }`}
+                              className={`text-primary text-decoration-none ${saving ? "disabled" : ""}`}
                               onClick={(e) => {
                                 e.preventDefault();
                                 if (!saving) saveNotes();
@@ -425,18 +399,12 @@ const ViewBookings = () => {
                   )}
                 </div>
 
-
                 {/* Worker Details */}
                 <div className="mt-1">
                   <h6 style={{ fontWeight: "bold" }}>Worker Details</h6>
                   {loading ? (
                     <div className="d-flex align-items-center mt-2">
-                      <Skeleton
-                        circle
-                        width={80}
-                        height={80}
-                        className="me-3"
-                      />
+                      <Skeleton circle width={80} height={80} className="me-3" />
                       <div style={{ width: "100%" }}>
                         <Skeleton width="70%" height={18} className="mb-2" />
                         <Skeleton width="60%" height={18} className="mb-2" />
@@ -450,17 +418,12 @@ const ViewBookings = () => {
                       />
                     </div>
                   ) : workerError ? (
-                    <div className="alert alert-warning">
-                      {workerError}
-                    </div>
+                    <div className="alert alert-warning">{workerError}</div>
                   ) : worker ? (
                     <>
                       <div className="d-flex align-items-center">
                         <img
-                          src={
-                            worker.profilePicUrl ||
-                            "https://via.placeholder.com/50"
-                          }
+                          src={worker.profilePicUrl || "https://via.placeholder.com/50"}
                           alt="Worker"
                           className="me-3 rounded"
                           style={{
@@ -480,20 +443,15 @@ const ViewBookings = () => {
                                 width: "50px",
                               }}
                             >
-                              <i
-                                className="bi bi-star-fill"
-                                style={{ color: "#FFD700" }}
-                              ></i>
+                              <i className="bi bi-star-fill" style={{ color: "#FFD700" }}></i>
                               {worker.rating?.toFixed(1) || "4.5"}
                             </span>
                           </p>
                           <p className="mb-1">
-                            <i className="bi bi-telephone me-2"></i>{" "}
-                            {worker.contactNumber}
+                            <i className="bi bi-telephone me-2"></i> {worker.contactNumber}
                           </p>
                           <p className="mb-1">
-                            <i className="bi bi-geo-alt me-2"></i>{" "}
-                            {worker.houseNumber}, {worker.town},{" "}
+                            <i className="bi bi-geo-alt me-2"></i> {worker.houseNumber}, {worker.town},{" "}
                             {worker.district}, {worker.state}, {worker.pincode}
                           </p>
                         </div>
@@ -513,7 +471,6 @@ const ViewBookings = () => {
                     <p>No worker assigned yet.</p>
                   )}
                 </div>
-
 
                 {/* Customer Review */}
                 <div className="mt-1">
@@ -537,10 +494,7 @@ const ViewBookings = () => {
                             width: "50px",
                           }}
                         >
-                          <i
-                            className="bi bi-star-fill"
-                            style={{ color: "#FFD700" }}
-                          ></i>{" "}
+                          <i className="bi bi-star-fill" style={{ color: "#FFD700" }}></i>{" "}
                           {feedback.rating}
                         </span>
                         <span
@@ -591,7 +545,6 @@ const ViewBookings = () => {
                   )}
                 </div>
 
-
                 {/* Full Comment Modal */}
                 {showFullComment && (
                   <div
@@ -641,29 +594,37 @@ const ViewBookings = () => {
                 )}
               </div>
 
-
-              {/* Status Management - No skeleton loading */}
+              {/* Status Management */}
               <div className="col-6">
-                <ManageStatus
-                  booking={booking}
-                  onStatusUpdate={handleStatusUpdate}
-                />
+                {loading ? (
+                  <div className="card rounded p-4" style={{ marginTop: "47px", minHeight: "300px" }}>
+                    <Skeleton height={30} width="40%" style={{ marginBottom: "20px" }} />
+                    <Skeleton count={5} height={50} style={{ marginBottom: "10px" }} />
+                    <Skeleton height={40} width="100%" style={{ marginTop: "20px" }} />
+                  </div>
+                ) : (
+                  <ManageStatus
+                    booking={booking}
+                    onStatusUpdate={handleStatusUpdate}
+                    onReschedule={handleRescheduleButtonClick}
+                    onCancel={handleCancelBookingButtonClick}
+                  />
+                )}
               </div>
             </div>
 
-
             {/* Modals */}
-            {isRescheduleModalOpen && selectedBookingId && (
+            {isRescheduleModalOpen && (
               <Reschedule
-                id={selectedBookingId}
+                id={id}
                 booking={booking}
                 onClose={closeRescheduleModal}
                 onReschedule={handleRescheduleSuccess}
               />
             )}
-            {showCancelBookingModal && selectedBookingIdForCancellation && (
+            {showCancelBookingModal && (
               <CancelBooking
-                id={selectedBookingIdForCancellation}
+                id={id}
                 booking={booking}
                 onClose={() => setShowCancelBookingModal(false)}
                 onCancelSuccess={handleCancelBookingSuccess}
@@ -675,6 +636,5 @@ const ViewBookings = () => {
     </div>
   );
 };
-
 
 export default ViewBookings;

@@ -38,6 +38,7 @@ const EditWorker = () => {
   const [previewImage, setPreviewImage] = useState(addWorker);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isDrivingLicenseFocused, setIsDrivingLicenseFocused] = useState(false);
 
 
   // Language options for dropdown
@@ -97,7 +98,8 @@ const EditWorker = () => {
 
 
   const validateDrivingLicense = (license) => {
-    const regex = /^[A-Z]{2}-\d{12}$/;
+    if (!license) return true; // Optional field
+    const regex = /^DL-[a-zA-Z0-9]{15}$/;
     return regex.test(license);
   };
 
@@ -155,6 +157,54 @@ const EditWorker = () => {
 
     fetchWorkerData();
   }, [id, navigate]);
+
+
+  const handleDrivingLicenseChange = (e) => {
+    const { value } = e.target;
+   
+    // Allow complete clearing of the field
+    if (value === "DL-" || value === "") {
+      setFormData(prevState => ({
+        ...prevState,
+        drivingLicenseNumber: ""
+      }));
+      setErrors(prev => ({ ...prev, drivingLicenseNumber: "" }));
+      return;
+    }
+
+
+    // Process the input value
+    let processedValue = value;
+   
+    // Ensure it starts with DL- if there's any content
+    if (!value.startsWith("DL-")) {
+      processedValue = "DL-" + value.replace(/^DL-/, '').replace(/[^a-zA-Z0-9]/g, '');
+    } else {
+      processedValue = "DL-" + value.substring(3).replace(/[^a-zA-Z0-9]/g, '');
+    }
+   
+    // Limit to 15 characters after DL-
+    if (processedValue.length > 18) {
+      processedValue = processedValue.substring(0, 18);
+    }
+
+
+    setFormData(prevState => ({
+      ...prevState,
+      drivingLicenseNumber: processedValue
+    }));
+
+
+    // Validate
+    if (processedValue && !validateDrivingLicense(processedValue)) {
+      setErrors(prev => ({
+        ...prev,
+        drivingLicenseNumber: "License should be in format DL- followed by 15 alphanumeric characters"
+      }));
+    } else {
+      setErrors(prev => ({ ...prev, drivingLicenseNumber: "" }));
+    }
+  };
 
 
   const handleButtonClick = (item, roleHeading) => {
@@ -225,11 +275,6 @@ const EditWorker = () => {
       case "aadharNumber":
         if (!validateAadhar(value)) {
           error = "Aadhar number should be 12 digits";
-        }
-        break;
-      case "drivingLicenseNumber":
-        if (value && !validateDrivingLicense(value)) {
-          error = "License should be in format DL-123456789012";
         }
         break;
       case "dateOfBirth":
@@ -397,7 +442,7 @@ const EditWorker = () => {
 
 
     if (formData.drivingLicenseNumber && !validateDrivingLicense(formData.drivingLicenseNumber)) {
-      newErrors.drivingLicenseNumber = "License should be in format DL-123456789012";
+      newErrors.drivingLicenseNumber = "License should be in format DL- followed by 15 alphanumeric characters";
       isValid = false;
     }
 
@@ -1077,9 +1122,12 @@ const EditWorker = () => {
                   }`}
                   name="drivingLicenseNumber"
                   id="drivingLicenseNumber"
-                  placeholder="DL-123456789012"
-                  onChange={handleChange}
+                  placeholder="DL-XXXXXXXXXXXXXXX"
+                  onChange={handleDrivingLicenseChange}
+                  onFocus={() => setIsDrivingLicenseFocused(true)}
+                  onBlur={() => setIsDrivingLicenseFocused(false)}
                   value={formData.drivingLicenseNumber}
+                  maxLength="18"
                 />
                 {errors.drivingLicenseNumber && (
                   <div className="invalid-feedback">
@@ -1143,4 +1191,3 @@ const EditWorker = () => {
 
 
 export default EditWorker;
-
