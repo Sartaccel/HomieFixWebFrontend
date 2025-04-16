@@ -49,7 +49,7 @@ const WorkerDetails = ({ token, setToken }) => {
 
   const specifications = {
     "Home Appliances": ["AC", "Geyser", "Microwave", "Inverter & Stabilizers", "Water Purifier", "TV", "Fridge", "Washing Machine", "Fan"],
-    Electrician: ["Switch & Socket", "Wiring", "Doorbell", "Appliance", "MCB & Submeter", "Light and Wall light", "CCTV"],
+    Electrician: ["Switch & Socket", "Wiring", "Doorbell", "MCB & Submeter", "Light and Wall light", "CCTV"],
     Carpentry: ["Bed", "Cupboard & Drawer", "Door", "Windows", "Drill & Hang", "Furniture Repair"],
     Plumbing: ["Washbasin Installation", "Blockage Removal", "Shower", "Toilet", "Tap, Pipe works", "Water tank & Motor"],
     "Vehicle service": ["Batteries", "Health checkup", "Wash & Cleaning", "Denting & Painting", "Wheel car", "Vehicle AC"],

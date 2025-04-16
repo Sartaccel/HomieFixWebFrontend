@@ -848,7 +848,6 @@ const EditWorker = () => {
                   "Switch & Socket",
                   "Wiring",
                   "Doorbell",
-                  "Appliance",
                   "MCB & Submeter",
                   "Light and Wall light",
                   "CCTV",
