@@ -503,20 +503,20 @@ const AssignBookings = () => {
                         style={{
                           backgroundColor:
                             localStorage.getItem("rescheduledDate") &&
-                            localStorage.getItem("rescheduledTimeSlot")
+                              localStorage.getItem("rescheduledTimeSlot")
                               ? "#EDF3F7"
                               : "transparent",
                           borderRadius: "5px",
                           display: "inline-block",
                           padding:
                             localStorage.getItem("rescheduledDate") &&
-                            localStorage.getItem("rescheduledTimeSlot")
+                              localStorage.getItem("rescheduledTimeSlot")
                               ? "0px 10px 0px 0px"
                               : "0",
                         }}
                       >
                         {localStorage.getItem("rescheduledDate") &&
-                        localStorage.getItem("rescheduledTimeSlot") ? (
+                          localStorage.getItem("rescheduledTimeSlot") ? (
                           <img
                             src={closeDate}
                             alt="Close"
@@ -659,67 +659,67 @@ const AssignBookings = () => {
                     >
                       {loadingWorkers
                         ? Array.from({ length: 4 }).map((_, index) => (
-                            <div
-                              key={index}
-                              className="col-6"
-                              style={{
-                                width: "48%",
-                                border: "1px solid #ddd",
-                                borderRadius: "8px",
-                                padding: "8px",
-                                background: "#f9f9f9",
-                              }}
-                            >
-                              <div className="d-flex align-items-center gap-2">
-                                <Skeleton circle width={40} height={40} />
-                                <div>
-                                  <Skeleton width={100} height={15} />
-                                  <Skeleton width={80} height={12} />
-                                </div>
+                          <div
+                            key={index}
+                            className="col-6"
+                            style={{
+                              width: "48%",
+                              border: "1px solid #ddd",
+                              borderRadius: "8px",
+                              padding: "8px",
+                              background: "#f9f9f9",
+                            }}
+                          >
+                            <div className="d-flex align-items-center gap-2">
+                              <Skeleton circle width={40} height={40} />
+                              <div>
+                                <Skeleton width={100} height={15} />
+                                <Skeleton width={80} height={12} />
                               </div>
                             </div>
-                          ))
+                          </div>
+                        ))
                         : workers.map((worker, index) => (
-                            <div
-                              key={index}
-                              className="col-6"
-                              style={{
-                                width: "48%",
-                                border:
-                                  selectedWorkerId === worker.id
-                                    ? "2px solid #0076CE"
-                                    : "1px solid #ddd",
-                                borderRadius: "8px",
-                                padding: "8px",
-                                background:
-                                  selectedWorkerId === worker.id
-                                    ? "#e6f3ff"
-                                    : "#f9f9f9",
-                                cursor: "pointer",
-                              }}
-                              onClick={() => handleWorkerSelection(worker.id)}
-                            >
-                              <div className="d-flex align-items-center gap-2">
-                                <div
-                                  className="rounded-circle bg-secondary"
-                                  style={{
-                                    width: "40px",
-                                    height: "40px",
-                                    flexShrink: 0,
-                                    backgroundImage: `url(${worker.profilePicUrl})`,
-                                    backgroundSize: "cover",
-                                    backgroundPosition: "center",
-                                  }}
-                                ></div>
-                                <div>
-                                  <p className="mb-0">{worker.name}</p>
-                                  <small style={{ color: "#666666" }}>
-                                    {worker.town}, {worker.pincode}
-                                  </small>
-                                </div>
+                          <div
+                            key={index}
+                            className="col-6"
+                            style={{
+                              width: "48%",
+                              border:
+                                selectedWorkerId === worker.id
+                                  ? "2px solid #0076CE"
+                                  : "1px solid #ddd",
+                              borderRadius: "8px",
+                              padding: "8px",
+                              background:
+                                selectedWorkerId === worker.id
+                                  ? "#e6f3ff"
+                                  : "#f9f9f9",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => handleWorkerSelection(worker.id)}
+                          >
+                            <div className="d-flex align-items-center gap-2">
+                              <div
+                                className="rounded-circle bg-secondary"
+                                style={{
+                                  width: "40px",
+                                  height: "40px",
+                                  flexShrink: 0,
+                                  backgroundImage: `url(${worker.profilePicUrl})`,
+                                  backgroundSize: "cover",
+                                  backgroundPosition: "center",
+                                }}
+                              ></div>
+                              <div>
+                                <p className="mb-0">{worker.name}</p>
+                                <small style={{ color: "#666666" }}>
+                                  {worker.town}, {worker.pincode}
+                                </small>
                               </div>
                             </div>
-                          ))}
+                          </div>
+                        ))}
                     </div>
                   </div>
                   {/* Worker Details Section */}
@@ -835,8 +835,8 @@ const AssignBookings = () => {
                           background: isExpired
                             ? "#CCCCCC"
                             : selectedWorkerId
-                            ? "#0076CE"
-                            : "#999999",
+                              ? "#0076CE"
+                              : "#999999",
                           color: "white",
                           width: "350px",
                           borderRadius: "14px",
