@@ -9,14 +9,16 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isServiceDateFuture, setIsServiceDateFuture] = useState(false);
+  const [localServiceStarted, setLocalServiceStarted] = useState({
+    date: null,
+    time: null,
+  });
+  const [localServiceCompleted, setLocalServiceCompleted] = useState({
+    date: null,
+    time: null,
+  });
+  const [forceUpdate, setForceUpdate] = useState(0); // Add this line for forced re-render
 
-  const handleClick = async () => {
-    setLoading(true); // Start loading
-    await handleUpdateStatus(); // Call your function
-    setLoading(false); // Stop loading
-  };
-
-  // Initialize a safeBooking object to prevent null reference errors
   const safeBooking = booking || {
     bookingStatus: "",
     rescheduleReason: null,
@@ -40,7 +42,6 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
   };
 
   useEffect(() => {
-    // Check if service date is in the future
     if (safeBooking.bookingDate) {
       const serviceDate = new Date(`${safeBooking.bookedDate}T00:00:00`);
       const today = new Date();
@@ -48,11 +49,11 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       setIsServiceDateFuture(serviceDate > today);
     }
 
-    // Simulate loading delay
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
 
+    // Initialize status dropdowns and dates from props
     if (safeBooking.bookingStatus) {
       setServiceStarted(
         safeBooking.bookingStatus === "STARTED" ||
@@ -63,10 +64,20 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       setServiceCompleted(
         safeBooking.bookingStatus === "COMPLETED" ? "Yes" : "No"
       );
+
+      setLocalServiceStarted({
+        date: safeBooking.serviceStartedDate,
+        time: safeBooking.serviceStartedTime,
+      });
+
+      setLocalServiceCompleted({
+        date: safeBooking.serviceCompletedDate,
+        time: safeBooking.serviceCompletedTime,
+      });
     }
 
     return () => clearTimeout(timer);
-  }, [safeBooking]);
+  }, [safeBooking, forceUpdate]); // Add forceUpdate to dependency array
 
   const handleUpdateStatus = async () => {
     if (serviceCompleted === "Yes" && serviceStarted === "No") {
@@ -79,19 +90,85 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       return;
     }
 
-    if (serviceStarted === "No") {
-      await onStatusUpdate("ASSIGNED");
-    } else if (serviceCompleted === "No") {
-      await onStatusUpdate("STARTED");
-    } else if (serviceCompleted === "Yes") {
-      await onStatusUpdate("COMPLETED");
+    setLoading(true);
+    setErrorMessage("");
+
+    try {
+      const now = new Date();
+      const currentDate = now.toISOString().split("T")[0];
+      const currentTime = now.toTimeString().split(" ")[0].substring(0, 8);
+
+      let newStatus = safeBooking.bookingStatus;
+      let startedDate = localServiceStarted.date;
+      let startedTime = localServiceStarted.time;
+      let completedDate = localServiceCompleted.date;
+      let completedTime = localServiceCompleted.time;
+
+      if (
+        serviceStarted === "Yes" &&
+        safeBooking.bookingStatus !== "STARTED" &&
+        safeBooking.bookingStatus !== "COMPLETED"
+      ) {
+        newStatus = "STARTED";
+        startedDate = currentDate;
+        startedTime = currentTime;
+      } else if (
+        serviceCompleted === "Yes" &&
+        safeBooking.bookingStatus !== "COMPLETED"
+      ) {
+        newStatus = "COMPLETED";
+        completedDate = currentDate;
+        completedTime = currentTime;
+        if (serviceStarted === "No") {
+          setServiceStarted("Yes");
+          startedDate = currentDate;
+          startedTime = currentTime;
+        }
+      } else if (
+        serviceStarted === "No" &&
+        safeBooking.bookingStatus === "STARTED"
+      ) {
+        newStatus = "ASSIGNED";
+        startedDate = null;
+        startedTime = null;
+      } else if (
+        serviceCompleted === "No" &&
+        safeBooking.bookingStatus === "COMPLETED"
+      ) {
+        newStatus = "STARTED";
+        completedDate = null;
+        completedTime = null;
+      }
+
+      setLocalServiceStarted({ date: startedDate, time: startedTime });
+      setLocalServiceCompleted({ date: completedDate, time: completedTime });
+
+      await onStatusUpdate(
+        newStatus,
+        startedDate,
+        startedTime,
+        completedDate,
+        completedTime
+      );
+
+      // Force a re-render after successful update
+      setForceUpdate((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      setErrorMessage("Failed to update status. Please try again.");
+      setLocalServiceStarted({
+        date: safeBooking.serviceStartedDate,
+        time: safeBooking.serviceStartedTime,
+      });
+      setLocalServiceCompleted({
+        date: safeBooking.serviceCompletedDate,
+        time: safeBooking.serviceCompletedTime,
+      });
+    } finally {
+      setLoading(false);
     }
-
-    setErrorMessage(""); // Clear any previous error messages
   };
-
   const getHighlightStyle = (rowType) => {
-    // Define the highlight style for each row type
     const highlightStyles = {
       BOOKING_SUCCESSFUL: { borderLeft: "4px solid black" },
       CANCELLED: { borderLeft: "4px solid #B8141A" },
@@ -101,40 +178,39 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       COMPLETED: { borderLeft: "4px solid #2FB467" },
     };
 
-    // Only highlight the row if it matches the current status or scenario
     if (rowType === safeBooking.bookingStatus) {
       return highlightStyles[rowType] || {};
     }
 
-    // Highlight the rescheduled row only if the status is RESCHEDULED
     if (rowType === "RESCHEDULED" && safeBooking.rescheduleReason) {
       return highlightStyles.RESCHEDULED || {};
     }
-    // No highlight for other rows
     return {};
   };
 
-  // Helper function to format date and time
   const formatDateTime = (dateString, timeString) => {
     if (!dateString || !timeString) return "Not Assigned";
 
-    const date = new Date(`${dateString}T${timeString}`);
+    try {
+      const date = new Date(`${dateString}T${timeString}`);
+      if (isNaN(date.getTime())) return "Not Assigned";
 
-    const formattedDate = date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "2-digit",
-      year: "numeric",
-    });
-
-    const formattedTime = date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-    return `${formattedDate} | ${formattedTime}`;
+      const formattedDate = date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      });
+      const formattedTime = date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+      return `${formattedDate} | ${formattedTime}`;
+    } catch (e) {
+      return "Not Assigned";
+    }
   };
 
-  // Skeleton loader component
   const SkeletonLoader = ({
     width = "100%",
     height = "16px",
@@ -150,6 +226,75 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
         animation: "pulse 1.5s ease-in-out infinite",
       }}
     ></div>
+  );
+
+  const renderStatusDropdown = (value, onChange, disabled = false) => (
+    <div style={{ position: "relative", width: "100%" }}>
+      <select
+        onChange={(e) => {
+          const newValue = e.target.value;
+          onChange(newValue);
+
+          // Only update dates if the API call would succeed
+          if (newValue === "Yes" && !disabled) {
+            const now = new Date();
+            const currentDate = now.toISOString().split("T")[0];
+            const currentTime = now
+              .toTimeString()
+              .split(" ")[0]
+              .substring(0, 8);
+
+            if (onChange === setServiceStarted) {
+              setLocalServiceStarted({ date: currentDate, time: currentTime });
+            } else if (onChange === setServiceCompleted) {
+              setLocalServiceCompleted({
+                date: currentDate,
+                time: currentTime,
+              });
+            }
+          } else if (newValue === "No") {
+            // Clear dates when changing to "No"
+            if (onChange === setServiceStarted) {
+              setLocalServiceStarted({ date: null, time: null });
+            } else if (onChange === setServiceCompleted) {
+              setLocalServiceCompleted({ date: null, time: null });
+            }
+          }
+        }}
+        value={value}
+        disabled={disabled}
+        style={{
+          width: "100%",
+          border: "none",
+          background: "transparent",
+          fontSize: "14px",
+          outline: "none",
+          appearance: "none",
+          padding: "4px 20px 4px 8px",
+          textAlign: "center",
+          color: disabled ? "#ccc" : "inherit",
+          cursor: disabled ? "not-allowed" : "pointer",
+        }}
+      >
+        <option value="No">No</option>
+        <option value="Yes" disabled={disabled}>
+          {disabled && value === "Yes" ? "Yes (Not available yet)" : "Yes"}
+        </option>
+      </select>
+      <span
+        style={{
+          position: "absolute",
+          right: "8px",
+          top: "50%",
+          transform: "translateY(-50%)",
+          pointerEvents: "none",
+          fontSize: "10px",
+          color: disabled ? "#ccc" : "inherit",
+        }}
+      >
+        ▼
+      </span>
+    </div>
   );
 
   return (
@@ -171,7 +316,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
         }}
       >
         <h5 style={{ paddingLeft: "20px" }}>Status update</h5>
-        <div className="p-3 mt-2 ">
+        <div className="p-3 mt-2">
           <table
             className="table w-100"
             style={{
@@ -232,7 +377,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                   style={{
                     backgroundColor: "#FAFAFA",
                     border: "1px solid #E6E6E6",
-                    width: "60px",
+                    width: "80px",
                   }}
                 ></td>
               </tr>
@@ -320,6 +465,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                     style={{
                       backgroundColor: "#FAFAFA",
                       border: "1px solid #E6E6E6",
+                      width: "80px",
                     }}
                   ></td>
                 </tr>
@@ -393,7 +539,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                     style={{
                       backgroundColor: "#FAFAFA",
                       border: "1px solid #E6E6E6",
-                      width: "60px",
+                      width: "80px",
                     }}
                   ></td>
                 </tr>
@@ -454,7 +600,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                   style={{
                     backgroundColor: "#FAFAFA",
                     border: "1px solid #E6E6E6",
-                    width: "60px",
+                    width: "80px",
                   }}
                 ></td>
               </tr>
@@ -489,8 +635,8 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                       <span style={{ color: "grey" }}>
                         {serviceStarted === "Yes"
                           ? formatDateTime(
-                              safeBooking.serviceStartedDate,
-                              safeBooking.serviceStartedTime
+                              localServiceStarted.date,
+                              localServiceStarted.time
                             )
                           : "Not Assigned"}
                       </span>
@@ -516,47 +662,19 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                   style={{
                     backgroundColor: "#FAFAFA",
                     border: "1px solid #E6E6E6",
-                    width: "60px",
+                    width: "80px",
+                    padding: "0 8px",
                   }}
                 >
                   {isLoading ? (
                     <SkeletonLoader width="40px" height="24px" />
                   ) : safeBooking.bookingStatus !== "CANCELLED" &&
                     safeBooking.bookingStatus !== "COMPLETED" ? (
-                    <span
-                      style={{
-                        position: "relative",
-                        display: "inline-block",
-                        width: "100%",
-                      }}
-                    >
-                      <select
-                        onChange={(e) => setServiceStarted(e.target.value)}
-                        value={serviceStarted}
-                        style={{
-                          border: "none",
-                          background: "transparent",
-                          fontSize: "14px",
-                          outline: "none",
-                          appearance: "none", // Hides default arrow
-                          paddingRight: "20px",
-                        }}
-                      >
-                        <option value="No">No</option>
-                        <option value="Yes">Yes</option>
-                      </select>
-                      <span
-                        style={{
-                          position: "absolute",
-                          right: "12px",
-                          top: "50%",
-                          transform: "translateY(-50%)",
-                          pointerEvents: "none",
-                        }}
-                      >
-                        ▼
-                      </span>
-                    </span>
+                    renderStatusDropdown(
+                      serviceStarted,
+                      setServiceStarted,
+                      false
+                    )
                   ) : (
                     <span
                       style={{
@@ -601,8 +719,8 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                       <span style={{ color: "grey" }}>
                         {serviceCompleted === "Yes"
                           ? formatDateTime(
-                              safeBooking.serviceCompletedDate,
-                              safeBooking.serviceCompletedTime
+                              localServiceCompleted.date,
+                              localServiceCompleted.time
                             )
                           : "Not Assigned"}
                       </span>
@@ -632,71 +750,35 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                   )}
                 </td>
 
-                {safeBooking.status !== "COMPLETED" && (
-                  <td
-                    className="text-center"
-                    style={{
-                      backgroundColor: "#FAFAFA",
-                      border: "1px solid #E6E6E6",
-                      width: "80px",
-                    }}
-                  >
-                    {isLoading ? (
-                      <SkeletonLoader width="40px" height="24px" />
-                    ) : safeBooking.bookingStatus !== "CANCELLED" ? (
-                      <span
-                        style={{
-                          position: "relative",
-                          display: "inline-block",
-                          width: "100%",
-                        }}
-                      >
-                        <select
-                          onChange={(e) => setServiceCompleted(e.target.value)}
-                          value={serviceCompleted}
-                          disabled={isServiceDateFuture}
-                          style={{
-                            border: "none",
-                            background: "transparent",
-                            fontSize: "14px",
-                            outline: "none",
-                            appearance: "none",
-                            paddingRight: "20px",
-                            color: isServiceDateFuture ? "#ccc" : "inherit",
-                          }}
-                        >
-                          <option value="No">No</option>
-                          <option value="Yes" disabled={isServiceDateFuture}>
-                            {isServiceDateFuture
-                              ? "Yes (Not available yet)"
-                              : "Yes"}
-                          </option>
-                        </select>
-                        <span
-                          style={{
-                            position: "absolute",
-                            right: "12px",
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            pointerEvents: "none",
-                          }}
-                        >
-                          ▼
-                        </span>
-                      </span>
-                    ) : (
-                      <span
-                        style={{
-                          visibility: "hidden",
-                          width: "100%",
-                          display: "inline-block",
-                        }}
-                      >
-                        -
-                      </span>
-                    )}
-                  </td>
-                )}
+                <td
+                  className="text-center"
+                  style={{
+                    backgroundColor: "#FAFAFA",
+                    border: "1px solid #E6E6E6",
+                    width: "80px",
+                    padding: "0 8px",
+                  }}
+                >
+                  {isLoading ? (
+                    <SkeletonLoader width="40px" height="24px" />
+                  ) : safeBooking.bookingStatus !== "CANCELLED" ? (
+                    renderStatusDropdown(
+                      serviceCompleted,
+                      setServiceCompleted,
+                      isServiceDateFuture
+                    )
+                  ) : (
+                    <span
+                      style={{
+                        visibility: "hidden",
+                        width: "100%",
+                        display: "inline-block",
+                      }}
+                    >
+                      -
+                    </span>
+                  )}
+                </td>
               </tr>
 
               {/* Update Button Row */}
@@ -715,11 +797,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                   ) : (
                     <button
                       className="btn btn-primary"
-                      onClick={
-                        safeBooking.bookingStatus !== "CANCELLED"
-                          ? handleClick
-                          : undefined
-                      }
+                      onClick={handleUpdateStatus}
                       disabled={
                         safeBooking.bookingStatus === "CANCELLED" || loading
                       }
@@ -773,12 +851,12 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       </div>
       <style>
         {`
-         @keyframes pulse {
-           0% { opacity: 0.6; }
-           50% { opacity: 0.3; }
-           100% { opacity: 0.6; }
-         }
-       `}
+        @keyframes pulse {
+          0% { opacity: 0.6; }
+          50% { opacity: 0.3; }
+          100% { opacity: 0.6; }
+        }
+      `}
       </style>
     </div>
   );

@@ -24,33 +24,15 @@ const ViewBookings = () => {
   const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
   const [isCancelHovered, setIsCancelHovered] = useState(false);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
-  const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [showCancelBookingModal, setShowCancelBookingModal] = useState(false);
-  const [selectedBookingIdForCancellation, setSelectedBookingIdForCancellation] = useState(null);
-  const [refresh, setRefresh] = useState(false);
   const [showFullComment, setShowFullComment] = useState(false);
   const [currentComment, setCurrentComment] = useState("");
   const [workerError, setWorkerError] = useState(null);
   const [allWorkers, setAllWorkers] = useState([]);
-
-  const handleStatusUpdate = async (status) => {
-    try {
-      const response = await api.put(
-        `/booking/update-status/${id}?status=${status}`
-      );
-      if (response.status === 200) {
-        setBooking((prev) => ({ ...prev, bookingStatus: status }));
-        alert(`Booking status updated to ${status}`);
-      } else {
-        alert("Failed to update booking status");
-      }
-    } catch (error) {
-      console.error("Error updating booking status:", error);
-      alert("Network error while updating booking status.");
-    }
-  };
+  const [refresh, setRefresh] = useState(false);
 
   const formatDate = (dateString) => {
+    if (!dateString) return "Not Assigned";
     const date = new Date(dateString);
     return date.toLocaleString("default", {
       month: "short",
@@ -79,7 +61,9 @@ const ViewBookings = () => {
         setWorker(data.worker);
       } else if (data.workerId) {
         try {
-          const workerResponse = await api.get(`/workers/view/${data.workerId}`);
+          const workerResponse = await api.get(
+            `/workers/view/${data.workerId}`
+          );
           if (workerResponse.data && workerResponse.data.active) {
             setWorker(workerResponse.data);
             setWorkerError(null);
@@ -119,10 +103,18 @@ const ViewBookings = () => {
   };
 
   const saveNotes = async () => {
+    const trimmedNotes = notes.trim();
+
+    if (!trimmedNotes) {
+      alert("Please enter some notes before saving"); // Show alert instead of setting validation error
+      return;
+    }
+
     setSaving(true);
+
     try {
       await api.patch(
-        `/booking/update-notes/${id}?notes=${encodeURIComponent(notes)}`
+        `/booking/update-notes/${id}?notes=${encodeURIComponent(trimmedNotes)}`
       );
       alert("Notes saved successfully ✅");
       setIsEditing(false);
@@ -134,38 +126,82 @@ const ViewBookings = () => {
     }
   };
 
-  const handleRescheduleButtonClick = (bookingId) => {
-    setSelectedBookingId(bookingId);
+  const handleStatusUpdate = async (
+    newStatus,
+    startedDate,
+    startedTime,
+    completedDate,
+    completedTime
+  ) => {
+    try {
+      // Prepare the data to send to the backend
+      const updateData = {
+        status: newStatus,
+        serviceStartedDate: startedDate,
+        serviceStartedTime: startedTime,
+        serviceCompletedDate: completedDate,
+        serviceCompletedTime: completedTime,
+      };
+
+      const response = await api.put(
+        `/booking/update-status/${id}?status=${newStatus}` +
+          `&serviceStartedDate=${startedDate}&serviceStartedTime=${startedTime}` +
+          `&serviceCompletedDate=${completedDate}&serviceCompletedTime=${completedTime}`
+      );
+
+      if (response.status === 200) {
+        // Update local state with the new status and dates
+        setBooking((prev) => ({
+          ...prev,
+          bookingStatus: newStatus,
+          serviceStartedDate: startedDate,
+          serviceStartedTime: startedTime,
+          serviceCompletedDate: completedDate,
+          serviceCompletedTime: completedTime,
+        }));
+
+        // If status changed to COMPLETED and worker exists, increment their completed count
+        if (newStatus === "COMPLETED" && worker) {
+          setWorker((prev) => ({
+            ...prev,
+            totalWorkAssigned: (prev.totalWorkAssigned || 0) + 1,
+          }));
+        }
+
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error updating status:", error);
+      throw error;
+    }
+  };
+
+  const handleRescheduleButtonClick = () => {
     setIsRescheduleModalOpen(true);
   };
 
   const closeRescheduleModal = () => {
     setIsRescheduleModalOpen(false);
-    setSelectedBookingId(null);
   };
 
   const handleRescheduleSuccess = () => {
     closeRescheduleModal();
-    setRefresh(!refresh);
+    setRefresh(!refresh); // Trigger a refresh of booking data
   };
 
-  const handleCancelBookingButtonClick = (bookingId) => {
-    setSelectedBookingIdForCancellation(bookingId);
+  const handleCancelBookingButtonClick = () => {
     setShowCancelBookingModal(true);
   };
 
   const handleCancelBookingSuccess = () => {
     setShowCancelBookingModal(false);
-    setSelectedBookingIdForCancellation(null);
-    setRefresh(!refresh);
+    setRefresh(!refresh); // Trigger a refresh of booking data
   };
 
   const handleViewWorkerProfile = async (e, workerId) => {
     e.preventDefault();
-    
-    // Check if worker exists in the allWorkers list
-    const workerExists = allWorkers.some(w => w.id === workerId && w.active);
-    
+    const workerExists = allWorkers.some((w) => w.id === workerId && w.active);
     if (!workerExists || workerError) {
       alert("This worker profile is no longer available");
     } else {
@@ -206,44 +242,46 @@ const ViewBookings = () => {
                 Service Details
               </div>
             </div>
-            {!loading && booking && !["CANCELLED", "COMPLETED"].includes(booking.bookingStatus) && (
-              <div
-                className="d-flex gap-3 p-2"
-                style={{ marginRight: "300px" }}
-              >
-                <button
-                  className="btn btn-outline-primary"
-                  onClick={() => handleRescheduleButtonClick(id)}
-                  onMouseEnter={() => setIsRescheduleHovered(true)}
-                  onMouseLeave={() => setIsRescheduleHovered(false)}
-                  style={{
-                    border: "1px solid #0076CE",
-                    backgroundColor: isRescheduleHovered
-                      ? "#0076CE"
-                      : "transparent",
-                    color: isRescheduleHovered ? "white" : "#0076CE",
-                  }}
+            {!loading &&
+              booking &&
+              !["CANCELLED", "COMPLETED"].includes(booking.bookingStatus) && (
+                <div
+                  className="d-flex gap-3 p-2"
+                  style={{ marginRight: "300px" }}
                 >
-                  Reschedule
-                </button>
-                <button
-                  className="btn btn-outline-danger"
-                  onClick={() => handleCancelBookingButtonClick(id)}
-                  onMouseEnter={() => setIsCancelHovered(true)}
-                  onMouseLeave={() => setIsCancelHovered(false)}
-                  style={{
-                    border: "1px solid #B8141A",
-                    backgroundColor: isCancelHovered
-                      ? "#B8141A"
-                      : "transparent",
-                    color: isCancelHovered ? "white" : "#B8141A",
-                    transition: "all 0.3s ease-in-out",
-                  }}
-                >
-                  Cancel Service
-                </button>
-              </div>
-            )}
+                  <button
+                    className="btn btn-outline-primary"
+                    onClick={handleRescheduleButtonClick}
+                    onMouseEnter={() => setIsRescheduleHovered(true)}
+                    onMouseLeave={() => setIsRescheduleHovered(false)}
+                    style={{
+                      border: "1px solid #0076CE",
+                      backgroundColor: isRescheduleHovered
+                        ? "#0076CE"
+                        : "transparent",
+                      color: isRescheduleHovered ? "white" : "#0076CE",
+                    }}
+                  >
+                    Reschedule
+                  </button>
+                  <button
+                    className="btn btn-outline-danger"
+                    onClick={handleCancelBookingButtonClick}
+                    onMouseEnter={() => setIsCancelHovered(true)}
+                    onMouseLeave={() => setIsCancelHovered(false)}
+                    style={{
+                      border: "1px solid #B8141A",
+                      backgroundColor: isCancelHovered
+                        ? "#B8141A"
+                        : "transparent",
+                      color: isCancelHovered ? "white" : "#B8141A",
+                      transition: "all 0.3s ease-in-out",
+                    }}
+                  >
+                    Cancel Service
+                  </button>
+                </div>
+              )}
           </div>
           <div className="container mt-5 pt-4">
             <div className="row justify-content-between p-3 mt-5">
@@ -429,9 +467,7 @@ const ViewBookings = () => {
                       />
                     </div>
                   ) : workerError ? (
-                    <div className="alert alert-warning">
-                      {workerError}
-                    </div>
+                    <div className="alert alert-warning">{workerError}</div>
                   ) : worker ? (
                     <>
                       <div className="d-flex align-items-center">
@@ -542,8 +578,8 @@ const ViewBookings = () => {
                             whiteSpace: "normal",
                           }}
                         >
-                          {feedback.comment.split(' ').slice(0, 8).join(' ')}
-                          {feedback.comment.split(' ').length > 8 && (
+                          {feedback.comment.split(" ").slice(0, 8).join(" ")}
+                          {feedback.comment.split(" ").length > 8 && (
                             <>
                               ...{" "}
                               <span
@@ -618,27 +654,52 @@ const ViewBookings = () => {
                 )}
               </div>
 
-              {/* Status Management - No skeleton loading */}
+              {/* Status Management */}
               <div className="col-6">
-                <ManageStatus
-                  booking={booking}
-                  onStatusUpdate={handleStatusUpdate}
-                />
+                {loading ? (
+                  <div
+                    className="card rounded p-4"
+                    style={{ marginTop: "47px", minHeight: "300px" }}
+                  >
+                    <Skeleton
+                      height={30}
+                      width="40%"
+                      style={{ marginBottom: "20px" }}
+                    />
+                    <Skeleton
+                      count={5}
+                      height={50}
+                      style={{ marginBottom: "10px" }}
+                    />
+                    <Skeleton
+                      height={40}
+                      width="100%"
+                      style={{ marginTop: "20px" }}
+                    />
+                  </div>
+                ) : (
+                  <ManageStatus
+                    booking={booking}
+                    onStatusUpdate={handleStatusUpdate}
+                    onReschedule={handleRescheduleButtonClick}
+                    onCancel={handleCancelBookingButtonClick}
+                  />
+                )}
               </div>
             </div>
 
             {/* Modals */}
-            {isRescheduleModalOpen && selectedBookingId && (
+            {isRescheduleModalOpen && (
               <Reschedule
-                id={selectedBookingId}
+                id={id}
                 booking={booking}
                 onClose={closeRescheduleModal}
                 onReschedule={handleRescheduleSuccess}
               />
             )}
-            {showCancelBookingModal && selectedBookingIdForCancellation && (
+            {showCancelBookingModal && (
               <CancelBooking
-                id={selectedBookingIdForCancellation}
+                id={id}
                 booking={booking}
                 onClose={() => setShowCancelBookingModal(false)}
                 onCancelSuccess={handleCancelBookingSuccess}

@@ -36,6 +36,7 @@ const AddWorker = () => {
   const [previewImage, setPreviewImage] = useState(addWorker);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isDrivingLicenseFocused, setIsDrivingLicenseFocused] = useState(false);
 
   // Language options for dropdown
   const languageOptions = [
@@ -75,6 +76,7 @@ const AddWorker = () => {
     setPreviewImage(addWorker);
     setClickedButtons({});
     setErrors({});
+    setIsDrivingLicenseFocused(false);
   };
 
   const validateName = (name) => {
@@ -117,7 +119,8 @@ const AddWorker = () => {
   };
 
   const validateDrivingLicense = (license) => {
-    const regex = /^[A-Z]{2}-\d{12}$/;
+    if (!license) return true; // Optional field
+    const regex = /^DL-[a-zA-Z0-9]{15}$/;
     return regex.test(license);
   };
 
@@ -195,7 +198,7 @@ const AddWorker = () => {
         break;
       case "drivingLicenseNumber":
         if (value && !validateDrivingLicense(value)) {
-          error = "License should be in format DL-123456789012";
+          error = "License should be in format DL- followed by 13 alphanumeric characters";
         }
         break;
       case "dateOfBirth":
@@ -213,6 +216,40 @@ const AddWorker = () => {
       ...prevState,
       [name]: value,
     }));
+  };
+
+  const handleDrivingLicenseChange = (e) => {
+    const { value } = e.target;
+    let processedValue = value;
+    
+    // If the field is focused or has value, ensure it starts with DL-
+    if (isDrivingLicenseFocused || value) {
+      if (!value.startsWith("DL-")) {
+        processedValue = "DL-" + value.replace(/^DL-/, '').replace(/[^a-zA-Z0-9]/g, '');
+      } else {
+        processedValue = "DL-" + value.substring(3).replace(/[^a-zA-Z0-9]/g, '');
+      }
+      
+      // Limit to 15 characters after DL-
+      if (processedValue.length > 18) {
+        processedValue = processedValue.substring(0, 18);
+      }
+    }
+  
+    setFormData((prevState) => ({
+      ...prevState,
+      drivingLicenseNumber: processedValue,
+    }));
+  
+    // Validate
+    if (processedValue && !validateDrivingLicense(processedValue)) {
+      setErrors((prev) => ({
+        ...prev,
+        drivingLicenseNumber: "License should be in format DL- followed by 15 alphanumeric characters",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, drivingLicenseNumber: "" }));
+    }
   };
 
   const handleLanguageChange = (selectedOptions) => {
@@ -373,7 +410,7 @@ const AddWorker = () => {
       !validateDrivingLicense(formData.drivingLicenseNumber)
     ) {
       newErrors.drivingLicenseNumber =
-        "License should be in format DL-123456789012";
+        "License should be in format DL- followed by 13 alphanumeric characters";
       isValid = false;
     }
 
@@ -791,7 +828,6 @@ const AddWorker = () => {
                   "Switch & Socket",
                   "Wiring",
                   "Doorbell",
-                  "Appliance",
                   "MCB & Submeter",
                   "Light and Wall light",
                   "CCTV",
@@ -1062,9 +1098,20 @@ const AddWorker = () => {
                   }`}
                   name="drivingLicenseNumber"
                   id="drivingLicenseNumber"
-                  placeholder="DL-123456789012"
-                  onChange={handleChange}
+                  placeholder="DL-YYXXXXXXXXXXXXX"
+                  onChange={handleDrivingLicenseChange}
+                  onFocus={() => {
+                    setIsDrivingLicenseFocused(true);
+                    if (!formData.drivingLicenseNumber) {
+                      setFormData(prev => ({
+                        ...prev,
+                        drivingLicenseNumber: "DL-"
+                      }));
+                    }
+                  }}
+                  onBlur={() => setIsDrivingLicenseFocused(false)}
                   value={formData.drivingLicenseNumber}
+                  maxLength="18"
                 />
                 {errors.drivingLicenseNumber && (
                   <div className="invalid-feedback">
