@@ -158,7 +158,7 @@ const Worker = () => {
   // Function to render stars based on rating
   const renderStars = (rating) => {
     if (rating === null || rating === undefined) return "N/A";
-   
+
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
@@ -326,33 +326,30 @@ const Worker = () => {
             <div className="row">
               <div className="d-flex mt-3 pb-2">
                 <p
-                  className={`px-4 pb-2 ${
-                    activeTab === "serviceDetails"
+                  className={`px-4 pb-2 ${activeTab === "serviceDetails"
                       ? "border-bottom border-3 border-dark"
                       : ""
-                  }`}
+                    }`}
                   onClick={() => setActiveTab("serviceDetails")}
                   style={{ cursor: "pointer" }}
                 >
                   Service Details
                 </p>
                 <p
-                  className={`mx-1 px-4 pb-2 ${
-                    activeTab === "inProgress"
+                  className={`mx-1 px-4 pb-2 ${activeTab === "inProgress"
                       ? "border-bottom border-3 border-dark"
                       : ""
-                  }`}
+                    }`}
                   onClick={() => setActiveTab("inProgress")}
                   style={{ cursor: "pointer" }}
                 >
                   In Progress
                 </p>
                 <p
-                  className={`px-4 pb-2 ${
-                    activeTab === "reviews"
+                  className={`px-4 pb-2 ${activeTab === "reviews"
                       ? "border-bottom border-3 border-dark"
                       : ""
-                  }`}
+                    }`}
                   onClick={() => setActiveTab("reviews")}
                   style={{ cursor: "pointer" }}
                 >
@@ -433,18 +430,18 @@ const Worker = () => {
                                 {item.date} <br /> {item.status}
                               </td>
                               <td>
-              {ratings[item.id] !== null ? (
-                ratings[item.id] !== undefined ? (
-                  <>
-                    <i className="bi bi-star-fill text-warning"></i> {ratings[item.id]}
-                  </>
-                ) : (
-                  <Skeleton width={25} />
-                )
-              ) : (
-                "N/A"
-              )}
-            </td>
+                                {ratings[item.id] !== null ? (
+                                  ratings[item.id] !== undefined ? (
+                                    <>
+                                      <i className="bi bi-star-fill text-warning"></i> {ratings[item.id]}
+                                    </>
+                                  ) : (
+                                    <Skeleton width={25} />
+                                  )
+                                ) : (
+                                  "N/A"
+                                )}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
