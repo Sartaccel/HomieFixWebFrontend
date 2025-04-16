@@ -99,13 +99,10 @@ const AssignBookings = () => {
         });
         const data = response.data;
 
-
         // Check if booking is expired
         const expired = isBookingExpired(data.bookedDate);
         setIsExpired(expired);
 
-
-        // Rest of your existing code...
         if (data.bookedDate && data.timeSlot) {
           setRescheduledDate(data.rescheduledDate || data.bookedDate);
           setRescheduledTimeSlot(
@@ -567,7 +564,7 @@ const AssignBookings = () => {
                     <>
                       <textarea
                         id="notes"
-                        className="form-control"
+                        className="form-control shadow-none"
                         placeholder="Notes"
                         rows="8"
                         value={notes}
