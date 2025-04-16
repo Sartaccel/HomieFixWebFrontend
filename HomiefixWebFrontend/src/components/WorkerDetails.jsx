@@ -27,7 +27,7 @@ const WorkerDetails = ({ token, setToken }) => {
         setWorkers(data);
       } catch (error) {
         console.error("Error fetching worker data:", error);
-       
+
         if (error.message === "Network Error") {
           setError("No internet connection. Please check your network and try again.");
         } else if (error.response?.status === 403) {
