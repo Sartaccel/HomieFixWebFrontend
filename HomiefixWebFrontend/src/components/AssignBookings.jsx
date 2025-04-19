@@ -902,7 +902,6 @@ const AssignBookings = () => {
   );
 };
 
-
 export default AssignBookings;
 
 
