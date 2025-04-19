@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import closeDate from "../assets/close date.png"; // Import the close date icon
+import closeDate from "../assets/close date.png";
 import Reschedule from "./Reschedule";
 import CancelBooking from "./CancelBooking";
 import "../styles/AssignBookings.css";
@@ -903,5 +903,3 @@ const AssignBookings = () => {
 };
 
 export default AssignBookings;
-
-
