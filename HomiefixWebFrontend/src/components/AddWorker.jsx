@@ -198,7 +198,8 @@ const AddWorker = () => {
         break;
       case "drivingLicenseNumber":
         if (value && !validateDrivingLicense(value)) {
-          error = "License should be in format DL- followed by 13 alphanumeric characters";
+          error =
+            "License should be in format DL- followed by 13 alphanumeric characters";
         }
         break;
       case "dateOfBirth":
@@ -221,31 +222,34 @@ const AddWorker = () => {
   const handleDrivingLicenseChange = (e) => {
     const { value } = e.target;
     let processedValue = value;
-    
+
     // If the field is focused or has value, ensure it starts with DL-
     if (isDrivingLicenseFocused || value) {
       if (!value.startsWith("DL-")) {
-        processedValue = "DL-" + value.replace(/^DL-/, '').replace(/[^a-zA-Z0-9]/g, '');
+        processedValue =
+          "DL-" + value.replace(/^DL-/, "").replace(/[^a-zA-Z0-9]/g, "");
       } else {
-        processedValue = "DL-" + value.substring(3).replace(/[^a-zA-Z0-9]/g, '');
+        processedValue =
+          "DL-" + value.substring(3).replace(/[^a-zA-Z0-9]/g, "");
       }
-      
+
       // Limit to 15 characters after DL-
       if (processedValue.length > 18) {
         processedValue = processedValue.substring(0, 18);
       }
     }
-  
+
     setFormData((prevState) => ({
       ...prevState,
       drivingLicenseNumber: processedValue,
     }));
-  
+
     // Validate
     if (processedValue && !validateDrivingLicense(processedValue)) {
       setErrors((prev) => ({
         ...prev,
-        drivingLicenseNumber: "License should be in format DL- followed by 15 alphanumeric characters",
+        drivingLicenseNumber:
+          "License should be in format DL- followed by 15 alphanumeric characters",
       }));
     } else {
       setErrors((prev) => ({ ...prev, drivingLicenseNumber: "" }));
@@ -312,12 +316,18 @@ const AddWorker = () => {
     const newErrors = {};
     let isValid = true;
 
+    // Add job title validation
+    if (formData.specification.length === 0) {
+      newErrors.jobTitle = "Please select at least one job title";
+      isValid = false;
+    }
+
     // Required fields validation
     if (!formData.name.trim()) {
       newErrors.name = "Full Name is required";
       isValid = false;
     } else if (!validateName(formData.name)) {
-      newErrors.name = "Name should only contain alphabets and spaces";
+      newErrors.name = "Name should contain only alphabets and spaces";
       isValid = false;
     }
 
@@ -429,6 +439,17 @@ const AddWorker = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+
+    // Validate job titles first
+    if (formData.specification.length === 0) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Please select at least one job title before submitting.",
+      });
+      setIsLoading(false);
+      return;
+    }
 
     if (!validateForm()) {
       setIsLoading(false);
@@ -785,6 +806,9 @@ const AddWorker = () => {
             {/* Job Title Section */}
             <div className="row mt-4">
               <p className="fw-bold">Job title</p>
+              {errors.jobTitle && (
+                <div className="text-danger small">{errors.jobTitle}</div>
+              )}
             </div>
 
             {/* Home Appliances */}
@@ -911,9 +935,9 @@ const AddWorker = () => {
                 {[
                   "Batteries",
                   "Health checkup",
-                  "Wash & Cleaning",
+                  "Water Wash",
                   "Denting & Painting",
-                  "Wheel car",
+                  "Tyre Service",
                   "Vehicle AC",
                 ].map((item) => (
                   <button
@@ -1103,9 +1127,9 @@ const AddWorker = () => {
                   onFocus={() => {
                     setIsDrivingLicenseFocused(true);
                     if (!formData.drivingLicenseNumber) {
-                      setFormData(prev => ({
+                      setFormData((prev) => ({
                         ...prev,
-                        drivingLicenseNumber: "DL-"
+                        drivingLicenseNumber: "DL-",
                       }));
                     }
                   }}

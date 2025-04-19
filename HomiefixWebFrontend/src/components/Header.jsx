@@ -11,16 +11,14 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [profilePhoto, setProfilePhoto] = useState(profile); // Start with default image
+  const [profilePhoto, setProfilePhoto] = useState(profile);
   const popupRef = useRef(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [currentUsername, setCurrentUsername] = useState("");
 
   const getHeading = () => {
-    if (location.pathname.startsWith("/booking-details"))
-      return "Booking Details";
-    if (location.pathname.startsWith("/worker-details"))
-      return "Worker Details";
+    if (location.pathname.startsWith("/booking-details")) return "Booking Details";
+    if (location.pathname.startsWith("/worker-details")) return "Worker Details";
     if (location.pathname.startsWith("/services")) return "Services";
     if (location.pathname.startsWith("/reviews")) return "Reviews";
     if (location.pathname.startsWith("/profile")) return "Profile";
@@ -39,20 +37,18 @@ const Header = () => {
     }
   };
 
-  // Fetch current user's profile photo
   const fetchProfilePhoto = async (username) => {
     try {
       if (username) {
         const response = await api.get(`/admin/${username}`);
         if (response.data.profilePicUrl) {
-          // Store in sessionStorage instead of localStorage
           sessionStorage.setItem(`profilePhoto_${username}`, response.data.profilePicUrl);
           setProfilePhoto(response.data.profilePicUrl);
         }
       }
     } catch (error) {
       console.error("Error fetching profile photo:", error);
-      setProfilePhoto(profile); // Fallback to default image
+      setProfilePhoto(profile);
     }
   };
 
@@ -81,12 +77,24 @@ const Header = () => {
       }
     }
 
+    // Add event listener for profile updates
+    const handleProfileUpdate = (e) => {
+      if (e.detail.username === username) {
+        fetchProfilePhoto(username);
+      }
+    };
+
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+
     const interval = setInterval(() => {
       fetchUnreadCount();
     }, 30000);
 
-    return () => clearInterval(interval);
-  }, [location.pathname]); // Add dependency to detect route changes
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('profileUpdated', handleProfileUpdate);
+    };
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {

@@ -6,7 +6,7 @@ import addWorker from "../assets/addWorker.png";
 import "../styles/AddWorker.css";
 import Header from "./Header";
 import api from "../api";
-import Select from 'react-select';
+import Select from "react-select";
 
 const EditWorker = () => {
   const { id } = useParams();
@@ -43,7 +43,7 @@ const EditWorker = () => {
   const languageOptions = [
     { value: "Tamil", label: "Tamil" },
     { value: "English", label: "English" },
-    { value: "Hindi", label: "Hindi" }
+    { value: "Hindi", label: "Hindi" },
   ];
 
   // Validation functions
@@ -110,7 +110,9 @@ const EditWorker = () => {
         setFormData({
           ...data,
           role: data.role ? data.role.split(",") : [],
-          specification: data.specification ? data.specification.split(",") : [],
+          specification: data.specification
+            ? data.specification.split(",")
+            : [],
           language: data.language ? data.language.split(",") : [],
           econtactNumber: data.eContactNumber || "",
         });
@@ -143,45 +145,47 @@ const EditWorker = () => {
 
   const handleDrivingLicenseChange = (e) => {
     const { value } = e.target;
-    
+
     // Allow complete clearing of the field
     if (value === "DL-" || value === "") {
-      setFormData(prevState => ({
+      setFormData((prevState) => ({
         ...prevState,
-        drivingLicenseNumber: ""
+        drivingLicenseNumber: "",
       }));
-      setErrors(prev => ({ ...prev, drivingLicenseNumber: "" }));
+      setErrors((prev) => ({ ...prev, drivingLicenseNumber: "" }));
       return;
     }
 
     // Process the input value
     let processedValue = value;
-    
+
     // Ensure it starts with DL- if there's any content
     if (!value.startsWith("DL-")) {
-      processedValue = "DL-" + value.replace(/^DL-/, '').replace(/[^a-zA-Z0-9]/g, '');
+      processedValue =
+        "DL-" + value.replace(/^DL-/, "").replace(/[^a-zA-Z0-9]/g, "");
     } else {
-      processedValue = "DL-" + value.substring(3).replace(/[^a-zA-Z0-9]/g, '');
+      processedValue = "DL-" + value.substring(3).replace(/[^a-zA-Z0-9]/g, "");
     }
-    
+
     // Limit to 15 characters after DL-
     if (processedValue.length > 18) {
       processedValue = processedValue.substring(0, 18);
     }
 
-    setFormData(prevState => ({
+    setFormData((prevState) => ({
       ...prevState,
-      drivingLicenseNumber: processedValue
+      drivingLicenseNumber: processedValue,
     }));
 
     // Validate
     if (processedValue && !validateDrivingLicense(processedValue)) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        drivingLicenseNumber: "License should be in format DL- followed by 15 alphanumeric characters"
+        drivingLicenseNumber:
+          "License should be in format DL- followed by 15 alphanumeric characters",
       }));
     } else {
-      setErrors(prev => ({ ...prev, drivingLicenseNumber: "" }));
+      setErrors((prev) => ({ ...prev, drivingLicenseNumber: "" }));
     }
   };
 
@@ -268,15 +272,15 @@ const EditWorker = () => {
   };
 
   const handleLanguageChange = (selectedOptions) => {
-    const languages = selectedOptions.map(option => option.value);
-    setFormData(prevState => ({
+    const languages = selectedOptions.map((option) => option.value);
+    setFormData((prevState) => ({
       ...prevState,
-      language: languages
+      language: languages,
     }));
-    
+
     // Clear error when languages are selected
     if (selectedOptions.length > 0) {
-      setErrors(prev => ({ ...prev, language: "" }));
+      setErrors((prev) => ({ ...prev, language: "" }));
     }
   };
 
@@ -315,12 +319,18 @@ const EditWorker = () => {
     const newErrors = {};
     let isValid = true;
 
+    // Add job title validation
+    if (formData.specification.length === 0) {
+      newErrors.jobTitle = "Please select at least one job title";
+      isValid = false;
+    }
+
     // Required fields validation
     if (!formData.name.trim()) {
       newErrors.name = "Full Name is required";
       isValid = false;
     } else if (!validateName(formData.name)) {
-      newErrors.name = "Name should only contain alphabets and spaces";
+      newErrors.name = "Name should contain only alphabets and spaces";
       isValid = false;
     }
 
@@ -395,8 +405,12 @@ const EditWorker = () => {
       isValid = false;
     }
 
-    if (formData.drivingLicenseNumber && !validateDrivingLicense(formData.drivingLicenseNumber)) {
-      newErrors.drivingLicenseNumber = "License should be in format DL- followed by 15 alphanumeric characters";
+    if (
+      formData.drivingLicenseNumber &&
+      !validateDrivingLicense(formData.drivingLicenseNumber)
+    ) {
+      newErrors.drivingLicenseNumber =
+        "License should be in format DL- followed by 15 alphanumeric characters";
       isValid = false;
     }
 
@@ -415,6 +429,17 @@ const EditWorker = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+
+    // Validate job titles first
+    if (formData.specification.length === 0) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Please select at least one job title before submitting.",
+      });
+      setIsLoading(false);
+      return;
+    }
 
     if (!validateForm()) {
       setIsLoading(false);
@@ -473,7 +498,7 @@ const EditWorker = () => {
   // Style for required field asterisk
   const requiredFieldStyle = {
     color: "#B8141A",
-    marginLeft: "2px"
+    marginLeft: "2px",
   };
 
   return (
@@ -520,7 +545,9 @@ const EditWorker = () => {
             className="container mt-4"
             style={{ marginLeft: "64px", maxWidth: "100%" }}
           >
-            <p>Profile Photo <span style={requiredFieldStyle}>*</span></p>
+            <p>
+              Profile Photo <span style={requiredFieldStyle}>*</span>
+            </p>
             <div>
               <img
                 src={previewImage}
@@ -638,7 +665,9 @@ const EditWorker = () => {
                   maxLength="10"
                 />
                 {errors.econtactNumber && (
-                  <div className="invalid-feedback">{errors.econtactNumber}</div>
+                  <div className="invalid-feedback">
+                    {errors.econtactNumber}
+                  </div>
                 )}
               </div>
             </div>
@@ -652,10 +681,12 @@ const EditWorker = () => {
                 <Select
                   isMulti
                   options={languageOptions}
-                  className={`basic-multi-select ${errors.language ? "is-invalid" : ""}`}
+                  className={`basic-multi-select ${
+                    errors.language ? "is-invalid" : ""
+                  }`}
                   classNamePrefix="select"
                   onChange={handleLanguageChange}
-                  value={languageOptions.filter(option => 
+                  value={languageOptions.filter((option) =>
                     formData.language.includes(option.value)
                   )}
                 />
@@ -680,7 +711,9 @@ const EditWorker = () => {
                   value={formData.workExperience}
                 />
                 {errors.workExperience && (
-                  <div className="invalid-feedback">{errors.workExperience}</div>
+                  <div className="invalid-feedback">
+                    {errors.workExperience}
+                  </div>
                 )}
               </div>
               <div className="col-md-3">
@@ -742,6 +775,9 @@ const EditWorker = () => {
             {/* Job Title Section */}
             <div className="row mt-4">
               <p className="fw-bold">Job title</p>
+              {errors.jobTitle && (
+                <div className="text-danger small">{errors.jobTitle}</div>
+              )}
             </div>
 
             {/* Home Appliances */}
@@ -868,9 +904,9 @@ const EditWorker = () => {
                 {[
                   "Batteries",
                   "Health checkup",
-                  "Wash & Cleaning",
+                  "Water Wash",
                   "Denting & Painting",
-                  "Wheel car",
+                  "Tyre Service",
                   "Vehicle AC",
                 ].map((item) => (
                   <button
@@ -894,7 +930,8 @@ const EditWorker = () => {
             <div className="row">
               <div className="col-md-3">
                 <label htmlFor="houseNumber" className="form-label">
-                  House no/ Building name <span style={requiredFieldStyle}>*</span>
+                  House no/ Building name{" "}
+                  <span style={requiredFieldStyle}>*</span>
                 </label>
                 <input
                   type="text"
@@ -972,7 +1009,9 @@ const EditWorker = () => {
                   value={formData.nearbyLandmark}
                 />
                 {errors.nearbyLandmark && (
-                  <div className="invalid-feedback">{errors.nearbyLandmark}</div>
+                  <div className="invalid-feedback">
+                    {errors.nearbyLandmark}
+                  </div>
                 )}
               </div>
               <div className="col-md-3">

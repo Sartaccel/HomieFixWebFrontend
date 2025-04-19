@@ -25,8 +25,8 @@ const Worker = () => {
 
   // Function to format date
   const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    const options = { year: "numeric", month: "short", day: "numeric" };
+    return new Date(dateString).toLocaleDateString("en-US", options);
   };
 
   // Fetch worker data
@@ -142,22 +142,29 @@ const Worker = () => {
   // Function to render stars based on rating
   const renderStars = (rating) => {
     if (rating === null || rating === undefined) return "N/A";
-    
+
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
 
     return (
       <>
-        {Array(fullStars).fill().map((_, i) => (
-          <i key={`full-${i}`} className="bi bi-star-fill text-warning mx-1"></i>
-        ))}
+        {Array(fullStars)
+          .fill()
+          .map((_, i) => (
+            <i
+              key={`full-${i}`}
+              className="bi bi-star-fill text-warning mx-1"
+            ></i>
+          ))}
         {hasHalfStar && (
           <i key="half" className="bi bi-star-half text-warning mx-1"></i>
         )}
-        {Array(emptyStars).fill().map((_, i) => (
-          <i key={`empty-${i}`} className="bi bi-star text-warning mx-1"></i>
-        ))}
+        {Array(emptyStars)
+          .fill()
+          .map((_, i) => (
+            <i key={`empty-${i}`} className="bi bi-star text-warning mx-1"></i>
+          ))}
         <span className="mx-1">{rating.toFixed(1)}</span>
       </>
     );
@@ -259,7 +266,10 @@ const Worker = () => {
                         {workerData.contactNumber}
                       </p>
                       <p className="mx-1">
-                        Rating: {workerData.averageRating ? renderStars(workerData.averageRating) : "N/A"}
+                        Rating:{" "}
+                        {workerData.averageRating
+                          ? renderStars(workerData.averageRating)
+                          : "N/A"}
                       </p>
                     </div>
                   </div>
@@ -337,7 +347,11 @@ const Worker = () => {
 
                 <p
                   className="border border-danger rounded px-2"
-                  style={{ marginLeft: "100px", paddingTop: "3px", cursor: "pointer" }}
+                  style={{
+                    marginLeft: "100px",
+                    paddingTop: "3px",
+                    cursor: "pointer",
+                  }}
                   onClick={handleDeleteWorker}
                 >
                   <i className="bi bi-trash text-danger mx-1"></i>
@@ -364,7 +378,10 @@ const Worker = () => {
                     }}
                   >
                     <div style={{ overflowY: "auto", flex: 1 }}>
-                      <table className="table table-bordered table-hover" style={{ marginBottom: 0 }}>
+                      <table
+                        className="table table-bordered table-hover"
+                        style={{ marginBottom: 0 }}
+                      >
                         <thead
                           className="table-light"
                           style={{
@@ -398,7 +415,9 @@ const Worker = () => {
                               <td>{index + 1}</td>
                               <td>
                                 {item.service} <br />
-                                <span style={{ color: "#0076CE" }}>ID: {item.id}</span>
+                                <span style={{ color: "#0076CE" }}>
+                                  ID: {item.id}
+                                </span>
                               </td>
                               <td>
                                 {item.name} <br /> {item.phone}
@@ -407,18 +426,19 @@ const Worker = () => {
                                 {item.date} <br /> {item.status}
                               </td>
                               <td>
-              {ratings[item.id] !== null ? (
-                ratings[item.id] !== undefined ? (
-                  <>
-                    <i className="bi bi-star-fill text-warning"></i> {ratings[item.id]}
-                  </>
-                ) : (
-                  <Skeleton width={25} />
-                )
-              ) : (
-                "N/A"
-              )}
-            </td>
+                                {ratings[item.id] !== null ? (
+                                  ratings[item.id] !== undefined ? (
+                                    <>
+                                      <i className="bi bi-star-fill text-warning"></i>{" "}
+                                      {ratings[item.id]}
+                                    </>
+                                  ) : (
+                                    <Skeleton width={25} />
+                                  )
+                                ) : (
+                                  "N/A"
+                                )}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -426,9 +446,18 @@ const Worker = () => {
                     </div>
                   </div>
                 ) : activeTab === "inProgress" ? (
-                  <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+                  <div
+                    style={{
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
                     <div style={{ flex: 1, overflowY: "auto" }}>
-                      <table className="table table-bordered table-hover" style={{ margin: 0 }}>
+                      <table
+                        className="table table-bordered table-hover"
+                        style={{ margin: 0 }}
+                      >
                         <thead
                           className="table-light"
                           style={{
@@ -463,7 +492,9 @@ const Worker = () => {
                               <td>
                                 {item.service}
                                 <br />
-                                <span style={{ color: "#0076CE" }}>ID: {item.id}</span>
+                                <span style={{ color: "#0076CE" }}>
+                                  ID: {item.id}
+                                </span>
                               </td>
                               <td>
                                 {item.name}

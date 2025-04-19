@@ -3,8 +3,8 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import closeDate from "../assets/close date.png"; // Import the close date icon
-import Reschedule from "./Reschedule"; // Import the Reschedule component
-import CancelBooking from "./CancelBooking"; // Import the CancelBooking component
+import Reschedule from "./Reschedule";
+import CancelBooking from "./CancelBooking";
 import "../styles/AssignBookings.css";
 import bookingDetails from "../assets/BookingDetails.png";
 import Header from "./Header";
@@ -30,8 +30,8 @@ const AssignBookings = () => {
     booking.rescheduledTimeSlot || booking.timeSlot
   );
   const [rescheduleHistory, setRescheduleHistory] = useState([]); // Track reschedule history
-  const [loadingWorkers, setLoadingWorkers] = useState(true); // Loading state for workers
-  const [loadingBookingDetails, setLoadingBookingDetails] = useState(true); // Loading state for booking details
+  const [loadingWorkers, setLoadingWorkers] = useState(true);
+  const [loadingBookingDetails, setLoadingBookingDetails] = useState(true);
   const navigate = useNavigate();
   const [assigningWorker, setAssigningWorker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -97,7 +97,6 @@ const AssignBookings = () => {
         const expired = isBookingExpired(data.bookedDate);
         setIsExpired(expired);
 
-        // Rest of your existing code...
         if (data.bookedDate && data.timeSlot) {
           setRescheduledDate(data.rescheduledDate || data.bookedDate);
           setRescheduledTimeSlot(
@@ -181,32 +180,36 @@ const AssignBookings = () => {
 
   // Save notes to the booking
   const saveNotes = async () => {
+    const trimmedNotes = notes.trim();
+
+    if (!trimmedNotes) {
+      alert("Please enter some notes before saving");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const token = localStorage.getItem("token");
       const response = await api.patch(
-        `/booking/update-notes/${id}?notes=${encodeURIComponent(notes)}`,
-        null, // No request body
+        `/booking/update-notes/${id}`,
+        new URLSearchParams({ notes: trimmedNotes }), // Proper URL encoding
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/x-www-form-urlencoded",
           },
         }
       );
 
       if (response.status === 200) {
         alert("Notes saved successfully");
-      } else {
-        alert("Failed to save notes");
       }
     } catch (error) {
       console.error("Error saving notes:", error);
-      if (error.response && error.response.status === 403) {
-        alert("You do not have permission to perform this action.");
-        navigate("/"); // Redirect to login page
-      }
+      alert(error.response?.data?.message || "Failed to save notes");
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
   };
 
   // Handle rescheduling
@@ -526,7 +529,7 @@ const AssignBookings = () => {
                     <>
                       <textarea
                         id="notes"
-                        className="form-control"
+                        className="form-control shadow-none"
                         placeholder="Notes"
                         rows="8"
                         value={notes}
@@ -538,10 +541,23 @@ const AssignBookings = () => {
                           width: "100%",
                           boxSizing: "border-box",
                         }}
+                        required
+                        onInvalid={(e) => {
+                          e.target.setCustomValidity("Please enter some notes");
+                        }}
+                        onInput={(e) => {
+                          e.target.setCustomValidity("");
+                        }}
                       ></textarea>
                       <button
                         className="btn position-absolute"
-                        onClick={saveNotes}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const textarea = document.getElementById("notes");
+                          if (textarea.reportValidity()) {
+                            saveNotes();
+                          }
+                        }}
                         onMouseEnter={() => setIsSaveHovered(true)}
                         onMouseLeave={() => setIsSaveHovered(false)}
                         disabled={isSaving}

@@ -113,6 +113,12 @@ const Profile = () => {
         },
       });
 
+      // After successful update, dispatch an event to notify Header
+      const event = new CustomEvent('profileUpdated', { 
+        detail: { username } 
+      });
+      window.dispatchEvent(event);
+
       Swal.fire({
         icon: "success",
         title: "Success!",
