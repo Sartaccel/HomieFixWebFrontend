@@ -161,7 +161,7 @@ const EditWorker = () => {
 
   const handleDrivingLicenseChange = (e) => {
     const { value } = e.target;
-   
+
     // Allow complete clearing of the field
     if (value === "DL-" || value === "") {
       setFormData(prevState => ({
@@ -175,14 +175,14 @@ const EditWorker = () => {
 
     // Process the input value
     let processedValue = value;
-   
+
     // Ensure it starts with DL- if there's any content
     if (!value.startsWith("DL-")) {
       processedValue = "DL-" + value.replace(/^DL-/, '').replace(/[^a-zA-Z0-9]/g, '');
     } else {
       processedValue = "DL-" + value.substring(3).replace(/[^a-zA-Z0-9]/g, '');
     }
-   
+
     // Limit to 15 characters after DL-
     if (processedValue.length > 18) {
       processedValue = processedValue.substring(0, 18);
@@ -302,7 +302,7 @@ const EditWorker = () => {
       ...prevState,
       language: languages
     }));
-   
+
     // Clear error when languages are selected
     if (selectedOptions.length > 0) {
       setErrors(prev => ({ ...prev, language: "" }));
@@ -349,13 +349,18 @@ const EditWorker = () => {
     const newErrors = {};
     let isValid = true;
 
+    // Add job title validation
+    if (formData.specification.length === 0) {
+      newErrors.jobTitle = "Please select at least one job title";
+      isValid = false;
+    }
 
     // Required fields validation
     if (!formData.name.trim()) {
       newErrors.name = "Full Name is required";
       isValid = false;
     } else if (!validateName(formData.name)) {
-      newErrors.name = "Name should only contain alphabets and spaces";
+      newErrors.name = "Name should contain only alphabets and spaces";
       isValid = false;
     }
 
@@ -465,6 +470,16 @@ const EditWorker = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    // Validate job titles first
+    if (formData.specification.length === 0) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Please select at least one job title before submitting.",
+      });
+      setIsLoading(false);
+      return;
+    }
 
     if (!validateForm()) {
       setIsLoading(false);
@@ -665,9 +680,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="tel"
-                  className={`form-control ${
-                    errors.contactNumber ? "is-invalid" : ""
-                  }`}
+                  className={`form-control ${errors.contactNumber ? "is-invalid" : ""
+                    }`}
                   name="contactNumber"
                   id="contactNumber"
                   required
@@ -686,9 +700,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="tel"
-                  className={`form-control ${
-                    errors.econtactNumber ? "is-invalid" : ""
-                  }`}
+                  className={`form-control ${errors.econtactNumber ? "is-invalid" : ""
+                    }`}
                   name="econtactNumber"
                   id="eContactNumber"
                   placeholder="Enter Emergency Contact Number"
@@ -729,9 +742,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${
-                    errors.workExperience ? "is-invalid" : ""
-                  }`}
+                  className={`form-control ${errors.workExperience ? "is-invalid" : ""
+                    }`}
                   name="workExperience"
                   id="workExperience"
                   required
@@ -749,9 +761,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="date"
-                  className={`form-control ${
-                    errors.dateOfBirth ? "is-invalid" : ""
-                  }`}
+                  className={`form-control ${errors.dateOfBirth ? "is-invalid" : ""
+                    }`}
                   name="dateOfBirth"
                   id="dateOfBirth"
                   required
@@ -803,6 +814,9 @@ const EditWorker = () => {
             {/* Job Title Section */}
             <div className="row mt-4">
               <p className="fw-bold">Job title</p>
+              {errors.jobTitle && (
+                <div className="text-danger small">{errors.jobTitle}</div>
+              )}
             </div>
 
 
@@ -826,9 +840,8 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${
-                      clickedButtons[item] ? "active" : ""
-                    }`}
+                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
+                      }`}
                     onClick={() => handleButtonClick(item, "Home Appliances")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -855,9 +868,8 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${
-                      clickedButtons[item] ? "active" : ""
-                    }`}
+                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
+                      }`}
                     onClick={() => handleButtonClick(item, "Electrician")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -884,9 +896,8 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${
-                      clickedButtons[item] ? "active" : ""
-                    }`}
+                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
+                      }`}
                     onClick={() => handleButtonClick(item, "Carpentry")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -913,9 +924,8 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${
-                      clickedButtons[item] ? "active" : ""
-                    }`}
+                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
+                      }`}
                     onClick={() => handleButtonClick(item, "Plumbing")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -934,17 +944,16 @@ const EditWorker = () => {
                 {[
                   "Batteries",
                   "Health checkup",
-                  "Wash & Cleaning",
+                  "Water Wash",
                   "Denting & Painting",
-                  "Wheel car",
+                  "Tyre Service",
                   "Vehicle AC",
                 ].map((item) => (
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${
-                      clickedButtons[item] ? "active" : ""
-                    }`}
+                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
+                      }`}
                     onClick={() => handleButtonClick(item, "Vehicle service")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -965,9 +974,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${
-                    errors.houseNumber ? "is-invalid" : ""
-                  }`}
+                  className={`form-control ${errors.houseNumber ? "is-invalid" : ""
+                    }`}
                   name="houseNumber"
                   id="houseNumber"
                   required
@@ -1003,9 +1011,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${
-                    errors.pincode ? "is-invalid" : ""
-                  }`}
+                  className={`form-control ${errors.pincode ? "is-invalid" : ""
+                    }`}
                   name="pincode"
                   id="pincode"
                   required
@@ -1029,9 +1036,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${
-                    errors.nearbyLandmark ? "is-invalid" : ""
-                  }`}
+                  className={`form-control ${errors.nearbyLandmark ? "is-invalid" : ""
+                    }`}
                   name="nearbyLandmark"
                   id="nearbyLandmark"
                   required
@@ -1049,9 +1055,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${
-                    errors.district ? "is-invalid" : ""
-                  }`}
+                  className={`form-control ${errors.district ? "is-invalid" : ""
+                    }`}
                   name="district"
                   id="district"
                   required
@@ -1095,9 +1100,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${
-                    errors.aadharNumber ? "is-invalid" : ""
-                  }`}
+                  className={`form-control ${errors.aadharNumber ? "is-invalid" : ""
+                    }`}
                   name="aadharNumber"
                   id="aadharNumber"
                   required
@@ -1116,9 +1120,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${
-                    errors.drivingLicenseNumber ? "is-invalid" : ""
-                  }`}
+                  className={`form-control ${errors.drivingLicenseNumber ? "is-invalid" : ""
+                    }`}
                   name="drivingLicenseNumber"
                   id="drivingLicenseNumber"
                   placeholder="DL-XXXXXXXXXXXXXXX"
@@ -1140,9 +1143,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="date"
-                  className={`form-control ${
-                    errors.joiningDate ? "is-invalid" : ""
-                  }`}
+                  className={`form-control ${errors.joiningDate ? "is-invalid" : ""
+                    }`}
                   name="joiningDate"
                   id="joiningDate"
                   required

@@ -31,8 +31,8 @@ const AssignBookings = () => {
     booking.rescheduledTimeSlot || booking.timeSlot
   );
   const [rescheduleHistory, setRescheduleHistory] = useState([]); // Track reschedule history
-  const [loadingWorkers, setLoadingWorkers] = useState(true); // Loading state for workers
-  const [loadingBookingDetails, setLoadingBookingDetails] = useState(true); // Loading state for booking details
+  const [loadingWorkers, setLoadingWorkers] = useState(true);
+  const [loadingBookingDetails, setLoadingBookingDetails] = useState(true);
   const navigate = useNavigate();
   const [assigningWorker, setAssigningWorker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -192,35 +192,37 @@ const AssignBookings = () => {
 
   // Save notes to the booking
   const saveNotes = async () => {
+    const trimmedNotes = notes.trim();
+
+    if (!trimmedNotes) {
+      alert("Please enter some notes before saving");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const token = localStorage.getItem("token");
       const response = await api.patch(
-        `/booking/update-notes/${id}?notes=${encodeURIComponent(notes)}`,
-        null, // No request body
+        `/booking/update-notes/${id}`,
+        new URLSearchParams({ notes: trimmedNotes }),  // Proper URL encoding
         {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
         }
       );
 
-
       if (response.status === 200) {
         alert("Notes saved successfully");
-      } else {
-        alert("Failed to save notes");
       }
     } catch (error) {
       console.error("Error saving notes:", error);
-      if (error.response && error.response.status === 403) {
-        alert("You do not have permission to perform this action.");
-        navigate("/"); // Redirect to login page
-      }
+      alert(error.response?.data?.message || "Failed to save notes");
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
   };
-
 
   // Handle rescheduling
   const handleReschedule = (newDate, newTimeslot) => {
@@ -576,10 +578,23 @@ const AssignBookings = () => {
                           width: "100%",
                           boxSizing: "border-box",
                         }}
+                        required
+                        onInvalid={(e) => {
+                          e.target.setCustomValidity('Please enter some notes');
+                        }}
+                        onInput={(e) => {
+                          e.target.setCustomValidity('');
+                        }}
                       ></textarea>
                       <button
                         className="btn position-absolute"
-                        onClick={saveNotes}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const textarea = document.getElementById('notes');
+                          if (textarea.reportValidity()) {
+                            saveNotes();
+                          }
+                        }}
                         onMouseEnter={() => setIsSaveHovered(true)}
                         onMouseLeave={() => setIsSaveHovered(false)}
                         disabled={isSaving}
@@ -588,12 +603,8 @@ const AssignBookings = () => {
                           right: "10px",
                           padding: "5px 10px",
                           borderRadius: "5px",
-                          color:
-                            isSaveHovered || isSaving ? "white" : "#0076CE",
-                          backgroundColor:
-                            isSaveHovered || isSaving
-                              ? "#0076CE"
-                              : "transparent",
+                          color: isSaveHovered || isSaving ? "white" : "#0076CE",
+                          backgroundColor: isSaveHovered || isSaving ? "#0076CE" : "transparent",
                           border: "1px solid #0076CE",
                           transition: "all 0.3s ease-in-out",
                         }}
@@ -887,8 +898,4 @@ const AssignBookings = () => {
     </div>
   );
 };
-
-
 export default AssignBookings;
-
-

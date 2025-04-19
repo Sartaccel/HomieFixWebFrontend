@@ -52,7 +52,7 @@ const WorkerDetails = ({ token, setToken }) => {
     Electrician: ["Switch & Socket", "Wiring", "Doorbell", "MCB & Submeter", "Light and Wall light", "CCTV"],
     Carpentry: ["Bed", "Cupboard & Drawer", "Door", "Windows", "Drill & Hang", "Furniture Repair"],
     Plumbing: ["Washbasin Installation", "Blockage Removal", "Shower", "Toilet", "Tap, Pipe works", "Water tank & Motor"],
-    "Vehicle service": ["Batteries", "Health checkup", "Wash & Cleaning", "Denting & Painting", "Wheel car", "Vehicle AC"],
+    "Vehicle service": ["Batteries", "Health checkup", "Water Wash", "Denting & Painting", "Tyre Service", "Vehicle AC"],
   };
 
 
@@ -74,7 +74,6 @@ const WorkerDetails = ({ token, setToken }) => {
   return (
     <div>
       <Header />
-
 
       <div className="container pt-5" style={{ paddingTop: "80px" }}>
         <div className="d-flex justify-content-between align-items-center mb-3 mt-5" style={{ marginRight: "25px" }}>
@@ -117,7 +116,19 @@ const WorkerDetails = ({ token, setToken }) => {
                 </div>
                 <div className="modal-footer">
                   <button className="btn btn-danger" onClick={() => setShowFilter(false)}>Cancel</button>
-                  <button className="btn" style={{ backgroundColor: "#0076CE", color: "white" }} onClick={() => setShowFilter(false)}>Apply</button>
+                  <button
+                    className="btn"
+                    style={{ backgroundColor: "#0076CE", color: "white" }}
+                    onClick={() => {
+                      if (selectedSpecifications.length === 0) {
+                        alert("Please select at least one service");
+                      } else {
+                        setShowFilter(false);
+                      }
+                    }}
+                  >
+                    Apply
+                  </button>
                 </div>
               </div>
             </div>

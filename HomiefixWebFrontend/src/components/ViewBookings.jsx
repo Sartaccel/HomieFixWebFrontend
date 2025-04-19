@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FaStar } from "react-icons/fa";
 import Header from "./Header";
 import Reschedule from "./Reschedule";
 import CancelBooking from "./CancelBooking";
@@ -52,10 +51,10 @@ const ViewBookings = () => {
 
   const fetchBookingDetails = async () => {
     try {
-      setLoading(true);
       const { data } = await api.get(`/booking/${id}`);
+      console.log('API Response:', data); // Debugging line
       setBooking(data);
-      setNotes(data.notes || "No additional notes provided.");
+      setNotes(data.notes || "");
 
       if (data.worker) {
         setWorker(data.worker);
@@ -103,8 +102,8 @@ const ViewBookings = () => {
   const saveNotes = async () => {
     const trimmedNotes = notes.trim();
 
-    if (!trimmedNotes) {
-      alert("Please enter some notes before saving"); // Show alert instead of setting validation error
+    if (trimmedNotes === "No additional notes provided." || !trimmedNotes) {
+      alert("Please enter valid notes before saving");
       return;
     }
 
@@ -363,6 +362,16 @@ const ViewBookings = () => {
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
                           readOnly={!isEditing}
+                          required
+                          onInvalid={(e) => {
+                            e.target.setCustomValidity('Please enter some notes');
+                          }}
+                          onInput={(e) => {
+                            e.target.setCustomValidity('');
+                            if (e.target.value.trim() === "No additional notes provided.") {
+                              e.target.setCustomValidity('Please enter valid notes');
+                            }
+                          }}
                         />
                         <div className="d-flex justify-content-end" style={{ marginTop: "-95px", marginRight: "5px" }}>
                           {!isEditing ? (
@@ -383,7 +392,12 @@ const ViewBookings = () => {
                               className={`text-primary text-decoration-none ${saving ? "disabled" : ""}`}
                               onClick={(e) => {
                                 e.preventDefault();
-                                if (!saving) saveNotes();
+                                if (!saving) {
+                                  const textarea = document.getElementById('notesText');
+                                  if (textarea.reportValidity()) {
+                                    saveNotes();
+                                  }
+                                }
                               }}
                               style={{
                                 cursor: saving ? "not-allowed" : "pointer",
