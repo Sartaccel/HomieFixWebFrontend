@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { FaStar } from "react-icons/fa";
 import Header from "./Header";
 import Reschedule from "./Reschedule";
 import CancelBooking from "./CancelBooking";
@@ -51,10 +52,10 @@ const ViewBookings = () => {
 
   const fetchBookingDetails = async () => {
     try {
+      setLoading(true);
       const { data } = await api.get(`/booking/${id}`);
-      console.log('API Response:', data); // Debugging line
       setBooking(data);
-      setNotes(data.notes || "");
+      setNotes(data.notes || "No additional notes provided.");
 
       if (data.worker) {
         setWorker(data.worker);

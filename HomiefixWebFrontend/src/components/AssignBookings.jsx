@@ -31,8 +31,8 @@ const AssignBookings = () => {
     booking.rescheduledTimeSlot || booking.timeSlot
   );
   const [rescheduleHistory, setRescheduleHistory] = useState([]); // Track reschedule history
-  const [loadingWorkers, setLoadingWorkers] = useState(true);
-  const [loadingBookingDetails, setLoadingBookingDetails] = useState(true);
+  const [loadingWorkers, setLoadingWorkers] = useState(true); // Loading state for workers
+  const [loadingBookingDetails, setLoadingBookingDetails] = useState(true); // Loading state for booking details
   const navigate = useNavigate();
   const [assigningWorker, setAssigningWorker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -203,25 +203,28 @@ const AssignBookings = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await api.patch(
-        `/booking/update-notes/${id}`,
-        new URLSearchParams({ notes: trimmedNotes }),  // Proper URL encoding
+        `/booking/update-notes/${id}?notes=${encodeURIComponent(trimmedNotes)}`,
+        null,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
       if (response.status === 200) {
         alert("Notes saved successfully");
+      } else {
+        alert("Failed to save notes");
       }
     } catch (error) {
       console.error("Error saving notes:", error);
-      alert(error.response?.data?.message || "Failed to save notes");
-    } finally {
-      setIsSaving(false);
+      if (error.response && error.response.status === 403) {
+        alert("You do not have permission to perform this action.");
+        navigate("/");
+      }
     }
+    setIsSaving(false);
   };
 
   // Handle rescheduling
@@ -898,4 +901,8 @@ const AssignBookings = () => {
     </div>
   );
 };
+
+
 export default AssignBookings;
+
+
