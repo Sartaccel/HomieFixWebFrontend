@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FaStar } from "react-icons/fa";
 import Header from "./Header";
 import Reschedule from "./Reschedule";
 import CancelBooking from "./CancelBooking";
