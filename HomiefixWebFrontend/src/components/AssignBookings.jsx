@@ -65,26 +65,49 @@ const AssignBookings = () => {
     const fetchWorkers = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await api.get("/workers/view", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+
+        // 1. Get the booking details first
+        const bookingResponse = await api.get(`/booking/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
-        setWorkers(response.data);
-      } catch (error) {
-        console.error("Error fetching workers:", error);
-        if (error.response && error.response.status === 403) {
-          alert("You do not have permission to perform this action.");
-          navigate("/"); // Redirect to login page
+
+        // 2. Extract and normalize productName from booking data
+        const productName = bookingResponse.data?.productName?.trim()?.toLowerCase();
+
+        if (!productName) {
+          setWorkers([]);
+          return;
         }
+
+        // 3. Fetch workers qualified for this product
+        const workersResponse = await api.get(
+          `/workers/view/by-product/${encodeURIComponent(productName)}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        // 4. Filter active workers (using correct property name 'active')
+        const activeWorkers = workersResponse.data.filter(worker => worker.active);
+
+        if (activeWorkers.length === 0) {
+          // No active workers found for this product
+          setWorkers([]);
+        } else {
+          setWorkers(activeWorkers);
+        }
+
+      } catch (error) {
+        if (error.response?.status === 403) {
+          alert("Permission denied. Please login again.");
+          navigate("/login");
+        }
+        setWorkers([]);
       } finally {
-        setLoadingWorkers(false); // Set loading to false after fetching
+        setLoadingWorkers(false);
       }
     };
 
-
     fetchWorkers();
-  }, []);
+  }, [id, navigate]);
 
 
   // Fetch booking details from the API
@@ -667,12 +690,9 @@ const AssignBookings = () => {
                       marginTop: "-40px",
                     }}
                   >
-                    <div
-                      className="row d-flex flex-wrap"
-                      style={{ gap: "8px" }}
-                    >
-                      {loadingWorkers
-                        ? Array.from({ length: 4 }).map((_, index) => (
+                    <div className="row d-flex flex-wrap" style={{ gap: "8px" }}>
+                      {loadingWorkers ? (
+                        Array.from({ length: 4 }).map((_, index) => (
                           <div
                             key={index}
                             className="col-6"
@@ -693,7 +713,12 @@ const AssignBookings = () => {
                             </div>
                           </div>
                         ))
-                        : workers.map((worker, index) => (
+                      ) : workers.length === 0 ? (
+                        <div className="col-12 text-center mt-3">
+                          <p style={{ color: "#888" }}>No workers available for this product.</p>
+                        </div>
+                      ) : (
+                        workers.map((worker, index) => (
                           <div
                             key={index}
                             className="col-6"
@@ -706,9 +731,7 @@ const AssignBookings = () => {
                               borderRadius: "8px",
                               padding: "8px",
                               background:
-                                selectedWorkerId === worker.id
-                                  ? "#e6f3ff"
-                                  : "#f9f9f9",
+                                selectedWorkerId === worker.id ? "#e6f3ff" : "#f9f9f9",
                               cursor: "pointer",
                             }}
                             onClick={() => handleWorkerSelection(worker.id)}
@@ -733,9 +756,11 @@ const AssignBookings = () => {
                               </div>
                             </div>
                           </div>
-                        ))}
+                        ))
+                      )}
                     </div>
                   </div>
+
                   {/* Worker Details Section */}
                   {selectedWorkerDetails ? (
                     <div
