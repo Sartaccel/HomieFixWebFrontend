@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Swal from "sweetalert2";
-import addWorker from "../assets/addWorker.png";
+import addWorker from "../assets/addWorker.jpg";
 import "../styles/AddWorker.css";
 import Header from "./Header";
 import api from "../api";
@@ -45,6 +45,18 @@ const EditWorker = () => {
     { value: "English", label: "English" },
     { value: "Hindi", label: "Hindi" },
   ];
+
+  // Role to specification mapping
+  const roleSpecificationMap = {
+    "Home Appliances": ["AC", "Geyser", "Microwave", "Inverter & Stabilizers", "Water Purifier", "TV", "Fridge", "Washing Machine", "Fan"],
+    "Electrician": ["Switch & Socket", "Wiring", "Doorbell", "MCB & Submeter", "Light and Wall light"],
+    "Carpentry": ["Bed", "Cupboard & Drawer", "Door", "Windows", "Drill & Hang", "Furniture Repair"],
+    "Plumbing": ["Washbasin Installation", "Blockage Removal", "Shower", "Toilet", "Tap, Pipe works", "Water tank & Motor"],
+    "Vehicle service": ["Batteries", "Health checkup", "Water Wash", "Denting & Painting", "Tyre Service", "Vehicle AC"],
+    "Care Taker": ["Child Care", "PhysioTheraphy", "Old Age Care", "Companion Support", "Home Nursing"],
+    "Cleaning": ["Cleaning"],
+    "CCTV": ["CCTV"]
+  };
 
   // Validation functions
   const validateName = (name) => {
@@ -92,10 +104,18 @@ const EditWorker = () => {
     return regex.test(license);
   };
 
-  const validateDate = (dateString) => {
+  const validateDate = (dateString, isDOB = false) => {
     if (!dateString) return false;
     const date = new Date(dateString);
     const today = new Date();
+    
+    // For DOB, check if the person is at least 18 years old
+    if (isDOB) {
+      const minDate = new Date();
+      minDate.setFullYear(today.getFullYear() - 18);
+      return date <= minDate;
+    }
+    
     return date <= today;
   };
 
@@ -196,13 +216,24 @@ const EditWorker = () => {
     }));
 
     setFormData((prevState) => {
+      // Update specifications
       const updatedSpecifications = prevState.specification.includes(item)
         ? prevState.specification.filter((spec) => spec !== item)
         : [...prevState.specification, item];
 
-      const updatedRoles = prevState.role.includes(roleHeading)
-        ? prevState.role
-        : [...prevState.role, roleHeading];
+      // Get all roles from updated specifications
+      const updatedRoles = [];
+updatedSpecifications.forEach(spec => {
+  for (const [role, specs] of Object.entries(roleSpecificationMap)) {
+    if (specs.includes(spec)) {
+      if (!updatedRoles.includes(role)) {
+        updatedRoles.push(role);
+      }
+      break;
+    }
+  }
+});
+
 
       return {
         ...prevState,
@@ -353,8 +384,8 @@ const EditWorker = () => {
     if (!formData.dateOfBirth) {
       newErrors.dateOfBirth = "Date of Birth is required";
       isValid = false;
-    } else if (!validateDate(formData.dateOfBirth)) {
-      newErrors.dateOfBirth = "Date cannot be in the future";
+    } else if (!validateDate(formData.dateOfBirth, true)) {
+      newErrors.dateOfBirth = "Worker must be at least 18 years old";
       isValid = false;
     }
 
@@ -721,7 +752,7 @@ const EditWorker = () => {
                   D.O.B <span style={requiredFieldStyle}>*</span>
                 </label>
                 <input
-                  type="date"
+                  type="text"
                   className={`form-control ${
                     errors.dateOfBirth ? "is-invalid" : ""
                   }`}
@@ -730,7 +761,13 @@ const EditWorker = () => {
                   required
                   onChange={handleChange}
                   value={formData.dateOfBirth}
-                  max={new Date().toISOString().split("T")[0]}
+                  placeholder="dd-mm-yyyy"
+                  style={{ color: formData.dateOfBirth ? "#000" : "#aaa" }}
+                  onFocus={(e) => (e.target.type = "date")}
+                  onBlur={(e) => {
+                    if (!e.target.value) e.target.type = "text";
+                  }}
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0]}
                 />
                 {errors.dateOfBirth && (
                   <div className="invalid-feedback">{errors.dateOfBirth}</div>
@@ -774,7 +811,7 @@ const EditWorker = () => {
 
             {/* Job Title Section */}
             <div className="row mt-4">
-              <p className="fw-bold">Job title</p>
+              <p className="fw-bold">Job title <span style={requiredFieldStyle}>*</span></p>
               {errors.jobTitle && (
                 <div className="text-danger small">{errors.jobTitle}</div>
               )}
@@ -822,8 +859,7 @@ const EditWorker = () => {
                   "Wiring",
                   "Doorbell",
                   "MCB & Submeter",
-                  "Light and Wall light",
-                  "CCTV",
+                  "Light and Wall light"
                 ].map((item) => (
                   <button
                     key={item}
@@ -916,6 +952,75 @@ const EditWorker = () => {
                       clickedButtons[item] ? "active" : ""
                     }`}
                     onClick={() => handleButtonClick(item, "Vehicle service")}
+                  >
+                    {item} {clickedButtons[item] && "✓"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Care Taker */}
+            <div className="row mt-3">
+              <p>Care Taker</p>
+            </div>
+            <div className="row">
+              <div className="d-flex flex-wrap gap-3">
+                {[
+                  "Child Care",
+                  "PhysioTheraphy",
+                  "Old Age Care",
+                  "Companion Support",
+                  "Home Nursing",
+                ].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
+                    onClick={() => handleButtonClick(item, "Care Taker")}
+                  >
+                    {item} {clickedButtons[item] && "✓"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Cleaning */}
+            <div className="row mt-3">
+              <p>Cleaning</p>
+            </div>
+            <div className="row">
+              <div className="d-flex flex-wrap gap-3">
+                {["Cleaning"].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
+                    onClick={() => handleButtonClick(item, "Cleaning")}
+                  >
+                    {item} {clickedButtons[item] && "✓"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* CCTV */}
+            <div className="row mt-3">
+              <p>CCTV</p>
+            </div>
+            <div className="row">
+              <div className="d-flex flex-wrap gap-3">
+                {["CCTV"].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
+                    onClick={() => handleButtonClick(item, "CCTV")}
                   >
                     {item} {clickedButtons[item] && "✓"}
                   </button>

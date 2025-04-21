@@ -1,19 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Card, Placeholder } from "react-bootstrap";
 
 import notificationIcon from "../assets/noti.png";
 import api from "../api";
 
-const Notifications = () => {
+const Notifications = ({ isScrollingRef }) => {
   const [notifications, setNotifications] = useState([]);
-  const [initialLoading, setInitialLoading] = useState(true); // Only for first load
-  const [refreshing, setRefreshing] = useState(false); // For periodic refreshes
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
-    fetchNotifications(true); // Initial load
-    const interval = setInterval(() => fetchNotifications(false), 5000); // Subsequent refreshes
+    fetchNotifications(true);
+    const interval = setInterval(() => fetchNotifications(false), 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -54,7 +55,6 @@ const Notifications = () => {
 
       const enrichedNotifications = await Promise.all(bookingPromises);
 
-      // Sort by most recent first
       enrichedNotifications.sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
       );
@@ -74,6 +74,17 @@ const Notifications = () => {
         setRefreshing(false);
       }
     }
+  };
+
+  const handleScroll = (e) => {
+    // Set scrolling state when scroll starts
+    isScrollingRef.current = true;
+    
+    // Clear the flag after a short delay when scrolling stops
+    clearTimeout(scrollRef.current);
+    scrollRef.current = setTimeout(() => {
+      isScrollingRef.current = false;
+    }, 100);
   };
 
   const formatDateTime = (dateString) => {
@@ -131,7 +142,6 @@ const Notifications = () => {
     return <img src={notificationIcon} alt="Notification" width={65} />;
   };
 
-  // Skeleton loading component
   const NotificationSkeleton = () => (
     <div className="d-flex align-items-start mt-1 p-0 gap-3 border-bottom">
       <div className="bg-light rounded d-flex align-items-center mt-2">
@@ -177,7 +187,11 @@ const Notifications = () => {
         {refreshing && <small className="text-muted">Updating...</small>}
       </div>
 
-      <div className="mt-3" style={{ maxHeight: "400px", overflowY: "auto" }}>
+      <div 
+        className="mt-3" 
+        style={{ maxHeight: "400px", overflowY: "auto" }}
+        onScroll={handleScroll}
+      >
         {initialLoading ? (
           <>
             <NotificationSkeleton />
@@ -205,7 +219,6 @@ const Notifications = () => {
                   </small>
                 </div>
                 <p className="fw-bold">
-                  {" "}
                   <span style={{ color: "#0076CE" }}>
                     ID: {notification.bookingId}
                   </span>{" "}

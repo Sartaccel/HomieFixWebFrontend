@@ -22,7 +22,11 @@ const WorkerDetails = ({ token, setToken }) => {
         setError(null);
         const response = await api.get("/workers/view");
         const data = response.data;
-        setWorkers(data);
+        // Sort by joiningDate in descending order (newest first)
+        const sortedData = data.sort((a, b) => 
+          new Date(b.joiningDate) - new Date(a.joiningDate)
+        );
+        setWorkers(sortedData);
       } catch (error) {
         console.error("Error fetching worker data:", error);
 
@@ -111,16 +115,19 @@ const WorkerDetails = ({ token, setToken }) => {
     );
   };
 
-  const filteredWorkers = workers.filter(
-    (worker) =>
-      selectedSpecifications.length === 0 ||
-      selectedSpecifications.some((spec) =>
-        worker.specification
-          .split(",")
-          .map((s) => s.trim())
-          .includes(spec)
-      )
-  );
+  const filteredWorkers = workers
+  .filter((worker) =>
+    selectedSpecifications.length === 0 ||
+    selectedSpecifications.some((spec) =>
+      worker.specification
+        .split(",")
+        .map((s) => s.trim())
+        .includes(spec)
+    )
+  )
+  // This sort is redundant since the original data is already sorted,
+  // but it ensures the order is maintained even if something changes
+  .sort((a, b) => new Date(b.joiningDate) - new Date(a.joiningDate));
 
   return (
     <div>

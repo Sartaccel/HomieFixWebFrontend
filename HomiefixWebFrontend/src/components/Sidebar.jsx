@@ -19,17 +19,14 @@ const Sidebar = ({ onLogout }) => {
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
 
   const handleLogout = () => {
-    // Clear all user data
     localStorage.removeItem("token");
     localStorage.removeItem("username");
     sessionStorage.clear();
     
-    // Trigger the loading screen through parent component
     if (typeof onLogout === "function") {
       onLogout();
     }
     
-    // Navigate to login after a small delay
     setTimeout(() => {
       navigate("/", { replace: true });
     }, 100);
@@ -59,7 +56,7 @@ const Sidebar = ({ onLogout }) => {
           <img src={logo} alt="Logo" className="logo" />
         </div>
 
-        <nav className="menu-container d-flex flex-column">
+        <nav className="menu-container">
           <Link to="/dashboard" className={`menu-item ${location.pathname === "/dashboard" ? "active" : ""}`}>
             <img src={dashboardIcon} alt="Dashboard" className="menu-icon" />
             Dashboard
@@ -86,8 +83,8 @@ const Sidebar = ({ onLogout }) => {
           </Link>
         </nav>
 
-        <div className="logout-container" style={{ marginTop: "200px" }}>
-          <button onClick={handleLogoutClick} className="logout-button" style={{ height: "54px", border: "none" }}>
+        <div className="logout-container">
+          <button onClick={handleLogoutClick} className="logout-button">
             <img src={logoutIcon} alt="Logout" className="menu-icon" />
             Logout
           </button>

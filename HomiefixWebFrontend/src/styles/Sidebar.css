@@ -30,8 +30,8 @@
     max-width: 200px;
     margin-top: -70px;
     object-fit: contain;
-    
 }
+
 .menu-toggle {
     position: fixed;
     top: 20px;
@@ -40,10 +40,9 @@
     border: none;
     font-size: 24px;
     cursor: pointer;
-    z-index: 1000; 
-    color: black; 
+    z-index: 1000;
+    color: black;
 }
-
 
 .menu-container {
     width: 100%;
@@ -51,8 +50,9 @@
     flex-direction: column;
     gap: 10px;
     padding-left: 20px;
-    margin-top: 40px;
-    height: 300px;
+    margin-top: 30px;
+    height: auto;
+    flex-grow: 1;
 }
 
 .menu-item {
@@ -64,7 +64,7 @@
     text-decoration: none;
     padding: 10px;
     width: 210px;
-    height: 64px;
+    height: 50px;
     border-radius: 12px;
     transition: background 0.3s ease-in-out;
     margin-left: -1px;
@@ -89,7 +89,14 @@
     filter: brightness(0) invert(1);
 }
 
-
+.logout-container {
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    margin-top: auto;
+    margin-bottom: 40px;
+}
 
 .logout-button {
     display: flex;
@@ -98,14 +105,14 @@
     font-weight: 500;
     color: #191919;
     text-decoration: none;
-    padding: 20px;
-    width: 220px;
-    border-radius: 18px;
+    padding: 10px;
+    width: 210px;
+    height: 50px;
+    border-radius: 12px;
     transition: background 0.3s ease-in-out;
-    margin-top: -80px;
-    height: 64px;
-    background-color: transparent
-
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
 }
 
 .logout-button:hover {
@@ -120,7 +127,6 @@
 .logout-button:active .menu-icon {
     filter: brightness(0) invert(1);
 }
-
 
 @media (min-width: 769px) {
     .sidebar {

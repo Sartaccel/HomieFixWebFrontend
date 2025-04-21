@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import closeDate from "../assets/close date.png"; // Import the close date icon
+import closeDate from "../assets/close date.png";
 import Reschedule from "./Reschedule";
 import CancelBooking from "./CancelBooking";
 import "../styles/AssignBookings.css";
@@ -30,8 +30,8 @@ const AssignBookings = () => {
     booking.rescheduledTimeSlot || booking.timeSlot
   );
   const [rescheduleHistory, setRescheduleHistory] = useState([]); // Track reschedule history
-  const [loadingWorkers, setLoadingWorkers] = useState(true);
-  const [loadingBookingDetails, setLoadingBookingDetails] = useState(true);
+  const [loadingWorkers, setLoadingWorkers] = useState(true); // Loading state for workers
+  const [loadingBookingDetails, setLoadingBookingDetails] = useState(true); // Loading state for booking details
   const navigate = useNavigate();
   const [assigningWorker, setAssigningWorker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -61,25 +61,52 @@ const AssignBookings = () => {
     const fetchWorkers = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await api.get("/workers/view", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+
+        // 1. Get the booking details first
+        const bookingResponse = await api.get(`/booking/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setWorkers(response.data);
-      } catch (error) {
-        console.error("Error fetching workers:", error);
-        if (error.response && error.response.status === 403) {
-          alert("You do not have permission to perform this action.");
-          navigate("/"); // Redirect to login page
+
+        // 2. Extract and normalize productName from booking data
+        const productName = bookingResponse.data?.productName
+          ?.trim()
+          ?.toLowerCase();
+
+        if (!productName) {
+          setWorkers([]);
+          return;
         }
+
+        // 3. Fetch workers qualified for this product
+        const workersResponse = await api.get(
+          `/workers/view/by-product/${encodeURIComponent(productName)}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        // 4. Filter active workers (using correct property name 'active')
+        const activeWorkers = workersResponse.data.filter(
+          (worker) => worker.active
+        );
+
+        if (activeWorkers.length === 0) {
+          // No active workers found for this product
+          setWorkers([]);
+        } else {
+          setWorkers(activeWorkers);
+        }
+      } catch (error) {
+        if (error.response?.status === 403) {
+          alert("Permission denied. Please login again.");
+          navigate("/login");
+        }
+        setWorkers([]);
       } finally {
-        setLoadingWorkers(false); // Set loading to false after fetching
+        setLoadingWorkers(false);
       }
     };
 
     fetchWorkers();
-  }, []);
+  }, [id, navigate]);
 
   // Fetch booking details from the API
   useEffect(() => {
@@ -191,25 +218,28 @@ const AssignBookings = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await api.patch(
-        `/booking/update-notes/${id}`,
-        new URLSearchParams({ notes: trimmedNotes }), // Proper URL encoding
+        `/booking/update-notes/${id}?notes=${encodeURIComponent(trimmedNotes)}`,
+        null,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/x-www-form-urlencoded",
           },
         }
       );
 
       if (response.status === 200) {
         alert("Notes saved successfully");
+      } else {
+        alert("Failed to save notes");
       }
     } catch (error) {
       console.error("Error saving notes:", error);
-      alert(error.response?.data?.message || "Failed to save notes");
-    } finally {
-      setIsSaving(false);
+      if (error.response && error.response.status === 403) {
+        alert("You do not have permission to perform this action.");
+        navigate("/");
+      }
     }
+    setIsSaving(false);
   };
 
   // Handle rescheduling
@@ -634,71 +664,80 @@ const AssignBookings = () => {
                       className="row d-flex flex-wrap"
                       style={{ gap: "8px" }}
                     >
-                      {loadingWorkers
-                        ? Array.from({ length: 4 }).map((_, index) => (
-                            <div
-                              key={index}
-                              className="col-6"
-                              style={{
-                                width: "48%",
-                                border: "1px solid #ddd",
-                                borderRadius: "8px",
-                                padding: "8px",
-                                background: "#f9f9f9",
-                              }}
-                            >
-                              <div className="d-flex align-items-center gap-2">
-                                <Skeleton circle width={40} height={40} />
-                                <div>
-                                  <Skeleton width={100} height={15} />
-                                  <Skeleton width={80} height={12} />
-                                </div>
+                      {loadingWorkers ? (
+                        Array.from({ length: 4 }).map((_, index) => (
+                          <div
+                            key={index}
+                            className="col-6"
+                            style={{
+                              width: "48%",
+                              border: "1px solid #ddd",
+                              borderRadius: "8px",
+                              padding: "8px",
+                              background: "#f9f9f9",
+                            }}
+                          >
+                            <div className="d-flex align-items-center gap-2">
+                              <Skeleton circle width={40} height={40} />
+                              <div>
+                                <Skeleton width={100} height={15} />
+                                <Skeleton width={80} height={12} />
                               </div>
                             </div>
-                          ))
-                        : workers.map((worker, index) => (
-                            <div
-                              key={index}
-                              className="col-6"
-                              style={{
-                                width: "48%",
-                                border:
-                                  selectedWorkerId === worker.id
-                                    ? "2px solid #0076CE"
-                                    : "1px solid #ddd",
-                                borderRadius: "8px",
-                                padding: "8px",
-                                background:
-                                  selectedWorkerId === worker.id
-                                    ? "#e6f3ff"
-                                    : "#f9f9f9",
-                                cursor: "pointer",
-                              }}
-                              onClick={() => handleWorkerSelection(worker.id)}
-                            >
-                              <div className="d-flex align-items-center gap-2">
-                                <div
-                                  className="rounded-circle bg-secondary"
-                                  style={{
-                                    width: "40px",
-                                    height: "40px",
-                                    flexShrink: 0,
-                                    backgroundImage: `url(${worker.profilePicUrl})`,
-                                    backgroundSize: "cover",
-                                    backgroundPosition: "center",
-                                  }}
-                                ></div>
-                                <div>
-                                  <p className="mb-0">{worker.name}</p>
-                                  <small style={{ color: "#666666" }}>
-                                    {worker.town}, {worker.pincode}
-                                  </small>
-                                </div>
+                          </div>
+                        ))
+                      ) : workers.length === 0 ? (
+                        <div className="col-12 text-center mt-3">
+                          <p style={{ color: "#888" }}>
+                            No workers available for this product.
+                          </p>
+                        </div>
+                      ) : (
+                        workers.map((worker, index) => (
+                          <div
+                            key={index}
+                            className="col-6"
+                            style={{
+                              width: "48%",
+                              border:
+                                selectedWorkerId === worker.id
+                                  ? "2px solid #0076CE"
+                                  : "1px solid #ddd",
+                              borderRadius: "8px",
+                              padding: "8px",
+                              background:
+                                selectedWorkerId === worker.id
+                                  ? "#e6f3ff"
+                                  : "#f9f9f9",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => handleWorkerSelection(worker.id)}
+                          >
+                            <div className="d-flex align-items-center gap-2">
+                              <div
+                                className="rounded-circle bg-secondary"
+                                style={{
+                                  width: "40px",
+                                  height: "40px",
+                                  flexShrink: 0,
+                                  backgroundImage: `url(${worker.profilePicUrl})`,
+                                  backgroundSize: "cover",
+                                  backgroundPosition: "center",
+                                }}
+                              ></div>
+                              <div>
+                                <p className="mb-0">{worker.name}</p>
+                                <small style={{ color: "#666666" }}>
+                                  {worker.town}, {worker.pincode}
+                                </small>
                               </div>
                             </div>
-                          ))}
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
+
                   {/* Worker Details Section */}
                   {selectedWorkerDetails ? (
                     <div

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import addWorker from "../assets/addWorker.png";
+import addWorker from "../assets/addWorker.jpg";
 import "../styles/AddWorker.css";
 import Header from "./Header";
 import api from "../api";
@@ -129,10 +129,18 @@ const AddWorker = () => {
     return regex.test(experience);
   };
 
-  const validateDate = (dateString) => {
+  const validateDate = (dateString, isDOB = false) => {
     if (!dateString) return false;
     const date = new Date(dateString);
     const today = new Date();
+
+    // For DOB, check if the person is at least 18 years old
+    if (isDOB) {
+      const minDate = new Date();
+      minDate.setFullYear(today.getFullYear() - 18);
+      return date <= minDate;
+    }
+
     return date <= today;
   };
 
@@ -176,11 +184,11 @@ const AddWorker = () => {
           error = "Contact number should be 10 digits";
         }
         break;
-        case "workExperience":
-          if (!validateWorkExperience(value)) {
-            error = "Work experience should contain only numbers";
-          }
-          break;
+      case "workExperience":
+        if (!validateWorkExperience(value)) {
+          error = "Work experience should contain only numbers";
+        }
+        break;
       case "email":
         if (!validateEmail(value)) {
           error = "Please enter a valid email address";
@@ -368,8 +376,8 @@ const AddWorker = () => {
     if (!formData.dateOfBirth) {
       newErrors.dateOfBirth = "Date of Birth is required";
       isValid = false;
-    } else if (!validateDate(formData.dateOfBirth)) {
-      newErrors.dateOfBirth = "Date cannot be in the future";
+    } else if (!validateDate(formData.dateOfBirth, true)) {
+      newErrors.dateOfBirth = "Worker must be at least 18 years old";
       isValid = false;
     }
 
@@ -632,7 +640,8 @@ const AddWorker = () => {
             style={{ marginLeft: "60px", maxWidth: "100%" }}
           >
             {/* Row 1 */}
-            <div className="row" style={{ maxWidth: "100%" }}>
+ {/* Row 1 */}
+  <div className="row" style={{ maxWidth: "100%" }}>
               <div className="col-md-2">
                 <label htmlFor="name" className="form-label">
                   Full Name <span style={requiredFieldStyle}>*</span>
@@ -737,34 +746,39 @@ const AddWorker = () => {
                 )}
               </div>
               <div className="col-md-3">
-  <label htmlFor="workExperience" className="form-label">
-    Work Experience <span style={requiredFieldStyle}>*</span>
-  </label>
-  <input
-    type="number"
-    min="0"
-    className={`form-control ${
-      errors.workExperience ? "is-invalid" : ""
-    }`}
-    name="workExperience"
-    id="workExperience"
-    required
-    placeholder="Enter Work Experience"
-    onChange={handleChange}
-    value={formData.workExperience}
-    onKeyDown={(e) => {
-      // Prevent entering negative numbers
-      if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E') {
-        e.preventDefault();
-      }
-    }}
-  />
-  {errors.workExperience && (
-    <div className="invalid-feedback">
-      {errors.workExperience}
-    </div>
-  )}
-</div>
+                <label htmlFor="workExperience" className="form-label">
+                  Work Experience <span style={requiredFieldStyle}>*</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  className={`form-control ${
+                    errors.workExperience ? "is-invalid" : ""
+                  }`}
+                  name="workExperience"
+                  id="workExperience"
+                  required
+                  placeholder="Enter Work Experience"
+                  onChange={handleChange}
+                  value={formData.workExperience}
+                  onKeyDown={(e) => {
+                    // Prevent entering negative numbers
+                    if (
+                      e.key === "-" ||
+                      e.key === "+" ||
+                      e.key === "e" ||
+                      e.key === "E"
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
+                />
+                {errors.workExperience && (
+                  <div className="invalid-feedback">
+                    {errors.workExperience}
+                  </div>
+                )}
+              </div>
               <div className="col-md-3">
                 <label htmlFor="dateOfBirth" className="form-label">
                   D.O.B <span style={requiredFieldStyle}>*</span>
@@ -785,7 +799,13 @@ const AddWorker = () => {
                   onBlur={(e) => {
                     if (!e.target.value) e.target.type = "text";
                   }}
-                  max={new Date().toISOString().split("T")[0]}
+                  max={
+                    new Date(
+                      new Date().setFullYear(new Date().getFullYear() - 18)
+                    )
+                      .toISOString()
+                      .split("T")[0]
+                  }
                 />
                 {errors.dateOfBirth && (
                   <div className="invalid-feedback">{errors.dateOfBirth}</div>
@@ -830,7 +850,9 @@ const AddWorker = () => {
 
             {/* Job Title Section */}
             <div className="row mt-4">
-              <p className="fw-bold">Job title</p>
+              <p className="fw-bold">
+                Job title<span style={requiredFieldStyle}>*</span>
+              </p>
               {errors.jobTitle && (
                 <div className="text-danger small">{errors.jobTitle}</div>
               )}
@@ -878,8 +900,7 @@ const AddWorker = () => {
                   "Wiring",
                   "Doorbell",
                   "MCB & Submeter",
-                  "Light and Wall light",
-                  "CCTV",
+                  "Light and Wall light"
                 ].map((item) => (
                   <button
                     key={item}
@@ -952,101 +973,101 @@ const AddWorker = () => {
             </div>
 
             {/* Vehicle Service */}
-<div className="row mt-3">
-  <p>Vehicle service</p>
-</div>
-<div className="row">
-  <div className="d-flex flex-wrap gap-3">
-    {[
-      "Batteries",
-      "Health checkup",
-      "Water Wash",
-      "Denting & Painting",
-      "Tyre Service",
-      "Vehicle AC",
-    ].map((item) => (
-      <button
-        key={item}
-        type="button"
-        className={`btn btn-outline-secondary ${
-          clickedButtons[item] ? "active" : ""
-        }`}
-        onClick={() => handleButtonClick(item, "Vehicle service")}
-      >
-        {item} {clickedButtons[item] && "✓"}
-      </button>
-    ))}
-  </div>
-</div>
+            <div className="row mt-3">
+              <p>Vehicle service</p>
+            </div>
+            <div className="row">
+              <div className="d-flex flex-wrap gap-3">
+                {[
+                  "Batteries",
+                  "Health checkup",
+                  "Water Wash",
+                  "Denting & Painting",
+                  "Tyre Service",
+                  "Vehicle AC",
+                ].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
+                    onClick={() => handleButtonClick(item, "Vehicle service")}
+                  >
+                    {item} {clickedButtons[item] && "✓"}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-{/* Care Taker */}
-<div className="row mt-3">
-  <p>Care Taker</p>
-</div>
-<div className="row">
-  <div className="d-flex flex-wrap gap-3">
-    {[
-      "Child Care",
-      "PhysioTheraphy",
-      "Old Age Care",
-      "Companion Support",
-      "Home Nursing",
-    ].map((item) => (
-      <button
-        key={item}
-        type="button"
-        className={`btn btn-outline-secondary ${
-          clickedButtons[item] ? "active" : ""
-        }`}
-        onClick={() => handleButtonClick(item, "Care Taker")}
-      >
-        {item} {clickedButtons[item] && "✓"}
-      </button>
-    ))}
-  </div>
-</div>
+            {/* Care Taker */}
+            <div className="row mt-3">
+              <p>Care Taker</p>
+            </div>
+            <div className="row">
+              <div className="d-flex flex-wrap gap-3">
+                {[
+                  "Child Care",
+                  "PhysioTheraphy",
+                  "Old Age Care",
+                  "Companion Support",
+                  "Home Nursing",
+                ].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
+                    onClick={() => handleButtonClick(item, "Care Taker")}
+                  >
+                    {item} {clickedButtons[item] && "✓"}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-{/* Cleaning */}
-<div className="row mt-3">
-  <p>Cleaning</p>
-</div>
-<div className="row">
-  <div className="d-flex flex-wrap gap-3">
-    {["Cleaning"].map((item) => (
-      <button
-        key={item}
-        type="button"
-        className={`btn btn-outline-secondary ${
-          clickedButtons[item] ? "active" : ""
-        }`}
-        onClick={() => handleButtonClick(item, "Cleaning")}
-      >
-        {item} {clickedButtons[item] && "✓"}
-      </button>
-    ))}
-  </div>
-</div>
+            {/* Cleaning */}
+            <div className="row mt-3">
+              <p>Cleaning</p>
+            </div>
+            <div className="row">
+              <div className="d-flex flex-wrap gap-3">
+                {["Cleaning"].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
+                    onClick={() => handleButtonClick(item, "Cleaning")}
+                  >
+                    {item} {clickedButtons[item] && "✓"}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-{/* CCTV */}
-<div className="row mt-3">
-  <p>CCTV</p>
-</div>
-<div className="row">
-  <div className="d-flex flex-wrap gap-3">
-    {["CCTV"].map((item) => (
-      <button
-        key={item}
-        type="button"
-        className={`btn btn-outline-secondary ${
-          clickedButtons[item] ? "active" : ""
-        }`}
-        onClick={() => handleButtonClick(item, "CCTV")}
-      >
-        {item} {clickedButtons[item] && "✓"}
-      </button>
-    ))}
-  </div>
-</div>
+            {/* CCTV */}
+            <div className="row mt-3">
+              <p>CCTV</p>
+            </div>
+            <div className="row">
+              <div className="d-flex flex-wrap gap-3">
+                {["CCTV"].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
+                    onClick={() => handleButtonClick(item, "CCTV")}
+                  >
+                    {item} {clickedButtons[item] && "✓"}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* Address Details */}
             <div className="row mt-4">
