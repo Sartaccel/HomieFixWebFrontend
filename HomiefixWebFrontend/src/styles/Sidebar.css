@@ -14,9 +14,11 @@
     transition: transform 0.3s ease-in-out;
 }
 
+
 .sidebar.show {
     transform: translateX(0);
 }
+
 
 .logo-container {
     width: 100%;
@@ -25,13 +27,15 @@
     align-items: center;
 }
 
+
 .logo {
     width: 70%;
     max-width: 200px;
     margin-top: -70px;
     object-fit: contain;
-    
 }
+
+
 .menu-toggle {
     position: fixed;
     top: 20px;
@@ -40,8 +44,8 @@
     border: none;
     font-size: 24px;
     cursor: pointer;
-    z-index: 1000; 
-    color: black; 
+    z-index: 1000;
+    color: black;
 }
 
 
@@ -51,9 +55,11 @@
     flex-direction: column;
     gap: 10px;
     padding-left: 20px;
-    margin-top: 40px;
-    height: 300px;
+    margin-top: 30px;
+    height: auto;
+    flex-grow: 1;
 }
+
 
 .menu-item {
     display: flex;
@@ -64,11 +70,12 @@
     text-decoration: none;
     padding: 10px;
     width: 210px;
-    height: 64px;
+    height: 50px;
     border-radius: 12px;
     transition: background 0.3s ease-in-out;
     margin-left: -1px;
 }
+
 
 .menu-icon {
     width: 24px;
@@ -76,19 +83,31 @@
     margin-right: 12px;
 }
 
+
 .menu-item:hover {
     background: rgba(121, 121, 121, 0.2);
 }
+
 
 .menu-item.active {
     background: #001D33;
     color: #fff;
 }
 
+
 .menu-item.active .menu-icon {
     filter: brightness(0) invert(1);
 }
 
+
+.logout-container {
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    margin-top: auto;
+    margin-bottom: 40px;
+}
 
 
 .logout-button {
@@ -98,24 +117,27 @@
     font-weight: 500;
     color: #191919;
     text-decoration: none;
-    padding: 20px;
-    width: 220px;
-    border-radius: 18px;
+    padding: 10px;
+    width: 210px;
+    height: 50px;
+    border-radius: 12px;
     transition: background 0.3s ease-in-out;
-    margin-top: -80px;
-    height: 64px;
-    background-color: transparent
-
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
 }
+
 
 .logout-button:hover {
     background: rgba(121, 121, 121, 0.2);
 }
 
+
 .logout-button:active {
     background: #001D33;
     color: #fff;
 }
+
 
 .logout-button:active .menu-icon {
     filter: brightness(0) invert(1);
@@ -126,6 +148,7 @@
     .sidebar {
         transform: translateX(0);
     }
+
 
     .menu-toggle {
         display: none;

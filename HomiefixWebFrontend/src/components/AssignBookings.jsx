@@ -715,7 +715,7 @@ const AssignBookings = () => {
                         ))
                       ) : workers.length === 0 ? (
                         <div className="col-12 text-center mt-3">
-                          <p style={{ color: "#888" }}>No workers available for this product.</p>
+                          <p style={{ color: "#888" }}>No workers available for this service.</p>
                         </div>
                       ) : (
                         workers.map((worker, index) => (

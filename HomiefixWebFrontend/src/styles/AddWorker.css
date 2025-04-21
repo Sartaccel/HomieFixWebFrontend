@@ -3,10 +3,16 @@
 }
 
 
+.form-label {
+    white-space: nowrap;
+  }
+
+
 .btn-outline-secondary {
     transition: all 0.3s ease-in-out;
     border-radius: 20px;
 }
+
 
 .btn-outline-secondary:focus,
 .btn-outline-secondary.active {
@@ -15,10 +21,12 @@
     background-color: white;
 }
 
+
 .btn-outline-secondary:hover {
     background-color: white;
     color: #0076CE;
 }
+
 
 .btn-outline-secondary:active {
     transform: scale(0.95);

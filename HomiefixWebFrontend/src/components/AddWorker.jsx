@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import addWorker from "../assets/addWorker.png";
+import addWorker from "../assets/addWorker.jpg";
 import "../styles/AddWorker.css";
 import Header from "./Header";
 import api from "../api";
@@ -145,10 +144,20 @@ const AddWorker = () => {
   };
 
 
-  const validateDate = (dateString) => {
+  const validateDate = (dateString, isDOB = false) => {
     if (!dateString) return false;
     const date = new Date(dateString);
     const today = new Date();
+
+
+    // For DOB, check if the person is at least 18 years old
+    if (isDOB) {
+      const minDate = new Date();
+      minDate.setFullYear(today.getFullYear() - 18);
+      return date <= minDate;
+    }
+
+
     return date <= today;
   };
 
@@ -410,8 +419,8 @@ const AddWorker = () => {
     if (!formData.dateOfBirth) {
       newErrors.dateOfBirth = "Date of Birth is required";
       isValid = false;
-    } else if (!validateDate(formData.dateOfBirth)) {
-      newErrors.dateOfBirth = "Date cannot be in the future";
+    } else if (!validateDate(formData.dateOfBirth, true)) {
+      newErrors.dateOfBirth = "Worker must be at least 18 years old";
       isValid = false;
     }
 
@@ -780,6 +789,7 @@ const AddWorker = () => {
             </div>
 
 
+
             {/* Row 2 */}
             <div className="row mt-4">
               <div className="col-md-2">
@@ -818,7 +828,12 @@ const AddWorker = () => {
                   value={formData.workExperience}
                   onKeyDown={(e) => {
                     // Prevent entering negative numbers
-                    if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E') {
+                    if (
+                      e.key === "-" ||
+                      e.key === "+" ||
+                      e.key === "e" ||
+                      e.key === "E"
+                    ) {
                       e.preventDefault();
                     }
                   }}
@@ -848,7 +863,13 @@ const AddWorker = () => {
                   onBlur={(e) => {
                     if (!e.target.value) e.target.type = "text";
                   }}
-                  max={new Date().toISOString().split("T")[0]}
+                  max={
+                    new Date(
+                      new Date().setFullYear(new Date().getFullYear() - 18)
+                    )
+                      .toISOString()
+                      .split("T")[0]
+                  }
                 />
                 {errors.dateOfBirth && (
                   <div className="invalid-feedback">{errors.dateOfBirth}</div>
@@ -895,7 +916,9 @@ const AddWorker = () => {
 
             {/* Job Title Section */}
             <div className="row mt-4">
-              <p className="fw-bold">Job title</p>
+              <p className="fw-bold">
+                Job title<span style={requiredFieldStyle}>*</span>
+              </p>
               {errors.jobTitle && (
                 <div className="text-danger small">{errors.jobTitle}</div>
               )}
@@ -944,8 +967,7 @@ const AddWorker = () => {
                   "Wiring",
                   "Doorbell",
                   "MCB & Submeter",
-                  "Light and Wall light",
-                  "CCTV",
+                  "Light and Wall light"
                 ].map((item) => (
                   <button
                     key={item}

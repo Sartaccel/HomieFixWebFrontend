@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import notification from "../assets/Bell.png";
-import profile from "../assets/addWorker.png";
+import profile from "../assets/addWorker.jpg";
 import search from "../assets/Search.png";
 import Notifications from "./Notifications";
 import { createPortal } from "react-dom";

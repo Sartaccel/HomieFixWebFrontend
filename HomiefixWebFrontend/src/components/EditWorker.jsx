@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Swal from "sweetalert2";
-import addWorker from "../assets/addWorker.png";
+import addWorker from "../assets/addWorker.jpg";
 import "../styles/AddWorker.css";
 import Header from "./Header";
 import api from "../api";
-import Select from 'react-select';
+import Select from "react-select";
 
 
 const EditWorker = () => {
@@ -45,8 +45,21 @@ const EditWorker = () => {
   const languageOptions = [
     { value: "Tamil", label: "Tamil" },
     { value: "English", label: "English" },
-    { value: "Hindi", label: "Hindi" }
+    { value: "Hindi", label: "Hindi" },
   ];
+
+
+  // Role to specification mapping
+  const roleSpecificationMap = {
+    "Home Appliances": ["AC", "Geyser", "Microwave", "Inverter & Stabilizers", "Water Purifier", "TV", "Fridge", "Washing Machine", "Fan"],
+    "Electrician": ["Switch & Socket", "Wiring", "Doorbell", "MCB & Submeter", "Light and Wall light"],
+    "Carpentry": ["Bed", "Cupboard & Drawer", "Door", "Windows", "Drill & Hang", "Furniture Repair"],
+    "Plumbing": ["Washbasin Installation", "Blockage Removal", "Shower", "Toilet", "Tap, Pipe works", "Water tank & Motor"],
+    "Vehicle service": ["Batteries", "Health checkup", "Water Wash", "Denting & Painting", "Tyre Service", "Vehicle AC"],
+    "Care Taker": ["Child Care", "PhysioTheraphy", "Old Age Care", "Companion Support", "Home Nursing"],
+    "Cleaning": ["Cleaning"],
+    "CCTV": ["CCTV"]
+  };
 
 
   // Validation functions
@@ -104,10 +117,18 @@ const EditWorker = () => {
   };
 
 
-  const validateDate = (dateString) => {
+  const validateDate = (dateString, isDOB = false) => {
     if (!dateString) return false;
     const date = new Date(dateString);
     const today = new Date();
+
+    // For DOB, check if the person is at least 18 years old
+    if (isDOB) {
+      const minDate = new Date();
+      minDate.setFullYear(today.getFullYear() - 18);
+      return date <= minDate;
+    }
+
     return date <= today;
   };
 
@@ -124,7 +145,9 @@ const EditWorker = () => {
         setFormData({
           ...data,
           role: data.role ? data.role.split(",") : [],
-          specification: data.specification ? data.specification.split(",") : [],
+          specification: data.specification
+            ? data.specification.split(",")
+            : [],
           language: data.language ? data.language.split(",") : [],
           econtactNumber: data.eContactNumber || "",
         });
@@ -162,13 +185,14 @@ const EditWorker = () => {
   const handleDrivingLicenseChange = (e) => {
     const { value } = e.target;
 
+
     // Allow complete clearing of the field
     if (value === "DL-" || value === "") {
-      setFormData(prevState => ({
+      setFormData((prevState) => ({
         ...prevState,
-        drivingLicenseNumber: ""
+        drivingLicenseNumber: "",
       }));
-      setErrors(prev => ({ ...prev, drivingLicenseNumber: "" }));
+      setErrors((prev) => ({ ...prev, drivingLicenseNumber: "" }));
       return;
     }
 
@@ -176,12 +200,15 @@ const EditWorker = () => {
     // Process the input value
     let processedValue = value;
 
+
     // Ensure it starts with DL- if there's any content
     if (!value.startsWith("DL-")) {
-      processedValue = "DL-" + value.replace(/^DL-/, '').replace(/[^a-zA-Z0-9]/g, '');
+      processedValue =
+        "DL-" + value.replace(/^DL-/, "").replace(/[^a-zA-Z0-9]/g, "");
     } else {
-      processedValue = "DL-" + value.substring(3).replace(/[^a-zA-Z0-9]/g, '');
+      processedValue = "DL-" + value.substring(3).replace(/[^a-zA-Z0-9]/g, "");
     }
+
 
     // Limit to 15 characters after DL-
     if (processedValue.length > 18) {
@@ -189,20 +216,21 @@ const EditWorker = () => {
     }
 
 
-    setFormData(prevState => ({
+    setFormData((prevState) => ({
       ...prevState,
-      drivingLicenseNumber: processedValue
+      drivingLicenseNumber: processedValue,
     }));
 
 
     // Validate
     if (processedValue && !validateDrivingLicense(processedValue)) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        drivingLicenseNumber: "License should be in format DL- followed by 15 alphanumeric characters"
+        drivingLicenseNumber:
+          "License should be in format DL- followed by 15 alphanumeric characters",
       }));
     } else {
-      setErrors(prev => ({ ...prev, drivingLicenseNumber: "" }));
+      setErrors((prev) => ({ ...prev, drivingLicenseNumber: "" }));
     }
   };
 
@@ -215,14 +243,26 @@ const EditWorker = () => {
 
 
     setFormData((prevState) => {
+      // Update specifications
       const updatedSpecifications = prevState.specification.includes(item)
         ? prevState.specification.filter((spec) => spec !== item)
         : [...prevState.specification, item];
 
 
-      const updatedRoles = prevState.role.includes(roleHeading)
-        ? prevState.role
-        : [...prevState.role, roleHeading];
+      // Get all roles from updated specifications
+      const updatedRoles = [];
+      updatedSpecifications.forEach(spec => {
+        for (const [role, specs] of Object.entries(roleSpecificationMap)) {
+          if (specs.includes(spec)) {
+            if (!updatedRoles.includes(role)) {
+              updatedRoles.push(role);
+            }
+            break;
+          }
+        }
+      });
+
+
 
 
       return {
@@ -297,15 +337,16 @@ const EditWorker = () => {
 
 
   const handleLanguageChange = (selectedOptions) => {
-    const languages = selectedOptions.map(option => option.value);
-    setFormData(prevState => ({
+    const languages = selectedOptions.map((option) => option.value);
+    setFormData((prevState) => ({
       ...prevState,
-      language: languages
+      language: languages,
     }));
+
 
     // Clear error when languages are selected
     if (selectedOptions.length > 0) {
-      setErrors(prev => ({ ...prev, language: "" }));
+      setErrors((prev) => ({ ...prev, language: "" }));
     }
   };
 
@@ -349,11 +390,13 @@ const EditWorker = () => {
     const newErrors = {};
     let isValid = true;
 
+
     // Add job title validation
     if (formData.specification.length === 0) {
       newErrors.jobTitle = "Please select at least one job title";
       isValid = false;
     }
+
 
     // Required fields validation
     if (!formData.name.trim()) {
@@ -386,8 +429,8 @@ const EditWorker = () => {
     if (!formData.dateOfBirth) {
       newErrors.dateOfBirth = "Date of Birth is required";
       isValid = false;
-    } else if (!validateDate(formData.dateOfBirth)) {
-      newErrors.dateOfBirth = "Date cannot be in the future";
+    } else if (!validateDate(formData.dateOfBirth, true)) {
+      newErrors.dateOfBirth = "Worker must be at least 18 years old";
       isValid = false;
     }
 
@@ -446,8 +489,12 @@ const EditWorker = () => {
     }
 
 
-    if (formData.drivingLicenseNumber && !validateDrivingLicense(formData.drivingLicenseNumber)) {
-      newErrors.drivingLicenseNumber = "License should be in format DL- followed by 15 alphanumeric characters";
+    if (
+      formData.drivingLicenseNumber &&
+      !validateDrivingLicense(formData.drivingLicenseNumber)
+    ) {
+      newErrors.drivingLicenseNumber =
+        "License should be in format DL- followed by 15 alphanumeric characters";
       isValid = false;
     }
 
@@ -470,6 +517,7 @@ const EditWorker = () => {
     e.preventDefault();
     setIsLoading(true);
 
+
     // Validate job titles first
     if (formData.specification.length === 0) {
       Swal.fire({
@@ -480,6 +528,7 @@ const EditWorker = () => {
       setIsLoading(false);
       return;
     }
+
 
     if (!validateForm()) {
       setIsLoading(false);
@@ -543,7 +592,7 @@ const EditWorker = () => {
   // Style for required field asterisk
   const requiredFieldStyle = {
     color: "#B8141A",
-    marginLeft: "2px"
+    marginLeft: "2px",
   };
 
 
@@ -593,7 +642,9 @@ const EditWorker = () => {
             className="container mt-4"
             style={{ marginLeft: "64px", maxWidth: "100%" }}
           >
-            <p>Profile Photo <span style={requiredFieldStyle}>*</span></p>
+            <p>
+              Profile Photo <span style={requiredFieldStyle}>*</span>
+            </p>
             <div>
               <img
                 src={previewImage}
@@ -710,7 +761,9 @@ const EditWorker = () => {
                   maxLength="10"
                 />
                 {errors.econtactNumber && (
-                  <div className="invalid-feedback">{errors.econtactNumber}</div>
+                  <div className="invalid-feedback">
+                    {errors.econtactNumber}
+                  </div>
                 )}
               </div>
             </div>
@@ -725,10 +778,11 @@ const EditWorker = () => {
                 <Select
                   isMulti
                   options={languageOptions}
-                  className={`basic-multi-select ${errors.language ? "is-invalid" : ""}`}
+                  className={`basic-multi-select ${errors.language ? "is-invalid" : ""
+                    }`}
                   classNamePrefix="select"
                   onChange={handleLanguageChange}
-                  value={languageOptions.filter(option =>
+                  value={languageOptions.filter((option) =>
                     formData.language.includes(option.value)
                   )}
                 />
@@ -752,7 +806,9 @@ const EditWorker = () => {
                   value={formData.workExperience}
                 />
                 {errors.workExperience && (
-                  <div className="invalid-feedback">{errors.workExperience}</div>
+                  <div className="invalid-feedback">
+                    {errors.workExperience}
+                  </div>
                 )}
               </div>
               <div className="col-md-3">
@@ -760,7 +816,7 @@ const EditWorker = () => {
                   D.O.B <span style={requiredFieldStyle}>*</span>
                 </label>
                 <input
-                  type="date"
+                  type="text"
                   className={`form-control ${errors.dateOfBirth ? "is-invalid" : ""
                     }`}
                   name="dateOfBirth"
@@ -768,7 +824,13 @@ const EditWorker = () => {
                   required
                   onChange={handleChange}
                   value={formData.dateOfBirth}
-                  max={new Date().toISOString().split("T")[0]}
+                  placeholder="dd-mm-yyyy"
+                  style={{ color: formData.dateOfBirth ? "#000" : "#aaa" }}
+                  onFocus={(e) => (e.target.type = "date")}
+                  onBlur={(e) => {
+                    if (!e.target.value) e.target.type = "text";
+                  }}
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0]}
                 />
                 {errors.dateOfBirth && (
                   <div className="invalid-feedback">{errors.dateOfBirth}</div>
@@ -813,7 +875,7 @@ const EditWorker = () => {
 
             {/* Job Title Section */}
             <div className="row mt-4">
-              <p className="fw-bold">Job title</p>
+              <p className="fw-bold">Job title <span style={requiredFieldStyle}>*</span></p>
               {errors.jobTitle && (
                 <div className="text-danger small">{errors.jobTitle}</div>
               )}
@@ -862,8 +924,7 @@ const EditWorker = () => {
                   "Wiring",
                   "Doorbell",
                   "MCB & Submeter",
-                  "Light and Wall light",
-                  "CCTV",
+                  "Light and Wall light"
                 ].map((item) => (
                   <button
                     key={item}
@@ -963,6 +1024,75 @@ const EditWorker = () => {
             </div>
 
 
+            {/* Care Taker */}
+            <div className="row mt-3">
+              <p>Care Taker</p>
+            </div>
+            <div className="row">
+              <div className="d-flex flex-wrap gap-3">
+                {[
+                  "Child Care",
+                  "PhysioTheraphy",
+                  "Old Age Care",
+                  "Companion Support",
+                  "Home Nursing",
+                ].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
+                      }`}
+                    onClick={() => handleButtonClick(item, "Care Taker")}
+                  >
+                    {item} {clickedButtons[item] && "✓"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+
+            {/* Cleaning */}
+            <div className="row mt-3">
+              <p>Cleaning</p>
+            </div>
+            <div className="row">
+              <div className="d-flex flex-wrap gap-3">
+                {["Cleaning"].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
+                      }`}
+                    onClick={() => handleButtonClick(item, "Cleaning")}
+                  >
+                    {item} {clickedButtons[item] && "✓"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+
+            {/* CCTV */}
+            <div className="row mt-3">
+              <p>CCTV</p>
+            </div>
+            <div className="row">
+              <div className="d-flex flex-wrap gap-3">
+                {["CCTV"].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
+                      }`}
+                    onClick={() => handleButtonClick(item, "CCTV")}
+                  >
+                    {item} {clickedButtons[item] && "✓"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+
             {/* Address Details */}
             <div className="row mt-4">
               <p className="fw-bold">Address Details</p>
@@ -970,7 +1100,8 @@ const EditWorker = () => {
             <div className="row">
               <div className="col-md-3">
                 <label htmlFor="houseNumber" className="form-label">
-                  House no/ Building name <span style={requiredFieldStyle}>*</span>
+                  House no/ Building name{" "}
+                  <span style={requiredFieldStyle}>*</span>
                 </label>
                 <input
                   type="text"
@@ -1046,7 +1177,9 @@ const EditWorker = () => {
                   value={formData.nearbyLandmark}
                 />
                 {errors.nearbyLandmark && (
-                  <div className="invalid-feedback">{errors.nearbyLandmark}</div>
+                  <div className="invalid-feedback">
+                    {errors.nearbyLandmark}
+                  </div>
                 )}
               </div>
               <div className="col-md-3">
