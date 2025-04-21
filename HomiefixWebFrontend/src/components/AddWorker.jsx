@@ -124,6 +124,11 @@ const AddWorker = () => {
     return regex.test(license);
   };
 
+  const validateWorkExperience = (experience) => {
+    const regex = /^[0-9]+$/;
+    return regex.test(experience);
+  };
+
   const validateDate = (dateString) => {
     if (!dateString) return false;
     const date = new Date(dateString);
@@ -171,6 +176,11 @@ const AddWorker = () => {
           error = "Contact number should be 10 digits";
         }
         break;
+        case "workExperience":
+          if (!validateWorkExperience(value)) {
+            error = "Work experience should contain only numbers";
+          }
+          break;
       case "email":
         if (!validateEmail(value)) {
           error = "Please enter a valid email address";
@@ -319,6 +329,14 @@ const AddWorker = () => {
     // Add job title validation
     if (formData.specification.length === 0) {
       newErrors.jobTitle = "Please select at least one job title";
+      isValid = false;
+    }
+
+    if (!formData.workExperience) {
+      newErrors.workExperience = "Work experience is required";
+      isValid = false;
+    } else if (!validateWorkExperience(formData.workExperience)) {
+      newErrors.workExperience = "Work experience should contain only numbers";
       isValid = false;
     }
 
@@ -719,27 +737,34 @@ const AddWorker = () => {
                 )}
               </div>
               <div className="col-md-3">
-                <label htmlFor="workExperience" className="form-label">
-                  Work Experience <span style={requiredFieldStyle}>*</span>
-                </label>
-                <input
-                  type="text"
-                  className={`form-control ${
-                    errors.workExperience ? "is-invalid" : ""
-                  }`}
-                  name="workExperience"
-                  id="workExperience"
-                  required
-                  placeholder="Enter Work Experience"
-                  onChange={handleChange}
-                  value={formData.workExperience}
-                />
-                {errors.workExperience && (
-                  <div className="invalid-feedback">
-                    {errors.workExperience}
-                  </div>
-                )}
-              </div>
+  <label htmlFor="workExperience" className="form-label">
+    Work Experience <span style={requiredFieldStyle}>*</span>
+  </label>
+  <input
+    type="number"
+    min="0"
+    className={`form-control ${
+      errors.workExperience ? "is-invalid" : ""
+    }`}
+    name="workExperience"
+    id="workExperience"
+    required
+    placeholder="Enter Work Experience"
+    onChange={handleChange}
+    value={formData.workExperience}
+    onKeyDown={(e) => {
+      // Prevent entering negative numbers
+      if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E') {
+        e.preventDefault();
+      }
+    }}
+  />
+  {errors.workExperience && (
+    <div className="invalid-feedback">
+      {errors.workExperience}
+    </div>
+  )}
+</div>
               <div className="col-md-3">
                 <label htmlFor="dateOfBirth" className="form-label">
                   D.O.B <span style={requiredFieldStyle}>*</span>
@@ -927,32 +952,101 @@ const AddWorker = () => {
             </div>
 
             {/* Vehicle Service */}
-            <div className="row mt-3">
-              <p>Vehicle service</p>
-            </div>
-            <div className="row">
-              <div className="d-flex flex-wrap gap-3">
-                {[
-                  "Batteries",
-                  "Health checkup",
-                  "Water Wash",
-                  "Denting & Painting",
-                  "Tyre Service",
-                  "Vehicle AC",
-                ].map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    className={`btn btn-outline-secondary ${
-                      clickedButtons[item] ? "active" : ""
-                    }`}
-                    onClick={() => handleButtonClick(item, "Vehicle service")}
-                  >
-                    {item} {clickedButtons[item] && "✓"}
-                  </button>
-                ))}
-              </div>
-            </div>
+<div className="row mt-3">
+  <p>Vehicle service</p>
+</div>
+<div className="row">
+  <div className="d-flex flex-wrap gap-3">
+    {[
+      "Batteries",
+      "Health checkup",
+      "Water Wash",
+      "Denting & Painting",
+      "Tyre Service",
+      "Vehicle AC",
+    ].map((item) => (
+      <button
+        key={item}
+        type="button"
+        className={`btn btn-outline-secondary ${
+          clickedButtons[item] ? "active" : ""
+        }`}
+        onClick={() => handleButtonClick(item, "Vehicle service")}
+      >
+        {item} {clickedButtons[item] && "✓"}
+      </button>
+    ))}
+  </div>
+</div>
+
+{/* Care Taker */}
+<div className="row mt-3">
+  <p>Care Taker</p>
+</div>
+<div className="row">
+  <div className="d-flex flex-wrap gap-3">
+    {[
+      "Child Care",
+      "PhysioTheraphy",
+      "Old Age Care",
+      "Companion Support",
+      "Home Nursing",
+    ].map((item) => (
+      <button
+        key={item}
+        type="button"
+        className={`btn btn-outline-secondary ${
+          clickedButtons[item] ? "active" : ""
+        }`}
+        onClick={() => handleButtonClick(item, "Care Taker")}
+      >
+        {item} {clickedButtons[item] && "✓"}
+      </button>
+    ))}
+  </div>
+</div>
+
+{/* Cleaning */}
+<div className="row mt-3">
+  <p>Cleaning</p>
+</div>
+<div className="row">
+  <div className="d-flex flex-wrap gap-3">
+    {["Cleaning"].map((item) => (
+      <button
+        key={item}
+        type="button"
+        className={`btn btn-outline-secondary ${
+          clickedButtons[item] ? "active" : ""
+        }`}
+        onClick={() => handleButtonClick(item, "Cleaning")}
+      >
+        {item} {clickedButtons[item] && "✓"}
+      </button>
+    ))}
+  </div>
+</div>
+
+{/* CCTV */}
+<div className="row mt-3">
+  <p>CCTV</p>
+</div>
+<div className="row">
+  <div className="d-flex flex-wrap gap-3">
+    {["CCTV"].map((item) => (
+      <button
+        key={item}
+        type="button"
+        className={`btn btn-outline-secondary ${
+          clickedButtons[item] ? "active" : ""
+        }`}
+        onClick={() => handleButtonClick(item, "CCTV")}
+      >
+        {item} {clickedButtons[item] && "✓"}
+      </button>
+    ))}
+  </div>
+</div>
 
             {/* Address Details */}
             <div className="row mt-4">

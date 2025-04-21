@@ -64,7 +64,7 @@ const WorkerDetails = ({ token, setToken }) => {
       "Doorbell",
       "MCB & Submeter",
       "Light and Wall light",
-      "CCTV",
+      "CCTV Installation",
     ],
     Carpentry: [
       "Bed",
@@ -89,6 +89,19 @@ const WorkerDetails = ({ token, setToken }) => {
       "Denting & Painting",
       "Tyre Service",
       "Vehicle AC",
+    ],
+    "Care Taker": [
+      "Child Care",
+      "PhysioTheraphy",
+      "Old Age Care",
+      "Companion Support",
+      "Home Nursing",
+    ],
+    "Cleaning": [
+      "Cleaning",
+    ],
+    "CCTV": [
+      "CCTV",
     ],
   };
 
@@ -153,12 +166,12 @@ const WorkerDetails = ({ token, setToken }) => {
             <div className="modal-lg-dialog" style={{ width: "81%" }}>
               <div className="modal-content">
                 <div className="modal-body">
-                  <div className="row flex-nowrap">
+                  <div className="row flex-nowrap" style={{ overflowX: "auto" }}>
                     {Object.entries(specifications).map(([category, specs]) => (
                       <div
                         key={category}
                         className="col"
-                        style={{ minWidth: "200px" }}
+                        style={{ minWidth: "230px" }}
                       >
                         <div className="card h-100">
                           <div className="card-header">
