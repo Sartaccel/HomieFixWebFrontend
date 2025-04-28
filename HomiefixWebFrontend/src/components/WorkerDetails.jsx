@@ -68,7 +68,6 @@ const WorkerDetails = ({ token, setToken }) => {
       "Doorbell",
       "MCB & Submeter",
       "Light and Wall light",
-      "CCTV Installation",
     ],
     Carpentry: [
       "Bed",
@@ -76,7 +75,7 @@ const WorkerDetails = ({ token, setToken }) => {
       "Door",
       "Windows",
       "Drill & Hang",
-      "Furniture Repair",
+      "Furniture",
     ],
     Plumbing: [
       "Washbasin Installation",
@@ -84,7 +83,7 @@ const WorkerDetails = ({ token, setToken }) => {
       "Shower",
       "Toilet",
       "Tap, Pipe works",
-      "Water tank & Motor",
+      "Watertank & Motor",
     ],
     "Vehicle service": [
       "Batteries",

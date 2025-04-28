@@ -1,16 +1,17 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Card, Placeholder } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
 import notificationIcon from "../assets/noti.png";
 import api from "../api";
 
-const Notifications = ({ isScrollingRef }) => {
+const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const scrollRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchNotifications(true);
@@ -41,12 +42,14 @@ const Notifications = ({ isScrollingRef }) => {
               ...notification,
               productName: bookingData.productName || "No Product Found",
               productImage: bookingData.productImage || null,
+              bookingStatus: bookingData.bookingStatus || null,
             };
           } catch (err) {
             return {
               ...notification,
               productName: "Unknown Product",
               productImage: null,
+              bookingStatus: null,
             };
           }
         }
@@ -76,31 +79,21 @@ const Notifications = ({ isScrollingRef }) => {
     }
   };
 
-  const handleScroll = (e) => {
-    // Set scrolling state when scroll starts
-    isScrollingRef.current = true;
-    
-    // Clear the flag after a short delay when scrolling stops
-    clearTimeout(scrollRef.current);
-    scrollRef.current = setTimeout(() => {
-      isScrollingRef.current = false;
-    }, 100);
-  };
-
   const formatDateTime = (dateString) => {
     const date = new Date(dateString);
-    const formattedDate = date.toLocaleDateString("en-US", {
+
+    // For Indian Standard Time (IST) which is UTC+5:30
+    const options = {
       month: "short",
       day: "numeric",
       year: "numeric",
-    });
-    const formattedTime = date.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
-    });
+      timeZone: "Asia/Kolkata",
+    };
 
-    return `${formattedDate}, ${formattedTime}`;
+    return new Intl.DateTimeFormat("en-US", options).format(date);
   };
 
   const getStatusBadge = (type) => {
@@ -140,6 +133,45 @@ const Notifications = ({ isScrollingRef }) => {
 
   const getIcon = () => {
     return <img src={notificationIcon} alt="Notification" width={65} />;
+  };
+
+  const handleNotificationClick = async (notification) => {
+    if (!notification.bookingId) return;
+
+    try {
+      const bookingResponse = await api.get(
+        `/booking/${notification.bookingId}`
+      );
+      const bookingData = bookingResponse.data;
+
+      if (bookingData.bookingStatus === "PENDING") {
+        navigate(`/booking-details/assign-bookings/${notification.bookingId}`, {
+          state: { booking: bookingData },
+        });
+      } else {
+        navigate(`/booking-details/view-bookings/${notification.bookingId}`, {
+          state: { booking: bookingData },
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching booking details:", error);
+
+      // Fallback navigation if API fails
+      navigate(`/booking-details/assign-bookings/${notification.bookingId}`, {
+        state: {
+          booking: {
+            id: notification.bookingId,
+            productName: notification.productName,
+            productImage: notification.productImage,
+            bookingStatus: "PENDING",
+            userProfile: {
+              fullName: notification.name,
+              mobileNumber: { mobileNumber: notification.contact },
+            },
+          },
+        },
+      });
+    }
   };
 
   const NotificationSkeleton = () => (
@@ -187,11 +219,7 @@ const Notifications = ({ isScrollingRef }) => {
         {refreshing && <small className="text-muted">Updating...</small>}
       </div>
 
-      <div 
-        className="mt-3" 
-        style={{ maxHeight: "400px", overflowY: "auto" }}
-        onScroll={handleScroll}
-      >
+      <div className="mt-3" style={{ maxHeight: "400px", overflowY: "auto" }}>
         {initialLoading ? (
           <>
             <NotificationSkeleton />
@@ -206,7 +234,9 @@ const Notifications = ({ isScrollingRef }) => {
           notifications.map((notification, index) => (
             <div
               key={notification.id || index}
-              className="d-flex align-items-start mt-1 p-0 gap-3 border-bottom"
+              className="d-flex align-items-start mt-1 p-0 gap-3 border-bottom cursor-pointer"
+              style={{ cursor: "pointer" }}
+              onClick={() => handleNotificationClick(notification)}
             >
               <div className="bg-light rounded d-flex align-items-center mt-2">
                 {getIcon()}
@@ -224,6 +254,7 @@ const Notifications = ({ isScrollingRef }) => {
                   </span>{" "}
                   - {notification.productName || "No Product"}
                 </p>
+                <p className="mb-2">{notification.message}</p>
               </div>
             </div>
           ))

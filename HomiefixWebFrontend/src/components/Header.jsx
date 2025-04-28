@@ -13,8 +13,10 @@ const Header = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState(profile);
   const popupRef = useRef(null);
+  const notificationRef = useRef(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [currentUsername, setCurrentUsername] = useState("");
+  const clickStartTimeRef = useRef(0);
 
   const getHeading = () => {
     if (location.pathname.startsWith("/booking-details")) return "Booking Details";
@@ -25,7 +27,8 @@ const Header = () => {
     return "Dashboard";
   };
 
-  const toggleNotifications = async () => {
+  const toggleNotifications = async (e) => {
+    e.stopPropagation();
     setShowNotifications(!showNotifications);
     if (!showNotifications) {
       try {
@@ -67,7 +70,6 @@ const Header = () => {
 
     fetchUnreadCount();
 
-    // Check for cached photo in sessionStorage
     if (username) {
       const cachedPhoto = sessionStorage.getItem(`profilePhoto_${username}`);
       if (cachedPhoto) {
@@ -77,7 +79,6 @@ const Header = () => {
       }
     }
 
-    // Add event listener for profile updates
     const handleProfileUpdate = (e) => {
       if (e.detail.username === username) {
         fetchProfilePhoto(username);
@@ -97,23 +98,37 @@ const Header = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (popupRef.current && !popupRef.current.contains(event.target)) {
+    const handleClickOutside = (e) => {
+      // Check if the click is outside both the bell icon and the notifications popup
+      if (popupRef.current && !popupRef.current.contains(e.target) &&
+          notificationRef.current && !notificationRef.current.contains(e.target)) {
         setShowNotifications(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
+
+    const handleMouseDown = (e) => {
+      clickStartTimeRef.current = Date.now();
+    };
+
+    const handleMouseUp = (e) => {
+      // Only consider it a click if it was very short (not a drag)
+      if (Date.now() - clickStartTimeRef.current < 200) {
+        handleClickOutside(e);
+      }
+    };
+
+    document.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("mouseup", handleMouseUp);
+
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, []);
 
   return (
     <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
-      <h2
-        className="heading align-items-center mb-0"
-        style={{ marginLeft: "31px" }}
-      >
+      <h2 className="heading align-items-center mb-0" style={{ marginLeft: "31px" }}>
         {getHeading()}
       </h2>
       <div className="header-right d-flex align-items-center gap-3">
@@ -147,7 +162,8 @@ const Header = () => {
           {showNotifications &&
             createPortal(
               <div
-                className="position-fixed rounded p-3 "
+                ref={notificationRef}
+                className="position-fixed rounded p-3"
                 style={{
                   zIndex: 1050,
                   right: "50px",
@@ -156,6 +172,7 @@ const Header = () => {
                   maxHeight: "500px",
                   position: "fixed",
                 }}
+                onClick={(e) => e.stopPropagation()}
               >
                 <Notifications />
               </div>,
@@ -171,7 +188,7 @@ const Header = () => {
           onClick={() => navigate(`/profile/${currentUsername}`)}
           style={{ cursor: "pointer" }}
           onError={(e) => {
-            e.target.src = profile; // Fallback to default image if the stored photo fails to load
+            e.target.src = profile;
           }}
         />
       </div>

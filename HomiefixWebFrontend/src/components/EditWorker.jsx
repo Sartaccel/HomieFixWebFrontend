@@ -48,14 +48,57 @@ const EditWorker = () => {
 
   // Role to specification mapping
   const roleSpecificationMap = {
-    "Home Appliances": ["AC", "Geyser", "Microwave", "Inverter & Stabilizers", "Water Purifier", "TV", "Fridge", "Washing Machine", "Fan"],
-    "Electrician": ["Switch & Socket", "Wiring", "Doorbell", "MCB & Submeter", "Light and Wall light"],
-    "Carpentry": ["Bed", "Cupboard & Drawer", "Door", "Windows", "Drill & Hang", "Furniture Repair"],
-    "Plumbing": ["Washbasin Installation", "Blockage Removal", "Shower", "Toilet", "Tap, Pipe works", "Water tank & Motor"],
-    "Vehicle service": ["Batteries", "Health checkup", "Water Wash", "Denting & Painting", "Tyre Service", "Vehicle AC"],
-    "Care Taker": ["Child Care", "PhysioTheraphy", "Old Age Care", "Companion Support", "Home Nursing"],
-    "Cleaning": ["Cleaning"],
-    "CCTV": ["CCTV"]
+    "Home Appliances": [
+      "AC",
+      "Geyser",
+      "Microwave",
+      "Inverter & Stabilizers",
+      "Water Purifier",
+      "TV",
+      "Fridge",
+      "Washing Machine",
+      "Fan",
+    ],
+    Electrician: [
+      "Switch & Socket",
+      "Wiring",
+      "Doorbell",
+      "MCB & Submeter",
+      "Light and Wall light",
+    ],
+    Carpentry: [
+      "Bed",
+      "Cupboard & Drawer",
+      "Door",
+      "Windows",
+      "Drill & Hang",
+      "Furniture",
+    ],
+    Plumbing: [
+      "Washbasin Installation",
+      "Blockage Removal",
+      "Shower",
+      "Toilet",
+      "Tap, Pipe works",
+      "Watertank & Motor",
+    ],
+    "Vehicle service": [
+      "Batteries",
+      "Health checkup",
+      "Water Wash",
+      "Denting & Painting",
+      "Tyre Service",
+      "Vehicle AC",
+    ],
+    "Care Taker": [
+      "Child Care",
+      "PhysioTheraphy",
+      "Old Age Care",
+      "Companion Support",
+      "Home Nursing",
+    ],
+    Cleaning: ["Cleaning"],
+    CCTV: ["CCTV"],
   };
 
   // Validation functions
@@ -108,18 +151,19 @@ const EditWorker = () => {
     if (!dateString) return false;
     const date = new Date(dateString);
     const today = new Date();
-    
+
     // For DOB, check if the person is at least 18 years old
     if (isDOB) {
       const minDate = new Date();
       minDate.setFullYear(today.getFullYear() - 18);
       return date <= minDate;
     }
-    
+
     return date <= today;
   };
 
   // Fetch worker data and initialize form
+  // Update the initial preview image state in the useEffect
   useEffect(() => {
     const fetchWorkerData = async () => {
       try {
@@ -146,8 +190,16 @@ const EditWorker = () => {
         }
         setClickedButtons(initialClickedButtons);
 
-        // Set preview image
-        setPreviewImage(data.profilePicUrl || addWorker);
+        // Set preview image - use the full URL if it's from the server
+        if (data.profilePicUrl) {
+          setPreviewImage(
+            data.profilePicUrl.startsWith("http")
+              ? data.profilePicUrl
+              : `${api.defaults.baseURL}${data.profilePicUrl}`
+          );
+        } else {
+          setPreviewImage(addWorker);
+        }
       } catch (error) {
         console.error("Error fetching worker data:", error);
         Swal.fire({
@@ -223,17 +275,16 @@ const EditWorker = () => {
 
       // Get all roles from updated specifications
       const updatedRoles = [];
-updatedSpecifications.forEach(spec => {
-  for (const [role, specs] of Object.entries(roleSpecificationMap)) {
-    if (specs.includes(spec)) {
-      if (!updatedRoles.includes(role)) {
-        updatedRoles.push(role);
-      }
-      break;
-    }
-  }
-});
-
+      updatedSpecifications.forEach((spec) => {
+        for (const [role, specs] of Object.entries(roleSpecificationMap)) {
+          if (specs.includes(spec)) {
+            if (!updatedRoles.includes(role)) {
+              updatedRoles.push(role);
+            }
+            break;
+          }
+        }
+      });
 
       return {
         ...prevState,
@@ -261,7 +312,7 @@ updatedSpecifications.forEach(spec => {
         }
         break;
       case "email":
-        if (!validateEmail(value)) {
+        if (value && !validateEmail(value)) {
           error = "Please enter a valid email address";
         }
         break;
@@ -287,7 +338,7 @@ updatedSpecifications.forEach(spec => {
         break;
       case "dateOfBirth":
       case "joiningDate":
-        if (!validateDate(value)) {
+        if (value && !validateDate(value)) {
           error = "Date cannot be in the future";
         }
         break;
@@ -315,6 +366,7 @@ updatedSpecifications.forEach(spec => {
     }
   };
 
+  // Update the handleImageUpload function
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -343,7 +395,13 @@ updatedSpecifications.forEach(spec => {
       ...prevState,
       profilePic: file,
     }));
-    setPreviewImage(URL.createObjectURL(file));
+
+    // Create preview URL that works in both dev and production
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setPreviewImage(event.target.result);
+    };
+    reader.readAsDataURL(file);
   };
 
   const validateForm = () => {
@@ -373,18 +431,12 @@ updatedSpecifications.forEach(spec => {
       isValid = false;
     }
 
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-      isValid = false;
-    } else if (!validateEmail(formData.email)) {
+    if (formData.email && !validateEmail(formData.email)) {
       newErrors.email = "Please enter a valid email address";
       isValid = false;
     }
 
-    if (!formData.dateOfBirth) {
-      newErrors.dateOfBirth = "Date of Birth is required";
-      isValid = false;
-    } else if (!validateDate(formData.dateOfBirth, true)) {
+    if (formData.dateOfBirth && !validateDate(formData.dateOfBirth, true)) {
       newErrors.dateOfBirth = "Worker must be at least 18 years old";
       isValid = false;
     }
@@ -576,9 +628,7 @@ updatedSpecifications.forEach(spec => {
             className="container mt-4"
             style={{ marginLeft: "64px", maxWidth: "100%" }}
           >
-            <p>
-              Profile Photo <span style={requiredFieldStyle}>*</span>
-            </p>
+            <p>Profile Photo</p>
             <div>
               <img
                 src={previewImage}
@@ -642,14 +692,13 @@ updatedSpecifications.forEach(spec => {
               </div>
               <div className="col-md-3">
                 <label htmlFor="email" className="form-label">
-                  Email <span style={requiredFieldStyle}>*</span>
+                  Email
                 </label>
                 <input
                   type="email"
                   className={`form-control ${errors.email ? "is-invalid" : ""}`}
                   name="email"
                   id="email"
-                  required
                   placeholder="Enter Email"
                   onChange={handleChange}
                   value={formData.email}
@@ -727,7 +776,7 @@ updatedSpecifications.forEach(spec => {
               </div>
               <div className="col-md-3">
                 <label htmlFor="workExperience" className="form-label">
-                  Work Experience <span style={requiredFieldStyle}>*</span>
+                  Work Experience
                 </label>
                 <input
                   type="text"
@@ -736,7 +785,6 @@ updatedSpecifications.forEach(spec => {
                   }`}
                   name="workExperience"
                   id="workExperience"
-                  required
                   placeholder="Enter Work Experience"
                   onChange={handleChange}
                   value={formData.workExperience}
@@ -749,7 +797,7 @@ updatedSpecifications.forEach(spec => {
               </div>
               <div className="col-md-3">
                 <label htmlFor="dateOfBirth" className="form-label">
-                  D.O.B <span style={requiredFieldStyle}>*</span>
+                  D.O.B
                 </label>
                 <input
                   type="text"
@@ -758,7 +806,6 @@ updatedSpecifications.forEach(spec => {
                   }`}
                   name="dateOfBirth"
                   id="dateOfBirth"
-                  required
                   onChange={handleChange}
                   value={formData.dateOfBirth}
                   placeholder="dd-mm-yyyy"
@@ -767,7 +814,13 @@ updatedSpecifications.forEach(spec => {
                   onBlur={(e) => {
                     if (!e.target.value) e.target.type = "text";
                   }}
-                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0]}
+                  max={
+                    new Date(
+                      new Date().setFullYear(new Date().getFullYear() - 18)
+                    )
+                      .toISOString()
+                      .split("T")[0]
+                  }
                 />
                 {errors.dateOfBirth && (
                   <div className="invalid-feedback">{errors.dateOfBirth}</div>
@@ -811,7 +864,9 @@ updatedSpecifications.forEach(spec => {
 
             {/* Job Title Section */}
             <div className="row mt-4">
-              <p className="fw-bold">Job title <span style={requiredFieldStyle}>*</span></p>
+              <p className="fw-bold">
+                Job title <span style={requiredFieldStyle}>*</span>
+              </p>
               {errors.jobTitle && (
                 <div className="text-danger small">{errors.jobTitle}</div>
               )}
@@ -859,7 +914,7 @@ updatedSpecifications.forEach(spec => {
                   "Wiring",
                   "Doorbell",
                   "MCB & Submeter",
-                  "Light and Wall light"
+                  "Light and Wall light",
                 ].map((item) => (
                   <button
                     key={item}
@@ -887,7 +942,7 @@ updatedSpecifications.forEach(spec => {
                   "Door",
                   "Windows",
                   "Drill & Hang",
-                  "Furniture Repair",
+                  "Furniture",
                 ].map((item) => (
                   <button
                     key={item}
@@ -915,7 +970,7 @@ updatedSpecifications.forEach(spec => {
                   "Shower",
                   "Toilet",
                   "Tap, Pipe works",
-                  "Water tank & Motor",
+                  "Watertank & Motor",
                 ].map((item) => (
                   <button
                     key={item}

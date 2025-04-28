@@ -190,7 +190,7 @@ const AddWorker = () => {
         }
         break;
       case "email":
-        if (!validateEmail(value)) {
+        if (value && !validateEmail(value)) {
           error = "Please enter a valid email address";
         }
         break;
@@ -222,7 +222,7 @@ const AddWorker = () => {
         break;
       case "dateOfBirth":
       case "joiningDate":
-        if (!validateDate(value)) {
+        if (value && !validateDate(value)) {
           error = "Date cannot be in the future";
         }
         break;
@@ -311,11 +311,18 @@ const AddWorker = () => {
     }
 
     setErrors((prev) => ({ ...prev, profilePic: "" }));
+
+    // Use FileReader instead of URL.createObjectURL
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewImage(reader.result);
+    };
+    reader.readAsDataURL(file);
+
     setFormData((prevState) => ({
       ...prevState,
       profilePic: file,
     }));
-    setPreviewImage(URL.createObjectURL(file));
   };
 
   const checkContactNumberExists = async (contactNumber) => {
@@ -340,10 +347,10 @@ const AddWorker = () => {
       isValid = false;
     }
 
-    if (!formData.workExperience) {
-      newErrors.workExperience = "Work experience is required";
-      isValid = false;
-    } else if (!validateWorkExperience(formData.workExperience)) {
+    if (
+      formData.workExperience &&
+      !validateWorkExperience(formData.workExperience)
+    ) {
       newErrors.workExperience = "Work experience should contain only numbers";
       isValid = false;
     }
@@ -365,32 +372,13 @@ const AddWorker = () => {
       isValid = false;
     }
 
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-      isValid = false;
-    } else if (!validateEmail(formData.email)) {
+    if (formData.email && !validateEmail(formData.email)) {
       newErrors.email = "Please enter a valid email address";
       isValid = false;
     }
 
-    if (!formData.dateOfBirth) {
-      newErrors.dateOfBirth = "Date of Birth is required";
-      isValid = false;
-    } else if (!validateDate(formData.dateOfBirth, true)) {
+    if (formData.dateOfBirth && !validateDate(formData.dateOfBirth, true)) {
       newErrors.dateOfBirth = "Worker must be at least 18 years old";
-      isValid = false;
-    }
-
-    if (!formData.profilePic) {
-      newErrors.profilePic = "Profile picture is required";
-      isValid = false;
-    }
-
-    if (
-      formData.econtactNumber &&
-      !validateContactNumber(formData.econtactNumber)
-    ) {
-      newErrors.econtactNumber = "Emergency contact should be 10 digits";
       isValid = false;
     }
 
@@ -595,9 +583,7 @@ const AddWorker = () => {
             className="container mt-4"
             style={{ marginLeft: "64px", maxWidth: "100%" }}
           >
-            <p>
-              Profile Photo <span style={requiredFieldStyle}>*</span>
-            </p>
+            <p>Profile Photo</p>
             <div>
               <img
                 src={previewImage}
@@ -605,6 +591,10 @@ const AddWorker = () => {
                 height={100}
                 width={100}
                 className="rounded-4"
+                onError={(e) => {
+                  e.target.onerror = null; // Prevent infinite loop
+                  e.target.src = addWorker; // Fallback to default image
+                }}
               />
               <input
                 type="file"
@@ -640,8 +630,7 @@ const AddWorker = () => {
             style={{ marginLeft: "60px", maxWidth: "100%" }}
           >
             {/* Row 1 */}
- {/* Row 1 */}
-  <div className="row" style={{ maxWidth: "100%" }}>
+            <div className="row" style={{ maxWidth: "100%" }}>
               <div className="col-md-2">
                 <label htmlFor="name" className="form-label">
                   Full Name <span style={requiredFieldStyle}>*</span>
@@ -662,14 +651,13 @@ const AddWorker = () => {
               </div>
               <div className="col-md-3">
                 <label htmlFor="email" className="form-label">
-                  Email <span style={requiredFieldStyle}>*</span>
+                  Email
                 </label>
                 <input
                   type="email"
                   className={`form-control ${errors.email ? "is-invalid" : ""}`}
                   name="email"
                   id="email"
-                  required
                   placeholder="Enter Email"
                   onChange={handleChange}
                   value={formData.email}
@@ -747,7 +735,7 @@ const AddWorker = () => {
               </div>
               <div className="col-md-3">
                 <label htmlFor="workExperience" className="form-label">
-                  Work Experience <span style={requiredFieldStyle}>*</span>
+                  Work Experience
                 </label>
                 <input
                   type="number"
@@ -757,7 +745,6 @@ const AddWorker = () => {
                   }`}
                   name="workExperience"
                   id="workExperience"
-                  required
                   placeholder="Enter Work Experience"
                   onChange={handleChange}
                   value={formData.workExperience}
@@ -781,7 +768,7 @@ const AddWorker = () => {
               </div>
               <div className="col-md-3">
                 <label htmlFor="dateOfBirth" className="form-label">
-                  D.O.B <span style={requiredFieldStyle}>*</span>
+                  D.O.B
                 </label>
                 <input
                   type="text"
@@ -790,7 +777,6 @@ const AddWorker = () => {
                   }`}
                   name="dateOfBirth"
                   id="dateOfBirth"
-                  required
                   onChange={handleChange}
                   value={formData.dateOfBirth}
                   placeholder="dd-mm-yyyy"
@@ -900,7 +886,7 @@ const AddWorker = () => {
                   "Wiring",
                   "Doorbell",
                   "MCB & Submeter",
-                  "Light and Wall light"
+                  "Light and Wall light",
                 ].map((item) => (
                   <button
                     key={item}
@@ -956,7 +942,7 @@ const AddWorker = () => {
                   "Shower",
                   "Toilet",
                   "Tap, Pipe works",
-                  "Water tank & Motor",
+                  "Watertank & Motor",
                 ].map((item) => (
                   <button
                     key={item}

@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
@@ -19,15 +25,17 @@ import api from "../api";
 const hasBookingChanges = (newBookings, prevBookings) => {
   if (newBookings.length !== prevBookings.length) return true;
 
-  const prevBookingMap = new Map(prevBookings.map(b => [b.id, b]));
+  const prevBookingMap = new Map(prevBookings.map((b) => [b.id, b]));
 
   for (const newBooking of newBookings) {
     const prevBooking = prevBookingMap.get(newBooking.id);
 
-    if (!prevBooking ||
+    if (
+      !prevBooking ||
       newBooking.status !== prevBooking.status ||
       newBooking.worker?.name !== prevBooking.worker?.name ||
-      newBooking.worker?.contact !== prevBooking.worker?.contact) {
+      newBooking.worker?.contact !== prevBooking.worker?.contact
+    ) {
       return true;
     }
   }
@@ -38,31 +46,32 @@ const hasBookingChanges = (newBookings, prevBookings) => {
 const transformBookingData = (booking) => ({
   id: Number(booking.id),
   service: booking.productName,
-  name: booking.userProfile.fullName,
+  name: booking.userFullName,
   contact: booking.userProfile.mobileNumber.mobileNumber,
   address: `${booking.deliveryAddress.houseNumber}, ${booking.deliveryAddress.town}, ${booking.deliveryAddress.district}, ${booking.deliveryAddress.state}, ${booking.deliveryAddress.pincode}`,
   date: new Date(booking.bookedDate),
   timeslot: booking.timeSlot,
   cancelReason: booking.cancelReason,
   productImage: booking.productImage,
-  status: booking.bookingStatus === "COMPLETED"
-    ? "Completed"
-    : booking.bookingStatus === "CANCELLED"
+  status:
+    booking.bookingStatus === "COMPLETED"
+      ? "Completed"
+      : booking.bookingStatus === "CANCELLED"
       ? "Canceled"
       : booking.bookingStatus === "ASSIGNED"
-        ? "Assigned"
-        : booking.bookingStatus === "STARTED"
-          ? "Started"
-          : booking.bookingStatus === "RESCHEDULED"
-            ? "Rescheduled"
-            : booking.bookingStatus === "PENDING"
-              ? "Pending"
-              : "Unknown",
+      ? "Assigned"
+      : booking.bookingStatus === "STARTED"
+      ? "Started"
+      : booking.bookingStatus === "RESCHEDULED"
+      ? "Rescheduled"
+      : booking.bookingStatus === "PENDING"
+      ? "Pending"
+      : "Unknown",
   worker: booking.worker
     ? {
-      name: booking.worker.name,
-      contact: booking.worker.contactNumber,
-    }
+        name: booking.worker.name,
+        contact: booking.worker.contactNumber,
+      }
     : null,
 });
 
@@ -90,7 +99,9 @@ const BookingDetails = () => {
     try {
       setError(null);
       const response = await api.get("/booking/all");
-      const transformedBookings = response.data.map(transformBookingData).sort((a, b) => b.id - a.id);
+      const transformedBookings = response.data
+        .map(transformBookingData)
+        .sort((a, b) => b.id - a.id);
 
       if (hasBookingChanges(transformedBookings, prevBookingsRef.current)) {
         setBookings(transformedBookings);
@@ -99,7 +110,9 @@ const BookingDetails = () => {
     } catch (error) {
       console.error("Error fetching bookings:", error);
       if (error.message === "Network Error") {
-        setError("No internet connection. Please check your network and try again.");
+        setError(
+          "No internet connection. Please check your network and try again."
+        );
       } else if (error.response?.status === 403) {
         // Token is invalid or expired, redirect to login
         localStorage.removeItem("token");
@@ -143,7 +156,9 @@ const BookingDetails = () => {
         } catch (error) {
           console.error("Error fetching rating:", error);
           if (error.message === "Network Error") {
-            setError("No internet connection. Please check your network and try again.");
+            setError(
+              "No internet connection. Please check your network and try again."
+            );
           }
         }
       }
@@ -170,7 +185,7 @@ const BookingDetails = () => {
           booking.worker
       ),
       completed: bookings.filter((booking) => booking.status === "Completed"),
-      canceled: bookings.filter((booking) => booking.status === "Canceled")
+      canceled: bookings.filter((booking) => booking.status === "Canceled"),
     };
   }, [bookings]);
 
@@ -186,7 +201,8 @@ const BookingDetails = () => {
       String(date.getDate()).padStart(2, "0");
 
     return bookingsToFilter.filter(
-      (booking) => booking.date.toISOString().split('T')[0] === formattedSelectedDate
+      (booking) =>
+        booking.date.toISOString().split("T")[0] === formattedSelectedDate
     );
   }, []);
 
@@ -204,17 +220,21 @@ const BookingDetails = () => {
         break;
       case "inProgress":
         dateFilter = selectedDateInProgress;
-        filtered = filterBookingsByDate(dateFilter, inProgress).filter((booking) => {
-          return statusFilter === "All" || booking.status === statusFilter;
-        });
+        filtered = filterBookingsByDate(dateFilter, inProgress).filter(
+          (booking) => {
+            return statusFilter === "All" || booking.status === statusFilter;
+          }
+        );
         break;
       case "completed":
         dateFilter = selectedDateCompleted;
-        filtered = filterBookingsByDate(dateFilter, completed).filter((booking) => {
-          if (ratingFilter === "All") return true;
-          if (ratingFilter === "No Rating") return !ratings[booking.id];
-          return ratings[booking.id] === parseInt(ratingFilter, 10);
-        });
+        filtered = filterBookingsByDate(dateFilter, completed).filter(
+          (booking) => {
+            if (ratingFilter === "All") return true;
+            if (ratingFilter === "No Rating") return !ratings[booking.id];
+            return ratings[booking.id] === parseInt(ratingFilter, 10);
+          }
+        );
         break;
       case "canceled":
         dateFilter = selectedDateCanceled;
@@ -240,7 +260,7 @@ const BookingDetails = () => {
     completed,
     canceled,
     filterBookingsByDate,
-    initialLoad
+    initialLoad,
   ]);
 
   // Handle date change
@@ -332,7 +352,9 @@ const BookingDetails = () => {
           <Skeleton />
           <Skeleton width={100} />
         </td>
-        {activeTab === "inProgress" || activeTab === "completed" || activeTab === "canceled" ? (
+        {activeTab === "inProgress" ||
+        activeTab === "completed" ||
+        activeTab === "canceled" ? (
           <td className="p-3">
             <Skeleton />
             <Skeleton width={100} />
@@ -414,19 +436,31 @@ const BookingDetails = () => {
             >
               Bookings{" "}
               {!initialLoad && (
-                <span className="badge bg-dark ms-1" style={{ borderRadius: "45%" }}>
-                  {activeTab === "bookings" ? filteredBookings.length : pendingBookings.length}
+                <span
+                  className="badge bg-dark ms-1"
+                  style={{ borderRadius: "45%" }}
+                >
+                  {activeTab === "bookings"
+                    ? filteredBookings.length
+                    : pendingBookings.length}
                 </span>
               )}
             </div>
             <div
-              className={`section ${activeTab === "inProgress" ? "active" : ""}`}
+              className={`section ${
+                activeTab === "inProgress" ? "active" : ""
+              }`}
               onClick={() => setActiveTab("inProgress")}
             >
               In Progress{" "}
               {!initialLoad && (
-                <span className="badge bg-dark ms-1" style={{ borderRadius: "45%" }}>
-                  {activeTab === "inProgress" ? filteredBookings.length : inProgress.length}
+                <span
+                  className="badge bg-dark ms-1"
+                  style={{ borderRadius: "45%" }}
+                >
+                  {activeTab === "inProgress"
+                    ? filteredBookings.length
+                    : inProgress.length}
                 </span>
               )}
             </div>
@@ -436,8 +470,13 @@ const BookingDetails = () => {
             >
               Completed{" "}
               {!initialLoad && (
-                <span className="badge bg-dark ms-1" style={{ borderRadius: "45%" }}>
-                  {activeTab === "completed" ? filteredBookings.length : completed.length}
+                <span
+                  className="badge bg-dark ms-1"
+                  style={{ borderRadius: "45%" }}
+                >
+                  {activeTab === "completed"
+                    ? filteredBookings.length
+                    : completed.length}
                 </span>
               )}
             </div>
@@ -447,8 +486,13 @@ const BookingDetails = () => {
             >
               Canceled{" "}
               {!initialLoad && (
-                <span className="badge bg-dark ms-1" style={{ borderRadius: "45%" }}>
-                  {activeTab === "canceled" ? filteredBookings.length : canceled.length}
+                <span
+                  className="badge bg-dark ms-1"
+                  style={{ borderRadius: "45%" }}
+                >
+                  {activeTab === "canceled"
+                    ? filteredBookings.length
+                    : canceled.length}
                 </span>
               )}
             </div>
@@ -459,23 +503,29 @@ const BookingDetails = () => {
             style={{ maxHeight: "100%", minHeight: "100%" }}
           >
             {error ? (
-             <div className="alert alert-danger text-center m-3 mt-5" style={{
-              position: "fixed",
-              top: "110px",
-              left: "40%",
-              zIndex: 2000
-            }}>
-              <div className="mb-3">
-          <i className="bi bi-wifi-off" style={{ fontSize: "2rem" }}></i>
-        </div>
-             {error}
-             <button 
-               className="btn btn-sm btn-primary ms-3"
-               onClick={() => window.location.reload()}
-             >
-               Retry
-             </button>
-           </div>
+              <div
+                className="alert alert-danger text-center m-3 mt-5"
+                style={{
+                  position: "fixed",
+                  top: "110px",
+                  left: "40%",
+                  zIndex: 2000,
+                }}
+              >
+                <div className="mb-3">
+                  <i
+                    className="bi bi-wifi-off"
+                    style={{ fontSize: "2rem" }}
+                  ></i>
+                </div>
+                {error}
+                <button
+                  className="btn btn-sm btn-primary ms-3"
+                  onClick={() => window.location.reload()}
+                >
+                  Retry
+                </button>
+              </div>
             ) : (
               <table
                 className="booking-table table table-hover bg-white rounded shadow-sm"
@@ -490,12 +540,12 @@ const BookingDetails = () => {
                           activeTab === "bookings"
                             ? "20%"
                             : activeTab === "inProgress"
-                              ? "19.4%"
-                              : activeTab === "completed"
-                                ? "19.8%"
-                                : activeTab === "canceled"
-                                  ? "18.7%"
-                                  : "20%",
+                            ? "19.4%"
+                            : activeTab === "completed"
+                            ? "19.8%"
+                            : activeTab === "canceled"
+                            ? "18.7%"
+                            : "20%",
                       }}
                     >
                       Service
@@ -508,20 +558,20 @@ const BookingDetails = () => {
                           activeTab === "bookings"
                             ? "13.8%"
                             : activeTab === "completed"
-                              ? "15.3%"
-                              : activeTab === "inProgress"
-                                ? "14.4%"
-                                : activeTab === "canceled"
-                                  ? "16.9%"
-                                  : "13.8%",
+                            ? "15.3%"
+                            : activeTab === "inProgress"
+                            ? "14.4%"
+                            : activeTab === "canceled"
+                            ? "16.9%"
+                            : "13.8%",
                       }}
                     >
                       Name
                     </th>
 
                     {activeTab === "inProgress" ||
-                      activeTab === "completed" ||
-                      activeTab === "canceled" ? (
+                    activeTab === "completed" ||
+                    activeTab === "canceled" ? (
                       <th
                         className="p-3 text-left"
                         style={{
@@ -529,10 +579,10 @@ const BookingDetails = () => {
                             activeTab === "completed"
                               ? "15.8%"
                               : activeTab === "inProgress"
-                                ? "15.5%"
-                                : activeTab === "canceled"
-                                  ? "15.3%"
-                                  : "16%",
+                              ? "15.5%"
+                              : activeTab === "canceled"
+                              ? "15.3%"
+                              : "16%",
                         }}
                       >
                         Worker
@@ -555,19 +605,22 @@ const BookingDetails = () => {
                           activeTab === "bookings"
                             ? "14%"
                             : activeTab === "inProgress"
-                              ? "14%"
-                              : activeTab === "completed"
-                                ? "15%"
-                                : activeTab === "canceled"
-                                  ? "14%"
-                                  : "14%",
+                            ? "14%"
+                            : activeTab === "completed"
+                            ? "15%"
+                            : activeTab === "canceled"
+                            ? "14%"
+                            : "14%",
                         padding: "14px",
                       }}
                     >
                       Date
                       {!initialLoad && (
                         <>
-                          <div className="dropdown d-inline ms-2" ref={dropdownRef}>
+                          <div
+                            className="dropdown d-inline ms-2"
+                            ref={dropdownRef}
+                          >
                             <button
                               className="btn btn-light btn-sm dropdown-toggle p-0"
                               type="button"
@@ -582,9 +635,11 @@ const BookingDetails = () => {
                             )}
                           </div>
                           {(activeTab === "bookings" && selectedDateBookings) ||
-                            (activeTab === "inProgress" && selectedDateInProgress) ||
-                            (activeTab === "completed" && selectedDateCompleted) ||
-                            (activeTab === "canceled" && selectedDateCanceled) ? (
+                          (activeTab === "inProgress" &&
+                            selectedDateInProgress) ||
+                          (activeTab === "completed" &&
+                            selectedDateCompleted) ||
+                          (activeTab === "canceled" && selectedDateCanceled) ? (
                             <img
                               src={closeDate}
                               alt="Close Date Filter"
@@ -605,10 +660,10 @@ const BookingDetails = () => {
                             activeTab === "inProgress"
                               ? "15%"
                               : activeTab === "completed"
-                                ? "15%"
-                                : activeTab === "canceled"
-                                  ? "15%"
-                                  : "15%",
+                              ? "15%"
+                              : activeTab === "canceled"
+                              ? "15%"
+                              : "15%",
                           padding: activeTab === "canceled" ? "16px" : "10px",
                         }}
                       >
@@ -641,18 +696,21 @@ const BookingDetails = () => {
                               className="dropdown-menu"
                               aria-labelledby="statusFilterDropdown"
                             >
-                              {["All", "Assigned", "Rescheduled", "Started"].map(
-                                (status) => (
-                                  <li key={status}>
-                                    <button
-                                      className="dropdown-item p-2"
-                                      onClick={() => setStatusFilter(status)}
-                                    >
-                                      {status}
-                                    </button>
-                                  </li>
-                                )
-                              )}
+                              {[
+                                "All",
+                                "Assigned",
+                                "Rescheduled",
+                                "Started",
+                              ].map((status) => (
+                                <li key={status}>
+                                  <button
+                                    className="dropdown-item p-2"
+                                    onClick={() => setStatusFilter(status)}
+                                  >
+                                    {status}
+                                  </button>
+                                </li>
+                              ))}
                             </ul>
                           </div>
                         ) : activeTab === "completed" ? (
@@ -724,11 +782,11 @@ const BookingDetails = () => {
                               activeTab === "bookings"
                                 ? "20%"
                                 : activeTab === "canceled"
-                                  ? "18.8%"
-                                  : activeTab === "completed" ||
-                                    activeTab === "inProgress"
-                                    ? "19.2%"
-                                    : "20%",
+                                ? "18.8%"
+                                : activeTab === "completed" ||
+                                  activeTab === "inProgress"
+                                ? "19.2%"
+                                : "20%",
                           }}
                         >
                           <div className="d-flex align-items-center gap-2">
@@ -759,25 +817,25 @@ const BookingDetails = () => {
                               activeTab === "bookings"
                                 ? "13.8%"
                                 : activeTab === "canceled"
-                                  ? "17%"
-                                  : activeTab === "completed"
-                                    ? "15%"
-                                    : activeTab === "inProgress"
-                                      ? "14.5%"
-                                      : "13.8%",
+                                ? "17%"
+                                : activeTab === "completed"
+                                ? "15%"
+                                : activeTab === "inProgress"
+                                ? "14.5%"
+                                : "13.8%",
                           }}
                         >
                           {booking.name} <br />
                           {(activeTab === "inProgress" ||
                             activeTab === "completed" ||
                             activeTab === "canceled") && (
-                              <span>{booking.contact}</span>
-                            )}
+                            <span>{booking.contact}</span>
+                          )}
                         </td>
 
                         {activeTab === "inProgress" ||
-                          activeTab === "completed" ||
-                          activeTab === "canceled" ? (
+                        activeTab === "completed" ||
+                        activeTab === "canceled" ? (
                           <td
                             className="p-3 text-left"
                             style={{
@@ -786,14 +844,16 @@ const BookingDetails = () => {
                                   ? "15%"
                                   : activeTab === "completed" ||
                                     activeTab === "inProgress"
-                                    ? "15%"
-                                    : "16%",
+                                  ? "15%"
+                                  : "16%",
                             }}
                           >
                             {booking.worker ? (
                               <>
                                 <p className="mb-0 ">{booking.worker.name}</p>
-                                <p className="mb-0 ">{booking.worker.contact}</p>
+                                <p className="mb-0 ">
+                                  {booking.worker.contact}
+                                </p>
                               </>
                             ) : (
                               <p className="text-muted">Not Assigned</p>
@@ -801,10 +861,16 @@ const BookingDetails = () => {
                           </td>
                         ) : (
                           <>
-                            <td className="p-3 text-left" style={{ width: "12%" }}>
+                            <td
+                              className="p-3 text-left"
+                              style={{ width: "12%" }}
+                            >
                               {booking.contact}
                             </td>
-                            <td className="p-3 text-left" style={{ width: "25%" }}>
+                            <td
+                              className="p-3 text-left"
+                              style={{ width: "25%" }}
+                            >
                               {booking.address}
                             </td>
                           </>
@@ -817,11 +883,11 @@ const BookingDetails = () => {
                               activeTab === "bookings"
                                 ? "14%"
                                 : activeTab === "completed"
-                                  ? "14%"
-                                  : activeTab === "inProgress" ||
-                                    activeTab === "canceled"
-                                    ? "14%"
-                                    : "14%",
+                                ? "14%"
+                                : activeTab === "inProgress" ||
+                                  activeTab === "canceled"
+                                ? "14%"
+                                : "14%",
                           }}
                         >
                           {formatDate(booking.date)} <br />
@@ -872,8 +938,8 @@ const BookingDetails = () => {
 
                         <td className="p-3 text-left" style={{ width: "10%" }}>
                           {activeTab === "inProgress" ||
-                            activeTab === "completed" ||
-                            activeTab === "canceled" ? (
+                          activeTab === "completed" ||
+                          activeTab === "canceled" ? (
                             <button
                               className="btn btn-primary"
                               style={{
@@ -882,9 +948,12 @@ const BookingDetails = () => {
                                 borderRadius: "12px",
                               }}
                               onClick={() =>
-                                navigate(`/booking-details/view-bookings/${booking.id}`, {
-                                  state: { booking },
-                                })
+                                navigate(
+                                  `/booking-details/view-bookings/${booking.id}`,
+                                  {
+                                    state: { booking },
+                                  }
+                                )
                               }
                             >
                               View
@@ -914,7 +983,10 @@ const BookingDetails = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={activeTab === "bookings" ? 6 : 7} className="text-center py-5">
+                      <td
+                        colSpan={activeTab === "bookings" ? 6 : 7}
+                        className="text-center py-5"
+                      >
                         <div className="d-flex flex-column align-items-center justify-content-center">
                           <img
                             src="https://cdn-icons-png.flaticon.com/512/4076/4076478.png"
@@ -924,13 +996,20 @@ const BookingDetails = () => {
                           />
                           <h5 className="text-muted">No bookings found</h5>
                           <p className="text-muted">
-                            {selectedDateBookings || selectedDateInProgress || selectedDateCompleted || selectedDateCanceled
+                            {selectedDateBookings ||
+                            selectedDateInProgress ||
+                            selectedDateCompleted ||
+                            selectedDateCanceled
                               ? "No bookings match your selected filters."
                               : statusFilter !== "All"
-                                ? `No ${statusFilter.toLowerCase()} bookings available.`
-                                : ratingFilter !== "All"
-                                  ? `No bookings with ${ratingFilter === "No Rating" ? "no rating" : `${ratingFilter} star rating`}.`
-                                  : "No bookings available at the moment."}
+                              ? `No ${statusFilter.toLowerCase()} bookings available.`
+                              : ratingFilter !== "All"
+                              ? `No bookings with ${
+                                  ratingFilter === "No Rating"
+                                    ? "no rating"
+                                    : `${ratingFilter} star rating`
+                                }.`
+                              : "No bookings available at the moment."}
                           </p>
                         </div>
                       </td>
