@@ -914,7 +914,7 @@ const AddWorker = () => {
                   "Door",
                   "Windows",
                   "Drill & Hang",
-                  "Furniture Repair",
+                  "Furniture",
                 ].map((item) => (
                   <button
                     key={item}
