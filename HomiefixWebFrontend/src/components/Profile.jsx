@@ -41,27 +41,31 @@ const Profile = () => {
 
 
         setFormData({
-          name: data.name,
-          email: data.email,
-          contactNumber: data.contactNumber,
-          workExperience: data.workExperience,
-          dateOfBirth: data.dateOfBirth,
-          gender: data.gender,
-          houseNumber: data.houseNo,
-          town: data.town,
-          pincode: data.pincode,
-          nearbyLandmark: data.nearbyLandmark,
-          district: data.district,
-          state: data.state,
-          econtactNumber: data.eContactNumber,
+          name: data.name || "",
+          email: data.email || "",
+          contactNumber: data.contactNumber || "",
+          workExperience: data.workExperience || "",
+          dateOfBirth: data.dateOfBirth || "",
+          gender: data.gender || "",
+          houseNumber: data.houseNo || "",
+          town: data.town || "",
+          pincode: data.pincode || "",
+          nearbyLandmark: data.nearbyLandmark || "",
+          district: data.district || "",
+          state: data.state || "",
+          econtactNumber: data.eContactNumber || "",
           language: data.language ? data.language.split(",") : [],
           profilePic: null,
-          joiningDate: data.joiningDate,
+          joiningDate: data.joiningDate || "",
         });
 
 
         if (data.profilePicUrl) {
-          setPreviewImage(data.profilePicUrl);
+          // Ensure the URL is absolute if it's not already
+          const imageUrl = data.profilePicUrl.startsWith("http")
+            ? data.profilePicUrl
+            : `${api.defaults.baseURL}${data.profilePicUrl}`;
+          setPreviewImage(imageUrl);
         }
       } catch (error) {
         console.error("Error fetching profile data:", error);
@@ -85,8 +89,14 @@ const Profile = () => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setPreviewImage(imageUrl);
+      // Create a proper URL for the image preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+
+
       setFormData((prevState) => ({
         ...prevState,
         profilePic: file,
@@ -126,8 +136,8 @@ const Profile = () => {
 
 
       // After successful update, dispatch an event to notify Header
-      const event = new CustomEvent('profileUpdated', {
-        detail: { username }
+      const event = new CustomEvent("profileUpdated", {
+        detail: { username },
       });
       window.dispatchEvent(event);
 
@@ -206,6 +216,10 @@ const Profile = () => {
                 height={100}
                 width={100}
                 className="rounded-4"
+                onError={(e) => {
+                  e.target.onerror = null; // Prevent infinite loop
+                  e.target.src = addWorker; // Fallback to default image
+                }}
               />
               <input
                 type="file"
@@ -285,14 +299,14 @@ const Profile = () => {
                 />
               </div>
               <div className="col-md-3" style={{ marginLeft: "60px" }}>
-                <label htmlFor="dateOfBirth" className="form-label">
+                <label htmlFor="joiningDate" className="form-label">
                   Joining Date
                 </label>
                 <input
                   type="date"
                   className="form-control"
-                  name="dateOfBirth"
-                  id="dateOfBirth"
+                  name="joiningDate"
+                  id="joiningDate"
                   required
                   value={formData.joiningDate}
                   onChange={handleChange}

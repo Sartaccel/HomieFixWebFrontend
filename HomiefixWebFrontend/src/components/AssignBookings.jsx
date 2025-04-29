@@ -10,11 +10,39 @@ import bookingDetails from "../assets/BookingDetails.png";
 import Header from "./Header";
 import api from "../api";
 
-
 const AssignBookings = () => {
   const { id } = useParams();
   const location = useLocation();
-  const booking = location.state?.booking || {};
+  const navigate = useNavigate();
+
+
+  // Initialize state with proper default values
+  const [booking, setBooking] = useState({
+    id: id,
+    productName: "",
+    productImage: null,
+    bookingStatus: "PENDING",
+    name: "",
+    contact: "",
+    address: "",
+    bookedDate: new Date().toISOString().split("T")[0],
+    timeSlot: "",
+    notes: "",
+    userProfile: {
+      fullName: "",
+      mobileNumber: { mobileNumber: "" },
+    },
+    deliveryAddress: {
+      houseNumber: "",
+      town: "",
+      district: "",
+      state: "",
+      pincode: "",
+    },
+    ...(location.state?.booking || {}),
+  });
+
+
   const [workers, setWorkers] = useState([]);
   const [selectedWorkerId, setSelectedWorkerId] = useState(null);
   const [selectedWorkerDetails, setSelectedWorkerDetails] = useState(null);
@@ -30,12 +58,13 @@ const AssignBookings = () => {
   const [rescheduledTimeSlot, setRescheduledTimeSlot] = useState(
     booking.rescheduledTimeSlot || booking.timeSlot
   );
-  const [rescheduleHistory, setRescheduleHistory] = useState([]); // Track reschedule history
-  const [loadingWorkers, setLoadingWorkers] = useState(true); // Loading state for workers
-  const [loadingBookingDetails, setLoadingBookingDetails] = useState(true); // Loading state for booking details
-  const navigate = useNavigate();
+  const [rescheduleHistory, setRescheduleHistory] = useState([]);
+  const [loadingWorkers, setLoadingWorkers] = useState(true);
+  const [loadingBookingDetails, setLoadingBookingDetails] = useState(true);
   const [assigningWorker, setAssigningWorker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isExpired, setIsExpired] = useState(false);
+  const [error, setError] = useState(null);
 
 
   // Helper function to format date
@@ -60,97 +89,132 @@ const AssignBookings = () => {
   };
 
 
-  // Fetch workers from the API
-  useEffect(() => {
-    const fetchWorkers = async () => {
-      try {
-        const token = localStorage.getItem("token");
+  // Check if booking date is expired
+  const isBookingExpired = (bookingDate) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time part for accurate date comparison
+    const bookingDateObj = new Date(bookingDate);
+    return bookingDateObj < today;
+  };
 
-        // 1. Get the booking details first
-        const bookingResponse = await api.get(`/booking/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
+
+  // Enhanced fetchBookingDetails function
+  const fetchBookingDetails = async () => {
+    try {
+      setLoadingBookingDetails(true);
+      const token = localStorage.getItem("token");
+      const response = await api.get(`/booking/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+
+      const data = response.data;
+
+
+      // Check if booking is expired
+      const expired = isBookingExpired(data.bookedDate);
+      setIsExpired(expired);
+
+
+      // Update booking state with all required fields
+      setBooking((prev) => ({
+        ...prev,
+        ...data,
+        productName: data.productName || prev.productName,
+        productImage: data.productImage || prev.productImage,
+        name: data.userProfile?.fullName || prev.name,
+        contact: data.userProfile?.mobileNumber?.mobileNumber || prev.contact,
+        address: data.deliveryAddress
+          ? `${data.deliveryAddress.houseNumber}, ${data.deliveryAddress.town}, ${data.deliveryAddress.district}, ${data.deliveryAddress.state} - ${data.deliveryAddress.pincode}`
+          : prev.address,
+        bookedDate: data.bookedDate || prev.bookedDate,
+        timeSlot: data.timeSlot || prev.timeSlot,
+        notes: data.notes || prev.notes,
+        userProfile: data.userProfile || prev.userProfile,
+        deliveryAddress: data.deliveryAddress || prev.deliveryAddress,
+      }));
+
+
+      setRescheduledDate(data.rescheduledDate || data.bookedDate);
+      setRescheduledTimeSlot(
+        decodeTimeSlot(data.rescheduledTimeSlot || data.timeSlot)
+      );
+      setNotes(data.notes || "");
+
+
+      // If worker is already assigned, redirect to view bookings
+      if (data.assignedWorkerId) {
+        navigate(`/booking-details/view-bookings/${id}`, {
+          state: { booking: data },
         });
+        return;
+      }
 
-        // 2. Extract and normalize productName from booking data
-        const productName = bookingResponse.data?.productName?.trim()?.toLowerCase();
 
-        if (!productName) {
-          setWorkers([]);
-          return;
-        }
+      setError(null);
+    } catch (error) {
+      console.error("Error fetching booking details:", error);
+      setError("Failed to load booking details. Please try again.");
+      if (error.response?.status === 403) {
+        navigate("/login");
+      }
+    } finally {
+      setLoadingBookingDetails(false);
+    }
+  };
 
-        // 3. Fetch workers qualified for this product
-        const workersResponse = await api.get(
-          `/workers/view/by-product/${encodeURIComponent(productName)}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
 
-        // 4. Filter active workers (using correct property name 'active')
-        const activeWorkers = workersResponse.data.filter(worker => worker.active);
+  // Enhanced fetchWorkers function
+  const fetchWorkers = async () => {
+    try {
+      setLoadingWorkers(true);
+      const token = localStorage.getItem("token");
 
-        if (activeWorkers.length === 0) {
-          // No active workers found for this product
-          setWorkers([]);
-        } else {
-          setWorkers(activeWorkers);
-        }
 
-      } catch (error) {
-        if (error.response?.status === 403) {
-          alert("Permission denied. Please login again.");
-          navigate("/login");
-        }
+      // Use the productName from the booking state
+      const productName = booking.productName?.trim()?.toLowerCase();
+
+
+      if (!productName) {
         setWorkers([]);
-      } finally {
-        setLoadingWorkers(false);
+        return;
       }
-    };
-
-    fetchWorkers();
-  }, [id, navigate]);
 
 
-  // Fetch booking details from the API
+      const workersResponse = await api.get(
+        `/workers/view/by-product/${encodeURIComponent(productName)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+
+      const activeWorkers = workersResponse.data.filter(
+        (worker) => worker.active
+      );
+
+
+      setWorkers(activeWorkers);
+    } catch (error) {
+      console.error("Error fetching workers:", error);
+      setWorkers([]);
+      if (error.response?.status === 403) {
+        navigate("/login");
+      }
+    } finally {
+      setLoadingWorkers(false);
+    }
+  };
+
+
   useEffect(() => {
-    const fetchBookingDetails = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await api.get(`/booking/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = response.data;
-
-        // Check if booking is expired
-        const expired = isBookingExpired(data.bookedDate);
-        setIsExpired(expired);
-
-        if (data.bookedDate && data.timeSlot) {
-          setRescheduledDate(data.rescheduledDate || data.bookedDate);
-          setRescheduledTimeSlot(
-            decodeTimeSlot(data.rescheduledTimeSlot || data.timeSlot)
-          );
-        } else {
-          console.error("Booking details are incomplete:", data);
-        }
-
-
-        setNotes(data.notes || "");
-      } catch (error) {
-        console.error("Error fetching booking details:", error);
-        if (error.response && error.response.status === 403) {
-          alert("You do not have permission to perform this action.");
-          navigate("/");
-        }
-      } finally {
-        setLoadingBookingDetails(false);
-      }
-    };
-
-
     fetchBookingDetails();
   }, [id]);
+
+
+  useEffect(() => {
+    if (booking.productName && !booking.assignedWorkerId) {
+      fetchWorkers();
+    }
+  }, [booking.productName, booking.assignedWorkerId]);
 
 
   // Handle worker selection and deselection
@@ -217,10 +281,12 @@ const AssignBookings = () => {
   const saveNotes = async () => {
     const trimmedNotes = notes.trim();
 
+
     if (!trimmedNotes) {
       alert("Please enter some notes before saving");
       return;
     }
+
 
     setIsSaving(true);
     try {
@@ -234,6 +300,7 @@ const AssignBookings = () => {
           },
         }
       );
+
 
       if (response.status === 200) {
         alert("Notes saved successfully");
@@ -249,6 +316,7 @@ const AssignBookings = () => {
     }
     setIsSaving(false);
   };
+
 
   // Handle rescheduling
   const handleReschedule = (newDate, newTimeslot) => {
@@ -388,18 +456,6 @@ const AssignBookings = () => {
   }, []);
 
 
-  // Add this helper function to check if booking date is expired
-  const isBookingExpired = (bookingDate) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time part for accurate date comparison
-    const bookingDateObj = new Date(bookingDate);
-    return bookingDateObj < today;
-  };
-
-
-  const [isExpired, setIsExpired] = useState(false);
-
-
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
@@ -462,389 +518,453 @@ const AssignBookings = () => {
 
           {/* Content */}
           <div className="container mt-5 pt-4">
-            <div
-              className="row justify-content-between"
-              style={{ marginTop: "60px", marginLeft: "30px" }}
-            >
-              {/* Left Card - Booking Information */}
-              <div className="col-md-6">
-                <div
-                  className="d-flex align-items-center gap-2"
-                  style={{ marginTop: "50px" }}
-                >
-                  {loadingBookingDetails ? (
-                    <Skeleton circle width={40} height={40} />
-                  ) : (
-                    <div
-                      className="rounded-circle"
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        flexShrink: 0,
-                        backgroundImage: `url(${booking.productImage})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }}
-                    ></div>
-                  )}
-                  <div>
-                    {loadingBookingDetails ? (
-                      <>
-                        <Skeleton width={150} height={20} />
-                        <Skeleton width={100} height={15} />
-                      </>
-                    ) : (
-                      <>
-                        <p className="mb-0">{booking.service}</p>
-                        <small style={{ color: "#0076CE" }}>
-                          ID: {booking.id}
-                        </small>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-
-                <div className="p-0 m-0">
-                  <div className="mt-4">
-                    <h6>Customer Details</h6>
-                  </div>
-                  {loadingBookingDetails ? (
-                    <>
-                      <Skeleton width={200} height={15} />
-                      <Skeleton width={200} height={15} />
-                      <Skeleton width={200} height={15} />
-                      <Skeleton width={200} height={15} />
-                    </>
-                  ) : (
-                    <>
-                      <p className="mb-1">
-                        <i className="bi bi-person fw-bold me-2"></i>{" "}
-                        {booking.name}
-                      </p>
-                      <p className="mb-1">
-                        <i className="bi bi-telephone fw-bold me-2"></i>{" "}
-                        {booking.contact}
-                      </p>
-                      <p
-                        className="mb-1"
-                        style={{
-                          backgroundColor:
-                            localStorage.getItem("rescheduledDate") &&
-                              localStorage.getItem("rescheduledTimeSlot")
-                              ? "#EDF3F7"
-                              : "transparent",
-                          borderRadius: "5px",
-                          display: "inline-block",
-                          padding:
-                            localStorage.getItem("rescheduledDate") &&
-                              localStorage.getItem("rescheduledTimeSlot")
-                              ? "0px 10px 0px 0px"
-                              : "0",
-                        }}
-                      >
-                        {localStorage.getItem("rescheduledDate") &&
-                          localStorage.getItem("rescheduledTimeSlot") ? (
-                          <img
-                            src={closeDate}
-                            alt="Close"
-                            width="25"
-                            style={{
-                              cursor: "pointer",
-                              verticalAlign: "middle",
-                              marginRight: "5px",
-                            }}
-                            onClick={undoReschedule}
-                          />
-                        ) : (
-                          <img
-                            src={bookingDetails}
-                            alt="Booking Details"
-                            className="menu-icon"
-                            style={{
-                              width: "17px",
-                              height: "17px",
-                            }}
-                          />
-                        )}
-                        {formatDate(rescheduledDate)} |{" "}
-                        {decodeTimeSlot(rescheduledTimeSlot) || "Not Available"}
-                      </p>
-
-
-                      <p className="mb-1">
-                        <i className="bi bi-geo-alt fw-bold me-2"></i>{" "}
-                        {booking.address}
-                      </p>
-                    </>
-                  )}
-                </div>
-
-
-                {/* Comment Field (Notes) */}
-                <div
-                  className="mt-3 position-relative"
-                  style={{ width: "550px" }}
-                >
-                  {loadingBookingDetails ? (
-                    <Skeleton height={237} />
-                  ) : (
-                    <>
-                      <textarea
-                        id="notes"
-                        className="form-control shadow-none"
-                        placeholder="Notes"
-                        rows="8"
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        style={{
-                          height: "237px",
-                          resize: "none",
-                          padding: "10px",
-                          width: "100%",
-                          boxSizing: "border-box",
-                        }}
-                        required
-                        onInvalid={(e) => {
-                          e.target.setCustomValidity('Please enter some notes');
-                        }}
-                        onInput={(e) => {
-                          e.target.setCustomValidity('');
-                        }}
-                      ></textarea>
-                      <button
-                        className="btn position-absolute"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          const textarea = document.getElementById('notes');
-                          if (textarea.reportValidity()) {
-                            saveNotes();
-                          }
-                        }}
-                        onMouseEnter={() => setIsSaveHovered(true)}
-                        onMouseLeave={() => setIsSaveHovered(false)}
-                        disabled={isSaving}
-                        style={{
-                          bottom: "10px",
-                          right: "10px",
-                          padding: "5px 10px",
-                          borderRadius: "5px",
-                          color: isSaveHovered || isSaving ? "white" : "#0076CE",
-                          backgroundColor: isSaveHovered || isSaving ? "#0076CE" : "transparent",
-                          border: "1px solid #0076CE",
-                          transition: "all 0.3s ease-in-out",
-                        }}
-                      >
-                        {isSaving ? (
-                          <>
-                            <span
-                              className="spinner-border spinner-border-sm me-2"
-                              role="status"
-                              aria-hidden="true"
-                            ></span>
-                            Saving...
-                          </>
-                        ) : (
-                          "Save"
-                        )}
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-
-
-              {/* Right Card - Service Details */}
+            {error ? (
+              <div className="alert alert-danger">{error}</div>
+            ) : (
               <div
-                className="col-md-6"
-                style={{ borderRadius: "8px", position: "relative" }}
+                className="row justify-content-between"
+                style={{ marginTop: "60px", marginLeft: "30px" }}
               >
-                <div
-                  className="card p-3"
-                  style={{
-                    width: "550px",
-                    border: "1px solid #D9D9D9",
-                    height: "480px",
-                    marginTop: "30px",
-                    borderRadius: "8px",
-                  }}
-                >
-                  {/* Heading */}
+                {/* Left Card - Booking Information */}
+                <div className="col-md-6">
                   <div
-                    className="d-flex align-items-center justify-content-between"
-                    style={{ height: "94px" }}
+                    className="d-flex align-items-center gap-2"
+                    style={{ marginTop: "50px" }}
                   >
-                    <h5 className="mb-0" style={{ marginTop: "-50px" }}>
-                      Workers
-                    </h5>
-                  </div>
-                  {/* Worker List (Scrollable) */}
-                  <div
-                    style={{
-                      minHeight: "250px",
-                      maxHeight: "290px",
-                      overflowY: "auto",
-                      overflowX: "hidden",
-                      paddingRight: "10px",
-                      paddingLeft: "20px",
-                      marginTop: "-40px",
-                    }}
-                  >
-                    <div className="row d-flex flex-wrap" style={{ gap: "8px" }}>
-                      {loadingWorkers ? (
-                        Array.from({ length: 4 }).map((_, index) => (
-                          <div
-                            key={index}
-                            className="col-6"
-                            style={{
-                              width: "48%",
-                              border: "1px solid #ddd",
-                              borderRadius: "8px",
-                              padding: "8px",
-                              background: "#f9f9f9",
-                            }}
-                          >
-                            <div className="d-flex align-items-center gap-2">
-                              <Skeleton circle width={40} height={40} />
-                              <div>
-                                <Skeleton width={100} height={15} />
-                                <Skeleton width={80} height={12} />
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      ) : workers.length === 0 ? (
-                        <div className="col-12 text-center mt-3">
-                          <p style={{ color: "#888" }}>No workers available for this service.</p>
-                        </div>
+                    {loadingBookingDetails ? (
+                      <Skeleton circle width={40} height={40} />
+                    ) : (
+                      <div
+                        className="rounded-circle"
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          flexShrink: 0,
+                          backgroundImage: `url(${booking.productImage})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }}
+                      ></div>
+                    )}
+                    <div>
+                      {loadingBookingDetails ? (
+                        <>
+                          <Skeleton width={150} height={20} />
+                          <Skeleton width={100} height={15} />
+                        </>
                       ) : (
-                        workers.map((worker, index) => (
-                          <div
-                            key={index}
-                            className="col-6"
-                            style={{
-                              width: "48%",
-                              border:
-                                selectedWorkerId === worker.id
-                                  ? "2px solid #0076CE"
-                                  : "1px solid #ddd",
-                              borderRadius: "8px",
-                              padding: "8px",
-                              background:
-                                selectedWorkerId === worker.id ? "#e6f3ff" : "#f9f9f9",
-                              cursor: "pointer",
-                            }}
-                            onClick={() => handleWorkerSelection(worker.id)}
-                          >
-                            <div className="d-flex align-items-center gap-2">
-                              <div
-                                className="rounded-circle bg-secondary"
-                                style={{
-                                  width: "40px",
-                                  height: "40px",
-                                  flexShrink: 0,
-                                  backgroundImage: `url(${worker.profilePicUrl})`,
-                                  backgroundSize: "cover",
-                                  backgroundPosition: "center",
-                                }}
-                              ></div>
-                              <div>
-                                <p className="mb-0">{worker.name}</p>
-                                <small style={{ color: "#666666" }}>
-                                  {worker.town}, {worker.pincode}
-                                </small>
-                              </div>
-                            </div>
-                          </div>
-                        ))
+                        <>
+                          <p className="mb-0">{booking.productName}</p>
+                          <small style={{ color: "#0076CE" }}>
+                            ID: {booking.id}
+                          </small>
+                        </>
                       )}
                     </div>
                   </div>
 
-                  {/* Worker Details Section */}
-                  {selectedWorkerDetails ? (
-                    <div
-                      className="mt-3 p-3 border-top"
-                      style={{
-                        height: "190px",
-                        overflowY: "auto",
-                        position: "absolute",
-                        bottom: "0",
-                        left: "0",
-                        right: "0",
-                        background: "white",
-                        zIndex: 1,
-                        borderRadius: "8px",
-                      }}
-                    >
-                      <h6>Worker Details</h6>
-                      <div className="d-flex gap-3 align-items-center">
-                        <div
-                          className="rounded-circle bg-secondary"
+
+                  <div className="p-0 m-0">
+                    <div className="mt-4">
+                      <h6>Customer Details</h6>
+                    </div>
+                    {loadingBookingDetails ? (
+                      <>
+                        <Skeleton width={200} height={15} />
+                        <Skeleton width={200} height={15} />
+                        <Skeleton width={200} height={15} />
+                        <Skeleton width={200} height={15} />
+                      </>
+                    ) : (
+                      <>
+                        <p className="mb-1">
+                          <i className="bi bi-person fw-bold me-2"></i>{" "}
+                          {booking.name}
+                        </p>
+                        <p className="mb-1">
+                          <i className="bi bi-telephone fw-bold me-2"></i>{" "}
+                          {booking.contact}
+                        </p>
+                        <p
+                          className="mb-1"
                           style={{
-                            width: "60px",
-                            height: "60px",
-                            backgroundImage: `url(${selectedWorkerDetails.profilePicUrl})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
+                            backgroundColor:
+                              localStorage.getItem("rescheduledDate") &&
+                                localStorage.getItem("rescheduledTimeSlot")
+                                ? "#EDF3F7"
+                                : "transparent",
+                            borderRadius: "5px",
+                            display: "inline-block",
+                            padding:
+                              localStorage.getItem("rescheduledDate") &&
+                                localStorage.getItem("rescheduledTimeSlot")
+                                ? "0px 10px 0px 0px"
+                                : "0",
                           }}
-                        ></div>
-                        <div>
-                          <div className="d-flex align-items-center gap-2">
-                            <p className="mb-0">
-                              <i className="bi bi-person-fill me-2"></i>
-                              {selectedWorkerDetails.name}
-                            </p>
-                            <span
-                              style={{
-                                backgroundColor: "#f0f0f0",
-                                color: "#333",
-                                padding: "2px 6px",
-                                borderRadius: "4px",
-                                display: "flex",
-                                alignItems: "center",
-                                fontSize: "14px",
-                              }}
-                            >
-                              <i
-                                className="fas fa-star"
-                                style={{ color: "#FFD700", marginRight: "4px" }}
-                              ></i>
-                              {selectedWorkerDetails.averageRating || "N/A"}
-                            </span>
-                          </div>
-                          <p className="mb-0">
-                            <i className="bi bi-telephone-fill me-2"></i>{" "}
-                            {selectedWorkerDetails.contactNumber}
-                          </p>
-                          <p className="mb-0">
-                            <i className="bi bi-geo-alt-fill me-2"></i>{" "}
-                            {selectedWorkerDetails.houseNumber},{" "}
-                            {selectedWorkerDetails.town},{" "}
-                            {selectedWorkerDetails.pincode},{" "}
-                            {selectedWorkerDetails.state}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="d-flex justify-content-center mt-3">
-                        <button
-                          className="btn"
-                          style={{
-                            background: "#0076CE",
-                            color: "white",
-                            width: "350px",
-                            borderRadius: "14px",
-                          }}
-                          onClick={assignWorker}
-                          disabled={assigningWorker}
                         >
-                          {assigningWorker ? (
+                          {localStorage.getItem("rescheduledDate") &&
+                            localStorage.getItem("rescheduledTimeSlot") ? (
+                            <img
+                              src={closeDate}
+                              alt="Close"
+                              width="25"
+                              style={{
+                                cursor: "pointer",
+                                verticalAlign: "middle",
+                                marginRight: "5px",
+                              }}
+                              onClick={undoReschedule}
+                            />
+                          ) : (
+                            <img
+                              src={bookingDetails}
+                              alt="Booking Details"
+                              className="menu-icon"
+                              style={{
+                                width: "17px",
+                                height: "17px",
+                              }}
+                            />
+                          )}
+                          {formatDate(rescheduledDate)} |{" "}
+                          {decodeTimeSlot(rescheduledTimeSlot) ||
+                            "Not Available"}
+                        </p>
+
+
+                        <p className="mb-1">
+                          <i className="bi bi-geo-alt fw-bold me-2"></i>{" "}
+                          {booking.address}
+                        </p>
+                      </>
+                    )}
+                  </div>
+
+
+                  {/* Comment Field (Notes) */}
+                  <div
+                    className="mt-3 position-relative"
+                    style={{ width: "550px" }}
+                  >
+                    {loadingBookingDetails ? (
+                      <Skeleton height={237} />
+                    ) : (
+                      <>
+                        <textarea
+                          id="notes"
+                          className="form-control shadow-none"
+                          placeholder="Notes"
+                          rows="8"
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          style={{
+                            height: "237px",
+                            resize: "none",
+                            padding: "10px",
+                            width: "100%",
+                            boxSizing: "border-box",
+                          }}
+                          required
+                          onInvalid={(e) => {
+                            e.target.setCustomValidity(
+                              "Please enter some notes"
+                            );
+                          }}
+                          onInput={(e) => {
+                            e.target.setCustomValidity("");
+                          }}
+                        ></textarea>
+                        <button
+                          className="btn position-absolute"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const textarea = document.getElementById("notes");
+                            if (textarea.reportValidity()) {
+                              saveNotes();
+                            }
+                          }}
+                          onMouseEnter={() => setIsSaveHovered(true)}
+                          onMouseLeave={() => setIsSaveHovered(false)}
+                          disabled={isSaving}
+                          style={{
+                            bottom: "10px",
+                            right: "10px",
+                            padding: "5px 10px",
+                            borderRadius: "5px",
+                            color:
+                              isSaveHovered || isSaving ? "white" : "#0076CE",
+                            backgroundColor:
+                              isSaveHovered || isSaving
+                                ? "#0076CE"
+                                : "transparent",
+                            border: "1px solid #0076CE",
+                            transition: "all 0.3s ease-in-out",
+                          }}
+                        >
+                          {isSaving ? (
                             <>
                               <span
                                 className="spinner-border spinner-border-sm me-2"
                                 role="status"
                                 aria-hidden="true"
                               ></span>
+                              Saving...
+                            </>
+                          ) : (
+                            "Save"
+                          )}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+
+                {/* Right Card - Service Details */}
+                <div
+                  className="col-md-6"
+                  style={{ borderRadius: "8px", position: "relative" }}
+                >
+                  <div
+                    className="card p-3"
+                    style={{
+                      width: "550px",
+                      border: "1px solid #D9D9D9",
+                      height: "480px",
+                      marginTop: "30px",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    {/* Heading */}
+                    <div
+                      className="d-flex align-items-center justify-content-between"
+                      style={{ height: "94px" }}
+                    >
+                      <h5 className="mb-0" style={{ marginTop: "-50px" }}>
+                        Workers
+                      </h5>
+                    </div>
+                    {/* Worker List (Scrollable) */}
+                    <div
+                      style={{
+                        minHeight: "250px",
+                        maxHeight: "290px",
+                        overflowY: "auto",
+                        overflowX: "hidden",
+                        paddingRight: "10px",
+                        paddingLeft: "20px",
+                        marginTop: "-40px",
+                      }}
+                    >
+                      <div
+                        className="row d-flex flex-wrap"
+                        style={{ gap: "8px" }}
+                      >
+                        {loadingWorkers ? (
+                          Array.from({ length: 4 }).map((_, index) => (
+                            <div
+                              key={index}
+                              className="col-6"
+                              style={{
+                                width: "48%",
+                                border: "1px solid #ddd",
+                                borderRadius: "8px",
+                                padding: "8px",
+                                background: "#f9f9f9",
+                              }}
+                            >
+                              <div className="d-flex align-items-center gap-2">
+                                <Skeleton circle width={40} height={40} />
+                                <div>
+                                  <Skeleton width={100} height={15} />
+                                  <Skeleton width={80} height={12} />
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : workers.length === 0 ? (
+                          <div className="col-12 text-center mt-3">
+                            <p style={{ color: "#888" }}>
+                              No workers available for this product.
+                            </p>
+                          </div>
+                        ) : (
+                          workers.map((worker, index) => (
+                            <div
+                              key={index}
+                              className="col-6"
+                              style={{
+                                width: "48%",
+                                border:
+                                  selectedWorkerId === worker.id
+                                    ? "2px solid #0076CE"
+                                    : "1px solid #ddd",
+                                borderRadius: "8px",
+                                padding: "8px",
+                                background:
+                                  selectedWorkerId === worker.id
+                                    ? "#e6f3ff"
+                                    : "#f9f9f9",
+                                cursor: "pointer",
+                              }}
+                              onClick={() => handleWorkerSelection(worker.id)}
+                            >
+                              <div className="d-flex align-items-center gap-2">
+                                <div
+                                  className="rounded-circle bg-secondary"
+                                  style={{
+                                    width: "40px",
+                                    height: "40px",
+                                    flexShrink: 0,
+                                    backgroundImage: `url(${worker.profilePicUrl})`,
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                  }}
+                                ></div>
+                                <div>
+                                  <p className="mb-0">{worker.name}</p>
+                                  <small style={{ color: "#666666" }}>
+                                    {worker.town}, {worker.pincode}
+                                  </small>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+
+                    {/* Worker Details Section */}
+                    {selectedWorkerDetails ? (
+                      <div
+                        className="mt-3 p-3 border-top"
+                        style={{
+                          height: "190px",
+                          overflowY: "auto",
+                          position: "absolute",
+                          bottom: "0",
+                          left: "0",
+                          right: "0",
+                          background: "white",
+                          zIndex: 1,
+                          borderRadius: "8px",
+                        }}
+                      >
+                        <h6>Worker Details</h6>
+                        <div className="d-flex gap-3 align-items-center">
+                          <div
+                            className="rounded-circle bg-secondary"
+                            style={{
+                              width: "60px",
+                              height: "60px",
+                              backgroundImage: `url(${selectedWorkerDetails.profilePicUrl})`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                            }}
+                          ></div>
+                          <div>
+                            <div className="d-flex align-items-center gap-2">
+                              <p className="mb-0">
+                                <i className="bi bi-person-fill me-2"></i>
+                                {selectedWorkerDetails.name}
+                              </p>
+                              <span
+                                style={{
+                                  backgroundColor: "#f0f0f0",
+                                  color: "#333",
+                                  padding: "2px 6px",
+                                  borderRadius: "4px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  fontSize: "14px",
+                                }}
+                              >
+                                <i
+                                  className="fas fa-star"
+                                  style={{
+                                    color: "#FFD700",
+                                    marginRight: "4px",
+                                  }}
+                                ></i>
+                                {selectedWorkerDetails.averageRating || "N/A"}
+                              </span>
+                            </div>
+                            <p className="mb-0">
+                              <i className="bi bi-telephone-fill me-2"></i>{" "}
+                              {selectedWorkerDetails.contactNumber}
+                            </p>
+                            <p className="mb-0">
+                              <i className="bi bi-geo-alt-fill me-2"></i>{" "}
+                              {selectedWorkerDetails.houseNumber},{" "}
+                              {selectedWorkerDetails.town},{" "}
+                              {selectedWorkerDetails.pincode},{" "}
+                              {selectedWorkerDetails.state}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="d-flex justify-content-center mt-3">
+                          <button
+                            className="btn"
+                            style={{
+                              background: "#0076CE",
+                              color: "white",
+                              width: "350px",
+                              borderRadius: "14px",
+                            }}
+                            onClick={assignWorker}
+                            disabled={assigningWorker}
+                          >
+                            {assigningWorker ? (
+                              <>
+                                <span
+                                  className="spinner-border spinner-border-sm me-2"
+                                  role="status"
+                                  aria-hidden="true"
+                                ></span>
+                                Assigning...
+                              </>
+                            ) : (
+                              "Assign Worker"
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        className="d-flex flex-column align-items-center justify-content-center"
+                        style={{ height: "120px" }}
+                      >
+                        <p className="mb-2">
+                          First, select a worker listed above
+                        </p>
+                        <hr
+                          style={{
+                            width: "80%",
+                            margin: "2px 0",
+                            borderColor: "#ddd",
+                          }}
+                        />
+                        <button
+                          className="btn"
+                          style={{
+                            background: isExpired
+                              ? "#CCCCCC"
+                              : selectedWorkerId
+                                ? "#0076CE"
+                                : "#999999",
+                            color: "white",
+                            width: "350px",
+                            borderRadius: "14px",
+                          }}
+                          onClick={assignWorker}
+                          disabled={
+                            isExpired || !selectedWorkerId || assigningWorker
+                          }
+                        >
+                          {assigningWorker ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-2"></span>
                               Assigning...
                             </>
                           ) : (
@@ -852,75 +972,33 @@ const AssignBookings = () => {
                           )}
                         </button>
                       </div>
-                    </div>
-                  ) : (
-                    <div
-                      className="d-flex flex-column align-items-center justify-content-center"
-                      style={{ height: "120px" }}
-                    >
-                      <p className="mb-2">
-                        First, select a worker listed above
-                      </p>
-                      <hr
-                        style={{
-                          width: "80%",
-                          margin: "2px 0",
-                          borderColor: "#ddd",
-                        }}
-                      />
-                      <button
-                        className="btn"
-                        style={{
-                          background: isExpired
-                            ? "#CCCCCC"
-                            : selectedWorkerId
-                              ? "#0076CE"
-                              : "#999999",
-                          color: "white",
-                          width: "350px",
-                          borderRadius: "14px",
-                        }}
-                        onClick={assignWorker}
-                        disabled={
-                          isExpired || !selectedWorkerId || assigningWorker
-                        }
-                      >
-                        {assigningWorker ? (
-                          <>
-                            <span className="spinner-border spinner-border-sm me-2"></span>
-                            Assigning...
-                          </>
-                        ) : (
-                          "Assign Worker"
-                        )}
-                      </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+
+            {/* Reschedule Slider */}
+            {showRescheduleSlider && (
+              <Reschedule
+                id={id}
+                booking={booking}
+                onClose={() => setShowRescheduleSlider(false)}
+                onReschedule={handleReschedule}
+              />
+            )}
+
+
+            {/* Cancel Booking Modal */}
+            {showCancelBookingModal && (
+              <CancelBooking
+                id={id}
+                booking={booking}
+                onClose={() => setShowCancelBookingModal(false)}
+              />
+            )}
           </div>
-
-
-          {/* Reschedule Slider */}
-          {showRescheduleSlider && (
-            <Reschedule
-              id={id}
-              booking={booking}
-              onClose={() => setShowRescheduleSlider(false)}
-              onReschedule={handleReschedule}
-            />
-          )}
-
-
-          {/* Cancel Booking Modal */}
-          {showCancelBookingModal && (
-            <CancelBooking
-              id={id}
-              booking={booking}
-              onClose={() => setShowCancelBookingModal(false)}
-            />
-          )}
         </main>
       </div>
     </div>

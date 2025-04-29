@@ -72,7 +72,6 @@ const WorkerDetails = ({ token, setToken }) => {
       "Doorbell",
       "MCB & Submeter",
       "Light and Wall light",
-      "CCTV Installation",
     ],
     Carpentry: [
       "Bed",
@@ -80,7 +79,7 @@ const WorkerDetails = ({ token, setToken }) => {
       "Door",
       "Windows",
       "Drill & Hang",
-      "Furniture Repair",
+      "Furniture",
     ],
     Plumbing: [
       "Washbasin Installation",
@@ -88,7 +87,7 @@ const WorkerDetails = ({ token, setToken }) => {
       "Shower",
       "Toilet",
       "Tap, Pipe works",
-      "Water tank & Motor",
+      "Watertank & Motor",
     ],
     "Vehicle service": [
       "Batteries",
@@ -122,18 +121,18 @@ const WorkerDetails = ({ token, setToken }) => {
 
 
   const filteredWorkers = workers
-    .filter((worker) =>
-      selectedSpecifications.length === 0 ||
-      selectedSpecifications.some((spec) =>
-        worker.specification
-          .split(",")
-          .map((s) => s.trim())
-          .includes(spec)
-      )
+  .filter((worker) =>
+    selectedSpecifications.length === 0 ||
+    selectedSpecifications.some((spec) =>
+      worker.specification
+        .split(",")
+        .map((s) => s.trim())
+        .includes(spec)
     )
-    // This sort is redundant since the original data is already sorted,
-    // but it ensures the order is maintained even if something changes
-    .sort((a, b) => new Date(b.joiningDate) - new Date(a.joiningDate));
+  )
+  // This sort is redundant since the original data is already sorted,
+  // but it ensures the order is maintained even if something changes
+  .sort((a, b) => new Date(b.joiningDate) - new Date(a.joiningDate));
 
 
   return (

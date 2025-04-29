@@ -44,7 +44,7 @@ const hasBookingChanges = (newBookings, prevBookings) => {
 const transformBookingData = (booking) => ({
   id: Number(booking.id),
   service: booking.productName,
-  name: booking.userProfile.fullName,
+  name: booking.userFullName,
   contact: booking.userProfile.mobileNumber.mobileNumber,
   address: `${booking.deliveryAddress.houseNumber}, ${booking.deliveryAddress.town}, ${booking.deliveryAddress.district}, ${booking.deliveryAddress.state}, ${booking.deliveryAddress.pincode}`,
   date: new Date(booking.bookedDate),

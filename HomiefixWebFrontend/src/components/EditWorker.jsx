@@ -8,7 +8,6 @@ import Header from "./Header";
 import api from "../api";
 import Select from "react-select";
 
-
 const EditWorker = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -51,14 +50,57 @@ const EditWorker = () => {
 
   // Role to specification mapping
   const roleSpecificationMap = {
-    "Home Appliances": ["AC", "Geyser", "Microwave", "Inverter & Stabilizers", "Water Purifier", "TV", "Fridge", "Washing Machine", "Fan"],
-    "Electrician": ["Switch & Socket", "Wiring", "Doorbell", "MCB & Submeter", "Light and Wall light"],
-    "Carpentry": ["Bed", "Cupboard & Drawer", "Door", "Windows", "Drill & Hang", "Furniture Repair"],
-    "Plumbing": ["Washbasin Installation", "Blockage Removal", "Shower", "Toilet", "Tap, Pipe works", "Water tank & Motor"],
-    "Vehicle service": ["Batteries", "Health checkup", "Water Wash", "Denting & Painting", "Tyre Service", "Vehicle AC"],
-    "Care Taker": ["Child Care", "PhysioTheraphy", "Old Age Care", "Companion Support", "Home Nursing"],
-    "Cleaning": ["Cleaning"],
-    "CCTV": ["CCTV"]
+    "Home Appliances": [
+      "AC",
+      "Geyser",
+      "Microwave",
+      "Inverter & Stabilizers",
+      "Water Purifier",
+      "TV",
+      "Fridge",
+      "Washing Machine",
+      "Fan",
+    ],
+    Electrician: [
+      "Switch & Socket",
+      "Wiring",
+      "Doorbell",
+      "MCB & Submeter",
+      "Light and Wall light",
+    ],
+    Carpentry: [
+      "Bed",
+      "Cupboard & Drawer",
+      "Door",
+      "Windows",
+      "Drill & Hang",
+      "Furniture",
+    ],
+    Plumbing: [
+      "Washbasin Installation",
+      "Blockage Removal",
+      "Shower",
+      "Toilet",
+      "Tap, Pipe works",
+      "Watertank & Motor",
+    ],
+    "Vehicle service": [
+      "Batteries",
+      "Health checkup",
+      "Water Wash",
+      "Denting & Painting",
+      "Tyre Service",
+      "Vehicle AC",
+    ],
+    "Care Taker": [
+      "Child Care",
+      "PhysioTheraphy",
+      "Old Age Care",
+      "Companion Support",
+      "Home Nursing",
+    ],
+    Cleaning: ["Cleaning"],
+    CCTV: ["CCTV"],
   };
 
 
@@ -122,6 +164,7 @@ const EditWorker = () => {
     const date = new Date(dateString);
     const today = new Date();
 
+
     // For DOB, check if the person is at least 18 years old
     if (isDOB) {
       const minDate = new Date();
@@ -129,11 +172,13 @@ const EditWorker = () => {
       return date <= minDate;
     }
 
+
     return date <= today;
   };
 
 
   // Fetch worker data and initialize form
+  // Update the initial preview image state in the useEffect
   useEffect(() => {
     const fetchWorkerData = async () => {
       try {
@@ -163,8 +208,16 @@ const EditWorker = () => {
         setClickedButtons(initialClickedButtons);
 
 
-        // Set preview image
-        setPreviewImage(data.profilePicUrl || addWorker);
+        // Set preview image - use the full URL if it's from the server
+        if (data.profilePicUrl) {
+          setPreviewImage(
+            data.profilePicUrl.startsWith("http")
+              ? data.profilePicUrl
+              : `${api.defaults.baseURL}${data.profilePicUrl}`
+          );
+        } else {
+          setPreviewImage(addWorker);
+        }
       } catch (error) {
         console.error("Error fetching worker data:", error);
         Swal.fire({
@@ -251,7 +304,7 @@ const EditWorker = () => {
 
       // Get all roles from updated specifications
       const updatedRoles = [];
-      updatedSpecifications.forEach(spec => {
+      updatedSpecifications.forEach((spec) => {
         for (const [role, specs] of Object.entries(roleSpecificationMap)) {
           if (specs.includes(spec)) {
             if (!updatedRoles.includes(role)) {
@@ -261,8 +314,6 @@ const EditWorker = () => {
           }
         }
       });
-
-
 
 
       return {
@@ -293,7 +344,7 @@ const EditWorker = () => {
         }
         break;
       case "email":
-        if (!validateEmail(value)) {
+        if (value && !validateEmail(value)) {
           error = "Please enter a valid email address";
         }
         break;
@@ -319,7 +370,7 @@ const EditWorker = () => {
         break;
       case "dateOfBirth":
       case "joiningDate":
-        if (!validateDate(value)) {
+        if (value && !validateDate(value)) {
           error = "Date cannot be in the future";
         }
         break;
@@ -351,6 +402,7 @@ const EditWorker = () => {
   };
 
 
+  // Update the handleImageUpload function
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -382,7 +434,14 @@ const EditWorker = () => {
       ...prevState,
       profilePic: file,
     }));
-    setPreviewImage(URL.createObjectURL(file));
+
+
+    // Create preview URL that works in both dev and production
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setPreviewImage(event.target.result);
+    };
+    reader.readAsDataURL(file);
   };
 
 
@@ -417,19 +476,13 @@ const EditWorker = () => {
     }
 
 
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-      isValid = false;
-    } else if (!validateEmail(formData.email)) {
+    if (formData.email && !validateEmail(formData.email)) {
       newErrors.email = "Please enter a valid email address";
       isValid = false;
     }
 
 
-    if (!formData.dateOfBirth) {
-      newErrors.dateOfBirth = "Date of Birth is required";
-      isValid = false;
-    } else if (!validateDate(formData.dateOfBirth, true)) {
+    if (formData.dateOfBirth && !validateDate(formData.dateOfBirth, true)) {
       newErrors.dateOfBirth = "Worker must be at least 18 years old";
       isValid = false;
     }
@@ -642,9 +695,7 @@ const EditWorker = () => {
             className="container mt-4"
             style={{ marginLeft: "64px", maxWidth: "100%" }}
           >
-            <p>
-              Profile Photo <span style={requiredFieldStyle}>*</span>
-            </p>
+            <p>Profile Photo</p>
             <div>
               <img
                 src={previewImage}
@@ -709,14 +760,13 @@ const EditWorker = () => {
               </div>
               <div className="col-md-3">
                 <label htmlFor="email" className="form-label">
-                  Email <span style={requiredFieldStyle}>*</span>
+                  Email
                 </label>
                 <input
                   type="email"
                   className={`form-control ${errors.email ? "is-invalid" : ""}`}
                   name="email"
                   id="email"
-                  required
                   placeholder="Enter Email"
                   onChange={handleChange}
                   value={formData.email}
@@ -731,8 +781,9 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="tel"
-                  className={`form-control ${errors.contactNumber ? "is-invalid" : ""
-                    }`}
+                  className={`form-control ${
+                    errors.contactNumber ? "is-invalid" : ""
+                  }`}
                   name="contactNumber"
                   id="contactNumber"
                   required
@@ -751,8 +802,9 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="tel"
-                  className={`form-control ${errors.econtactNumber ? "is-invalid" : ""
-                    }`}
+                  className={`form-control ${
+                    errors.econtactNumber ? "is-invalid" : ""
+                  }`}
                   name="econtactNumber"
                   id="eContactNumber"
                   placeholder="Enter Emergency Contact Number"
@@ -778,8 +830,9 @@ const EditWorker = () => {
                 <Select
                   isMulti
                   options={languageOptions}
-                  className={`basic-multi-select ${errors.language ? "is-invalid" : ""
-                    }`}
+                  className={`basic-multi-select ${
+                    errors.language ? "is-invalid" : ""
+                  }`}
                   classNamePrefix="select"
                   onChange={handleLanguageChange}
                   value={languageOptions.filter((option) =>
@@ -792,15 +845,15 @@ const EditWorker = () => {
               </div>
               <div className="col-md-3">
                 <label htmlFor="workExperience" className="form-label">
-                  Work Experience <span style={requiredFieldStyle}>*</span>
+                  Work Experience
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.workExperience ? "is-invalid" : ""
-                    }`}
+                  className={`form-control ${
+                    errors.workExperience ? "is-invalid" : ""
+                  }`}
                   name="workExperience"
                   id="workExperience"
-                  required
                   placeholder="Enter Work Experience"
                   onChange={handleChange}
                   value={formData.workExperience}
@@ -813,15 +866,15 @@ const EditWorker = () => {
               </div>
               <div className="col-md-3">
                 <label htmlFor="dateOfBirth" className="form-label">
-                  D.O.B <span style={requiredFieldStyle}>*</span>
+                  D.O.B
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.dateOfBirth ? "is-invalid" : ""
-                    }`}
+                  className={`form-control ${
+                    errors.dateOfBirth ? "is-invalid" : ""
+                  }`}
                   name="dateOfBirth"
                   id="dateOfBirth"
-                  required
                   onChange={handleChange}
                   value={formData.dateOfBirth}
                   placeholder="dd-mm-yyyy"
@@ -830,7 +883,13 @@ const EditWorker = () => {
                   onBlur={(e) => {
                     if (!e.target.value) e.target.type = "text";
                   }}
-                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0]}
+                  max={
+                    new Date(
+                      new Date().setFullYear(new Date().getFullYear() - 18)
+                    )
+                      .toISOString()
+                      .split("T")[0]
+                  }
                 />
                 {errors.dateOfBirth && (
                   <div className="invalid-feedback">{errors.dateOfBirth}</div>
@@ -875,7 +934,9 @@ const EditWorker = () => {
 
             {/* Job Title Section */}
             <div className="row mt-4">
-              <p className="fw-bold">Job title <span style={requiredFieldStyle}>*</span></p>
+              <p className="fw-bold">
+                Job title <span style={requiredFieldStyle}>*</span>
+              </p>
               {errors.jobTitle && (
                 <div className="text-danger small">{errors.jobTitle}</div>
               )}
@@ -902,8 +963,9 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
-                      }`}
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
                     onClick={() => handleButtonClick(item, "Home Appliances")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -924,13 +986,14 @@ const EditWorker = () => {
                   "Wiring",
                   "Doorbell",
                   "MCB & Submeter",
-                  "Light and Wall light"
+                  "Light and Wall light",
                 ].map((item) => (
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
-                      }`}
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
                     onClick={() => handleButtonClick(item, "Electrician")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -952,13 +1015,14 @@ const EditWorker = () => {
                   "Door",
                   "Windows",
                   "Drill & Hang",
-                  "Furniture Repair",
+                  "Furniture",
                 ].map((item) => (
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
-                      }`}
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
                     onClick={() => handleButtonClick(item, "Carpentry")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -980,13 +1044,14 @@ const EditWorker = () => {
                   "Shower",
                   "Toilet",
                   "Tap, Pipe works",
-                  "Water tank & Motor",
+                  "Watertank & Motor",
                 ].map((item) => (
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
-                      }`}
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
                     onClick={() => handleButtonClick(item, "Plumbing")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -1013,8 +1078,9 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
-                      }`}
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
                     onClick={() => handleButtonClick(item, "Vehicle service")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -1040,8 +1106,9 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
-                      }`}
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
                     onClick={() => handleButtonClick(item, "Care Taker")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -1061,8 +1128,9 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
-                      }`}
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
                     onClick={() => handleButtonClick(item, "Cleaning")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -1082,8 +1150,9 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
-                      }`}
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
                     onClick={() => handleButtonClick(item, "CCTV")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -1105,8 +1174,9 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.houseNumber ? "is-invalid" : ""
-                    }`}
+                  className={`form-control ${
+                    errors.houseNumber ? "is-invalid" : ""
+                  }`}
                   name="houseNumber"
                   id="houseNumber"
                   required
@@ -1142,8 +1212,9 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.pincode ? "is-invalid" : ""
-                    }`}
+                  className={`form-control ${
+                    errors.pincode ? "is-invalid" : ""
+                  }`}
                   name="pincode"
                   id="pincode"
                   required
@@ -1167,8 +1238,9 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.nearbyLandmark ? "is-invalid" : ""
-                    }`}
+                  className={`form-control ${
+                    errors.nearbyLandmark ? "is-invalid" : ""
+                  }`}
                   name="nearbyLandmark"
                   id="nearbyLandmark"
                   required
@@ -1188,8 +1260,9 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.district ? "is-invalid" : ""
-                    }`}
+                  className={`form-control ${
+                    errors.district ? "is-invalid" : ""
+                  }`}
                   name="district"
                   id="district"
                   required
@@ -1233,8 +1306,9 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.aadharNumber ? "is-invalid" : ""
-                    }`}
+                  className={`form-control ${
+                    errors.aadharNumber ? "is-invalid" : ""
+                  }`}
                   name="aadharNumber"
                   id="aadharNumber"
                   required
@@ -1253,8 +1327,9 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.drivingLicenseNumber ? "is-invalid" : ""
-                    }`}
+                  className={`form-control ${
+                    errors.drivingLicenseNumber ? "is-invalid" : ""
+                  }`}
                   name="drivingLicenseNumber"
                   id="drivingLicenseNumber"
                   placeholder="DL-XXXXXXXXXXXXXXX"
@@ -1276,8 +1351,9 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="date"
-                  className={`form-control ${errors.joiningDate ? "is-invalid" : ""
-                    }`}
+                  className={`form-control ${
+                    errors.joiningDate ? "is-invalid" : ""
+                  }`}
                   name="joiningDate"
                   id="joiningDate"
                   required
