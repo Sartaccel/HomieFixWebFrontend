@@ -704,7 +704,7 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.name ? "is-invalid" : ""}`}
+                  className={`form-control shadow-none ${errors.name ? "is-invalid" : ""}`}
                   name="name"
                   id="name"
                   required
@@ -722,7 +722,7 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="email"
-                  className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                  className={`form-control shadow-none ${errors.email ? "is-invalid" : ""}`}
                   name="email"
                   id="email"
                   placeholder="Enter Email"
@@ -739,7 +739,7 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="tel"
-                  className={`form-control ${errors.contactNumber ? "is-invalid" : ""
+                  className={`form-control shadow-none ${errors.contactNumber ? "is-invalid" : ""
                     }`}
                   name="contactNumber"
                   id="contactNumber"
@@ -759,7 +759,7 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="tel"
-                  className={`form-control ${errors.econtactNumber ? "is-invalid" : ""
+                  className={`form-control shadow-none ${errors.econtactNumber ? "is-invalid" : ""
                     }`}
                   name="econtactNumber"
                   id="eContactNumber"
@@ -805,7 +805,7 @@ const AddWorker = () => {
                 <input
                   type="number"
                   min="0"
-                  className={`form-control ${errors.workExperience ? "is-invalid" : ""
+                  className={`form-control shadow-none ${errors.workExperience ? "is-invalid" : ""
                     }`}
                   name="workExperience"
                   id="workExperience"
@@ -836,7 +836,7 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.dateOfBirth ? "is-invalid" : ""
+                  className={`form-control shadow-none ${errors.dateOfBirth ? "is-invalid" : ""
                     }`}
                   name="dateOfBirth"
                   id="dateOfBirth"
@@ -869,7 +869,7 @@ const AddWorker = () => {
                 <br />
                 <div className="form-check form-check-inline mt-2">
                   <input
-                    className="form-check-input"
+                    className="form-check-input shadow-none"
                     type="radio"
                     name="gender"
                     id="male"
@@ -883,7 +883,7 @@ const AddWorker = () => {
                 </div>
                 <div className="form-check form-check-inline">
                   <input
-                    className="form-check-input"
+                    className="form-check-input shadow-none"
                     type="radio"
                     name="gender"
                     id="female"
@@ -1133,7 +1133,7 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.houseNumber ? "is-invalid" : ""
+                  className={`form-control shadow-none ${errors.houseNumber ? "is-invalid" : ""
                     }`}
                   name="houseNumber"
                   id="houseNumber"
@@ -1152,7 +1152,7 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.town ? "is-invalid" : ""}`}
+                  className={`form-control shadow-none ${errors.town ? "is-invalid" : ""}`}
                   name="town"
                   id="town"
                   required
@@ -1170,7 +1170,7 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.pincode ? "is-invalid" : ""
+                  className={`form-control shadow-none ${errors.pincode ? "is-invalid" : ""
                     }`}
                   name="pincode"
                   id="pincode"
@@ -1195,7 +1195,7 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.nearbyLandmark ? "is-invalid" : ""
+                  className={`form-control shadow-none ${errors.nearbyLandmark ? "is-invalid" : ""
                     }`}
                   name="nearbyLandmark"
                   id="nearbyLandmark"
@@ -1216,7 +1216,7 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.district ? "is-invalid" : ""
+                  className={`form-control shadow-none ${errors.district ? "is-invalid" : ""
                     }`}
                   name="district"
                   id="district"
@@ -1235,7 +1235,7 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.state ? "is-invalid" : ""}`}
+                  className={`form-control shadow-none ${errors.state ? "is-invalid" : ""}`}
                   name="state"
                   id="state"
                   required
@@ -1261,7 +1261,7 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.aadharNumber ? "is-invalid" : ""
+                  className={`form-control shadow-none ${errors.aadharNumber ? "is-invalid" : ""
                     }`}
                   name="aadharNumber"
                   id="aadharNumber"
@@ -1281,7 +1281,7 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.drivingLicenseNumber ? "is-invalid" : ""
+                  className={`form-control shadow-none ${errors.drivingLicenseNumber ? "is-invalid" : ""
                     }`}
                   name="drivingLicenseNumber"
                   id="drivingLicenseNumber"
@@ -1312,7 +1312,7 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.joiningDate ? "is-invalid" : ""
+                  className={`form-control shadow-none ${errors.joiningDate ? "is-invalid" : ""
                     }`}
                   name="joiningDate"
                   id="joiningDate"
