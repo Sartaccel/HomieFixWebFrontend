@@ -1,0 +1,17 @@
+.scrollable-container {
+  max-height: 90vh;
+  /* adjust based on your header height */
+  overflow-y: auto;
+}
+
+.sticky-tabs {
+  position: sticky;
+  top: 60px;
+  /* adjust if you have a fixed header */
+  background-color: white;
+  z-index: 10;
+}
+
+.card:hover {
+  background-color: #FAFAFA;
+}

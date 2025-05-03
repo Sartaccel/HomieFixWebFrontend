@@ -20,6 +20,7 @@ import Worker from "./components/Worker";
 import EditWorker from "./components/EditWorker";
 import Profile from "./components/Profile";
 import Notifications from "./components/Notifications";
+import Service from "./components/Service";
 
 const App = () => {
   const navigate = useNavigate();
@@ -50,7 +51,8 @@ const App = () => {
           <Route path="/worker-details/worker/:id" element={<Worker />} />
           <Route path="/worker-details/add-worker" element={<AddWorker />} />
           <Route path="/worker-details/worker/edit/:id" element={<EditWorker />} />
-          <Route path="/services" element={<ComingSoon />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/services/:id" element={<Service />} />
           <Route path="/profile/:username" element={<Profile />} />
           <Route path="/notifications" element={<Notifications />} />
         </Route>

@@ -1,18 +1,19 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import { useState } from "react";
-import notification from "../assets/Bell.png";
-import profile from "../assets/Profile.png";
-import search from "../assets/Search.png";
+import { useState, useEffect } from "react";
 import "../styles/Reviews.css";
-import userProfile from "../assets/user.png";
+import userProfile from "../assets/addWorker.jpg";
 import { Link } from "react-router-dom";
 import Header from "./Header";
+import api from "../api";
 
 const Reviews = () => {
     const [activeTab, setActiveTab] = useState("recent");
     const [selectedStar, setSelectedStar] = useState("");
     const [selectedMonth, setSelectedMonth] = useState("");
     const [selectedYear, setSelectedYear] = useState("");
+    const [reviews, setReviews] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const currentDate = new Date();
     const oneMonthAgo = new Date();
@@ -28,14 +29,65 @@ const Reviews = () => {
         "July", "August", "September", "October", "November", "December"
     ];
 
-    const reviews = [
-        { id: 1, user: "John Doe", service: "Home Cleaning", rating: 5, review: "Great service, highly recommended!", date: "02 Feb 2025", profilePic: userProfile },
-        { id: 2, user: "Emma Smith", service: "Plumbing", rating: 4, review: "Fixed my leak quickly. Good job!", date: "28 Jan 2025", profilePic: userProfile },
-        { id: 3, user: "David Johnson", service: "Electrical Repair", rating: 3, review: "Okay service, but took longer than expected.", date: "15 Jan 2025", profilePic: userProfile },
-        { id: 4, user: "Sophia Martinez", service: "Plumbing Service", rating: 5, review: "Excellent service! Quick and professional.", date: "20 Dec 2024", profilePic: userProfile },
-        { id: 5, user: "James Anderson", service: "Home Cleaning", rating: 4, review: "Good cleaning service, but missed a few spots.", date: "25 Nov 2024", profilePic: userProfile },
-        { id: 6, user: "Emily Carter", service: "AC Maintenance", rating: 2, review: "Not satisfied, had to call them again to fix the issue.", date: "30 Jan 2025", profilePic: userProfile }
-    ];
+    useEffect(() => {
+        const fetchReviews = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const response = await api.get("/feedback/all");
+                
+                // Fetch booking details for each review in parallel
+                const reviewsWithService = await Promise.all(
+                    response.data.map(async (review) => {
+                        try {
+                            // Assuming each feedback has a bookingId field
+                            const bookingResponse = await api.get(`/booking/${review.bookingId}`);
+                            const serviceName = bookingResponse.data.productName || "General Service";
+                            
+                            return {
+                                id: review.id,
+                                user: review.userProfile?.fullName || "Anonymous User",
+                                service: serviceName, // Use the productName from booking
+                                rating: review.rating,
+                                review: review.comment,
+                                date: new Date(review.reviewedDate).toLocaleDateString('en-IN', { 
+                                    day: '2-digit', 
+                                    month: 'short', 
+                                    year: 'numeric' 
+                                }),
+                                profilePic: userProfile
+                            };
+                        } catch (bookingError) {
+                            console.error(`Error fetching booking for review ${review.id}:`, bookingError);
+                            // Fallback to worker's role if booking fetch fails
+                            return {
+                                id: review.id,
+                                user: review.userProfile?.fullName || "Anonymous User",
+                                service: review.worker?.role || "General Service",
+                                rating: review.rating,
+                                review: review.comment,
+                                date: new Date(review.reviewedDate).toLocaleDateString('en-IN', { 
+                                    day: '2-digit', 
+                                    month: 'short', 
+                                    year: 'numeric' 
+                                }),
+                                profilePic: userProfile
+                            };
+                        }
+                    })
+                );
+                
+                setReviews(reviewsWithService.sort((a, b) => b.id - a.id));
+            } catch (err) {
+                setError("Failed to fetch reviews.");
+                console.error("Error fetching reviews:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchReviews();
+    }, []);
 
     const parseDate = (dateString) => {
         const [day, month, year] = dateString.split(" ");
@@ -49,7 +101,11 @@ const Reviews = () => {
 
     const getMonthNumber = (monthName) => months.findIndex(m => m.startsWith(monthName)) + 1;
 
-    const filteredReviews = reviews.filter((review) => {
+    const filteredReviews = [...reviews]  // Create a copy of the array
+    .sort((a, b) => b.id - a.id)     // Sort by ID descending
+    .filter((review) => {
+        if (!review.date) return false;
+
         const { month, year } = getMonthYear(review.date);
         const monthNumber = getMonthNumber(month);
         const reviewDate = parseDate(review.date);
@@ -63,6 +119,8 @@ const Reviews = () => {
     });
 
     const recentReviewCount = reviews.filter((review) => {
+        if (!review.date) return false;
+
         const reviewDate = parseDate(review.date);
         return (
             reviewDate >= oneMonthAgo &&
@@ -72,14 +130,24 @@ const Reviews = () => {
         );
     }).length;
 
+    if (loading) {
+        return <div className="text-center mt-5">Loading reviews...</div>;
+    }
+
+    if (error) {
+        return <div className="text-center mt-5 text-danger">{error}</div>;
+    }
+
+    
+
     return (
         <div>
             {/* Navbar */}
-            <Header/>
+            <Header />
 
             {/* Main Content */}
             <div className="container-fluid p-0 pt-5">
-            <div className="d-flex justify-content-between border-bottom mt-5 mb-2">
+                <div className="d-flex justify-content-between border-bottom mt-5 mb-2">
                     {/* Tabs */}
                     <div className="d-flex gap-4 mx-4">
                         <button className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`} onClick={() => setActiveTab("recent")}>
@@ -95,7 +163,7 @@ const Reviews = () => {
                         <select className="form-select w-auto" value={selectedStar} onChange={(e) => setSelectedStar(e.target.value)}>
                             <option value="">All Ratings</option>
                             {[5, 4, 3, 2, 1].map((star) => (
-                                <option key={star} value={star}>⭐ {star}</option>
+                                <option key={star} value={star}> ⭐ {star}</option>
                             ))}
                         </select>
 
@@ -134,7 +202,7 @@ const Reviews = () => {
                                                     </h6>
                                                 </div>
                                                 <div>
-                                                    <span className="text-dark px-2">⭐ {review.rating}</span>
+                                                    <span className="text-dark px-2"><span className="bi bi-star-fill text-warning"></span> {review.rating}</span>
                                                     <small className="ms-2">{review.date}</small>
                                                 </div>
                                             </div>
