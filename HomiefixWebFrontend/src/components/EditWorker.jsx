@@ -582,6 +582,7 @@ const EditWorker = () => {
   const requiredFieldStyle = {
     color: "#B8141A",
     marginLeft: "2px",
+    border: "-1px"
   };
 
   return (
@@ -678,7 +679,7 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.name ? "is-invalid" : ""}`}
+                  className={`form-control shadow-none ${errors.name ? "is-invalid" : ""}`}
                   name="name"
                   id="name"
                   required
@@ -696,7 +697,7 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="email"
-                  className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                  className={`form-control  shadow-none${errors.email ? "is-invalid" : ""}`}
                   name="email"
                   id="email"
                   placeholder="Enter Email"
@@ -713,7 +714,7 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="tel"
-                  className={`form-control ${
+                  className={`form-control shadow-none ${
                     errors.contactNumber ? "is-invalid" : ""
                   }`}
                   name="contactNumber"
@@ -734,7 +735,7 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="tel"
-                  className={`form-control ${
+                  className={`form-control shadow-none ${
                     errors.econtactNumber ? "is-invalid" : ""
                   }`}
                   name="econtactNumber"
@@ -755,7 +756,7 @@ const EditWorker = () => {
             {/* Row 2 */}
             <div className="row mt-4">
               <div className="col-md-2">
-                <label htmlFor="language" className="form-label">
+                <label htmlFor="language" className="form-label shadow-none">
                   Language <span style={requiredFieldStyle}>*</span>
                 </label>
                 <Select
@@ -780,7 +781,7 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${
+                  className={`form-control shadow-none ${
                     errors.workExperience ? "is-invalid" : ""
                   }`}
                   name="workExperience"
@@ -801,7 +802,7 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${
+                  className={`form-control  shadow-none${
                     errors.dateOfBirth ? "is-invalid" : ""
                   }`}
                   name="dateOfBirth"
@@ -1095,7 +1096,7 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${
+                  className={`form-control  shadow-none ${
                     errors.houseNumber ? "is-invalid" : ""
                   }`}
                   name="houseNumber"
@@ -1115,7 +1116,7 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.town ? "is-invalid" : ""}`}
+                  className={`form-control shadow-none ${errors.town ? "is-invalid" : ""}`}
                   name="town"
                   id="town"
                   required
@@ -1133,7 +1134,7 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${
+                  className={`form-control  shadow-none${
                     errors.pincode ? "is-invalid" : ""
                   }`}
                   name="pincode"
@@ -1158,7 +1159,7 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${
+                  className={`form-control shadow-none ${
                     errors.nearbyLandmark ? "is-invalid" : ""
                   }`}
                   name="nearbyLandmark"
@@ -1180,7 +1181,7 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${
+                  className={`form-control shadow-none ${
                     errors.district ? "is-invalid" : ""
                   }`}
                   name="district"
@@ -1200,7 +1201,7 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${errors.state ? "is-invalid" : ""}`}
+                  className={`form-control shadow-none ${errors.state ? "is-invalid" : ""}`}
                   name="state"
                   id="state"
                   required
@@ -1225,7 +1226,7 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${
+                  className={`form-control shadow-none ${
                     errors.aadharNumber ? "is-invalid" : ""
                   }`}
                   name="aadharNumber"
@@ -1246,7 +1247,7 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${
+                  className={`form-control shadow-none ${
                     errors.drivingLicenseNumber ? "is-invalid" : ""
                   }`}
                   name="drivingLicenseNumber"
@@ -1270,7 +1271,7 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="date"
-                  className={`form-control ${
+                  className={`form-control shadow-none ${
                     errors.joiningDate ? "is-invalid" : ""
                   }`}
                   name="joiningDate"

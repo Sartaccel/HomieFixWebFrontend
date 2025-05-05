@@ -1,76 +1,303 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useParams, useNavigate } from "react-router-dom";
-import userProfile from "../assets/user.png";
-import search from "../assets/Search.png";
-import { useState } from "react";
-
-const reviews = [
-    { id: 1, user: "John Doe", service: "Home Cleaning", rating: 5, review: "Great service, highly recommended!", date: "02 Feb 2025", profilePic: userProfile },
-    { id: 2, user: "Emma Smith", service: "Plumbing", rating: 4, review: "Fixed my leak quickly. Good job!", date: "28 Jan 2025", profilePic: userProfile },
-    { id: 3, user: "David Johnson", service: "Electrical Repair", rating: 3, review: "Okay service, but took longer than expected.", date: "15 Jan 2025", profilePic: userProfile },
-    { id: 4, user: "Sophia Martinez", service: "Plumbing Service", rating: 5, review: "Excellent service! Quick and professional.", date: "20 Dec 2024", profilePic: userProfile },
-    { id: 5, user: "James Anderson", service: "Home Cleaning", rating: 4, review: "Good cleaning service, but missed a few spots.", date: "25 Nov 2024", profilePic: userProfile },
-    { id: 6, user: "Emily Carter", service: "AC Maintenance", rating: 2, review: "Not satisfied, had to call them again to fix the issue.", date: "30 Jan 2025", profilePic: userProfile }
-];
+import userProfile from "../assets/addWorker.jpg";
+import { useState, useEffect } from "react";
+import Header from "./Header";
+import api from "../api";
 
 const CustomerReview = () => {
-    const { id } = useParams();
-    const review = reviews.find((r) => r.id === Number(id));
-    const [activeTab, setActiveTab] = useState("recent");
-    const navigate = useNavigate();
+  const { id } = useParams();
+  const [review, setReview] = useState(null);
+  const [booking, setBooking] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState("recent");
+  const navigate = useNavigate();
 
-    if (!review) {
-        return <h2 className="text-center text-muted">Review not found</h2>;
-    }
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch feedback data
+        const feedbackResponse = await api.get(`/feedback/${id}`);
+        const feedbackData = feedbackResponse.data;
 
-    return (
-        <div>
-            <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
-                <h2 className="heading align-items-center mb-0" style={{ marginLeft: "31px" }}>Customers Review</h2>
-                <div className="header-right d-flex align-items-center gap-3">
-                    <div className="input-group" style={{ width: "300px" }}>
-                        <input type="text" className="form-control search-bar" placeholder="Search" />
-                        <span className="input-group-text">
-                            <img src={search} alt="Search" width="20" />
-                        </span>
-                    </div>
-                </div>
-            </header>
+        // Fetch booking data using the bookingId from feedback
+        const bookingResponse = await api.get(
+          `/booking/${feedbackData.bookingId}`
+        );
+        const bookingData = bookingResponse.data;
 
-            <div className="container" style={{ paddingTop: "80px" }}>
-                <div className="d-flex gap-4 mx-2 align-items-center">
-                    <button className="btn" onClick={() => navigate(-1)}>
-                        <span style={{ fontSize: "20px" }}>←</span>
-                    </button>
-                    <button
-                        className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
-                        onClick={() => setActiveTab("recent")}
-                    >
-                        Recent Reviews
-                    </button>
-                </div>
+        setReview(feedbackData);
+        setBooking(bookingData);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Failed to load review data");
+        setLoading(false);
+      }
+    };
 
-                <div className="row mt-4">
-                    <div className="col-md-6 p-3 border d-flex justify-content-between">
-                        <div>
-                            <h4>Customer Details</h4>
-                            <img src={review.profilePic} alt={review.user} className="rounded-circle" width="80" height="80" />
-                        </div>
-                        <div className="flex-column">
-                            <p>{review.user}</p>
-                            <p>{review.date}</p>
-                            <p>⭐ 5</p>
-                        </div>
-                    </div>
-                    <div className="col-md-6 p-3 border">
-                        <h4>Service Details</h4>
-                        <p><strong>Service:</strong> {review.service}</p>
-                        <p><strong>Review:</strong> {review.review}</p>
-                    </div>
-                </div>
-            </div>
+    fetchData();
+  }, [id]);
+
+  if (loading) {
+    return <div className="text-center mt-5">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center mt-5 text-danger">{error}</div>;
+  }
+
+  if (!review || !booking) {
+    return <h2 className="text-center text-muted">Review not found</h2>;
+  }
+
+  // Format dates for display
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const options = { year: "numeric", month: "short", day: "numeric" };
+    return new Date(dateString).toLocaleDateString("en-US", options);
+  };
+
+  return (
+    <div>
+      <Header />
+
+      <div className="container" style={{ paddingTop: "80px" }}>
+        <div className="d-flex gap-4 mx-2 align-items-center">
+        <button
+            className="btn btn-light p-2"
+            style={{ marginBottom: "-20px" }}
+            onClick={() => navigate(`/reviews`)}
+          >
+            <i
+              className="bi bi-arrow-left"
+              style={{ fontSize: "1.5rem", fontWeight: "bold" }}
+            ></i>
+          </button>
+          <button
+            className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
+            onClick={() => setActiveTab("recent")}
+          >
+            Recent Reviews
+          </button>
         </div>
-    );
+
+        <div className="row mx-2">
+          <div className="col-md-6">
+            <div className="card mt-4">
+              <div className="card-body mb-3">
+                <h5 className="card-title">Customer</h5>
+                <div className="d-flex align-items-center">
+                  <div>
+                    <img
+                      src={review.userProfile.profilePicUrl || userProfile}
+                      alt="Profile"
+                      className="rounded-circle"
+                      style={{ width: "65px", height: "65px" }}
+                    />
+                  </div>
+                  <div className="ms-3 mt-2">
+                    <p className="card-text mb-1">
+                      {" "}
+                      <span className="bi bi-person"></span>{" "}
+                      {review.userProfile.fullName}
+                    </p>
+                    <p className="card-text mb-1">
+                      {" "}
+                      <span className="bi bi-telephone"></span>{" "}
+                      {review.userProfile.mobileNumber.mobileNumber}
+                    </p>
+                    <div className="d-flex">
+                      <i className="bi bi-geo-alt"></i>
+                      <p className="card-text mb-1 mx-1">
+                        {booking.deliveryAddress.houseNumber},{" "}
+                        {booking.deliveryAddress.town},
+                        {booking.deliveryAddress.district},{" "}
+                        {booking.deliveryAddress.state} -{" "}
+                        {booking.deliveryAddress.pincode}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="row mt-3">
+                  <p>
+                    Customer Review{" "}
+                    <span className="bi bi-star-fill text-warning mx-2"> </span>{" "}
+                    {review.rating}
+                  </p>
+                </div>
+
+                <div className="row border-bottom">
+                  <p className="text-muted">{review.comment}</p>
+                </div>
+
+                <h5 className="card-title mt-5">Worker Details</h5>
+                <div className="d-flex align-items-center">
+                  <div>
+                    <img
+                      src={review.worker.profilePicUrl || userProfile}
+                      alt="Profile"
+                      className="rounded-circle"
+                      style={{ width: "65px", height: "65px" }}
+                    />
+                  </div>
+                  <div className="ms-3 mt-2">
+                    <p className="card-text mb-1">
+                      {" "}
+                      <span className="bi bi-person"></span>{" "}
+                      {review.worker.name}
+                    </p>
+                    <p className="card-text mb-1">
+                      {" "}
+                      <span className="bi bi-telephone"></span>{" "}
+                      {review.worker.contactNumber}
+                    </p>
+                    <div className="d-flex">
+                      <i className="bi bi-geo-alt"></i>
+                      <p className="card-text mb-1 mx-1">
+                        {review.worker.houseNumber}, {review.worker.town},
+                        {review.worker.district}, {review.worker.state} -{" "}
+                        {review.worker.pincode}
+                      </p>
+                    </div>
+                    <button
+                      className="btn w-100 mt-1"
+                      style={{ backgroundColor: "#0076CE", color: "white" }}
+                      onClick={() =>
+                        navigate(`/worker-details/worker/${review.worker.id}`)
+                      }
+                    >
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-md-6">
+            <div className="card mb-3 mt-4 p-3">
+              <div className="card-body">
+                <h5 className="card-title">Service Details</h5>
+                <div className="row">
+                  <div className="col-md-4">
+                    <p className="card-text text-muted">Booking Date</p>
+                    <p className="card-text text-muted">Service Type</p>
+                    <p className="card-text text-muted">Service date & time</p>
+                    <p className="card-text text-muted">Status</p>
+                    <p className="card-text text-muted">Total amount</p>
+                  </div>
+                  <div className="col-md-8">
+                    <p className="card-text text-end">
+                      {formatDate(booking.bookingDate)}
+                    </p>
+                    <p className="card-text text-end">{booking.productName}</p>
+                    <p className="card-text text-end">
+                      {formatDate(booking.bookedDate)}, {booking.timeSlot}
+                    </p>
+                    <p
+                      className="card-text text-end"
+                      style={{ color: "#0076CE" }}
+                    >
+                      {booking.bookingStatus}
+                    </p>
+                    <p className="card-text text-end">₹ {booking.totalPrice}</p>
+                  </div>
+                </div>
+
+                <div className="row mt-2">
+                  <div className="col-md-12 mt-4">
+                    <div className="d-flex">
+                      {/* Timeline/Process bar */}
+                      <div className="d-flex flex-column align-items-center me-3 mt-3">
+                        <div
+                          className="rounded-circle"
+                          style={{
+                            width: "12px",
+                            height: "12px",
+                            backgroundColor: "#0076CE",
+                          }}
+                        ></div>
+                        <div
+                          className="vr"
+                          style={{
+                            height: "50px",
+                            marginLeft: "4.3px",
+                            width: "3px",
+                            backgroundColor: "#0076CE",
+                            opacity: "100%",
+                          }}
+                        ></div>
+                        <div
+                          className="rounded-circle"
+                          style={{
+                            width: "12px",
+                            height: "12px",
+                            backgroundColor: "#0076CE",
+                          }}
+                        ></div>
+                        <div
+                          className="vr"
+                          style={{
+                            height: "50px",
+                            marginLeft: "4.3px",
+                            width: "3px",
+                            backgroundColor: "#0076CE",
+                            opacity: "100%",
+                          }}
+                        ></div>
+                        <div
+                          className="rounded-circle"
+                          style={{
+                            width: "12px",
+                            height: "12px",
+                            backgroundColor: "#0076CE",
+                          }}
+                        ></div>
+                      </div>
+
+                      {/* Timeline content */}
+                      <div className="flex-grow-1">
+                        <div className="mb-3">
+                          <p className="card-text mb-1">
+                            {formatDate(booking.bookingDate)}
+                          </p>
+                          <p className="text-muted mb-0">
+                            Your booking is confirmed. Our team will contact you
+                            soon.
+                          </p>
+                        </div>
+                        <div className="mb-3">
+                          <p className="card-text mb-1">
+                            {formatDate(booking.workerAssignDate)}
+                          </p>
+                          <p className="text-muted mb-0">Confirmation call</p>
+                        </div>
+                        <div>
+                          <p className="card-text mb-1">
+                            {formatDate(booking.serviceCompletedDate)}
+                          </p>
+                          <p className="text-muted mb-0">Service Completed</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="row mt-3">
+                  <div className="col-md-12 d-flex justify-content-end">
+                    {/* <button className="btn" style={{ backgroundColor: "#0076CE", color: "white" }} >Share</button> */}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default CustomerReview;

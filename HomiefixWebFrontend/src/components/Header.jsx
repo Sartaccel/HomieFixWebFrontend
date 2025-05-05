@@ -2,10 +2,10 @@ import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import notification from "../assets/Bell.png";
 import profile from "../assets/addWorker.jpg";
-import search from "../assets/Search.png";
 import Notifications from "./Notifications";
 import { createPortal } from "react-dom";
 import api from "../api";
+import SearchBar from "./SearchBar";
 
 const Header = () => {
   const location = useLocation();
@@ -16,7 +16,6 @@ const Header = () => {
   const notificationRef = useRef(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [currentUsername, setCurrentUsername] = useState("");
-  const clickStartTimeRef = useRef(0);
 
   const getHeading = () => {
     if (location.pathname.startsWith("/booking-details")) return "Booking Details";
@@ -98,33 +97,29 @@ const Header = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      // Check if the click is outside both the bell icon and the notifications popup
-      if (popupRef.current && !popupRef.current.contains(e.target) &&
-          notificationRef.current && !notificationRef.current.contains(e.target)) {
+    const handleClickOutside = (event) => {
+      const popup = popupRef.current;
+      const notiContainer = notificationRef.current;
+  
+      if (
+        popup &&
+        !popup.contains(event.target) &&
+        notiContainer &&
+        !notiContainer.contains(event.target)
+      ) {
         setShowNotifications(false);
       }
     };
-
-    const handleMouseDown = (e) => {
-      clickStartTimeRef.current = Date.now();
-    };
-
-    const handleMouseUp = (e) => {
-      // Only consider it a click if it was very short (not a drag)
-      if (Date.now() - clickStartTimeRef.current < 200) {
-        handleClickOutside(e);
-      }
-    };
-
-    document.addEventListener("mousedown", handleMouseDown);
-    document.addEventListener("mouseup", handleMouseUp);
-
+  
+    if (showNotifications) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+  
     return () => {
-      document.removeEventListener("mousedown", handleMouseDown);
-      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [showNotifications]);
+  
 
   return (
     <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
@@ -132,16 +127,8 @@ const Header = () => {
         {getHeading()}
       </h2>
       <div className="header-right d-flex align-items-center gap-3">
-        <div className="input-group" style={{ width: "300px" }}>
-          <input
-            type="text"
-            className="form-control search-bar"
-            placeholder="Search"
-          />
-          <span className="input-group-text">
-            <img src={search} alt="Search" width="20" />
-          </span>
-        </div>
+        <SearchBar />
+        
         <div className="position-relative" ref={popupRef}>
           <img
             src={notification}

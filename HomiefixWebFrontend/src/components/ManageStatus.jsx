@@ -17,7 +17,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
     date: null,
     time: null,
   });
-  const [forceUpdate, setForceUpdate] = useState(0); // Add this line for forced re-render
+  const [forceUpdate, setForceUpdate] = useState(0);
 
   const safeBooking = booking || {
     bookingStatus: "",
@@ -53,7 +53,6 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       setIsLoading(false);
     }, 1000);
 
-    // Initialize status dropdowns and dates from props
     if (safeBooking.bookingStatus) {
       setServiceStarted(
         safeBooking.bookingStatus === "STARTED" ||
@@ -77,7 +76,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
     }
 
     return () => clearTimeout(timer);
-  }, [safeBooking, forceUpdate]); // Add forceUpdate to dependency array
+  }, [safeBooking, forceUpdate]);
 
   const handleUpdateStatus = async () => {
     if (serviceCompleted === "Yes" && serviceStarted === "No") {
@@ -151,7 +150,6 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
         completedTime
       );
 
-      // Force a re-render after successful update
       setForceUpdate((prev) => prev + 1);
     } catch (error) {
       console.error("Error updating status:", error);
@@ -228,74 +226,88 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
     ></div>
   );
 
-  const renderStatusDropdown = (value, onChange, disabled = false) => (
-    <div style={{ position: "relative", width: "100%" }}>
-      <select
-        onChange={(e) => {
-          const newValue = e.target.value;
-          onChange(newValue);
+  const renderStatusDropdown = (value, onChange, isStartDropdown = false) => {
+    const disabled =
+      isServiceDateFuture && (isStartDropdown || !isStartDropdown);
+    return (
+      <div style={{ position: "relative", width: "100%" }}>
+        <select
+          onChange={(e) => {
+            const newValue = e.target.value;
+            onChange(newValue);
 
-          // Only update dates if the API call would succeed
-          if (newValue === "Yes" && !disabled) {
-            const now = new Date();
-            const currentDate = now.toISOString().split("T")[0];
-            const currentTime = now
-              .toTimeString()
-              .split(" ")[0]
-              .substring(0, 8);
+            if (newValue === "Yes" && !disabled) {
+              const now = new Date();
+              const currentDate = now.toISOString().split("T")[0];
+              const currentTime = now
+                .toTimeString()
+                .split(" ")[0]
+                .substring(0, 8);
 
-            if (onChange === setServiceStarted) {
-              setLocalServiceStarted({ date: currentDate, time: currentTime });
-            } else if (onChange === setServiceCompleted) {
-              setLocalServiceCompleted({
-                date: currentDate,
-                time: currentTime,
-              });
+              if (onChange === setServiceStarted) {
+                setLocalServiceStarted({
+                  date: currentDate,
+                  time: currentTime,
+                });
+              } else if (onChange === setServiceCompleted) {
+                setLocalServiceCompleted({
+                  date: currentDate,
+                  time: currentTime,
+                });
+              }
+            } else if (newValue === "No") {
+              if (onChange === setServiceStarted) {
+                setLocalServiceStarted({ date: null, time: null });
+              } else if (onChange === setServiceCompleted) {
+                setLocalServiceCompleted({ date: null, time: null });
+              }
             }
-          } else if (newValue === "No") {
-            // Clear dates when changing to "No"
-            if (onChange === setServiceStarted) {
-              setLocalServiceStarted({ date: null, time: null });
-            } else if (onChange === setServiceCompleted) {
-              setLocalServiceCompleted({ date: null, time: null });
-            }
-          }
-        }}
-        value={value}
-        disabled={disabled}
-        style={{
-          width: "100%",
-          border: "none",
-          background: "transparent",
-          fontSize: "14px",
-          outline: "none",
-          appearance: "none",
-          padding: "4px 20px 4px 8px",
-          textAlign: "center",
-          color: disabled ? "#ccc" : "inherit",
-          cursor: disabled ? "not-allowed" : "pointer",
-        }}
-      >
-        <option value="No">No</option>
-        <option value="Yes" disabled={disabled}>
-          {disabled && value === "Yes" ? "Yes (Not available yet)" : "Yes"}
-        </option>
-      </select>
-      <span
-        style={{
-          position: "absolute",
-          right: "8px",
-          top: "50%",
-          transform: "translateY(-50%)",
-          pointerEvents: "none",
-          fontSize: "10px",
-          color: disabled ? "#ccc" : "inherit",
-        }}
-      >
-        ▼
-      </span>
-    </div>
-  );
+          }}
+          value={value}
+          disabled={disabled || safeBooking.bookingStatus === "CANCELLED"}
+          style={{
+            width: "100%",
+            border: "none",
+            background: "transparent",
+            fontSize: "14px",
+            outline: "none",
+            appearance: "none",
+            padding: "4px 20px 4px 8px",
+            textAlign: "center",
+            color:
+              disabled || safeBooking.bookingStatus === "CANCELLED"
+                ? "#ccc"
+                : "inherit",
+            cursor:
+              disabled || safeBooking.bookingStatus === "CANCELLED"
+                ? "not-allowed"
+                : "pointer",
+          }}
+        >
+          <option value="No">No</option>
+          <option value="Yes" disabled={disabled}>
+            {disabled && value === "Yes" ? "Yes (Not available yet)" : "Yes"}
+          </option>
+        </select>
+        <span
+          style={{
+            position: "absolute",
+            right: "8px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            pointerEvents: "none",
+            fontSize: "10px",
+            color:
+              disabled || safeBooking.bookingStatus === "CANCELLED"
+                ? "#ccc"
+                : "inherit",
+          }}
+        >
+          ▼
+        </span>
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -673,7 +685,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                     renderStatusDropdown(
                       serviceStarted,
                       setServiceStarted,
-                      false
+                      true // This is the start dropdown
                     )
                   ) : (
                     <span
@@ -765,7 +777,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                     renderStatusDropdown(
                       serviceCompleted,
                       setServiceCompleted,
-                      isServiceDateFuture
+                      false // This is the completed dropdown
                     )
                   ) : (
                     <span

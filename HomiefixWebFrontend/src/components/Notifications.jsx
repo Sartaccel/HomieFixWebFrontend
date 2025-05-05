@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Card, Placeholder } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-
 import notificationIcon from "../assets/noti.png";
 import api from "../api";
 
@@ -80,20 +79,17 @@ const Notifications = () => {
   };
 
   const formatDateTime = (dateString) => {
-    const date = new Date(dateString);
+    const utcDate = new Date(dateString);
 
-    // For Indian Standard Time (IST) which is UTC+5:30
-    const options = {
-      month: "short",
+    return utcDate.toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
       day: "numeric",
+      month: "short",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
-      timeZone: "Asia/Kolkata",
-    };
-
-    return new Intl.DateTimeFormat("en-US", options).format(date);
+    });
   };
 
   const getStatusBadge = (type) => {
