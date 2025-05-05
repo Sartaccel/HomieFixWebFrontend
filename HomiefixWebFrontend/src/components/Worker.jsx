@@ -187,7 +187,7 @@ const Worker = () => {
       <Header />
 
 
-      <div className="navigation-bar d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
+      <div className="navigation-barr d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
         <div className="d-flex gap-3 align-items-center">
           <button
             className="btn btn-light p-2"

@@ -444,7 +444,7 @@ const BookingDetails = () => {
           <Header />
 
 
-          <div className="navigation-bar d-flex gap-3 py-3 bg-white border-bottom w-100">
+          <div className="navigation-barr d-flex gap-3 py-3 bg-white border-bottom w-100">
             <div
               className={`section ${activeTab === "bookings" ? "active" : ""}`}
               onClick={() => setActiveTab("bookings")}

@@ -30,7 +30,7 @@
 }
 
 /* Navigation Bar */
-.navigation-bar {
+.navigation-barr {
     height: 80px;
     display: flex;
     align-items: center;
@@ -40,7 +40,7 @@
     position: fixed;
     top: 70px;
     width: 100%;
-    z-index: 1000;
+    /* z-index: 1000; */
     border-bottom: 1px solid #ddd;
 }
 

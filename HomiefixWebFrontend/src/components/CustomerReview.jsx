@@ -64,9 +64,17 @@ const CustomerReview = () => {
 
             <div className="container" style={{ paddingTop: "80px" }}>
                 <div className="d-flex gap-4 mx-2 align-items-center">
-                    <button className="btn" onClick={() => navigate(-1)}>
-                        <span style={{ fontSize: "20px" }}>←</span>
+                    <button
+                        className="btn btn-light p-2"
+                        style={{ marginBottom: "-20px" }}
+                        onClick={() => navigate(`/reviews`)}
+                    >
+                        <i
+                            className="bi bi-arrow-left"
+                            style={{ fontSize: "1.5rem", fontWeight: "bold" }}
+                        ></i>
                     </button>
+
                     <button
                         className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
                         onClick={() => setActiveTab("recent")}
