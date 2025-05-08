@@ -39,7 +39,7 @@ const App = () => {
 
       <Route element={<ProtectedRoute token={token} />}>
         <Route element={<Layout />}>
-          <Route path="/dashboard" element={<ComingSoon />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/booking-details" element={<BookingDetails />} />
           <Route path="/booking-details/view-bookings/:id" element={<ViewBookings />} />
           <Route path="/booking-details/reschedule/:id" element={<Reschedule />} />

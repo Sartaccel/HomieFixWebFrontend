@@ -8,7 +8,7 @@ import startedImg from "../assets/Status Started.png";
 import rescheduledImg from "../assets/Status Rescheduled.png";
 import assignedImg from "../assets/Status Assigned.png";
 import api from "../api";
-
+import profile from "../assets/addWorker.jpg";
 
 const Worker = () => {
   const { id } = useParams();
@@ -180,6 +180,20 @@ const Worker = () => {
     );
   };
 
+  const [feedbackData, setFeedbackData] = useState([]);
+  const [filterRating, setFilterRating] = useState("all");
+
+  useEffect(() => {
+    if (activeTab === "reviews") {
+      api.get(`/feedback/byWorker/${id}`)
+        .then(response => {
+          setFeedbackData(response.data);
+        })
+        .catch(error => {
+          console.error("Error fetching feedback data:", error);
+        });
+    }
+  }, [activeTab, id]);
 
   return (
     <div className="col-12 p-0 m-0 d-flex flex-column">
@@ -327,8 +341,8 @@ const Worker = () => {
               <div className="d-flex mt-3 pb-2">
                 <p
                   className={`px-4 pb-2 ${activeTab === "serviceDetails"
-                      ? "border-bottom border-3 border-dark"
-                      : ""
+                    ? "border-bottom border-3 border-dark"
+                    : ""
                     }`}
                   onClick={() => setActiveTab("serviceDetails")}
                   style={{ cursor: "pointer" }}
@@ -337,8 +351,8 @@ const Worker = () => {
                 </p>
                 <p
                   className={`mx-1 px-4 pb-2 ${activeTab === "inProgress"
-                      ? "border-bottom border-3 border-dark"
-                      : ""
+                    ? "border-bottom border-3 border-dark"
+                    : ""
                     }`}
                   onClick={() => setActiveTab("inProgress")}
                   style={{ cursor: "pointer" }}
@@ -347,8 +361,8 @@ const Worker = () => {
                 </p>
                 <p
                   className={`px-4 pb-2 ${activeTab === "reviews"
-                      ? "border-bottom border-3 border-dark"
-                      : ""
+                    ? "border-bottom border-3 border-dark"
+                    : ""
                     }`}
                   onClick={() => setActiveTab("reviews")}
                   style={{ cursor: "pointer" }}
@@ -529,7 +543,63 @@ const Worker = () => {
                   </div>
                 ) : (
                   <div className="d-flex flex-wrap">
-                    <h1 className="text-center w-100">No reviews yet</h1>
+                    <div className="row w-100 border-bottom pb-3">
+                      <div className="col-10">
+                        <p className="h5">Total Reviews ({feedbackData.length})</p>
+                      </div>
+                      <div className="col-2">
+                        <select
+                          name="ratingFilter"
+                          id="ratingFilter"
+                          className="form-select form-select-sm w-100 shadow-none"
+                          value={filterRating}
+                          onChange={(e) => setFilterRating(e.target.value)}
+                        >
+                          <option value="all">All</option>
+                          <option value="5">⭐ 5</option>
+                          <option value="4">⭐ 4</option>
+                          <option value="3">⭐ 3</option>
+                          <option value="2">⭐ 2</option>
+                          <option value="1">⭐ 1</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="w-100" style={{ maxHeight: '40vh', overflowY: 'auto' }}>
+                      {feedbackData.length === 0 ? (
+                        <p className="text-center py-4">No reviews found</p>
+                      ) : (
+                        (() => {
+                          const filteredFeedback = feedbackData.filter(feedback =>
+                            filterRating === "all" || feedback.rating === parseInt(filterRating)
+                          );
+                          return filteredFeedback.length === 0 ? (
+                            <p className="text-center py-4">No results found for this filter</p>
+                          ) : (
+                            filteredFeedback.map((feedback, index) => (
+                              <div className="row w-100 border-bottom mt-3" key={index}>
+                                <div className="col-12 d-flex">
+                                  <div>
+                                    <img src={profile} alt="" height={"65px"} width={"65px"} />
+                                  </div>
+                                  <div className="ms-3">
+                                    <p className="mb-1">{feedback.productName}</p>
+                                    <p className="mb-1">{feedback.userFullName}</p>
+                                    <p className="text-muted">"{feedback.comment}"</p>
+                                  </div>
+                                  <div className="ms-auto">
+                                    <p className="mb-1">
+                                      <span className="bi bi-star-fill text-warning mx-1"></span>
+                                      {feedback.rating}
+                                    </p>
+                                    <p>{feedback.userMobile?.mobileNumber || "N/A"}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          );
+                        })()
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
