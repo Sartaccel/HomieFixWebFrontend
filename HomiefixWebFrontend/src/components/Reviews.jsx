@@ -159,10 +159,6 @@ const Reviews = () => {
     );
   }).length;
 
-  if (loading) {
-    return <div className="text-center mt-5">Loading reviews...</div>;
-  }
-
   if (error) {
     return <div className="text-center mt-5 text-danger">{error}</div>;
   }

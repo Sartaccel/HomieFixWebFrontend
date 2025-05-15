@@ -31,6 +31,29 @@ const Profile = () => {
   const [previewImage, setPreviewImage] = useState(addWorker);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Function to properly format image URLs
+  const formatImageUrl = (url) => {
+    if (!url) return addWorker; // Return default if no URL
+    
+    // If it's a data URL or already absolute URL, return as-is
+    if (url.startsWith('data:') || url.startsWith('http')) {
+      return url;
+    }
+    
+    // Handle relative paths
+    if (url.startsWith('/')) {
+      // Ensure the base URL ends with '/' and the path doesn't start with '/'
+      const baseUrl = api.defaults.baseURL.endsWith('/') 
+        ? api.defaults.baseURL 
+        : `${api.defaults.baseURL}/`;
+      const path = url.startsWith('/') ? url.substring(1) : url;
+      return `${baseUrl}${path}`;
+    }
+    
+    // Default case (shouldn't normally happen)
+    return url;
+  };
+
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
@@ -57,14 +80,15 @@ const Profile = () => {
         });
 
         if (data.profilePicUrl) {
-          // Ensure the URL is absolute if it's not already
-          const imageUrl = data.profilePicUrl.startsWith("http")
-            ? data.profilePicUrl
-            : `${api.defaults.baseURL}${data.profilePicUrl}`;
+          const imageUrl = formatImageUrl(data.profilePicUrl);
+          console.log("Formatted image URL:", imageUrl);
           setPreviewImage(imageUrl);
+        } else {
+          setPreviewImage(addWorker);
         }
       } catch (error) {
         console.error("Error fetching profile data:", error);
+        setPreviewImage(addWorker);
       }
     };
 
@@ -82,10 +106,33 @@ const Profile = () => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Create a proper URL for the image preview
+      // Verify file type
+      if (!file.type.match('image.*')) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid File',
+          text: 'Please select an image file (JPEG, PNG, etc.)',
+        });
+        return;
+      }
+
+      // Verify file size (e.g., 2MB limit)
+      if (file.size > 2 * 1024 * 1024) {
+        Swal.fire({
+          icon: 'error',
+          title: 'File Too Large',
+          text: 'Please select an image smaller than 2MB',
+        });
+        return;
+      }
+
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result);
+      reader.onload = (event) => {
+        setPreviewImage(event.target.result);
+      };
+      reader.onerror = () => {
+        console.error("Error reading file");
+        setPreviewImage(addWorker);
       };
       reader.readAsDataURL(file);
 
@@ -116,17 +163,22 @@ const Profile = () => {
         formDataToSend.append("profilePic", formData.profilePic);
       }
 
-      await api.post("/admin/completeProfile", formDataToSend, {
+      const response = await api.post("/admin/completeProfile", formDataToSend, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      // After successful update, dispatch an event to notify Header
-      const event = new CustomEvent("profileUpdated", {
+      // Update the preview image with the new URL if returned
+      if (response.data.profilePicUrl) {
+        const imageUrl = formatImageUrl(response.data.profilePicUrl);
+        setPreviewImage(imageUrl);
+      }
+
+      // Notify Header component
+      window.dispatchEvent(new CustomEvent("profileUpdated", {
         detail: { username },
-      });
-      window.dispatchEvent(event);
+      }));
 
       Swal.fire({
         icon: "success",
@@ -141,7 +193,7 @@ const Profile = () => {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Failed to update profile details. Please try again.",
+        text: error.response?.data?.message || "Failed to update profile details. Please try again.",
         confirmButtonText: "OK",
       });
     } finally {
@@ -200,9 +252,11 @@ const Profile = () => {
                 height={100}
                 width={100}
                 className="rounded-4"
+                style={{ objectFit: "cover" }}
                 onError={(e) => {
-                  e.target.onerror = null; // Prevent infinite loop
-                  e.target.src = addWorker; // Fallback to default image
+                  console.error("Image failed to load, using fallback");
+                  e.target.onerror = null;
+                  e.target.src = addWorker;
                 }}
               />
               <input
@@ -473,26 +527,26 @@ const Profile = () => {
             {/* Submit Button */}
             <div className="row mb-3 mt-3">
               <div className="col">
-                <button
-                  type="submit"
-                  className="btn px-5"
-                  style={{ backgroundColor: "#0076CE", color: "white" }}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <span
-                        className="spinner-border spinner-border-sm"
-                        role="status"
-                        aria-hidden="true"
-                      ></span>
-                      <span className="visually-hidden">Loading...</span>
-                    </>
-                  ) : (
-                    "Submit"
-                  )}
-                </button>
-              </div>
+              <button
+                type="submit"
+                className="btn px-5"
+                style={{ backgroundColor: "#0076CE", color: "white" }}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <span
+                      className="spinner-border spinner-border-sm"
+                      role="status"
+                      aria-hidden="true"
+                    ></span>
+                    <span className="visually-hidden">Loading...</span>
+                  </>
+                ) : (
+                  "Submit"
+                )}
+              </button>
+            </div>
             </div>
           </div>
         </form>

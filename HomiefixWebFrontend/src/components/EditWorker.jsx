@@ -191,6 +191,7 @@ const EditWorker = () => {
         setClickedButtons(initialClickedButtons);
 
         // Set preview image - use the full URL if it's from the server
+        // Set preview image - use the full URL if it's from the server
         if (data.profilePicUrl) {
           setPreviewImage(
             data.profilePicUrl.startsWith("http")
@@ -396,10 +397,14 @@ const EditWorker = () => {
       profilePic: file,
     }));
 
-    // Create preview URL that works in both dev and production
+    // Create preview URL
     const reader = new FileReader();
     reader.onload = (event) => {
       setPreviewImage(event.target.result);
+    };
+    reader.onerror = () => {
+      console.error("Error reading file");
+      setPreviewImage(addWorker);
     };
     reader.readAsDataURL(file);
   };
@@ -582,7 +587,7 @@ const EditWorker = () => {
   const requiredFieldStyle = {
     color: "#B8141A",
     marginLeft: "2px",
-    border: "-1px"
+    border: "-1px",
   };
 
   return (
@@ -637,6 +642,12 @@ const EditWorker = () => {
                 height={100}
                 width={100}
                 className="rounded-4"
+                style={{ objectFit: "cover" }}
+                onError={(e) => {
+                  console.error("Image failed to load, using fallback");
+                  e.target.onerror = null;
+                  e.target.src = addWorker;
+                }}
               />
               <input
                 type="file"
@@ -679,7 +690,9 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.name ? "is-invalid" : ""}`}
+                  className={`form-control shadow-none ${
+                    errors.name ? "is-invalid" : ""
+                  }`}
                   name="name"
                   id="name"
                   required
@@ -697,7 +710,9 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="email"
-                  className={`form-control  shadow-none${errors.email ? "is-invalid" : ""}`}
+                  className={`form-control  shadow-none${
+                    errors.email ? "is-invalid" : ""
+                  }`}
                   name="email"
                   id="email"
                   placeholder="Enter Email"
@@ -1116,7 +1131,9 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.town ? "is-invalid" : ""}`}
+                  className={`form-control shadow-none ${
+                    errors.town ? "is-invalid" : ""
+                  }`}
                   name="town"
                   id="town"
                   required
@@ -1201,7 +1218,9 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.state ? "is-invalid" : ""}`}
+                  className={`form-control shadow-none ${
+                    errors.state ? "is-invalid" : ""
+                  }`}
                   name="state"
                   id="state"
                   required

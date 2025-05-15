@@ -3,6 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Card, Placeholder } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import notificationIcon from "../assets/noti.png";
+import notificationFeedback from "../assets/feedback.svg";
 import api from "../api";
 
 const Notifications = () => {
@@ -37,11 +38,31 @@ const Notifications = () => {
             );
             const bookingData = bookingResponse.data;
 
+            // Initialize rating as null
+            let rating = null;
+            
+            // Only fetch rating if it's a feedback notification
+            if (notification.notificationType === "FEEDBACK_BOOKING") {
+              try {
+                const ratingResponse = await api.get(
+                  `/feedback/byBooking/${notification.bookingId}`
+                );
+                // Check if response is an array with at least one item
+                if (Array.isArray(ratingResponse.data) && ratingResponse.data.length > 0) {
+                  rating = ratingResponse.data[0].rating;
+                }
+              } catch (err) {
+                console.error("Error fetching rating:", err);
+                rating = null;
+              }
+            }
+
             return {
               ...notification,
               productName: bookingData.productName || "No Product Found",
               productImage: bookingData.productImage || null,
               bookingStatus: bookingData.bookingStatus || null,
+              rating: rating
             };
           } catch (err) {
             return {
@@ -49,6 +70,7 @@ const Notifications = () => {
               productName: "Unknown Product",
               productImage: null,
               bookingStatus: null,
+              rating: null
             };
           }
         }
@@ -80,9 +102,12 @@ const Notifications = () => {
 
   const formatDateTime = (dateString) => {
     const utcDate = new Date(dateString);
-
-    return utcDate.toLocaleString("en-IN", {
-      timeZone: "Asia/Kolkata",
+  
+    // Offset IST is +5:30 => 330 minutes
+    const istOffset = 330; // in minutes
+    const istDate = new Date(utcDate.getTime() + istOffset * 60000);
+  
+    return istDate.toLocaleString("en-IN", {
       day: "numeric",
       month: "short",
       year: "numeric",
@@ -91,8 +116,9 @@ const Notifications = () => {
       hour12: true,
     });
   };
+  
 
-  const getStatusBadge = (type) => {
+  const getStatusBadge = (type, rating) => {
     return (
       <span
         className="border rounded-2 px-2 py-1 text-nowrap d-inline-block"
@@ -102,17 +128,21 @@ const Notifications = () => {
               ? "#EDF3F7"
               : type === "CANCELLED_BOOKING"
               ? "#F7EDED"
-              : type === "DUE"
-              ? "#FFF3CD"
-              : "#D4EDDA",
+              : type === "BOOKING_TODAY"
+              ? "#F3EDF7"
+              : type === "RESCHEDULE_BOOKING"
+              ? "#FFFFE0"
+              : "#EDF3F7",
           color:
             type === "NEW_BOOKING"
               ? "#0076CE"
               : type === "CANCELLED_BOOKING"
               ? "#AE1319"
-              : type === "DUE"
-              ? "#856404"
-              : "#155724",
+              : type === "BOOKING_TODAY"
+              ? "#6D15A1"
+              : type === "RESCHEDULE_BOOKING"
+              ? "#E5A900"
+              : "#000000",
           fontSize: "14px",
         }}
       >
@@ -120,16 +150,22 @@ const Notifications = () => {
           ? "New"
           : type === "CANCELLED_BOOKING"
           ? "Cancel"
-          : type === "DUE"
+          : type === "BOOKING_TODAY"
           ? "Due"
-          : "⭐ Rated"}
+          : type === "RESCHEDULE_BOOKING"
+          ? "Rescheduled"
+          : `⭐ ${rating !== null ? rating : ''}`}
       </span>
     );
   };
 
-  const getIcon = () => {
+  const getIcon = (type) => {
+    if (type === "FEEDBACK_BOOKING") {
+      return <img src={notificationFeedback} alt="Feedback" width={65} />;
+    }
     return <img src={notificationIcon} alt="Notification" width={65} />;
   };
+  
 
   const handleNotificationClick = async (notification) => {
     if (!notification.bookingId) return;
@@ -209,13 +245,13 @@ const Notifications = () => {
   );
 
   return (
-    <Card className="p-3 shadow-sm" style={{ maxWidth: "400px" }}>
+    <Card className="p-3 shadow-sm" style={{ minWidth: "400px", marginLeft: "-40px" }}>
       <div className="d-flex justify-content-between align-items-center">
         <h5 className="mb-0">Notifications</h5>
         {refreshing && <small className="text-muted">Updating...</small>}
       </div>
 
-      <div className="mt-3" style={{ maxHeight: "400px", overflowY: "auto" }}>
+      <div className="mt-3" style={{ maxHeight: "400px", overflowY: "auto", overflowX: "hidden" }}>
         {initialLoading ? (
           <>
             <NotificationSkeleton />
@@ -235,11 +271,12 @@ const Notifications = () => {
               onClick={() => handleNotificationClick(notification)}
             >
               <div className="bg-light rounded d-flex align-items-center mt-2">
-                {getIcon()}
+              {getIcon(notification.notificationType)}
+
               </div>
               <div className="w-100 mt-3">
                 <div className="d-flex align-items-center justify-content-start gap-2">
-                  {getStatusBadge(notification.notificationType)}
+                  {getStatusBadge(notification.notificationType, notification.rating)}
                   <small className="text-muted text-nowrap">
                     {formatDateTime(notification.createdAt)}
                   </small>

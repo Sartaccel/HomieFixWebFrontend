@@ -521,7 +521,7 @@ const ViewBookings = () => {
                                 className="bi bi-star-fill"
                                 style={{ color: "#FFD700" }}
                               ></i>
-                              {worker.rating?.toFixed(1) || "4.5"}
+                              {worker.averageRating?.toFixed(1) || "4.5"}
                             </span>
                           </p>
                           <p className="mb-1">
