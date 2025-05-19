@@ -1,344 +1,173 @@
 import Header from "./Header";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import profile from "../assets/addWorker.jpg";
 import '../styles/Services.css';
 import { useNavigate } from "react-router-dom";
-
+import api from "../api";
 
 const Services = () => {
   const [activeTab, setActiveTab] = useState("recent");
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const services = [
-    { id: 1, name: "Ac", price: "100", ratings: "4.5", bookings: "10", pic: profile },
-    { id: 2, name: "Geyser", price: "100", ratings: "4", bookings: "5", pic: profile },
-    { id: 3, name: "Microwave", price: "100", ratings: "3.5", bookings: "7", pic: profile },
-    { id: 4, name: "Refrigerator", price: "100", ratings: "4.2", bookings: "8", pic: profile },
-    { id: 5, name: "Washing Machine", price: "100", ratings: "4.8", bookings: "9", pic: profile },
-    { id: 6, name: "TV", price: "100", ratings: "4.3", bookings: "6", pic: profile },
+  // Group products by category
+  const productCategories = {
+    "Home Appliances": [
+      "AC",
+      "Geyser",
+      "Microwave",
+      "Inverter & Stabilizers",
+      "Water Purifier",
+      "TV",
+      "Fridge",
+      "Washing Machine",
+      "Fan",
+    ],
+    "Electrician": [
+      "Switch & Socket",
+      "Wiring",
+      "Doorbell",
+      "MCB & Submeter",
+      "Light and Wall light",
+    ],
+    "Carpentry": [
+      "Bed",
+      "Cupboard & Drawer",
+      "Door",
+      "Windows",
+      "Drill & Hang",
+      "Furniture",
+    ],
+    "Plumbing": [
+      "Washbasin Installation",
+      "Blockage Removal",
+      "Shower",
+      "Toilet",
+      "Tap, Pipe works",
+      "Watertank & Motor",
+    ],
+    "Vehicle Service": [
+      "Batteries",
+      "Health checkup",
+      "Water Wash",
+      "Denting & Painting",
+      "Tyre Service",
+      "Vehicle AC",
+    ],
+    "Care Taker": [
+      "Child Care",
+      "PhysioTheraphy",
+      "Old Age Care",
+      "Companion Support",
+      "Home Nursing",
+    ],
+    "Cleaning": [
+      "Cleaning",
+    ],
+    "CCTV": [
+      "CCTV",
+    ],
+  };
 
-  ];
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await api.get('/products/booking-counts');
+        setProducts(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setError(error.message);
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  // Filter products by category
+  const getProductsByCategory = (category) => {
+    const categoryItems = productCategories[category] || [];
+    return products.filter(product => 
+      categoryItems.includes(product.productName)
+    );
+  };
+
+  if (loading) {
+    return <div className="text-center mt-5">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center mt-5 text-danger">Error: {error}</div>;
+  }
 
   return (
     <>
       <Header />
 
-      <div className="container-fluid p-0 pt-5 scrollable-container " style={{ overflowX: "hidden" }}>
-
-        {/* Tabs for Home Appliances */}
-        <div className="d-flex justify-content-between border-bottom mt-5 mb-2">
-          <div className="d-flex gap-4 mx-4">
-            <button
-              className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
-              onClick={() => setActiveTab("recent")}
-            >
-              Home appliances
-            </button>
-          </div>
-        </div>
-
-        {/* Scrollable content */}
-
-        <div className="row px-4" >
-          {services.map((service) => (
-            <div className="col-4" key={service.id}>
-              <div className="card mt-1 mb-3" onClick={() => navigate(`/services/${service.id}`)} style={{ cursor: "pointer" }}>
-                <div className="card-body d-flex">
-                  <div>
-                    <img src={service.pic} alt={service.name} style={{
-                      width: "60px",
-                      height: "60px",
-                      backgroundPosition: "center",
-                    }} />
-                  </div>
-                  <div className="ms-3">
-                    <p className="card-text">{service.name} - ₹ {service.price}</p>
-                    <p className="card-text">
-                      <span style={{ backgroundColor: "#EDF3F7" }}>
-                        <span className="bi bi-star-fill text-warning"></span> {service.ratings}
-                      </span>
-                      <span className="mx-2"> bookings: {service.bookings}</span>
-                    </p>
-                  </div>
+      <div className="container-fluid p-0 pt-5 scrollable-container" style={{ overflowX: "hidden" }}>
+        {/* Render each category section */}
+        {Object.keys(productCategories).map((category) => {
+          const categoryProducts = getProductsByCategory(category);
+          
+          // Only render the category if there are products in it
+          if (categoryProducts.length === 0) return null;
+          
+          return (
+            <div key={category}>
+              {/* Category Tab */}
+              <div className="d-flex justify-content-between border-bottom mt-5 mb-2">
+                <div className="d-flex gap-4 mx-4">
+                  <button
+                    className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
+                    onClick={() => setActiveTab("recent")}
+                  >
+                    {category}
+                  </button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
 
-        {/* Tabs for Electrician */}
-        <div className="d-flex justify-content-between border-bottom mt-5 mb-2">
-          <div className="d-flex gap-4 mx-4">
-            <button
-              className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
-              onClick={() => setActiveTab("recent")}
-            >
-              Electrician
-            </button>
-          </div>
-        </div>
-
-        <div className="row px-4">
-          {services.map((service) => (
-            <div className="col-4" key={service.id}>
-              <div className="card mt-1 mb-3" onClick={() => navigate(`/services/${service.id}`)} style={{ cursor: "pointer" }}>
-                <div className="card-body d-flex">
-                  <div>
-                    <img src={service.pic} alt={service.name} style={{
-                      width: "60px",
-                      height: "60px",
-                      backgroundPosition: "center",
-                    }} />
+              {/* Products Grid */}
+              <div className="row px-4">
+                {categoryProducts.map((service) => (
+                  <div className="col-4" key={service.productId}>
+                    <div 
+                      className="card mt-1 mb-3" 
+                      onClick={() => navigate(`/services/${service.productId}`)} 
+                      style={{ cursor: "pointer" }}
+                    >
+                      <div className="card-body d-flex">
+                        <div>
+                          <img 
+                            src={service.productImage || profile} 
+                            alt={service.productName} 
+                            style={{
+                              width: "60px",
+                              height: "60px",
+                              backgroundPosition: "center",
+                              objectFit: "cover"
+                            }} 
+                          />
+                        </div>
+                        <div className="ms-3">
+                          <p className="card-text">{service.productName} - ₹ {service.price}</p>
+                          <p className="card-text">
+                            <span className="border rounded-2 px-1  text-nowrap d-inline-block" style={{ backgroundColor: "#EDF3F7" }}>
+                              <span className="bi bi-star-fill text-warning"></span> {service.averageRating || "0"}
+                            </span>
+                            <span className="mx-2"> bookings: {service.bookingCount}</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="ms-3">
-                    <p className="card-text">{service.name} - ₹ {service.price}</p>
-                    <p className="card-text">
-                      <span style={{ backgroundColor: "#EDF3F7" }}>
-                        <span className="bi bi-star-fill text-warning"></span> {service.ratings}
-                      </span>
-                      <span className="mx-2"> bookings: {service.bookings}</span>
-                    </p>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-
-        {/* Tabs for Carpentry */}
-        <div className="d-flex justify-content-between border-bottom mt-5 mb-2 ">
-          <div className="d-flex gap-4 mx-4">
-            <button
-              className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
-              onClick={() => setActiveTab("recent")}
-            >
-              Carpentry
-            </button>
-          </div>
-        </div>
-
-        <div className="row px-4">
-          {services.map((service) => (
-            <div className="col-4" key={service.id}>
-              <div className="card mt-1 mb-3" onClick={() => navigate(`/services/${service.id}`)} style={{ cursor: "pointer" }}>
-                <div className="card-body d-flex">
-                  <div>
-                    <img src={service.pic} alt={service.name} style={{
-                      width: "60px",
-                      height: "60px",
-                      backgroundPosition: "center",
-                    }}/>
-                  </div>
-                  <div className="ms-3">
-                    <p className="card-text">{service.name} - ₹ {service.price}</p>
-                    <p className="card-text">
-                      <span style={{ backgroundColor: "#EDF3F7" }}>
-                        <span className="bi bi-star-fill text-warning"></span> {service.ratings}
-                      </span>
-                      <span className="mx-2"> bookings: {service.bookings}</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Tabs for Plumbing */}
-        <div className="d-flex justify-content-between border-bottom mt-5 mb-2 ">
-          <div className="d-flex gap-4 mx-4">
-            <button
-              className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
-              onClick={() => setActiveTab("recent")}
-            >
-              Plumbing
-            </button>
-          </div>
-        </div>
-
-        <div className="row px-4">
-          {services.map((service) => (
-            <div className="col-4" key={service.id}>
-              <div className="card mt-1 mb-3" onClick={() => navigate(`/services/${service.id}`)} style={{ cursor: "pointer" }}>
-                <div className="card-body d-flex">
-                  <div>
-                    <img src={service.pic} alt={service.name} style={{
-                      width: "60px",
-                      height: "60px",
-                      backgroundPosition: "center",
-                    }}/>
-                  </div>
-                  <div className="ms-3">
-                    <p className="card-text">{service.name} - ₹ {service.price}</p>
-                    <p className="card-text">
-                      <span style={{ backgroundColor: "#EDF3F7" }}>
-                        <span className="bi bi-star-fill text-warning"></span> {service.ratings}
-                      </span>
-                      <span className="mx-2"> bookings: {service.bookings}</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Tabs for Vehicle Service */}
-        <div className="d-flex justify-content-between border-bottom mt-5 mb-2 ">
-          <div className="d-flex gap-4 mx-4">
-            <button
-              className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
-              onClick={() => setActiveTab("recent")}
-            >
-              Vehicle Service
-            </button>
-          </div>
-        </div>
-
-        <div className="row px-4">
-          {services.map((service) => (
-            <div className="col-4" key={service.id}>
-              <div className="card mt-1 mb-3" onClick={() => navigate(`/services/${service.id}`)} style={{ cursor: "pointer" }}>
-                <div className="card-body d-flex">
-                  <div>
-                    <img src={service.pic} alt={service.name} style={{
-                      width: "60px",
-                      height: "60px",
-                      backgroundPosition: "center",
-                    }}/>
-                  </div>
-                  <div className="ms-3">
-                    <p className="card-text">{service.name} - ₹ {service.price}</p>
-                    <p className="card-text">
-                      <span style={{ backgroundColor: "#EDF3F7" }}>
-                        <span className="bi bi-star-fill text-warning"></span> {service.ratings}
-                      </span>
-                      <span className="mx-2"> bookings: {service.bookings}</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Tabs for Care Taker */}
-        <div className="d-flex justify-content-between border-bottom mt-5 mb-2 ">
-          <div className="d-flex gap-4 mx-4">
-            <button
-              className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
-              onClick={() => setActiveTab("recent")}
-            >
-              Care Taker
-            </button>
-          </div>
-        </div>
-
-        <div className="row px-4">
-          {services.map((service) => (
-            <div className="col-4" key={service.id}>
-              <div className="card mt-1 mb-3" onClick={() => navigate(`/services/${service.id}`)} style={{ cursor: "pointer" }}>
-                <div className="card-body d-flex">
-                  <div>
-                    <img src={service.pic} alt={service.name} style={{
-                      width: "60px",
-                      height: "60px",
-                      backgroundPosition: "center",
-                    }}/>
-                  </div>
-                  <div className="ms-3">
-                    <p className="card-text">{service.name} - ₹ {service.price}</p>
-                    <p className="card-text">
-                      <span style={{ backgroundColor: "#EDF3F7" }}>
-                        <span className="bi bi-star-fill text-warning"></span> {service.ratings}
-                      </span>
-                      <span className="mx-2"> bookings: {service.bookings}</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Tabs for CCTV */}
-        <div className="d-flex justify-content-between border-bottom mt-5 mb-2 ">
-          <div className="d-flex gap-4 mx-4">
-            <button
-              className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
-              onClick={() => setActiveTab("recent")}
-            >
-              CCTV
-            </button>
-          </div>
-        </div>
-
-        <div className="row px-4">
-          {services.map((service) => (
-            <div className="col-4" key={service.id}>
-              <div className="card mt-1 mb-3" onClick={() => navigate(`/services/${service.id}`)} style={{ cursor: "pointer" }}>
-                <div className="card-body d-flex">
-                  <div>
-                    <img src={service.pic} alt={service.name} style={{
-                      width: "60px",
-                      height: "60px",
-                      backgroundPosition: "center",
-                    }}/>
-                  </div>
-                  <div className="ms-3">
-                    <p className="card-text">{service.name} - ₹ {service.price}</p>
-                    <p className="card-text">
-                      <span style={{ backgroundColor: "#EDF3F7" }}>
-                        <span className="bi bi-star-fill text-warning"></span> {service.ratings}
-                      </span>
-                      <span className="mx-2"> bookings: {service.bookings}</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Tabs for Cleaning */}
-        <div className="d-flex justify-content-between border-bottom mt-5 mb-2 ">
-          <div className="d-flex gap-4 mx-4">
-            <button
-              className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
-              onClick={() => setActiveTab("recent")}
-            >
-              Cleaning
-            </button>
-          </div>
-        </div>
-
-        <div className="row px-4">
-          {services.map((service) => (
-            <div className="col-4" key={service.id}>
-              <div className="card mt-1 mb-3" onClick={() => navigate(`/services/${service.id}`)} style={{ cursor: "pointer" }}>
-                <div className="card-body d-flex">
-                  <div>
-                    <img src={service.pic} alt={service.name} style={{
-                      width: "60px",
-                      height: "60px",
-                      backgroundPosition: "center",
-                    }}/>
-                  </div>
-                  <div className="ms-3">
-                    <p className="card-text">{service.name} - ₹ {service.price}</p>
-                    <p className="card-text">
-                      <span style={{ backgroundColor: "#EDF3F7" }}>
-                        <span className="bi bi-star-fill text-warning"></span> {service.ratings}
-                      </span>
-                      <span className="mx-2"> bookings: {service.bookings}</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
+          );
+        })}
       </div>
     </>
   );

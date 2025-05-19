@@ -38,20 +38,15 @@ const AddWorker = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDrivingLicenseFocused, setIsDrivingLicenseFocused] = useState(false);
 
-
-  // Language options for dropdown
   const languageOptions = [
     { value: "Tamil", label: "Tamil" },
     { value: "English", label: "English" },
     { value: "Hindi", label: "Hindi" },
   ];
 
-
-  // Clear form data when component mounts
   useEffect(() => {
     resetForm();
   }, []);
-
 
   const resetForm = () => {
     setFormData({
@@ -82,248 +77,141 @@ const AddWorker = () => {
     setIsDrivingLicenseFocused(false);
   };
 
-
-  const validateName = (name) => {
-    const regex = /^[a-zA-Z\s]*$/;
-    return regex.test(name);
-  };
-
-
-  const validateContactNumber = (number) => {
-    const regex = /^\d{10}$/;
-    return regex.test(number);
-  };
-
-
-  const validateEmail = (email) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  };
-
-
-  const validateLanguage = (languages) => {
-    return languages && languages.length > 0;
-  };
-
-
-  const validatePincode = (pincode) => {
-    const regex = /^\d{6}$/;
-    return regex.test(pincode);
-  };
-
-
-  const validateDistrict = (district) => {
-    const regex = /^[a-zA-Z\s]*$/;
-    return regex.test(district);
-  };
-
-
-  const validateState = (state) => {
-    const regex = /^[a-zA-Z\s]*$/;
-    return regex.test(state);
-  };
-
-
-  const validateAadhar = (aadhar) => {
-    const regex = /^\d{12}$/;
-    return regex.test(aadhar);
-  };
-
-
-  const validateDrivingLicense = (license) => {
-    if (!license) return true; // Optional field
-    const regex = /^DL-[a-zA-Z0-9]{15}$/;
-    return regex.test(license);
-  };
-
-
-  const validateWorkExperience = (experience) => {
-    const regex = /^[0-9]+$/;
-    return regex.test(experience);
-  };
-
+  const validateName = (name) => /^[a-zA-Z\s]*$/.test(name);
+  const validateContactNumber = (number) => /^\d{10}$/.test(number);
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validateLanguage = (languages) => languages && languages.length > 0;
+  const validatePincode = (pincode) => /^\d{6}$/.test(pincode);
+  const validateDistrict = (district) => /^[a-zA-Z\s]*$/.test(district);
+  const validateState = (state) => /^[a-zA-Z\s]*$/.test(state);
+  const validateAadhar = (aadhar) => /^\d{12}$/.test(aadhar);
+  const validateDrivingLicense = (license) =>
+    !license || /^DL-[a-zA-Z0-9]{15}$/.test(license);
+  const validateWorkExperience = (experience) => /^[0-9]+$/.test(experience);
 
   const validateDate = (dateString, isDOB = false) => {
     if (!dateString) return false;
     const date = new Date(dateString);
     const today = new Date();
-
-
-    // For DOB, check if the person is at least 18 years old
     if (isDOB) {
       const minDate = new Date();
       minDate.setFullYear(today.getFullYear() - 18);
       return date <= minDate;
     }
-
-
     return date <= today;
   };
 
-
   const handleButtonClick = (item, roleHeading) => {
-    setClickedButtons((prevState) => ({
-      ...prevState,
-      [item]: !prevState[item],
+    setClickedButtons((prev) => ({ ...prev, [item]: !prev[item] }));
+    setFormData((prev) => ({
+      ...prev,
+      role: prev.role.includes(roleHeading)
+        ? prev.role
+        : [...prev.role, roleHeading],
+      specification: prev.specification.includes(item)
+        ? prev.specification.filter((spec) => spec !== item)
+        : [...prev.specification, item],
     }));
-
-
-    setFormData((prevState) => {
-      const updatedSpecifications = prevState.specification.includes(item)
-        ? prevState.specification.filter((spec) => spec !== item)
-        : [...prevState.specification, item];
-
-
-      const updatedRoles = prevState.role.includes(roleHeading)
-        ? prevState.role
-        : [...prevState.role, roleHeading];
-
-
-      return {
-        ...prevState,
-        role: updatedRoles,
-        specification: updatedSpecifications,
-      };
-    });
   };
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     let error = "";
 
-
-    // Validate based on field name
     switch (name) {
       case "name":
-        if (!validateName(value)) {
-          error = "Name should only contain alphabets and spaces";
-        }
+        error = !validateName(value)
+          ? "Name should only contain alphabets and spaces"
+          : "";
         break;
       case "contactNumber":
       case "econtactNumber":
-        if (!validateContactNumber(value)) {
-          error = "Contact number should be 10 digits";
-        }
+        error = !validateContactNumber(value)
+          ? "Contact number should be 10 digits"
+          : "";
         break;
       case "workExperience":
-        if (!validateWorkExperience(value)) {
-          error = "Work experience should contain only numbers";
-        }
+        error = !validateWorkExperience(value)
+          ? "Work experience should contain only numbers"
+          : "";
         break;
       case "email":
-        if (value && !validateEmail(value)) {
-          error = "Please enter a valid email address";
-        }
+        error =
+          value && !validateEmail(value)
+            ? "Please enter a valid email address"
+            : "";
         break;
       case "pincode":
-        if (!validatePincode(value)) {
-          error = "Pincode should be 6 digits";
-        }
+        error = !validatePincode(value) ? "Pincode should be 6 digits" : "";
         break;
       case "district":
-        if (!validateDistrict(value)) {
-          error = "District should only contain alphabets";
-        }
+        error = !validateDistrict(value)
+          ? "District should only contain alphabets"
+          : "";
         break;
       case "state":
-        if (!validateState(value)) {
-          error = "State should only contain alphabets";
-        }
+        error = !validateState(value)
+          ? "State should only contain alphabets"
+          : "";
         break;
       case "aadharNumber":
-        if (!validateAadhar(value)) {
-          error = "Aadhar number should be 12 digits";
-        }
+        error = !validateAadhar(value)
+          ? "Aadhar number should be 12 digits"
+          : "";
         break;
       case "drivingLicenseNumber":
-        if (value && !validateDrivingLicense(value)) {
-          error =
-            "License should be in format DL- followed by 13 alphanumeric characters";
-        }
+        error =
+          value && !validateDrivingLicense(value)
+            ? "License should be in format DL- followed by 15 alphanumeric characters"
+            : "";
         break;
       case "dateOfBirth":
       case "joiningDate":
-        if (value && !validateDate(value)) {
-          error = "Date cannot be in the future";
-        }
+        error =
+          value && !validateDate(value) ? "Date cannot be in the future" : "";
         break;
       default:
         break;
     }
 
-
     setErrors((prev) => ({ ...prev, [name]: error }));
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
 
   const handleDrivingLicenseChange = (e) => {
-    const { value } = e.target;
-    let processedValue = value;
-
-
-    // If the field is focused or has value, ensure it starts with DL-
+    let value = e.target.value;
     if (isDrivingLicenseFocused || value) {
       if (!value.startsWith("DL-")) {
-        processedValue =
-          "DL-" + value.replace(/^DL-/, "").replace(/[^a-zA-Z0-9]/g, "");
+        value = "DL-" + value.replace(/^DL-/, "").replace(/[^a-zA-Z0-9]/g, "");
       } else {
-        processedValue =
-          "DL-" + value.substring(3).replace(/[^a-zA-Z0-9]/g, "");
+        value = "DL-" + value.substring(3).replace(/[^a-zA-Z0-9]/g, "");
       }
-
-
-      // Limit to 15 characters after DL-
-      if (processedValue.length > 18) {
-        processedValue = processedValue.substring(0, 18);
-      }
+      if (value.length > 18) value = value.substring(0, 18);
     }
 
-
-    setFormData((prevState) => ({
-      ...prevState,
-      drivingLicenseNumber: processedValue,
+    setFormData((prev) => ({ ...prev, drivingLicenseNumber: value }));
+    setErrors((prev) => ({
+      ...prev,
+      drivingLicenseNumber:
+        value && !validateDrivingLicense(value)
+          ? "License should be in format DL- followed by 15 alphanumeric characters"
+          : "",
     }));
-
-
-    // Validate
-    if (processedValue && !validateDrivingLicense(processedValue)) {
-      setErrors((prev) => ({
-        ...prev,
-        drivingLicenseNumber:
-          "License should be in format DL- followed by 15 alphanumeric characters",
-      }));
-    } else {
-      setErrors((prev) => ({ ...prev, drivingLicenseNumber: "" }));
-    }
   };
-
 
   const handleLanguageChange = (selectedOptions) => {
     const languages = selectedOptions.map((option) => option.value);
-    setFormData((prevState) => ({
-      ...prevState,
-      language: languages,
-    }));
-
-
-    // Clear error when languages are selected
+    setFormData((prev) => ({ ...prev, language: languages }));
     if (selectedOptions.length > 0) {
       setErrors((prev) => ({ ...prev, language: "" }));
     }
   };
 
-
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-
-    // Check file type
+    // Validate file type and size
     const validTypes = ["image/jpeg", "image/png", "image/jpg"];
     if (!validTypes.includes(file.type)) {
       setErrors((prev) => ({
@@ -332,9 +220,6 @@ const AddWorker = () => {
       }));
       return;
     }
-
-
-    // Check file size (1MB max)
     if (file.size > 1 * 1024 * 1024) {
       setErrors((prev) => ({
         ...prev,
@@ -343,24 +228,19 @@ const AddWorker = () => {
       return;
     }
 
-
     setErrors((prev) => ({ ...prev, profilePic: "" }));
 
-
-    // Use FileReader instead of URL.createObjectURL
+    // Create preview using FileReader
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewImage(reader.result);
+    reader.onload = (event) => setPreviewImage(event.target.result);
+    reader.onerror = () => {
+      console.error("Error reading file");
+      setPreviewImage(addWorker);
     };
     reader.readAsDataURL(file);
 
-
-    setFormData((prevState) => ({
-      ...prevState,
-      profilePic: file,
-    }));
+    setFormData((prev) => ({ ...prev, profilePic: file }));
   };
-
 
   const checkContactNumberExists = async (contactNumber) => {
     try {
@@ -374,18 +254,15 @@ const AddWorker = () => {
     }
   };
 
-
   const validateForm = () => {
     const newErrors = {};
     let isValid = true;
-
 
     // Add job title validation
     if (formData.specification.length === 0) {
       newErrors.jobTitle = "Please select at least one job title";
       isValid = false;
     }
-
 
     if (
       formData.workExperience &&
@@ -394,7 +271,6 @@ const AddWorker = () => {
       newErrors.workExperience = "Work experience should contain only numbers";
       isValid = false;
     }
-
 
     // Required fields validation
     if (!formData.name.trim()) {
@@ -405,7 +281,6 @@ const AddWorker = () => {
       isValid = false;
     }
 
-
     if (!formData.contactNumber) {
       newErrors.contactNumber = "Contact Number is required";
       isValid = false;
@@ -414,36 +289,30 @@ const AddWorker = () => {
       isValid = false;
     }
 
-
     if (formData.email && !validateEmail(formData.email)) {
       newErrors.email = "Please enter a valid email address";
       isValid = false;
     }
-
 
     if (formData.dateOfBirth && !validateDate(formData.dateOfBirth, true)) {
       newErrors.dateOfBirth = "Worker must be at least 18 years old";
       isValid = false;
     }
 
-
     if (!validateLanguage(formData.language)) {
       newErrors.language = "Please select at least one language";
       isValid = false;
     }
-
 
     if (!formData.houseNumber) {
       newErrors.houseNumber = "House number is required";
       isValid = false;
     }
 
-
     if (!formData.town) {
       newErrors.town = "Town is required";
       isValid = false;
     }
-
 
     if (!formData.pincode) {
       newErrors.pincode = "Pincode is required";
@@ -453,7 +322,6 @@ const AddWorker = () => {
       isValid = false;
     }
 
-
     if (!formData.district) {
       newErrors.district = "District is required";
       isValid = false;
@@ -461,7 +329,6 @@ const AddWorker = () => {
       newErrors.district = "District should only contain alphabets";
       isValid = false;
     }
-
 
     if (!formData.state) {
       newErrors.state = "State is required";
@@ -471,7 +338,6 @@ const AddWorker = () => {
       isValid = false;
     }
 
-
     if (!formData.aadharNumber) {
       newErrors.aadharNumber = "Aadhar number is required";
       isValid = false;
@@ -479,7 +345,6 @@ const AddWorker = () => {
       newErrors.aadharNumber = "Aadhar number should be 12 digits";
       isValid = false;
     }
-
 
     if (
       formData.drivingLicenseNumber &&
@@ -490,7 +355,6 @@ const AddWorker = () => {
       isValid = false;
     }
 
-
     if (!formData.joiningDate) {
       newErrors.joiningDate = "Joining date is required";
       isValid = false;
@@ -499,16 +363,13 @@ const AddWorker = () => {
       isValid = false;
     }
 
-
     setErrors(newErrors);
     return isValid;
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
 
     // Validate job titles first
     if (formData.specification.length === 0) {
@@ -521,12 +382,10 @@ const AddWorker = () => {
       return;
     }
 
-
     if (!validateForm()) {
       setIsLoading(false);
       return;
     }
-
 
     if (formData.contactNumber === formData.econtactNumber) {
       Swal.fire({
@@ -537,7 +396,6 @@ const AddWorker = () => {
       setIsLoading(false);
       return;
     }
-
 
     const isContactNumberAvailable = await checkContactNumberExists(
       formData.contactNumber
@@ -551,7 +409,6 @@ const AddWorker = () => {
       setIsLoading(false);
       return;
     }
-
 
     try {
       const formDataToSend = new FormData();
@@ -567,13 +424,11 @@ const AddWorker = () => {
         }
       }
 
-
       const response = await api.post("/workers/add", formDataToSend, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-
 
       Swal.fire({
         icon: "success",
@@ -595,18 +450,15 @@ const AddWorker = () => {
     }
   };
 
-
   // Style for required field asterisk
   const requiredFieldStyle = {
     color: "#B8141A",
     marginLeft: "2px",
   };
 
-
   return (
     <>
       <Header />
-
 
       <div className="container" style={{ paddingTop: "80px" }}>
         <div className="d-flex gap-4 mx-2 align-items-center">
@@ -633,7 +485,6 @@ const AddWorker = () => {
         </div>
       </div>
 
-
       <div
         className="container"
         style={{
@@ -657,9 +508,11 @@ const AddWorker = () => {
                 height={100}
                 width={100}
                 className="rounded-4"
+                style={{ objectFit: "cover" }}
                 onError={(e) => {
-                  e.target.onerror = null; // Prevent infinite loop
-                  e.target.src = addWorker; // Fallback to default image
+                  console.error("Image failed to load, using fallback");
+                  e.target.onerror = null;
+                  e.target.src = addWorker;
                 }}
               />
               <input
@@ -690,7 +543,6 @@ const AddWorker = () => {
             </div>
           </div>
 
-
           {/* Main container */}
           <div
             className="container mt-4"
@@ -704,7 +556,8 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.name ? "is-invalid" : ""}`}
+                  className={`form-control shadow-none ${errors.name ? "is-invalid" : ""
+                    }`}
                   name="name"
                   id="name"
                   required
@@ -722,7 +575,8 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="email"
-                  className={`form-control shadow-none ${errors.email ? "is-invalid" : ""}`}
+                  className={`form-control  shadow-none ${errors.email ? "is-invalid" : ""
+                    }`}
                   name="email"
                   id="email"
                   placeholder="Enter Email"
@@ -775,7 +629,6 @@ const AddWorker = () => {
                 )}
               </div>
             </div>
-
 
             {/* Row 2 */}
             <div className="row mt-4">
@@ -861,7 +714,6 @@ const AddWorker = () => {
                 )}
               </div>
 
-
               <div className="col-md-2">
                 <label htmlFor="gender" className="form-label">
                   Gender <span style={requiredFieldStyle}>*</span>
@@ -869,7 +721,7 @@ const AddWorker = () => {
                 <br />
                 <div className="form-check form-check-inline mt-2">
                   <input
-                    className="form-check-input shadow-none"
+                    className="form-check-input"
                     type="radio"
                     name="gender"
                     id="male"
@@ -883,7 +735,7 @@ const AddWorker = () => {
                 </div>
                 <div className="form-check form-check-inline">
                   <input
-                    className="form-check-input shadow-none"
+                    className="form-check-input"
                     type="radio"
                     name="gender"
                     id="female"
@@ -898,7 +750,6 @@ const AddWorker = () => {
               </div>
             </div>
 
-
             {/* Job Title Section */}
             <div className="row mt-4">
               <p className="fw-bold">
@@ -908,7 +759,6 @@ const AddWorker = () => {
                 <div className="text-danger small">{errors.jobTitle}</div>
               )}
             </div>
-
 
             {/* Home Appliances */}
             <div className="row">
@@ -940,7 +790,6 @@ const AddWorker = () => {
               </div>
             </div>
 
-
             {/* Electrician */}
             <div className="row mt-3">
               <p>Electrician</p>
@@ -967,7 +816,6 @@ const AddWorker = () => {
               </div>
             </div>
 
-
             {/* Carpentry */}
             <div className="row mt-3">
               <p>Carpentry</p>
@@ -980,7 +828,7 @@ const AddWorker = () => {
                   "Door",
                   "Windows",
                   "Drill & Hang",
-                  "Furniture Repair",
+                  "Furniture",
                 ].map((item) => (
                   <button
                     key={item}
@@ -994,7 +842,6 @@ const AddWorker = () => {
                 ))}
               </div>
             </div>
-
 
             {/* Plumbing */}
             <div className="row mt-3">
@@ -1023,7 +870,6 @@ const AddWorker = () => {
               </div>
             </div>
 
-
             {/* Vehicle Service */}
             <div className="row mt-3">
               <p>Vehicle service</p>
@@ -1051,7 +897,6 @@ const AddWorker = () => {
               </div>
             </div>
 
-
             {/* Care Taker */}
             <div className="row mt-3">
               <p>Care Taker</p>
@@ -1078,7 +923,6 @@ const AddWorker = () => {
               </div>
             </div>
 
-
             {/* Cleaning */}
             <div className="row mt-3">
               <p>Cleaning</p>
@@ -1099,7 +943,6 @@ const AddWorker = () => {
               </div>
             </div>
 
-
             {/* CCTV */}
             <div className="row mt-3">
               <p>CCTV</p>
@@ -1119,7 +962,6 @@ const AddWorker = () => {
                 ))}
               </div>
             </div>
-
 
             {/* Address Details */}
             <div className="row mt-4">
@@ -1152,7 +994,8 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.town ? "is-invalid" : ""}`}
+                  className={`form-control shadow-none ${errors.town ? "is-invalid" : ""
+                    }`}
                   name="town"
                   id="town"
                   required
@@ -1185,7 +1028,6 @@ const AddWorker = () => {
                 )}
               </div>
             </div>
-
 
             {/* Row 2 */}
             <div className="row mt-4">
@@ -1235,7 +1077,8 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.state ? "is-invalid" : ""}`}
+                  className={`form-control shadow-none ${errors.state ? "is-invalid" : ""
+                    }`}
                   name="state"
                   id="state"
                   required
@@ -1248,7 +1091,6 @@ const AddWorker = () => {
                 )}
               </div>
             </div>
-
 
             {/* Identification Details */}
             <div className="row mt-4">
@@ -1332,7 +1174,6 @@ const AddWorker = () => {
                 )}
               </div>
             </div>
-
 
             {/* Submit Button */}
             <div className="row mb-4">
