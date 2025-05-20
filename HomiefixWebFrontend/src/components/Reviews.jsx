@@ -35,7 +35,7 @@ const Reviews = () => {
             setError(null);
             try {
                 const response = await api.get("/feedback/all");
-                
+
                 // Fetch booking details for each review in parallel
                 const reviewsWithService = await Promise.all(
                     response.data.map(async (review) => {
@@ -43,17 +43,17 @@ const Reviews = () => {
                             // Assuming each feedback has a bookingId field
                             const bookingResponse = await api.get(`/booking/${review.bookingId}`);
                             const serviceName = bookingResponse.data.productName || "General Service";
-                            
+
                             return {
                                 id: review.id,
                                 user: review.userProfile?.fullName || "Anonymous User",
                                 service: serviceName, // Use the productName from booking
                                 rating: review.rating,
                                 review: review.comment,
-                                date: new Date(review.reviewedDate).toLocaleDateString('en-IN', { 
-                                    day: '2-digit', 
-                                    month: 'short', 
-                                    year: 'numeric' 
+                                date: new Date(review.reviewedDate).toLocaleDateString('en-IN', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: 'numeric'
                                 }),
                                 profilePic: userProfile
                             };
@@ -66,17 +66,17 @@ const Reviews = () => {
                                 service: review.worker?.role || "General Service",
                                 rating: review.rating,
                                 review: review.comment,
-                                date: new Date(review.reviewedDate).toLocaleDateString('en-IN', { 
-                                    day: '2-digit', 
-                                    month: 'short', 
-                                    year: 'numeric' 
+                                date: new Date(review.reviewedDate).toLocaleDateString('en-IN', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: 'numeric'
                                 }),
                                 profilePic: userProfile
                             };
                         }
                     })
                 );
-                
+
                 setReviews(reviewsWithService.sort((a, b) => b.id - a.id));
             } catch (err) {
                 setError("Failed to fetch reviews.");
@@ -102,21 +102,21 @@ const Reviews = () => {
     const getMonthNumber = (monthName) => months.findIndex(m => m.startsWith(monthName)) + 1;
 
     const filteredReviews = [...reviews]  // Create a copy of the array
-    .sort((a, b) => b.id - a.id)     // Sort by ID descending
-    .filter((review) => {
-        if (!review.date) return false;
+        .sort((a, b) => b.id - a.id)     // Sort by ID descending
+        .filter((review) => {
+            if (!review.date) return false;
 
-        const { month, year } = getMonthYear(review.date);
-        const monthNumber = getMonthNumber(month);
-        const reviewDate = parseDate(review.date);
+            const { month, year } = getMonthYear(review.date);
+            const monthNumber = getMonthNumber(month);
+            const reviewDate = parseDate(review.date);
 
-        return (
-            (!selectedStar || review.rating === Number(selectedStar)) &&
-            (!selectedMonth || monthNumber === Number(selectedMonth)) &&
-            (!selectedYear || year === String(selectedYear)) &&
-            (activeTab === "recent" ? reviewDate >= oneMonthAgo : true)
-        );
-    });
+            return (
+                (!selectedStar || review.rating === Number(selectedStar)) &&
+                (!selectedMonth || monthNumber === Number(selectedMonth)) &&
+                (!selectedYear || year === String(selectedYear)) &&
+                (activeTab === "recent" ? reviewDate >= oneMonthAgo : true)
+            );
+        });
 
     const recentReviewCount = reviews.filter((review) => {
         if (!review.date) return false;
@@ -130,15 +130,11 @@ const Reviews = () => {
         );
     }).length;
 
-    if (loading) {
-        return <div className="text-center mt-5">Loading reviews...</div>;
-    }
-
     if (error) {
         return <div className="text-center mt-5 text-danger">{error}</div>;
     }
 
-    
+
 
     return (
         <div>

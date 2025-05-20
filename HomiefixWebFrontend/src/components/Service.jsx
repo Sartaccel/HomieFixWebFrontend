@@ -1,24 +1,61 @@
 import Header from "./Header";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import profile from "../assets/addWorker.jpg";
+import { serviceContent } from "../components/serviceContent";
+import api from "../api";
+
 const Service = () => {
-
     const [activeTab, setActiveTab] = useState("recent");
+    const [serviceData, setServiceData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const { productId } = useParams();
 
-    const services = [
-        { id: 1, name: "Ac", price: "100", ratings: "4.5", bookings: "10", pic: profile }
-    ];
+    useEffect(() => {
+        const fetchServiceData = async () => {
+            try {
+                const response = await api.get(`/products/view/${productId}`);
 
+                // Transform API data to match your component's expected structure
+                const transformedData = {
+                    id: response.data.id,
+                    name: response.data.name,
+                    price: response.data.price,
+                    ratings: response.data.averageRating.toString(),
+                    bookings: response.data.bookingCount.toString(),
+                    pic: response.data.productImage || profile, // Fallback to local image if no productImage
+                    content: serviceContent[response.data.name] || {
+                        title: `${response.data.name} Service`,
+                        sections: []
+                    }
+                };
 
+                setServiceData(transformedData);
+                setLoading(false);
+            } catch (err) {
+                setError(err.message);
+                setLoading(false);
+            }
+        };
+
+        fetchServiceData();
+    }, [productId]);
+
+    if (error) {
+        return <div>Error: {error}</div>;
+    }
+
+    if (!serviceData) {
+        return <div></div>;
+    }
 
     return (
         <>
             <Header />
-            <div className="container-fluid p-0 pt-5 scrollable-container " style={{ overflowX: "hidden" }}>
-
-                {/* Tabs for Home Appliances */}
+            <div className="container-fluid p-0 pt-5 scrollable-container" style={{ overflowX: "hidden" }}>
+                {/* Service Header */}
                 <div className="d-flex justify-content-between border-bottom mt-5 mb-2">
                     <div className="d-flex gap-4 mx-4 align-items-center">
                         <span className="bi bi-arrow-left fs-5" onClick={() => navigate(-1)} style={{ cursor: "pointer" }}></span>
@@ -26,91 +63,53 @@ const Service = () => {
                             className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
                             onClick={() => setActiveTab("recent")}
                         >
-                            Air Conditioning (AC)
+                            {serviceData.name}
                         </button>
                     </div>
                 </div>
 
-                <div className="row px-4 mx-2" >
-                    {services.map((service) => (
-                        <div className="col-4" key={service.id}>
-                            <div className="card mt-1 mb-3" style={{ border: "none" }}>
-                                <div className="card-body d-flex">
-                                    <div>
-                                        <img src={service.pic} alt={service.name} style={{
+                {/* Service Info */}
+                <div className="row px-4 mx-2">
+                    <div className="col-4">
+                        <div className="card mt-1 mb-3" style={{ border: "none" }}>
+                            <div className="card-body d-flex">
+                                <div>
+                                    <img
+                                        src={serviceData.pic}
+                                        alt={serviceData.name}
+                                        style={{
                                             width: "60px",
                                             height: "60px",
                                             backgroundPosition: "center",
-                                        }} />
-                                    </div>
-                                    <div className="ms-3">
-                                        <p className="card-text">{service.name} <span className="mx-2" style={{ backgroundColor: "#EDF3F7" }}>
-                                            <span className="bi bi-star-fill text-warning"></span> {service.ratings}
-                                        </span></p>
-                                        <p className="card-text "> ₹ {service.price}</p>
-                                    </div>
+                                        }}
+                                        onError={(e) => {
+                                            e.target.src = profile; // Fallback to local image if API image fails to load
+                                        }}
+                                    />
+                                </div>
+                                <div className="ms-3">
+                                    <p className="card-text">{serviceData.name} <span className="mx-2 rounded-2 px-1 py-1" style={{ backgroundColor: "#EDF3F7" }}>
+                                        <span className="bi bi-star-fill text-warning"></span> {serviceData.ratings}
+                                    </span></p>
+                                    <p className="card-text "> ₹ {serviceData.price}</p>
                                 </div>
                             </div>
                         </div>
-                    ))}
+                    </div>
                 </div>
 
+                {/* Dynamic Content */}
                 <div className="row mx-5 bg-light">
-                    <div className="col-4 border p-3">
-                        <p>1. Inspection & Diagnostics</p>
-                        <ul>
-                            <li>Installation of AC</li>
-                            <li>Repair of AC</li>
-                            <li>Uninstallation of AC</li>
-                            <li>Replacement of AC</li>
-                        </ul>
-                    </div>
-                    <div className="col-4 border-top border-bottom p-3">
-                        <p>2. Cleaning of Key Components</p>
-                        <ul>
-                            <li>Filter Cleaning</li>
-                            <li>Condenser Cleaning</li>
-                            <li>Evaporator Cleaning</li>
-                            <li>Compressor Cleaning</li>
-                        </ul>
-                    </div>
-                    <div className="col-4 border p-3">
-                        <p>3. Refrigerant Check</p>
-                        <ul>
-                            <li>Refrigerant Level Check</li>
-                            <li>Refrigerant Pressure Check</li>
-                            <li>Refrigerant Temperature Check</li>
-                            <li>Refrigerant Level Check</li>
-                        </ul>
-                    </div>
-
-                    <div className="col-4 border p-3">
-                        <p>4. Inspection & Diagnostics</p>
-                        <ul>
-                            <li>Installation of AC</li>
-                            <li>Repair of AC</li>
-                            <li>Uninstallation of AC</li>
-                            <li>Replacement of AC</li>
-                        </ul>
-                    </div>
-                    <div className="col-4 border-top border-bottom p-3">
-                        <p>5. Cleaning of Key Components</p>
-                        <ul>
-                            <li>Filter Cleaning</li>
-                            <li>Condenser Cleaning</li>
-                            <li>Evaporator Cleaning</li>
-                            <li>Compressor Cleaning</li>
-                        </ul>
-                    </div>
-                    <div className="col-4 border p-3">
-                        <p>6. Refrigerant Check</p>
-                        <ul>
-                            <li>Refrigerant Level Check</li>
-                            <li>Refrigerant Pressure Check</li>
-                            <li>Refrigerant Temperature Check</li>
-                            <li>Refrigerant Level Check</li>
-                        </ul>
-                    </div>
+                    {serviceData.content.sections.map((section, index) => (
+                        <div key={index} className="col-4 border p-3">
+                            <p>{section.title}</p>
+                            <ul>
+                                {section.items.map((item, itemIndex) => (
+                                    <li key={itemIndex}>{item}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
                 </div>
             </div>
         </>

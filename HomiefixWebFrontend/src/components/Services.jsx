@@ -90,14 +90,11 @@ const Services = () => {
   // Filter products by category
   const getProductsByCategory = (category) => {
     const categoryItems = productCategories[category] || [];
-    return products.filter(product => 
+    return products.filter(product =>
       categoryItems.includes(product.productName)
     );
   };
 
-  if (loading) {
-    return <div className="text-center mt-5">Loading...</div>;
-  }
 
   if (error) {
     return <div className="text-center mt-5 text-danger">Error: {error}</div>;
@@ -111,10 +108,10 @@ const Services = () => {
         {/* Render each category section */}
         {Object.keys(productCategories).map((category) => {
           const categoryProducts = getProductsByCategory(category);
-          
+
           // Only render the category if there are products in it
           if (categoryProducts.length === 0) return null;
-          
+
           return (
             <div key={category}>
               {/* Category Tab */}
@@ -133,22 +130,22 @@ const Services = () => {
               <div className="row px-4">
                 {categoryProducts.map((service) => (
                   <div className="col-4" key={service.productId}>
-                    <div 
-                      className="card mt-1 mb-3" 
-                      onClick={() => navigate(`/services/${service.productId}`)} 
+                    <div
+                      className="card mt-1 mb-3"
+                      onClick={() => navigate(`/services/${service.productId}`, { state: { serviceName: service.productName } })}
                       style={{ cursor: "pointer" }}
                     >
                       <div className="card-body d-flex">
                         <div>
-                          <img 
-                            src={service.productImage || profile} 
-                            alt={service.productName} 
+                          <img
+                            src={service.productImage || profile}
+                            alt={service.productName}
                             style={{
                               width: "60px",
                               height: "60px",
                               backgroundPosition: "center",
                               objectFit: "cover"
-                            }} 
+                            }}
                           />
                         </div>
                         <div className="ms-3">
@@ -157,7 +154,6 @@ const Services = () => {
                             <span className="border rounded-2 px-1  text-nowrap d-inline-block" style={{ backgroundColor: "#EDF3F7" }}>
                               <span className="bi bi-star-fill text-warning"></span> {service.averageRating || "0"}
                             </span>
-                            <span className="mx-2"> bookings: {service.bookingCount}</span>
                           </p>
                         </div>
                       </div>
