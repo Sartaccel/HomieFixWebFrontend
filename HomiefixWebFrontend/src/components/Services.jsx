@@ -132,7 +132,11 @@ const Services = () => {
                   <div className="col-4" key={service.productId}>
                     <div
                       className="card mt-1 mb-3"
-                      onClick={() => navigate(`/services/${service.productId}`)}
+                      onClick={() =>
+                        navigate(`/services/${service.productId}`, {
+                          state: { serviceName: service.productName },
+                        })
+                      }
                       style={{ cursor: "pointer" }}
                     >
                       <div className="card-body d-flex">
@@ -159,10 +163,6 @@ const Services = () => {
                             >
                               <span className="bi bi-star-fill text-warning"></span>{" "}
                               {service.averageRating || "0"}
-                            </span>
-                            <span className="mx-2">
-                              {" "}
-                              bookings: {service.bookingCount}
                             </span>
                           </p>
                         </div>

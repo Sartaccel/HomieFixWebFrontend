@@ -39,7 +39,7 @@ const App = () => {
 
       <Route element={<ProtectedRoute token={token} />}>
         <Route element={<Layout />}>
-          <Route path="/dashboard" element={<ComingSoon />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/booking-details" element={<BookingDetails />} />
           <Route path="/booking-details/view-bookings/:id" element={<ViewBookings />} />
           <Route path="/booking-details/reschedule/:id" element={<Reschedule />} />
@@ -52,7 +52,7 @@ const App = () => {
           <Route path="/worker-details/add-worker" element={<AddWorker />} />
           <Route path="/worker-details/worker/edit/:id" element={<EditWorker />} />
           <Route path="/services" element={<Services />} />
-          <Route path="/services/:id" element={<Service />} />
+          <Route path="/services/:productId" element={<Service />} />
           <Route path="/profile/:username" element={<Profile />} />
           <Route path="/notifications" element={<Notifications />} />
         </Route>
