@@ -91,6 +91,38 @@ const Services = () => {
     );
   };
 
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <div
+          className="container-fluid p-0 pt-5 scrollable-container"
+          style={{ overflowX: "hidden" }}
+        >
+          {Object.keys(productCategories).map((category, index) => (
+            <div key={index}>
+              <div className="d-flex justify-content-between border-bottom mt-5 mb-2">
+                <div className="d-flex gap-4 mx-4">
+                  <button className="tab-btn active-tab">{category}</button>
+                </div>
+              </div>
+              <div className="row px-4">
+                {[1, 2, 3].map((skeleton, i) => (
+                  <div className="col-4" key={i}>
+                    <div className="skeleton-card">
+                      <div className="skeleton-image"></div>
+                      <div className="skeleton-text"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </>
+    );
+  }
+
   if (error) {
     return <div className="text-center mt-5 text-danger">Error: {error}</div>;
   }

@@ -248,7 +248,7 @@ const Notifications = () => {
     <Card className="p-3 shadow-sm" style={{ minWidth: "400px", marginLeft: "-40px" }}>
       <div className="d-flex justify-content-between align-items-center">
         <h5 className="mb-0">Notifications</h5>
-        {refreshing && <small className="text-muted">Updating...</small>}
+        {/* {refreshing && <small className="text-muted">Updating...</small>} */}
       </div>
 
       <div className="mt-3" style={{ maxHeight: "400px", overflowY: "auto", overflowX: "hidden" }}>

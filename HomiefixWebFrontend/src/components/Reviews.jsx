@@ -237,7 +237,30 @@ const Reviews = () => {
         {/* Reviews */}
         <div className="mt-4 p-3">
           <div className="row scrollable-reviews">
-            {filteredReviews.length > 0 ? (
+            {loading ? (
+              // Skeleton loaders (repeat 3 times for demo)
+              Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="col-12 mb-4">
+                  <div className="skeleton-card d-flex align-items-start">
+                    <div className="skeleton-avatar"></div>
+                    <div className="flex-grow-1">
+                      <div
+                        className="skeleton-line"
+                        style={{ width: "30%" }}
+                      ></div>
+                      <div
+                        className="skeleton-line"
+                        style={{ width: "50%" }}
+                      ></div>
+                      <div
+                        className="skeleton-line"
+                        style={{ width: "80%" }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : filteredReviews.length > 0 ? (
               filteredReviews.map((review) => (
                 <div key={review.id} className="col-12 mb-4">
                   <div className="card p-2">

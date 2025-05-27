@@ -41,7 +41,153 @@ const CustomerReview = () => {
   }, [id]);
 
   if (loading) {
-    return <div className="text-center mt-5">Loading...</div>;
+    return (
+      <div>
+        <Header />
+        <div className="container" style={{ paddingTop: "80px" }}>
+          <div className="row mx-2">
+            <div className="col-md-6">
+              <div className="card mt-4 p-4">
+                <div className="d-flex align-items-center">
+                  <div
+                    className="rounded-circle bg-secondary"
+                    style={{ width: "65px", height: "65px", opacity: 0.3 }}
+                  ></div>
+                  <div className="ms-3 w-100">
+                    <div
+                      className="bg-secondary mb-2"
+                      style={{ height: "14px", width: "60%", opacity: 0.3 }}
+                    ></div>
+                    <div
+                      className="bg-secondary mb-2"
+                      style={{ height: "14px", width: "40%", opacity: 0.3 }}
+                    ></div>
+                    <div
+                      className="bg-secondary"
+                      style={{ height: "14px", width: "80%", opacity: 0.3 }}
+                    ></div>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <div
+                    className="bg-secondary mb-2"
+                    style={{ height: "14px", width: "50%", opacity: 0.3 }}
+                  ></div>
+                  <div
+                    className="bg-secondary"
+                    style={{ height: "60px", width: "100%", opacity: 0.2 }}
+                  ></div>
+                </div>
+
+                <div className="mt-5 d-flex align-items-center">
+                  <div
+                    className="rounded-circle bg-secondary"
+                    style={{ width: "65px", height: "65px", opacity: 0.3 }}
+                  ></div>
+                  <div className="ms-3 w-100">
+                    <div
+                      className="bg-secondary mb-2"
+                      style={{ height: "14px", width: "60%", opacity: 0.3 }}
+                    ></div>
+                    <div
+                      className="bg-secondary mb-2"
+                      style={{ height: "14px", width: "40%", opacity: 0.3 }}
+                    ></div>
+                    <div
+                      className="bg-secondary mb-2"
+                      style={{ height: "14px", width: "80%", opacity: 0.3 }}
+                    ></div>
+                    <div
+                      className="bg-secondary mt-2"
+                      style={{ height: "35px", width: "100%", opacity: 0.3 }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-md-6">
+              <div className="card mt-4 p-3">
+                <h5 className="mb-3">Service Details</h5>
+                <div className="row">
+                  <div className="col-md-4">
+                    {[...Array(5)].map((_, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-secondary mb-2"
+                        style={{ height: "14px", width: "80%", opacity: 0.2 }}
+                      ></div>
+                    ))}
+                  </div>
+                  <div className="col-md-8">
+                    {[...Array(5)].map((_, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-secondary mb-2 float-end"
+                        style={{ height: "14px", width: "60%", opacity: 0.2 }}
+                      ></div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="row mt-4">
+                  <div className="d-flex">
+                    <div className="d-flex flex-column align-items-center me-3 mt-3">
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i}>
+                          <div
+                            className="rounded-circle bg-secondary"
+                            style={{
+                              width: "12px",
+                              height: "12px",
+                              opacity: 0.3,
+                            }}
+                          ></div>
+                          {i < 2 && (
+                            <div
+                              className="bg-secondary"
+                              style={{
+                                height: "50px",
+                                width: "3px",
+                                marginLeft: "4px",
+                                opacity: 0.3,
+                              }}
+                            ></div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex-grow-1">
+                      {[...Array(3)].map((_, idx) => (
+                        <div key={idx} className="mb-3">
+                          <div
+                            className="bg-secondary mb-1"
+                            style={{
+                              height: "14px",
+                              width: "40%",
+                              opacity: 0.3,
+                            }}
+                          ></div>
+                          <div
+                            className="bg-secondary"
+                            style={{
+                              height: "14px",
+                              width: "80%",
+                              opacity: 0.2,
+                            }}
+                          ></div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -65,7 +211,7 @@ const CustomerReview = () => {
 
       <div className="container" style={{ paddingTop: "80px" }}>
         <div className="d-flex gap-4 mx-2 align-items-center">
-        <button
+          <button
             className="btn btn-light p-2"
             style={{ marginBottom: "-20px" }}
             onClick={() => navigate(`/reviews`)}
@@ -75,6 +221,7 @@ const CustomerReview = () => {
               style={{ fontSize: "1.5rem", fontWeight: "bold" }}
             ></i>
           </button>
+
           <button
             className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
             onClick={() => setActiveTab("recent")}
