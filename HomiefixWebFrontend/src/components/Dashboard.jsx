@@ -1,13 +1,9 @@
 import React, { useState } from "react";
-import { FaClipboardList, FaCheckCircle, FaTimesCircle, FaUsers, FaBell } from "react-icons/fa";
+import { FaClipboardList, FaCheckCircle, FaTimesCircle, FaUsers} from "react-icons/fa";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "../styles/Dashboard.css";
-
-import notification from "../assets/Bell.png";
-import profile from "../assets/Profile.png";
-import search from "../assets/Search.png";
 import Header from "./Header";
 
 const Dashboard = () => {
