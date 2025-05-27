@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import profile from "../assets/addWorker.jpg";
 import { serviceContent } from "../components/serviceContent";
 import api from "../api";
+import "../styles/Services.css";
 
 const Service = () => {
     const [activeTab, setActiveTab] = useState("recent");
@@ -42,6 +43,51 @@ const Service = () => {
 
         fetchServiceData();
     }, [productId]);
+
+    if (loading) {
+        return (
+            <>
+                <Header />
+                <div className="container-fluid p-0 pt-5 scrollable-container" style={{ overflowX: "hidden" }}>
+                    {/* Skeleton Header */}
+                    <div className="d-flex justify-content-between border-bottom mt-5 mb-2">
+                        <div className="d-flex gap-4 mx-4 align-items-center">
+                            <div className="skeleton skeleton-btn" style={{ width: "120px", height: "35px" }}></div>
+                        </div>
+                    </div>
+
+                    {/* Skeleton Card */}
+                    <div className="row px-4 mx-2">
+                        <div className="col-4">
+                            <div className="card mt-1 mb-3" style={{ border: "none" }}>
+                                <div className="card-body d-flex">
+                                    <div className="skeleton skeleton-image"></div>
+                                    <div className="ms-3 w-100">
+                                        <div className="skeleton skeleton-text mb-2" style={{ width: "70%" }}></div>
+                                        <div className="skeleton skeleton-text" style={{ width: "40%" }}></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Skeleton Content */}
+                    <div className="row mx-5 bg-light">
+                        {[1, 2, 3].map((box) => (
+                            <div key={box} className="col-4 border p-3">
+                                <div className="skeleton skeleton-text mb-2" style={{ width: "60%" }}></div>
+                                <ul>
+                                    {[1, 2, 3].map((item) => (
+                                        <li key={item} className="skeleton skeleton-text" style={{ width: "80%", marginBottom: "8px" }}></li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </>
+        );
+    }
 
     if (error) {
         return <div>Error: {error}</div>;

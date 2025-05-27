@@ -1,4 +1,5 @@
-body, html {
+body,
+html {
     height: 100vh;
     overflow: hidden;
 }
@@ -32,7 +33,7 @@ body, html {
 
 /* Make review content scrollable */
 .scrollable-reviews {
-    max-height: 630px; 
+    max-height: 630px;
     overflow-y: auto;
     padding-right: 10px;
 }
@@ -59,9 +60,48 @@ body, html {
     gap: 15px;
     background-color: #fff;
     position: fixed;
-    top: 70px; 
+    top: 70px;
     width: 100%;
     z-index: 1000;
     border-bottom: 1px solid #ddd;
 }
 
+
+/* Reviews.css */
+
+.skeleton-card {
+    background-color: #f0f0f0;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-line {
+    background-color: #e0e0e0;
+    height: 12px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.skeleton-avatar {
+    width: 50px;
+    height: 50px;
+    background-color: #d6d6d6;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
