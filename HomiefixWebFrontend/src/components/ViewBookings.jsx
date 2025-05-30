@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "./Header";
 import Reschedule from "./Reschedule";
 import CancelBooking from "./CancelBooking";
@@ -11,6 +11,7 @@ import "react-loading-skeleton/dist/skeleton.css";
 const ViewBookings = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [booking, setBooking] = useState(null);
   const [worker, setWorker] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -40,6 +41,30 @@ const ViewBookings = () => {
     });
   };
 
+  const handleGoBack = () => {
+    if (!booking) {
+      navigate(-1); // Fallback if booking data isn't loaded
+      return;
+    }
+
+     const previousTab = location.state?.previousTab || 
+      (() => {
+        switch (booking.bookingStatus) {
+          case "COMPLETED":
+            return "completed";
+          case "CANCELLED":
+            return "canceled";
+          case "ASSIGNED":
+          case "RESCHEDULED":
+          case "STARTED":
+            return "inProgress";
+          default:
+            return "bookings";
+        }
+      })();
+
+    navigate(`/booking-details?tab=${previousTab}`);
+  };
   const fetchAllWorkers = async () => {
     try {
       const response = await api.get("/workers/view");
@@ -222,16 +247,16 @@ const ViewBookings = () => {
           <Header />
           <div className="navigation-barr d-flex justify-content-between align-items-center py-2 px-3 bg-white border-bottom w-100">
             <div className="d-flex gap-3 align-items-center">
-            <button
-            className="btn btn-light p-2"
-            style={{ marginBottom: "-20px" }}
-            onClick={() => navigate(-1)}
-          >
-            <i
-              className="bi bi-arrow-left"
-              style={{ fontSize: "1.5rem", fontWeight: "bold" }}
-            ></i>
-          </button>
+              <button
+                className="btn btn-light p-2"
+                style={{ marginBottom: "-20px" }}
+                onClick={handleGoBack}
+              >
+                <i
+                  className="bi bi-arrow-left"
+                  style={{ fontSize: "1.5rem", fontWeight: "bold" }}
+                ></i>
+              </button>
               <div
                 className={`section ${
                   activeTab === "serviceDetails" ? "active" : ""

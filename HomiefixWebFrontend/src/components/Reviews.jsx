@@ -128,36 +128,30 @@ const Reviews = () => {
   const getMonthNumber = (monthName) =>
     months.findIndex((m) => m.startsWith(monthName)) + 1;
 
-  const filteredReviews = [...reviews] // Create a copy of the array
-    .sort((a, b) => b.id - a.id) // Sort by ID descending
-    .filter((review) => {
-      if (!review.date) return false;
+  // Get recent reviews (unfiltered)
+  const recentReviews = reviews.filter((review) => {
+    if (!review.date) return false;
+    const reviewDate = parseDate(review.date);
+    return reviewDate >= oneMonthAgo;
+  });
 
-      const { month, year } = getMonthYear(review.date);
-      const monthNumber = getMonthNumber(month);
-      const reviewDate = parseDate(review.date);
-
-      return (
-        (!selectedStar || review.rating === Number(selectedStar)) &&
-        (!selectedMonth || monthNumber === Number(selectedMonth)) &&
-        (!selectedYear || year === String(selectedYear)) &&
-        (activeTab === "recent" ? reviewDate >= oneMonthAgo : true)
-      );
-    });
-
-  const recentReviewCount = reviews.filter((review) => {
+  // Filter reviews based on selected filters (only for "All Reviews" tab)
+  const filteredAllReviews = reviews.filter((review) => {
     if (!review.date) return false;
 
-    const reviewDate = parseDate(review.date);
+    const { month, year } = getMonthYear(review.date);
+    const monthNumber = getMonthNumber(month);
+
     return (
-      reviewDate >= oneMonthAgo &&
       (!selectedStar || review.rating === Number(selectedStar)) &&
-      (!selectedMonth ||
-        getMonthNumber(getMonthYear(review.date).month) ===
-          Number(selectedMonth)) &&
-      (!selectedYear || getMonthYear(review.date).year === String(selectedYear))
+      (!selectedMonth || monthNumber === Number(selectedMonth)) &&
+      (!selectedYear || year === String(selectedYear))
     );
-  }).length;
+  });
+
+  // Determine which reviews to display based on active tab
+  const displayReviews =
+    activeTab === "recent" ? recentReviews : filteredAllReviews;
 
   if (error) {
     return <div className="text-center mt-5 text-danger">{error}</div>;
@@ -180,7 +174,9 @@ const Reviews = () => {
               onClick={() => setActiveTab("recent")}
             >
               Recent Reviews{" "}
-              <span className="badge bg-dark">{recentReviewCount}</span>
+              <span className="badge bg-dark " style={{ borderRadius: "45%" }}>
+                {recentReviews.length}
+              </span>
             </button>
             <button
               className={`tab-btn ${activeTab === "all" ? "active-tab" : ""}`}
@@ -190,48 +186,53 @@ const Reviews = () => {
             </button>
           </div>
 
-          {/* Filters */}
-          <div className="d-flex gap-2 p-2">
-            <select
-              className="form-select w-auto"
-              value={selectedStar}
-              onChange={(e) => setSelectedStar(e.target.value)}
+          {/* Filters - Only show when "All Reviews" tab is active */}
+          {activeTab === "all" && (
+            <div
+              className="d-flex gap-2 p-2 "
+              style={{ height: "50px", marginTop: "-5px", marginRight: "25px" }}
             >
-              <option value="">All Ratings</option>
-              {[5, 4, 3, 2, 1].map((star) => (
-                <option key={star} value={star}>
-                  {" "}
-                  ⭐ {star}
-                </option>
-              ))}
-            </select>
+              <select
+                className="form-select w-auto shadow-none"
+                value={selectedStar}
+                onChange={(e) => setSelectedStar(e.target.value)}
+              >
+                <option value="">All Ratings</option>
+                {[5, 4, 3, 2, 1].map((star) => (
+                  <option key={star} value={star}>
+                    {" "}
+                    ⭐ {star}
+                  </option>
+                ))}
+              </select>
 
-            <select
-              className="form-select w-auto"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-            >
-              <option value="">All Months</option>
-              {months.map((month, index) => (
-                <option key={index + 1} value={index + 1}>
-                  {month}
-                </option>
-              ))}
-            </select>
+              <select
+                className="form-select w-auto shadow-none"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+              >
+                <option value="">All Months</option>
+                {months.map((month, index) => (
+                  <option key={index + 1} value={index + 1}>
+                    {month}
+                  </option>
+                ))}
+              </select>
 
-            <select
-              className="form-select w-auto"
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-            >
-              <option value="">All Years</option>
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </div>
+              <select
+                className="form-select w-auto shadow-none"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+              >
+                <option value="">All Years</option>
+                {years.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Reviews */}
@@ -260,8 +261,8 @@ const Reviews = () => {
                   </div>
                 </div>
               ))
-            ) : filteredReviews.length > 0 ? (
-              filteredReviews.map((review) => (
+            ) : displayReviews.length > 0 ? (
+              displayReviews.map((review) => (
                 <div key={review.id} className="col-12 mb-4">
                   <div className="card p-2">
                     <div className="d-flex align-items-center">
@@ -303,7 +304,8 @@ const Reviews = () => {
               ))
             ) : (
               <p className="text-center text-muted">
-                No reviews found for the selected filters.
+                No reviews found
+                {activeTab === "all" ? " for the selected filters" : ""}.
               </p>
             )}
           </div>

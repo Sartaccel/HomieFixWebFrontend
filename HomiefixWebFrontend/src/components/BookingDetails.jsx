@@ -5,7 +5,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import { FaStar } from "react-icons/fa";
@@ -34,7 +34,8 @@ const hasBookingChanges = (newBookings, prevBookings) => {
       !prevBooking ||
       newBooking.status !== prevBooking.status ||
       newBooking.worker?.name !== prevBooking.worker?.name ||
-      newBooking.worker?.contact !== prevBooking.worker?.contact
+      newBooking.worker?.contact !== prevBooking.worker?.contact ||
+      newBooking.isDeletedUser !== prevBooking.isDeletedUser
     ) {
       return true;
     }
@@ -73,15 +74,22 @@ const transformBookingData = (booking) => ({
         contact: booking.worker.contactNumber,
       }
     : null,
+  isDeletedUser: !booking.userProfile.active, // Add flag for deleted users
 });
 
 const BookingDetails = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [bookings, setBookings] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [activeTab, setActiveTab] = useState("bookings");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState({
+    bookings: "All",
+    inProgress: "All",
+    completed: "All",
+    canceled: "All",
+  });
   const [ratings, setRatings] = useState({});
   const dropdownRef = useRef(null);
   const [ratingFilter, setRatingFilter] = useState("All");
@@ -89,11 +97,13 @@ const BookingDetails = () => {
   const [error, setError] = useState(null);
   const prevBookingsRef = useRef([]);
 
-  // Date filters
-  const [selectedDateBookings, setSelectedDateBookings] = useState(null);
-  const [selectedDateInProgress, setSelectedDateInProgress] = useState(null);
-  const [selectedDateCompleted, setSelectedDateCompleted] = useState(null);
-  const [selectedDateCanceled, setSelectedDateCanceled] = useState(null);
+  // Date filters for each tab
+  const [selectedDates, setSelectedDates] = useState({
+    bookings: null,
+    inProgress: null,
+    completed: null,
+    canceled: null,
+  });
 
   const fetchBookings = useCallback(async () => {
     try {
@@ -114,7 +124,6 @@ const BookingDetails = () => {
           "No internet connection. Please check your network and try again."
         );
       } else if (error.response?.status === 403) {
-        // Token is invalid or expired, redirect to login
         localStorage.removeItem("token");
         navigate("/");
       } else {
@@ -126,18 +135,14 @@ const BookingDetails = () => {
     }
   }, [navigate]);
 
-  // Fetch bookings from the API
   useEffect(() => {
     fetchBookings();
-
     const interval = setInterval(() => {
       fetchBookings();
     }, 20000);
-
     return () => clearInterval(interval);
   }, [fetchBookings]);
 
-  // Fetch ratings for completed bookings
   useEffect(() => {
     if (activeTab !== "completed" || initialLoad) return;
 
@@ -169,7 +174,17 @@ const BookingDetails = () => {
     fetchRatings();
   }, [bookings, activeTab, initialLoad]);
 
-  // Memoize filtered bookings
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const tab = queryParams.get("tab");
+    if (
+      tab &&
+      ["bookings", "inProgress", "completed", "canceled"].includes(tab)
+    ) {
+      setActiveTab(tab);
+    }
+  }, [location.search]);
+
   const { pendingBookings, inProgress, completed, canceled } = useMemo(() => {
     return {
       pendingBookings: bookings.filter(
@@ -189,45 +204,43 @@ const BookingDetails = () => {
     };
   }, [bookings]);
 
-  // Filter function
   const filterBookingsByDate = useCallback((date, bookingsToFilter) => {
     if (!date) return bookingsToFilter;
-
     const formattedSelectedDate =
       date.getFullYear() +
       "-" +
       String(date.getMonth() + 1).padStart(2, "0") +
       "-" +
       String(date.getDate()).padStart(2, "0");
-
     return bookingsToFilter.filter(
       (booking) =>
         booking.date.toISOString().split("T")[0] === formattedSelectedDate
     );
   }, []);
 
-  // Update filteredBookings
   useEffect(() => {
     if (initialLoad) return;
 
     let filtered = [];
-    let dateFilter = null;
+    const currentTab = activeTab;
+    const dateFilter = selectedDates[currentTab];
+    const currentStatusFilter = statusFilter[currentTab];
 
-    switch (activeTab) {
+    switch (currentTab) {
       case "bookings":
-        dateFilter = selectedDateBookings;
         filtered = filterBookingsByDate(dateFilter, pendingBookings);
         break;
       case "inProgress":
-        dateFilter = selectedDateInProgress;
         filtered = filterBookingsByDate(dateFilter, inProgress).filter(
           (booking) => {
-            return statusFilter === "All" || booking.status === statusFilter;
+            return (
+              currentStatusFilter === "All" ||
+              booking.status === currentStatusFilter
+            );
           }
         );
         break;
       case "completed":
-        dateFilter = selectedDateCompleted;
         filtered = filterBookingsByDate(dateFilter, completed).filter(
           (booking) => {
             if (ratingFilter === "All") return true;
@@ -237,7 +250,6 @@ const BookingDetails = () => {
         );
         break;
       case "canceled":
-        dateFilter = selectedDateCanceled;
         filtered = filterBookingsByDate(dateFilter, canceled);
         break;
       default:
@@ -251,10 +263,7 @@ const BookingDetails = () => {
     ratingFilter,
     ratings,
     statusFilter,
-    selectedDateBookings,
-    selectedDateInProgress,
-    selectedDateCompleted,
-    selectedDateCanceled,
+    selectedDates,
     pendingBookings,
     inProgress,
     completed,
@@ -263,47 +272,20 @@ const BookingDetails = () => {
     initialLoad,
   ]);
 
-  // Handle date change
   const handleDateChange = (date) => {
-    switch (activeTab) {
-      case "bookings":
-        setSelectedDateBookings(date);
-        break;
-      case "inProgress":
-        setSelectedDateInProgress(date);
-        break;
-      case "completed":
-        setSelectedDateCompleted(date);
-        break;
-      case "canceled":
-        setSelectedDateCanceled(date);
-        break;
-      default:
-        break;
-    }
+    setSelectedDates((prev) => ({
+      ...prev,
+      [activeTab]: date,
+    }));
   };
 
-  // Clear date filter
   const clearDateFilter = () => {
-    switch (activeTab) {
-      case "bookings":
-        setSelectedDateBookings(null);
-        break;
-      case "inProgress":
-        setSelectedDateInProgress(null);
-        break;
-      case "completed":
-        setSelectedDateCompleted(null);
-        break;
-      case "canceled":
-        setSelectedDateCanceled(null);
-        break;
-      default:
-        break;
-    }
+    setSelectedDates((prev) => ({
+      ...prev,
+      [activeTab]: null,
+    }));
   };
 
-  // Get status icon
   const getStatusIcon = (status) => {
     switch (status) {
       case "Rescheduled":
@@ -317,7 +299,6 @@ const BookingDetails = () => {
     }
   };
 
-  // Format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -327,7 +308,6 @@ const BookingDetails = () => {
     });
   };
 
-  // Truncate text
   const truncateText = (text, maxLength = 53) => {
     if (!text) return "No Reason Provided";
     return text.length > maxLength
@@ -335,7 +315,6 @@ const BookingDetails = () => {
       : text;
   };
 
-  // Skeleton loading for table rows
   const renderSkeletonRows = (count) => {
     return Array.from({ length: count }).map((_, index) => (
       <tr key={index}>
@@ -394,7 +373,6 @@ const BookingDetails = () => {
     ));
   };
 
-  // Initialize datepicker
   useEffect(() => {
     if (dropdownOpen) {
       $("#sandbox-container div")
@@ -409,7 +387,6 @@ const BookingDetails = () => {
     }
   }, [dropdownOpen]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -423,6 +400,91 @@ const BookingDetails = () => {
     };
   }, []);
 
+  // Get filtered counts for each tab
+  const getFilteredCounts = useMemo(() => {
+    const counts = {
+      bookings: pendingBookings.length,
+      inProgress: inProgress.length,
+      completed: completed.length,
+      canceled: canceled.length,
+    };
+
+    // Apply date filters to counts
+    Object.keys(selectedDates).forEach((tab) => {
+      if (selectedDates[tab]) {
+        const bookingsToFilter = {
+          bookings: pendingBookings,
+          inProgress: inProgress,
+          completed: completed,
+          canceled: canceled,
+        }[tab];
+
+        counts[tab] = filterBookingsByDate(
+          selectedDates[tab],
+          bookingsToFilter
+        ).length;
+      }
+    });
+
+    // Apply status filter to inProgress tab
+    if (statusFilter.inProgress !== "All") {
+      counts.inProgress = filterBookingsByDate(
+        selectedDates.inProgress,
+        inProgress
+      ).filter((b) => b.status === statusFilter.inProgress).length;
+    }
+
+    // Apply rating filter to completed tab
+    if (ratingFilter !== "All") {
+      counts.completed = filterBookingsByDate(
+        selectedDates.completed,
+        completed
+      ).filter((b) => {
+        if (ratingFilter === "No Rating") return !ratings[b.id];
+        return ratings[b.id] === parseInt(ratingFilter, 10);
+      }).length;
+    }
+
+    return counts;
+  }, [
+    pendingBookings,
+    inProgress,
+    completed,
+    canceled,
+    selectedDates,
+    statusFilter.inProgress,
+    ratingFilter,
+    ratings,
+    filterBookingsByDate,
+  ]);
+
+  // Determine column classes based on active tab
+  const getColumnClasses = () => {
+    const baseClasses = "text-left align-middle";
+
+    if (activeTab === "bookings") {
+      return {
+        service: `${baseClasses} col-md-2 col-3`, // Service column
+        name: `${baseClasses} col-md-2 col-2`, // Name column
+        contact: `${baseClasses} col-md-1 col-2`, // Contact column
+        address: `${baseClasses} col-md-3 col-3`, // Address column
+        date: `${baseClasses} col-md-2 col-2`, // Date column
+        action: `${baseClasses} col-md-2 col-2`, // Action column
+      };
+    } else {
+      return {
+        service: `${baseClasses} col-md-2 col-3`, // Service column
+        name: `${baseClasses} col-md-2 col-2`, // Name column
+        worker: `${baseClasses} col-md-2 col-2`, // Worker column
+        date: `${baseClasses} col-md-2 col-2`, // Date column
+        status: `${baseClasses} col-md-2 col-2`, // Status/Reason column
+        action: `${baseClasses} col-md-2 col-2`, // Action column
+      };
+    }
+  };
+
+  const columnClasses = getColumnClasses();
+
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
@@ -432,7 +494,10 @@ const BookingDetails = () => {
           <div className="navigation-barr d-flex gap-3 py-3 bg-white border-bottom w-100">
             <div
               className={`section ${activeTab === "bookings" ? "active" : ""}`}
-              onClick={() => setActiveTab("bookings")}
+              onClick={() => {
+                setActiveTab("bookings");
+                navigate("/booking-details?tab=bookings");
+              }}
             >
               Bookings{" "}
               {!initialLoad && (
@@ -442,7 +507,7 @@ const BookingDetails = () => {
                 >
                   {activeTab === "bookings"
                     ? filteredBookings.length
-                    : pendingBookings.length}
+                    : getFilteredCounts.bookings}
                 </span>
               )}
             </div>
@@ -450,7 +515,10 @@ const BookingDetails = () => {
               className={`section ${
                 activeTab === "inProgress" ? "active" : ""
               }`}
-              onClick={() => setActiveTab("inProgress")}
+              onClick={() => {
+                setActiveTab("inProgress");
+                navigate("/booking-details?tab=inProgress");
+              }}
             >
               In Progress{" "}
               {!initialLoad && (
@@ -460,13 +528,16 @@ const BookingDetails = () => {
                 >
                   {activeTab === "inProgress"
                     ? filteredBookings.length
-                    : inProgress.length}
+                    : getFilteredCounts.inProgress}
                 </span>
               )}
             </div>
             <div
               className={`section ${activeTab === "completed" ? "active" : ""}`}
-              onClick={() => setActiveTab("completed")}
+              onClick={() => {
+                setActiveTab("completed");
+                navigate("/booking-details?tab=completed");
+              }}
             >
               Completed{" "}
               {!initialLoad && (
@@ -476,13 +547,16 @@ const BookingDetails = () => {
                 >
                   {activeTab === "completed"
                     ? filteredBookings.length
-                    : completed.length}
+                    : getFilteredCounts.completed}
                 </span>
               )}
             </div>
             <div
               className={`section ${activeTab === "canceled" ? "active" : ""}`}
-              onClick={() => setActiveTab("canceled")}
+              onClick={() => {
+                setActiveTab("canceled");
+                navigate("/booking-details?tab=canceled");
+              }}
             >
               Canceled{" "}
               {!initialLoad && (
@@ -492,7 +566,7 @@ const BookingDetails = () => {
                 >
                   {activeTab === "canceled"
                     ? filteredBookings.length
-                    : canceled.length}
+                    : getFilteredCounts.canceled}
                 </span>
               )}
             </div>
@@ -509,7 +583,7 @@ const BookingDetails = () => {
                   position: "fixed",
                   top: "110px",
                   left: "40%",
-                 zIndex: 2000,
+                  zIndex: 2000,
                 }}
               >
                 <div className="mb-3">
@@ -527,93 +601,32 @@ const BookingDetails = () => {
                 </button>
               </div>
             ) : (
-              <table
-                className="booking-table table table-hover bg-white rounded shadow-sm"
-                style={{ borderRadius: "15px" }}
-              >
+              <table className="booking-table table table-hover bg-white rounded shadow-sm w-80 ">
                 <thead className="td-height">
                   <tr>
-                    <th
-                      className="p-3 text-left"
-                      style={{
-                        width:
-                          activeTab === "bookings"
-                            ? "20%"
-                            : activeTab === "inProgress"
-                            ? "19.4%"
-                            : activeTab === "completed"
-                            ? "19.8%"
-                            : activeTab === "canceled"
-                            ? "18.7%"
-                            : "20%",
-                      }}
-                    >
-                      Service
-                    </th>
+                    <th className={`p-3 ${columnClasses.service}`}>Service</th>
 
-                    <th
-                      className="p-3 text-left"
-                      style={{
-                        width:
-                          activeTab === "bookings"
-                            ? "13.8%"
-                            : activeTab === "completed"
-                            ? "15.3%"
-                            : activeTab === "inProgress"
-                            ? "14.4%"
-                            : activeTab === "canceled"
-                            ? "16.9%"
-                            : "13.8%",
-                      }}
-                    >
-                      Name
-                    </th>
+                    <th className={`p-3 ${columnClasses.name}`}>Name</th>
 
                     {activeTab === "inProgress" ||
                     activeTab === "completed" ||
                     activeTab === "canceled" ? (
-                      <th
-                        className="p-3 text-left"
-                        style={{
-                          width:
-                            activeTab === "completed"
-                              ? "15.8%"
-                              : activeTab === "inProgress"
-                              ? "15.5%"
-                              : activeTab === "canceled"
-                              ? "15.3%"
-                              : "16%",
-                        }}
-                      >
-                        Worker
-                      </th>
+                      <th className={`p-3 ${columnClasses.worker}`}>Worker</th>
                     ) : (
                       <>
-                        <th className="p-3 text-left" style={{ width: "12%" }}>
+                        <th
+                          className={`p-3 ${columnClasses.contact}`}
+                          style={{ width: "200px" }}
+                        >
                           Contact
                         </th>
-                        <th className="p-3 text-left" style={{ width: "25%" }}>
+                        <th className={`p-3 ${columnClasses.address}`}>
                           Address
                         </th>
                       </>
                     )}
 
-                    <th
-                      className="text-left"
-                      style={{
-                        width:
-                          activeTab === "bookings"
-                            ? "14%"
-                            : activeTab === "inProgress"
-                            ? "14%"
-                            : activeTab === "completed"
-                            ? "15%"
-                            : activeTab === "canceled"
-                            ? "14%"
-                            : "14%",
-                        padding: "14px",
-                      }}
-                    >
+                    <th className={`p-3 ${columnClasses.date}`}>
                       Date
                       {!initialLoad && (
                         <>
@@ -634,12 +647,7 @@ const BookingDetails = () => {
                               </div>
                             )}
                           </div>
-                          {(activeTab === "bookings" && selectedDateBookings) ||
-                          (activeTab === "inProgress" &&
-                            selectedDateInProgress) ||
-                          (activeTab === "completed" &&
-                            selectedDateCompleted) ||
-                          (activeTab === "canceled" && selectedDateCanceled) ? (
+                          {selectedDates[activeTab] ? (
                             <img
                               src={closeDate}
                               alt="Close Date Filter"
@@ -653,20 +661,7 @@ const BookingDetails = () => {
                     </th>
 
                     {activeTab !== "bookings" && (
-                      <th
-                        className=" text-left"
-                        style={{
-                          width:
-                            activeTab === "inProgress"
-                              ? "15%"
-                              : activeTab === "completed"
-                              ? "15%"
-                              : activeTab === "canceled"
-                              ? "15%"
-                              : "15%",
-                          padding: activeTab === "canceled" ? "16px" : "10px",
-                        }}
-                      >
+                      <th className={`p-3 ${columnClasses.status}`}>
                         {initialLoad ? (
                           <Skeleton width={100} />
                         ) : activeTab === "inProgress" ? (
@@ -690,7 +685,7 @@ const BookingDetails = () => {
                               }}
                             >
                               Status:&nbsp;
-                              {statusFilter}
+                              {statusFilter.inProgress}
                             </button>
                             <ul
                               className="dropdown-menu"
@@ -705,7 +700,12 @@ const BookingDetails = () => {
                                 <li key={status}>
                                   <button
                                     className="dropdown-item p-2"
-                                    onClick={() => setStatusFilter(status)}
+                                    onClick={() =>
+                                      setStatusFilter((prev) => ({
+                                        ...prev,
+                                        inProgress: status,
+                                      }))
+                                    }
                                   >
                                     {status}
                                   </button>
@@ -766,7 +766,7 @@ const BookingDetails = () => {
                       </th>
                     )}
 
-                    <th className="p-3 text-left" style={{ width: "10%" }}></th>
+                    <th className={`p-3 ${columnClasses.action}`}></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -774,21 +774,18 @@ const BookingDetails = () => {
                     renderSkeletonRows(5)
                   ) : filteredBookings.length > 0 ? (
                     filteredBookings.map((booking) => (
-                      <tr key={booking.id}>
-                        <td
-                          className="p-3 text-left"
-                          style={{
-                            width:
-                              activeTab === "bookings"
-                                ? "20%"
-                                : activeTab === "canceled"
-                                ? "18.8%"
-                                : activeTab === "completed" ||
-                                  activeTab === "inProgress"
-                                ? "19.2%"
-                                : "20%",
-                          }}
-                        >
+                      <tr
+                        key={booking.id}
+                        style={
+                          booking.isDeletedUser
+                            ? {
+                                textDecoration: "line-through",
+                                color: "#6c757d",
+                              }
+                            : {}
+                        }
+                      >
+                        <td className={`p-3 ${columnClasses.service}`}>
                           <div className="d-flex align-items-center gap-2">
                             <div
                               className="rounded-circle"
@@ -810,22 +807,14 @@ const BookingDetails = () => {
                           </div>
                         </td>
 
-                        <td
-                          className="p-3 text-left"
-                          style={{
-                            width:
-                              activeTab === "bookings"
-                                ? "13.8%"
-                                : activeTab === "canceled"
-                                ? "17%"
-                                : activeTab === "completed"
-                                ? "15%"
-                                : activeTab === "inProgress"
-                                ? "14.5%"
-                                : "13.8%",
-                          }}
-                        >
-                          {booking.name} <br />
+                        <td className={`p-3 ${columnClasses.name}`}>
+                          {booking.name}
+                          {booking.isDeletedUser && (
+                            <span className="badge bg-danger ms-1">
+                              Deleted User
+                            </span>
+                          )}
+                          <br />
                           {(activeTab === "inProgress" ||
                             activeTab === "completed" ||
                             activeTab === "canceled") && (
@@ -836,24 +825,11 @@ const BookingDetails = () => {
                         {activeTab === "inProgress" ||
                         activeTab === "completed" ||
                         activeTab === "canceled" ? (
-                          <td
-                            className="p-3 text-left"
-                            style={{
-                              width:
-                                activeTab === "canceled"
-                                  ? "15%"
-                                  : activeTab === "completed" ||
-                                    activeTab === "inProgress"
-                                  ? "15%"
-                                  : "16%",
-                            }}
-                          >
+                          <td className={`p-3 ${columnClasses.worker}`}>
                             {booking.worker ? (
                               <>
-                                <p className="mb-0 ">{booking.worker.name}</p>
-                                <p className="mb-0 ">
-                                  {booking.worker.contact}
-                                </p>
+                                <p className="mb-0">{booking.worker.name}</p>
+                                <p className="mb-0">{booking.worker.contact}</p>
                               </>
                             ) : (
                               <p className="text-muted">Not Assigned</p>
@@ -862,47 +838,24 @@ const BookingDetails = () => {
                         ) : (
                           <>
                             <td
-                              className="p-3 text-left"
-                              style={{ width: "12%" }}
+                              className={`p-3 ${columnClasses.contact}`}
+                              style={{ width: "200px" }}
                             >
                               {booking.contact}
                             </td>
-                            <td
-                              className="p-3 text-left"
-                              style={{ width: "25%" }}
-                            >
+                            <td className={`p-3 ${columnClasses.address}`}>
                               {booking.address}
                             </td>
                           </>
                         )}
 
-                        <td
-                          className="p-3 text-left"
-                          style={{
-                            width:
-                              activeTab === "bookings"
-                                ? "14%"
-                                : activeTab === "completed"
-                                ? "14%"
-                                : activeTab === "inProgress" ||
-                                  activeTab === "canceled"
-                                ? "14%"
-                                : "14%",
-                          }}
-                        >
+                        <td className={`p-3 ${columnClasses.date}`}>
                           {formatDate(booking.date)} <br />
                           <span>{booking.timeslot}</span>
                         </td>
 
                         {activeTab !== "bookings" && (
-                          <td
-                            className="p-3 text-left"
-                            style={{
-                              width: "15%",
-                              maxWidth: "200px",
-                              overflow: "hidden",
-                            }}
-                          >
+                          <td className={`p-3 ${columnClasses.status}`}>
                             {activeTab === "inProgress" ? (
                               <img
                                 src={
@@ -936,7 +889,7 @@ const BookingDetails = () => {
                           </td>
                         )}
 
-                        <td className="p-3 text-left" style={{ width: "10%" }}>
+                        <td className={`p-3 ${columnClasses.action}`}>
                           {activeTab === "inProgress" ||
                           activeTab === "completed" ||
                           activeTab === "canceled" ? (
@@ -951,7 +904,10 @@ const BookingDetails = () => {
                                 navigate(
                                   `/booking-details/view-bookings/${booking.id}`,
                                   {
-                                    state: { booking },
+                                    state: {
+                                      booking,
+                                      previousTab: activeTab,
+                                    },
                                   }
                                 )
                               }
@@ -970,10 +926,14 @@ const BookingDetails = () => {
                                 navigate(
                                   `/booking-details/assign-bookings/${booking.id}`,
                                   {
-                                    state: { booking },
+                                    state: {
+                                      booking,
+                                      previousTab: activeTab,
+                                    },
                                   }
                                 )
                               }
+                              disabled={booking.isDeletedUser}
                             >
                               Assign
                             </button>
@@ -996,14 +956,13 @@ const BookingDetails = () => {
                           />
                           <h5 className="text-muted">No bookings found</h5>
                           <p className="text-muted">
-                            {selectedDateBookings ||
-                            selectedDateInProgress ||
-                            selectedDateCompleted ||
-                            selectedDateCanceled
+                            {selectedDates[activeTab]
                               ? "No bookings match your selected filters."
-                              : statusFilter !== "All"
-                              ? `No ${statusFilter.toLowerCase()} bookings available.`
-                              : ratingFilter !== "All"
+                              : activeTab === "inProgress" &&
+                                statusFilter.inProgress !== "All"
+                              ? `No ${statusFilter.inProgress.toLowerCase()} bookings available.`
+                              : activeTab === "completed" &&
+                                ratingFilter !== "All"
                               ? `No bookings with ${
                                   ratingFilter === "No Rating"
                                     ? "no rating"
