@@ -110,7 +110,7 @@
 .booking-table tbody {
     display: block;
     overflow-y: auto;
-    max-height: 490px;
+    max-height: 438px;
 }
 
 .booking-table tr {

@@ -1,54 +1,239 @@
-import React, { useState } from "react";
-import { FaClipboardList, FaCheckCircle, FaTimesCircle, FaUsers} from "react-icons/fa";
+import React, { useState, useEffect } from "react";
+import { FaClipboardList, FaCheckCircle, FaTimesCircle, FaUsers } from "react-icons/fa";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "../styles/Dashboard.css";
 import Header from "./Header";
+import uparrow from "../assets/primary.jpg";
+import downarrow from "../assets/primary.png";
+import neutralarrow from "../assets/neutral.png";
+import api from "../api";
+
+// Skeleton components
+const CardSkeleton = () => (
+    <div className="card mb-2 skeleton-card" style={{ height: "140px" }}>
+        <div className="card-body p-2">
+            
+            <div className="d-flex justify-content-between mt-3">
+                <div className="skeleton-text-sm"></div>
+                <div className="skeleton-text-sm" style={{ width: '30%' }}></div>
+            </div>
+        </div>
+    </div>
+);
+
+const ChartSkeleton = () => (
+    <div className="card" style={{ height: "325px" }}>
+        <div className="skeleton-text" style={{ width: '60%', margin: '20px' }}></div>
+        <div className="skeleton-chart"></div>
+    </div>
+);
+
+const TableSkeleton = () => (
+    <div className="card p-2" style={{ height: "325px", overflow: "hidden" }}>
+        <div style={{ height: "290px", overflowY: "auto" }}>
+            <table className="table table-borderless" style={{ width: "100%" }}>
+                <thead style={{ position: "sticky", top: 0, background: "#fff", zIndex: 10 }}>
+                    <tr style={{ lineHeight: "0.7" }}>
+                        <th className="text-muted">Service Name</th>
+                        <th className="text-muted">Services</th>
+                        <th className="text-muted">Booking (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {[...Array(5)].map((_, index) => (
+                        <tr key={index}>
+                            <td><div className="skeleton-text" style={{ width: '80%' }}></div></td>
+                            <td><div className="skeleton-text" style={{ width: '40%' }}></div></td>
+                            <td><div className="skeleton-text" style={{ width: '40%' }}></div></td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    </div>
+);
 
 const Dashboard = () => {
     const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1; // Month is 0-based
+    const currentMonth = new Date().getMonth() + 1;
 
     const [selectedYear, setSelectedYear] = useState(currentYear.toString());
     const [analyticsYear, setAnalyticsYear] = useState(currentYear.toString());
     const [mostBookingYear, setMostBookingYear] = useState(currentYear.toString());
     const [mostBookingMonth, setMostBookingMonth] = useState(currentMonth.toString());
 
-    const stats = [
-        { title: "Total Booking", count: 120, icon: <FaClipboardList />, borderColor: "#EA6C6E" },
-        { title: "Completed", count: 90, icon: <FaCheckCircle />, borderColor: "#EFA066" },
-        { title: "Cancelled", count: 15, icon: <FaTimesCircle />, borderColor: "#31DDFC" },
-        { title: "Total Workers", count: 25, icon: <FaUsers />, borderColor: "#1FA2FF" },
-    ];
+    const [bookingStats, setBookingStats] = useState(null);
+    const [workerStats, setWorkerStats] = useState(null);
+    const [monthlyStats, setMonthlyStats] = useState(null);
+    const [productStats, setProductStats] = useState(null);
 
-    // Generate years dynamically from 2020 to the current year
+    const [loadingStats, setLoadingStats] = useState(true);
+    const [loadingAnalytics, setLoadingAnalytics] = useState(true);
+    const [loadingProducts, setLoadingProducts] = useState(true);
+
     const years = [];
     for (let year = 2020; year <= currentYear; year++) {
         years.push(year);
     }
 
-    // Months array
     const months = [
         "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December"
     ];
 
-    // Sample data for Area Chart
-    const areaData = [
-        { month: "Jan", percentage: 10 },
-        { month: "Feb", percentage: 55 },
-        { month: "Mar", percentage: 35 },
-        { month: "Apr", percentage: 65 },
-        { month: "May", percentage: 50 },
-        { month: "Jun", percentage: 70 },
-        { month: "Jul", percentage: 60 },
-        { month: "Aug", percentage: 80 },
-        { month: "Sep", percentage: 45 },
-        { month: "Oct", percentage: 78 },
-        { month: "Nov", percentage: 65 },
-        { month: "Dec", percentage: 90 },
+    // Fetch stats data (cards)
+    useEffect(() => {
+        const fetchStatsData = async () => {
+            try {
+                setLoadingStats(true);
+                const [bookingRes, workerRes] = await Promise.all([
+                    api.get(`/booking/statistics-by-year?year=${selectedYear}`),
+                    api.get(`/workers/count/active-by-year?year=${selectedYear}`)
+                ]);
+                setBookingStats(bookingRes.data[selectedYear]);
+                setWorkerStats(workerRes.data[selectedYear]);
+                setLoadingStats(false);
+            } catch (error) {
+                console.error("Error fetching stats data:", error);
+                setLoadingStats(false);
+            }
+        };
+
+        fetchStatsData();
+    }, [selectedYear]);
+
+    // Fetch analytics data (chart)
+    useEffect(() => {
+        const fetchAnalyticsData = async () => {
+            try {
+                setLoadingAnalytics(true);
+                const monthlyRes = await api.get(`/booking/monthly-stats?year=${analyticsYear}`);
+                setMonthlyStats(monthlyRes.data);
+                setLoadingAnalytics(false);
+            } catch (error) {
+                console.error("Error fetching analytics data:", error);
+                setLoadingAnalytics(false);
+            }
+        };
+
+        fetchAnalyticsData();
+    }, [analyticsYear]);
+
+    // Fetch product data (table)
+    useEffect(() => {
+        const fetchProductData = async () => {
+            try {
+                setLoadingProducts(true);
+                const productRes = await api.get(`/booking/monthly-product-stats?year=${mostBookingYear}&month=${mostBookingMonth}`);
+                setProductStats(productRes.data[`${mostBookingYear}-${mostBookingMonth.toString().padStart(2, '0')}`]);
+                setLoadingProducts(false);
+            } catch (error) {
+                console.error("Error fetching product data:", error);
+                setLoadingProducts(false);
+            }
+        };
+
+        fetchProductData();
+    }, [mostBookingYear, mostBookingMonth]);
+
+    // Prepare stats cards data
+    const stats = [
+        {
+            title: "Total Booking",
+            count: bookingStats?.totalBookings || 0,
+            icon: <FaClipboardList />,
+            borderColor: "#EA6C6E",
+            percentage: bookingStats?.percentageChange || 0,
+            pic: (bookingStats?.trend === "increase" || bookingStats?.trend === "no change") ? uparrow :
+                bookingStats?.trend === "decrease" ? downarrow : neutralarrow
+        },
+        {
+            title: "Completed",
+            count: bookingStats?.completedBookings || 0,
+            icon: <FaCheckCircle />,
+            borderColor: "#EFA066",
+            percentage: bookingStats?.percentageChange || 0,
+            pic: (bookingStats?.trend === "increase" || bookingStats?.trend === "no change") ? uparrow :
+                bookingStats?.trend === "decrease" ? downarrow : neutralarrow
+        },
+        {
+            title: "Cancelled",
+            count: bookingStats?.cancelledBookings || 0,
+            icon: <FaTimesCircle />,
+            borderColor: "#31DDFC",
+            percentage: bookingStats?.percentageChange || 0,
+            pic: (bookingStats?.trend === "increase" || bookingStats?.trend === "no change") ? uparrow :
+                bookingStats?.trend === "decrease" ? downarrow : neutralarrow
+        },
+        {
+            title: "Total Workers",
+            count: workerStats?.count || 0,
+            icon: <FaUsers />,
+            borderColor: "#1FA2FF",
+            percentage: workerStats?.percentage_change || 0,
+            pic: (bookingStats?.trend === "increase" || bookingStats?.trend === "no change") ? uparrow :
+                workerStats?.trend === "decrease" ? downarrow : neutralarrow
+        },
     ];
+
+    // Helper function to check if we have data for the selected year
+    const hasDataForSelectedYear = (stats, year) => {
+        if (!stats || !stats.monthlyStats) return false;
+
+        // Check if any month key starts with the selected year
+        return Object.keys(stats.monthlyStats).some(monthKey =>
+            monthKey.startsWith(year)
+        );
+    };
+
+    // Prepare area chart data
+    const prepareAreaData = () => {
+        const allMonthsData = [];
+
+        // Initialize all months with zero values
+        for (let i = 0; i < 12; i++) {
+            allMonthsData.push({
+                month: months[i].substring(0, 3),
+                percentage: 0,
+                services: 0
+            });
+        }
+
+        if (monthlyStats?.monthlyStats) {
+            Object.entries(monthlyStats.monthlyStats).forEach(([monthKey, data]) => {
+                // Only process data for the selected year
+                if (monthKey.startsWith(analyticsYear)) {
+                    const monthNum = parseInt(monthKey.split('-')[1]);
+                    if (monthNum >= 1 && monthNum <= 12) {
+                        allMonthsData[monthNum - 1] = {
+                            month: months[monthNum - 1].substring(0, 3),
+                            percentage: data.percentage,
+                            services: data.bookingsCount
+                        };
+                    }
+                }
+            });
+        }
+
+        return allMonthsData;
+    };
+
+    const areaData = prepareAreaData();
+
+    // Prepare most booking services data
+    const prepareProductData = () => {
+        if (!productStats) return [];
+
+        return Object.entries(productStats).map(([productKey, data]) => ({
+            productName: data.productName,
+            totalBookings: data.totalBookings,
+            percentage: data.percentage
+        })).sort((a, b) => b.percentage - a.percentage);
+    };
+
+    const productData = prepareProductData();
 
     // Custom Tooltip for Area Chart
     const CustomTooltip = ({ active, payload, label }) => {
@@ -83,16 +268,14 @@ const Dashboard = () => {
 
     return (
         <div>
-            
-            <Header/>
+            <Header />
 
-            {/* ✅ Dashboard Content */}
             <div className="container p-5">
                 {/* ✅ Manage Service Header with Year Dropdown */}
                 <div className="d-flex justify-content-between align-items-center mb-3" style={{ marginTop: "50px" }}>
                     <h4>Manage Service</h4>
                     <select
-                        className="form-select w-auto"
+                        className="form-select w-auto shadow-none"
                         value={selectedYear}
                         onChange={(e) => setSelectedYear(e.target.value)}
                     >
@@ -104,20 +287,38 @@ const Dashboard = () => {
 
                 {/* ✅ Cards Section */}
                 <div className="row mb-0">
-                    {stats.map((stat, index) => (
-                        <div key={index} className="col-md-3">
-                            <div
-                                className="card mb-2"
-                                style={{ borderTop: `4px solid ${stat.borderColor}`, height: "140px" }}
-                            >
-                                <div className="card-body p-2">
-                                    <div className="display-6 mb-1">{stat.icon}</div>
-                                    <h3 className="mb-1">{stat.count}</h3>
-                                    <h6 className="card-title fw-normal">{stat.title}</h6>
+                    {loadingStats ? (
+                        [...Array(4)].map((_, index) => (
+                            <div key={index} className="col-md-3">
+                                <CardSkeleton />
+                            </div>
+                        ))
+                    ) : (
+                        stats.map((stat, index) => (
+                            <div key={index} className="col-md-3">
+                                <div
+                                    className="card mb-2"
+                                    style={{ borderTop: `4px solid ${stat.borderColor}`, height: "140px" }}
+                                >
+                                    <div className="card-body p-2">
+                                        <div className="display-6 mb-1">{stat.icon}</div>
+                                        <h3 className="mb-1">{stat.count}</h3>
+                                        <div className="d-flex justify-content-between">
+                                            <h6 className="card-title fw-normal">{stat.title}</h6>
+                                            <div className="d-flex align-items-center gap-2">
+                                                {stat.pic === neutralarrow ? (
+                                                    <span className="mb-3" style={{ fontSize: '15px' }}></span>
+                                                ) : (
+                                                    <img className="mb-3" src={stat.pic} alt="" height={15} width={15} />
+                                                )}
+                                                <p>{stat.percentage}%</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
 
                 {/* ✅ Two Column Row: Analytics & Most Booking Services */}
@@ -127,7 +328,7 @@ const Dashboard = () => {
                         <div className="d-flex justify-content-between align-items-center">
                             <h4>Analytics</h4>
                             <select
-                                className="form-select w-auto mb-2"
+                                className="form-select w-auto mb-2 shadow-none"
                                 value={analyticsYear}
                                 onChange={(e) => setAnalyticsYear(e.target.value)}
                             >
@@ -136,28 +337,67 @@ const Dashboard = () => {
                                 ))}
                             </select>
                         </div>
-                        {/* Area Chart */}
-                        <div className="card" style={{ height: "325px" }}>
-                            <h6 className="mb-3 text-muted ms-5">Highest Service Month: <strong>Oct - Nov 86%, 26 Services</strong></h6>
-                            <ResponsiveContainer width="120%" height={340}>
-                                <AreaChart data={areaData} margin={{ top: 10 }} style={{ height: "280px", marginLeft: "-70px" }}>
-                                    <defs>
-                                        <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#1782D2" stopOpacity={0.8} />
-                                            <stop offset="95%" stopColor="#1782D2" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <XAxis dataKey="month" />
-                                    <YAxis
-                                        domain={[0, 100]}
-                                        ticks={[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}
-                                        interval={0}
-                                    />
-                                    <Tooltip content={<CustomTooltip />} />
-                                    <Area type="linear" dataKey="percentage" stroke="#1782D2" fillOpacity={1} fill="url(#colorUv)" />
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        </div>
+
+                        {loadingAnalytics ? (
+                            <ChartSkeleton />
+                        ) : (
+                            <div className="card" style={{ height: "325px" }}>
+                                {/* Check if we have data for the selected year */}
+                                {hasDataForSelectedYear(monthlyStats, analyticsYear) ? (
+                                    <>
+                                        {monthlyStats?.highestBookingMonth &&
+                                            monthlyStats.highestBookingMonth.month.startsWith(analyticsYear) && (
+                                                <h6 className="mb-3 text-muted ms-5">
+                                                    Highest Service Month: <strong>
+                                                        {months[parseInt(monthlyStats.highestBookingMonth.month.split('-')[1]) - 1]} -
+                                                        {monthlyStats.highestBookingMonth.percentage}%,
+                                                        {monthlyStats.highestBookingMonth.bookingsCount} Services
+                                                    </strong>
+                                                </h6>
+                                            )}
+                                        <ResponsiveContainer width="120%" height={340}>
+                                            <AreaChart
+                                                data={areaData}
+                                                margin={{ top: 10 }}
+                                                style={{ height: "280px", marginLeft: "-70px" }}
+                                            >
+                                                <defs>
+                                                    <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#1782D2" stopOpacity={0.8} />
+                                                        <stop offset="95%" stopColor="#1782D2" stopOpacity={0} />
+                                                    </linearGradient>
+                                                </defs>
+                                                <XAxis
+                                                    dataKey="month"
+                                                    ticks={areaData.map(item => item.month)}
+                                                />
+                                                <YAxis
+                                                    domain={[0, 100]}
+                                                    ticks={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}
+                                                    interval={0}
+                                                />
+                                                <Tooltip content={<CustomTooltip />} />
+                                                <Area
+                                                    type="spline"
+                                                    dataKey="percentage"
+                                                    stroke="#1782D2"
+                                                    fillOpacity={1}
+                                                    fill="url(#colorUv)"
+                                                    connectNulls={true}
+                                                />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </>
+                                ) : (
+                                    <div className="d-flex justify-content-center align-items-center" style={{ height: "100%" }}>
+                                        <div className="text-center">
+                                            <h5>No data available for {analyticsYear}</h5>
+                                            <p className="text-muted">Please select another year</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* 🔹 Most Booking Services Section */}
@@ -166,7 +406,7 @@ const Dashboard = () => {
                             <h4 className="fs-5">Most Booking Services</h4>
                             <div className="d-flex">
                                 <select
-                                    className="form-select me-2 w-auto"
+                                    className="form-select me-2 w-auto shadow-none"
                                     value={mostBookingMonth}
                                     onChange={(e) => setMostBookingMonth(e.target.value)}
                                 >
@@ -175,7 +415,7 @@ const Dashboard = () => {
                                     ))}
                                 </select>
                                 <select
-                                    className="form-select w-auto"
+                                    className="form-select w-auto shadow-none"
                                     value={mostBookingYear}
                                     onChange={(e) => setMostBookingYear(e.target.value)}
                                 >
@@ -185,32 +425,38 @@ const Dashboard = () => {
                                 </select>
                             </div>
                         </div>
-                        {/* Table for Most Booking Services */}
-                        <div className="card p-2" style={{ height: "325px", overflow: "hidden" }}>
-                            <div style={{ height: "290px" }}>
-                                <table className="table table-borderless" style={{ width: "100%" }}>
-                                    <thead style={{ position: "sticky", top: 0, background: "#fff", zIndex: 10 }}>
-                                        <tr style={{ lineHeight: "0.7" }}>
-                                            <th className="text-muted">Service Name</th>
-                                            <th className="text-muted">Services</th>
-                                            <th className="text-muted">Booking (%)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr><td>1. Plumbing</td><td>35</td><td>78%</td></tr>
-                                        <tr><td>2. Electrical</td><td>26</td><td>82%</td></tr>
-                                        <tr><td>3. Cleaning</td><td>18</td><td>65%</td></tr>
-                                        <tr><td>4. Painting</td><td>15</td><td>90%</td></tr>
-                                        <tr><td>5. Painting</td><td>15</td><td>90%</td></tr>
-                                        <tr><td>6. Painting</td><td>15</td><td>90%</td></tr>
-                                        <tr><td>7. Painting</td><td>15</td><td>90%</td></tr>
-                                        <tr><td>8. Painting</td><td>15</td><td>90%</td></tr>
-                                        <tr><td>9. Painting</td><td>15</td><td>90%</td></tr>
-                                        <tr><td>10. Painting</td><td>15</td><td>90%</td></tr>
-                                    </tbody>
-                                </table>
+
+                        {loadingProducts ? (
+                            <TableSkeleton />
+                        ) : (
+                            <div className="card p-2" style={{ height: "325px", overflow: "hidden" }}>
+                                <div style={{ height: "290px", overflowY: "auto" }}>
+                                    <table className="table table-borderless" style={{ width: "100%" }}>
+                                        <thead style={{ position: "sticky", top: 0, background: "#fff", zIndex: 10 }}>
+                                            <tr style={{ lineHeight: "0.7" }}>
+                                                <th className="text-muted">Service Name</th>
+                                                <th className="text-muted">Services</th>
+                                                <th className="text-muted">Booking (%)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {productData.map((product, index) => (
+                                                <tr key={index}>
+                                                    <td>{index + 1}. {product.productName}</td>
+                                                    <td>{product.totalBookings}</td>
+                                                    <td>{product.percentage.toFixed(2)}%</td>
+                                                </tr>
+                                            ))}
+                                            {productData.length === 0 && (
+                                                <tr className="text-center">
+                                                    <td colSpan="12">No data available</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>

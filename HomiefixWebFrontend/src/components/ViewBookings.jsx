@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "./Header";
 import Reschedule from "./Reschedule";
 import CancelBooking from "./CancelBooking";
@@ -8,9 +8,11 @@ import api from "../api";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
+
 const ViewBookings = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [booking, setBooking] = useState(null);
   const [worker, setWorker] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,6 +32,7 @@ const ViewBookings = () => {
   const [allWorkers, setAllWorkers] = useState([]);
   const [refresh, setRefresh] = useState(false);
 
+
   const formatDate = (dateString) => {
     if (!dateString) return "Not Assigned";
     const date = new Date(dateString);
@@ -40,6 +43,33 @@ const ViewBookings = () => {
     });
   };
 
+
+  const handleGoBack = () => {
+    if (!booking) {
+      navigate(-1); // Fallback if booking data isn't loaded
+      return;
+    }
+
+
+    const previousTab = location.state?.previousTab ||
+      (() => {
+        switch (booking.bookingStatus) {
+          case "COMPLETED":
+            return "completed";
+          case "CANCELLED":
+            return "canceled";
+          case "ASSIGNED":
+          case "RESCHEDULED":
+          case "STARTED":
+            return "inProgress";
+          default:
+            return "bookings";
+        }
+      })();
+
+
+    navigate(`/booking-details?tab=${previousTab}`);
+  };
   const fetchAllWorkers = async () => {
     try {
       const response = await api.get("/workers/view");
@@ -49,18 +79,22 @@ const ViewBookings = () => {
     }
   };
 
+
   const fetchBookingDetails = async () => {
     try {
-      setLoading(true);
       const { data } = await api.get(`/booking/${id}`);
+      console.log("API Response:", data); // Debugging line
       setBooking(data);
-      setNotes(data.notes || "No additional notes provided.");
+      setNotes(data.notes || "");
+
 
       if (data.worker) {
         setWorker(data.worker);
       } else if (data.workerId) {
         try {
-          const workerResponse = await api.get(`/workers/view/${data.workerId}`);
+          const workerResponse = await api.get(
+            `/workers/view/${data.workerId}`
+          );
           if (workerResponse.data && workerResponse.data.active) {
             setWorker(workerResponse.data);
             setWorkerError(null);
@@ -76,6 +110,7 @@ const ViewBookings = () => {
         }
       }
 
+
       await fetchFeedback(data.id, data.bookedDate);
     } catch (err) {
       console.error("Error fetching booking details:", err);
@@ -84,6 +119,7 @@ const ViewBookings = () => {
       setLoading(false);
     }
   };
+
 
   const fetchFeedback = async (bookingId, bookingDate) => {
     try {
@@ -99,15 +135,19 @@ const ViewBookings = () => {
     }
   };
 
+
   const saveNotes = async () => {
     const trimmedNotes = notes.trim();
+
 
     if (trimmedNotes === "No additional notes provided." || !trimmedNotes) {
       alert("Please enter valid notes before saving");
       return;
     }
 
+
     setSaving(true);
+
 
     try {
       await api.patch(
@@ -123,7 +163,14 @@ const ViewBookings = () => {
     }
   };
 
-  const handleStatusUpdate = async (newStatus, startedDate, startedTime, completedDate, completedTime) => {
+
+  const handleStatusUpdate = async (
+    newStatus,
+    startedDate,
+    startedTime,
+    completedDate,
+    completedTime
+  ) => {
     try {
       // Prepare the data to send to the backend
       const updateData = {
@@ -131,8 +178,9 @@ const ViewBookings = () => {
         serviceStartedDate: startedDate,
         serviceStartedTime: startedTime,
         serviceCompletedDate: completedDate,
-        serviceCompletedTime: completedTime
+        serviceCompletedTime: completedTime,
       };
+
 
       const response = await api.put(
         `/booking/update-status/${id}?status=${newStatus}` +
@@ -140,24 +188,27 @@ const ViewBookings = () => {
         `&serviceCompletedDate=${completedDate}&serviceCompletedTime=${completedTime}`
       );
 
+
       if (response.status === 200) {
         // Update local state with the new status and dates
-        setBooking(prev => ({
+        setBooking((prev) => ({
           ...prev,
           bookingStatus: newStatus,
           serviceStartedDate: startedDate,
           serviceStartedTime: startedTime,
           serviceCompletedDate: completedDate,
-          serviceCompletedTime: completedTime
+          serviceCompletedTime: completedTime,
         }));
+
 
         // If status changed to COMPLETED and worker exists, increment their completed count
         if (newStatus === "COMPLETED" && worker) {
-          setWorker(prev => ({
+          setWorker((prev) => ({
             ...prev,
-            totalWorkAssigned: (prev.totalWorkAssigned || 0) + 1
+            totalWorkAssigned: (prev.totalWorkAssigned || 0) + 1,
           }));
         }
+
 
         return true;
       }
@@ -168,31 +219,37 @@ const ViewBookings = () => {
     }
   };
 
+
   const handleRescheduleButtonClick = () => {
     setIsRescheduleModalOpen(true);
   };
 
+
   const closeRescheduleModal = () => {
     setIsRescheduleModalOpen(false);
   };
+
 
   const handleRescheduleSuccess = () => {
     closeRescheduleModal();
     setRefresh(!refresh); // Trigger a refresh of booking data
   };
 
+
   const handleCancelBookingButtonClick = () => {
     setShowCancelBookingModal(true);
   };
+
 
   const handleCancelBookingSuccess = () => {
     setShowCancelBookingModal(false);
     setRefresh(!refresh); // Trigger a refresh of booking data
   };
 
+
   const handleViewWorkerProfile = async (e, workerId) => {
     e.preventDefault();
-    const workerExists = allWorkers.some(w => w.id === workerId && w.active);
+    const workerExists = allWorkers.some((w) => w.id === workerId && w.active);
     if (!workerExists || workerError) {
       alert("This worker profile is no longer available");
     } else {
@@ -200,12 +257,15 @@ const ViewBookings = () => {
     }
   };
 
+
   useEffect(() => {
     fetchAllWorkers();
     fetchBookingDetails();
   }, [id, refresh]);
 
+
   if (error) return <p className="text-danger">{error}</p>;
+
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -217,7 +277,7 @@ const ViewBookings = () => {
               <button
                 className="btn btn-light p-2"
                 style={{ marginBottom: "-20px" }}
-                onClick={() => navigate(-1)}
+                onClick={handleGoBack}
               >
                 <i
                   className="bi bi-arrow-left"
@@ -232,37 +292,46 @@ const ViewBookings = () => {
                 Service Details
               </div>
             </div>
-            {!loading && booking && !["CANCELLED", "COMPLETED"].includes(booking.bookingStatus) && (
-              <div className="d-flex gap-3 p-2" style={{ marginRight: "300px" }}>
-                <button
-                  className="btn btn-outline-primary"
-                  onClick={handleRescheduleButtonClick}
-                  onMouseEnter={() => setIsRescheduleHovered(true)}
-                  onMouseLeave={() => setIsRescheduleHovered(false)}
-                  style={{
-                    border: "1px solid #0076CE",
-                    backgroundColor: isRescheduleHovered ? "#0076CE" : "transparent",
-                    color: isRescheduleHovered ? "white" : "#0076CE",
-                  }}
+            {!loading &&
+              booking &&
+              !["CANCELLED", "COMPLETED"].includes(booking.bookingStatus) && (
+                <div
+                  className="d-flex gap-3 p-2"
+                  style={{ marginRight: "300px" }}
                 >
-                  Reschedule
-                </button>
-                <button
-                  className="btn btn-outline-danger"
-                  onClick={handleCancelBookingButtonClick}
-                  onMouseEnter={() => setIsCancelHovered(true)}
-                  onMouseLeave={() => setIsCancelHovered(false)}
-                  style={{
-                    border: "1px solid #B8141A",
-                    backgroundColor: isCancelHovered ? "#B8141A" : "transparent",
-                    color: isCancelHovered ? "white" : "#B8141A",
-                    transition: "all 0.3s ease-in-out",
-                  }}
-                >
-                  Cancel Service
-                </button>
-              </div>
-            )}
+                  <button
+                    className="btn btn-outline-primary"
+                    onClick={handleRescheduleButtonClick}
+                    onMouseEnter={() => setIsRescheduleHovered(true)}
+                    onMouseLeave={() => setIsRescheduleHovered(false)}
+                    style={{
+                      border: "1px solid #0076CE",
+                      backgroundColor: isRescheduleHovered
+                        ? "#0076CE"
+                        : "transparent",
+                      color: isRescheduleHovered ? "white" : "#0076CE",
+                    }}
+                  >
+                    Reschedule
+                  </button>
+                  <button
+                    className="btn btn-outline-danger"
+                    onClick={handleCancelBookingButtonClick}
+                    onMouseEnter={() => setIsCancelHovered(true)}
+                    onMouseLeave={() => setIsCancelHovered(false)}
+                    style={{
+                      border: "1px solid #B8141A",
+                      backgroundColor: isCancelHovered
+                        ? "#B8141A"
+                        : "transparent",
+                      color: isCancelHovered ? "white" : "#B8141A",
+                      transition: "all 0.3s ease-in-out",
+                    }}
+                  >
+                    Cancel Service
+                  </button>
+                </div>
+              )}
           </div>
           <div className="container mt-5 pt-4">
             <div className="row justify-content-between p-3 mt-5">
@@ -271,7 +340,12 @@ const ViewBookings = () => {
                 <div className="d-flex align-items-center">
                   {loading ? (
                     <>
-                      <Skeleton circle width={50} height={50} className="me-3" />
+                      <Skeleton
+                        circle
+                        width={50}
+                        height={50}
+                        className="me-3"
+                      />
                       <div>
                         <Skeleton width={180} height={20} className="mb-1" />
                         <Skeleton width={100} height={16} />
@@ -280,7 +354,10 @@ const ViewBookings = () => {
                   ) : (
                     <>
                       <img
-                        src={booking?.productImage || "https://via.placeholder.com/50"}
+                        src={
+                          booking?.productImage ||
+                          "https://via.placeholder.com/50"
+                        }
                         alt="Service"
                         className="me-3 rounded"
                         style={{ width: 50, height: 50 }}
@@ -294,6 +371,7 @@ const ViewBookings = () => {
                     </>
                   )}
                 </div>
+
 
                 {/* Customer Details */}
                 <div className="mt-2">
@@ -317,9 +395,12 @@ const ViewBookings = () => {
                       </p>
                       <p className="mb-1">
                         <i className="bi bi-calendar-event me-2"></i>{" "}
-                        {booking?.rescheduledDate && booking?.rescheduledTimeSlot
-                          ? `${formatDate(booking.rescheduledDate)} | ${booking.rescheduledTimeSlot}`
-                          : `${formatDate(booking?.bookedDate)} | ${booking?.timeSlot}`}
+                        {booking?.rescheduledDate &&
+                          booking?.rescheduledTimeSlot
+                          ? `${formatDate(booking.rescheduledDate)} | ${booking.rescheduledTimeSlot
+                          }`
+                          : `${formatDate(booking?.bookedDate)} | ${booking?.timeSlot
+                          }`}
                       </p>
                       <p className="mb-1">
                         <i className="bi bi-geo-alt me-2"></i>
@@ -333,8 +414,12 @@ const ViewBookings = () => {
                   )}
                 </div>
 
+
                 {/* Notes Section */}
-                <div className="border rounded p-3 mt-2" style={{ height: "110px" }}>
+                <div
+                  className="border rounded p-3 mt-2"
+                  style={{ height: "110px" }}
+                >
                   {loading ? (
                     <>
                       <Skeleton width={100} height={20} className="mb-2" />
@@ -342,8 +427,13 @@ const ViewBookings = () => {
                     </>
                   ) : (
                     <>
-                      <div className="d-flex justify-content-between align-items-center" style={{ marginTop: "-8px" }}>
-                        <h6 className="m-0" style={{ color: "#808080" }}>Notes</h6>
+                      <div
+                        className="d-flex justify-content-between align-items-center"
+                        style={{ marginTop: "-8px" }}
+                      >
+                        <h6 className="m-0" style={{ color: "#808080" }}>
+                          Notes
+                        </h6>
                       </div>
                       <div className="position-relative">
                         <textarea
@@ -364,16 +454,26 @@ const ViewBookings = () => {
                           readOnly={!isEditing}
                           required
                           onInvalid={(e) => {
-                            e.target.setCustomValidity('Please enter some notes');
+                            e.target.setCustomValidity(
+                              "Please enter some notes"
+                            );
                           }}
                           onInput={(e) => {
-                            e.target.setCustomValidity('');
-                            if (e.target.value.trim() === "No additional notes provided.") {
-                              e.target.setCustomValidity('Please enter valid notes');
+                            e.target.setCustomValidity("");
+                            if (
+                              e.target.value.trim() ===
+                              "No additional notes provided."
+                            ) {
+                              e.target.setCustomValidity(
+                                "Please enter valid notes"
+                              );
                             }
                           }}
                         />
-                        <div className="d-flex justify-content-end" style={{ marginTop: "-95px", marginRight: "5px" }}>
+                        <div
+                          className="d-flex justify-content-end"
+                          style={{ marginTop: "-95px", marginRight: "5px" }}
+                        >
                           {!isEditing ? (
                             <a
                               href="#"
@@ -389,11 +489,13 @@ const ViewBookings = () => {
                           ) : (
                             <a
                               href="#"
-                              className={`text-primary text-decoration-none ${saving ? "disabled" : ""}`}
+                              className={`text-primary text-decoration-none ${saving ? "disabled" : ""
+                                }`}
                               onClick={(e) => {
                                 e.preventDefault();
                                 if (!saving) {
-                                  const textarea = document.getElementById('notesText');
+                                  const textarea =
+                                    document.getElementById("notesText");
                                   if (textarea.reportValidity()) {
                                     saveNotes();
                                   }
@@ -413,12 +515,18 @@ const ViewBookings = () => {
                   )}
                 </div>
 
+
                 {/* Worker Details */}
                 <div className="mt-1">
                   <h6 style={{ fontWeight: "bold" }}>Worker Details</h6>
                   {loading ? (
                     <div className="d-flex align-items-center mt-2">
-                      <Skeleton circle width={80} height={80} className="me-3" />
+                      <Skeleton
+                        circle
+                        width={80}
+                        height={80}
+                        className="me-3"
+                      />
                       <div style={{ width: "100%" }}>
                         <Skeleton width="70%" height={18} className="mb-2" />
                         <Skeleton width="60%" height={18} className="mb-2" />
@@ -437,7 +545,10 @@ const ViewBookings = () => {
                     <>
                       <div className="d-flex align-items-center">
                         <img
-                          src={worker.profilePicUrl || "https://via.placeholder.com/50"}
+                          src={
+                            worker.profilePicUrl ||
+                            "https://via.placeholder.com/50"
+                          }
                           alt="Worker"
                           className="me-3 rounded"
                           style={{
@@ -457,15 +568,20 @@ const ViewBookings = () => {
                                 width: "50px",
                               }}
                             >
-                              <i className="bi bi-star-fill" style={{ color: "#FFD700" }}></i>
-                              {worker.averageRating?.toFixed(1) || "N/A"}
+                              <i
+                                className="bi bi-star-fill"
+                                style={{ color: "#FFD700" }}
+                              ></i>
+                              {worker.averageRating?.toFixed(1) || "4.5"}
                             </span>
                           </p>
                           <p className="mb-1">
-                            <i className="bi bi-telephone me-2"></i> {worker.contactNumber}
+                            <i className="bi bi-telephone me-2"></i>{" "}
+                            {worker.contactNumber}
                           </p>
                           <p className="mb-1">
-                            <i className="bi bi-geo-alt me-2"></i> {worker.houseNumber}, {worker.town},{" "}
+                            <i className="bi bi-geo-alt me-2"></i>{" "}
+                            {worker.houseNumber}, {worker.town},{" "}
                             {worker.district}, {worker.state}, {worker.pincode}
                           </p>
                         </div>
@@ -485,6 +601,7 @@ const ViewBookings = () => {
                     <p>No worker assigned yet.</p>
                   )}
                 </div>
+
 
                 {/* Customer Review */}
                 <div className="mt-1">
@@ -508,7 +625,10 @@ const ViewBookings = () => {
                             width: "50px",
                           }}
                         >
-                          <i className="bi bi-star-fill" style={{ color: "#FFD700" }}></i>{" "}
+                          <i
+                            className="bi bi-star-fill"
+                            style={{ color: "#FFD700" }}
+                          ></i>{" "}
                           {feedback.rating}
                         </span>
                         <span
@@ -532,8 +652,8 @@ const ViewBookings = () => {
                             whiteSpace: "normal",
                           }}
                         >
-                          {feedback.comment.split(' ').slice(0, 8).join(' ')}
-                          {feedback.comment.split(' ').length > 8 && (
+                          {feedback.comment.split(" ").slice(0, 8).join(" ")}
+                          {feedback.comment.split(" ").length > 8 && (
                             <>
                               ...{" "}
                               <span
@@ -558,6 +678,7 @@ const ViewBookings = () => {
                     <p>No feedback available.</p>
                   )}
                 </div>
+
 
                 {/* Full Comment Modal */}
                 {showFullComment && (
@@ -608,13 +729,29 @@ const ViewBookings = () => {
                 )}
               </div>
 
+
               {/* Status Management */}
               <div className="col-6">
                 {loading ? (
-                  <div className="card rounded p-4" style={{ marginTop: "47px", minHeight: "300px" }}>
-                    <Skeleton height={30} width="40%" style={{ marginBottom: "20px" }} />
-                    <Skeleton count={5} height={50} style={{ marginBottom: "10px" }} />
-                    <Skeleton height={40} width="100%" style={{ marginTop: "20px" }} />
+                  <div
+                    className="card rounded p-4"
+                    style={{ marginTop: "47px", minHeight: "300px" }}
+                  >
+                    <Skeleton
+                      height={30}
+                      width="40%"
+                      style={{ marginBottom: "20px" }}
+                    />
+                    <Skeleton
+                      count={5}
+                      height={50}
+                      style={{ marginBottom: "10px" }}
+                    />
+                    <Skeleton
+                      height={40}
+                      width="100%"
+                      style={{ marginTop: "20px" }}
+                    />
                   </div>
                 ) : (
                   <ManageStatus
@@ -626,6 +763,7 @@ const ViewBookings = () => {
                 )}
               </div>
             </div>
+
 
             {/* Modals */}
             {isRescheduleModalOpen && (
@@ -650,5 +788,6 @@ const ViewBookings = () => {
     </div>
   );
 };
+
 
 export default ViewBookings;
