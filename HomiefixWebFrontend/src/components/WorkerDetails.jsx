@@ -23,8 +23,8 @@ const WorkerDetails = ({ token, setToken }) => {
         const response = await api.get("/workers/view");
         const data = response.data;
         // Sort by joiningDate in descending order (newest first)
-        const sortedData = data.sort((a, b) => 
-          new Date(b.joiningDate) - new Date(a.joiningDate)
+        const sortedData = data.sort(
+          (a, b) => new Date(b.joiningDate) - new Date(a.joiningDate)
         );
         setWorkers(sortedData);
       } catch (error) {
@@ -100,12 +100,8 @@ const WorkerDetails = ({ token, setToken }) => {
       "Companion Support",
       "Home Nursing",
     ],
-    "Cleaning": [
-      "Cleaning",
-    ],
-    "CCTV": [
-      "CCTV",
-    ],
+    Cleaning: ["Cleaning"],
+    CCTV: ["CCTV"],
   };
 
   const handleFilterChange = (spec) => {
@@ -115,18 +111,19 @@ const WorkerDetails = ({ token, setToken }) => {
   };
 
   const filteredWorkers = workers
-  .filter((worker) =>
-    selectedSpecifications.length === 0 ||
-    selectedSpecifications.some((spec) =>
-      worker.specification
-        .split(",")
-        .map((s) => s.trim())
-        .includes(spec)
+    .filter(
+      (worker) =>
+        selectedSpecifications.length === 0 ||
+        selectedSpecifications.some((spec) =>
+          worker.specification
+            .split(",")
+            .map((s) => s.trim())
+            .includes(spec)
+        )
     )
-  )
-  // This sort is redundant since the original data is already sorted,
-  // but it ensures the order is maintained even if something changes
-  .sort((a, b) => new Date(b.joiningDate) - new Date(a.joiningDate));
+    // This sort is redundant since the original data is already sorted,
+    // but it ensures the order is maintained even if something changes
+    .sort((a, b) => new Date(b.joiningDate) - new Date(a.joiningDate));
 
   return (
     <div>
@@ -139,7 +136,7 @@ const WorkerDetails = ({ token, setToken }) => {
         >
           <h5
             className="px-3 pb-2 text-black mx-3"
-            style={{ borderBottom: "4px solid #000" }}
+            style={{ borderBottom: "3px solid #000" }}
           >
             Worker Details
           </h5>
@@ -172,7 +169,10 @@ const WorkerDetails = ({ token, setToken }) => {
             <div className="modal-lg-dialog" style={{ width: "81%" }}>
               <div className="modal-content">
                 <div className="modal-body">
-                  <div className="row flex-nowrap" style={{ overflowX: "auto" }}>
+                  <div
+                    className="row flex-nowrap"
+                    style={{ overflowX: "auto" }}
+                  >
                     {Object.entries(specifications).map(([category, specs]) => (
                       <div
                         key={category}
@@ -243,11 +243,21 @@ const WorkerDetails = ({ token, setToken }) => {
             }}
           >
             {error ? (
-              <div className="alert alert-danger text-center m-3">
+              <div
+                className="alert alert-danger text-center m-3"
+                style={{ width: "60%", margin: "auto", left: "18%" }}
+              >
+                <div className="mb-3">
+                  <i
+                    className="bi bi-wifi-off"
+                    style={{ fontSize: "2rem" }}
+                  ></i>
+                </div>
                 {error}
                 <button
-                  className="btn btn-sm btn-primary ms-3"
+                  className="btn  ms-3"
                   onClick={() => window.location.reload()}
+                  style={{ backgroundColor: "#0076CE", color: "white" }}
                 >
                   Retry
                 </button>

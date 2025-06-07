@@ -121,21 +121,27 @@ const Service = () => {
       <Header />
       <div
         className="container-fluid p-0 pt-5 scrollable-container"
-        style={{ overflowX: "hidden" }}
+        style={{ overflowX: "hidden", overflowY: "hidden" }}
       >
         {/* Service Header */}
-        <div className="d-flex justify-content-between border-bottom mt-5 mb-2">
+        <div className="d-flex justify-content-between border-bottom mt-4">
           <div className="d-flex gap-4 mx-4 align-items-center">
-            <span
-              className="bi bi-arrow-left fs-5"
-              onClick={() => navigate(-1)}
-              style={{ cursor: "pointer" }}
-            ></span>
+            <button
+            className="btn btn-light p-2"
+            style={{ marginBottom: "2px" }}
+            onClick={() => navigate(-1)}
+          >
+            <i
+              className="bi bi-arrow-left"
+              style={{ fontSize: "1.5rem", fontWeight: "bold" }}
+            ></i>
+          </button>
             <button
               className={`tab-btn ${
                 activeTab === "recent" ? "active-tab" : ""
               }`}
               onClick={() => setActiveTab("recent")}
+              style={{padding:"15px"}}
             >
               {serviceData.name}
             </button>

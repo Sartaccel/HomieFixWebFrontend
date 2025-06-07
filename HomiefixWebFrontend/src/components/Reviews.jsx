@@ -14,6 +14,7 @@ const Reviews = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [networkError, setNetworkError] = useState(false);
 
   const currentDate = new Date();
   const oneMonthAgo = new Date();
@@ -39,75 +40,77 @@ const Reviews = () => {
     "December",
   ];
 
-  useEffect(() => {
-    const fetchReviews = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await api.get("/feedback/all");
+  const fetchReviews = async () => {
+    setLoading(true);
+    setError(null);
+    setNetworkError(false);
+    try {
+      const response = await api.get("/feedback/all");
 
-        // Fetch booking details for each review in parallel
-        const reviewsWithService = await Promise.all(
-          response.data.map(async (review) => {
-            try {
-              // Assuming each feedback has a bookingId field
-              const bookingResponse = await api.get(
-                `/booking/${review.bookingId}`
-              );
-              const serviceName =
-                bookingResponse.data.productName || "General Service";
+      // Fetch booking details for each review in parallel
+      const reviewsWithService = await Promise.all(
+        response.data.map(async (review) => {
+          try {
+            // Assuming each feedback has a bookingId field
+            const bookingResponse = await api.get(
+              `/booking/${review.bookingId}`
+            );
+            const serviceName =
+              bookingResponse.data.productName || "General Service";
 
-              return {
-                id: review.id,
-                user: review.userProfile?.fullName || "Anonymous User",
-                service: serviceName, // Use the productName from booking
-                rating: review.rating,
-                review: review.comment,
-                date: new Date(review.reviewedDate).toLocaleDateString(
-                  "en-IN",
-                  {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  }
-                ),
-                profilePic: userProfile,
-              };
-            } catch (bookingError) {
-              console.error(
-                `Error fetching booking for review ${review.id}:`,
-                bookingError
-              );
-              // Fallback to worker's role if booking fetch fails
-              return {
-                id: review.id,
-                user: review.userProfile?.fullName || "Anonymous User",
-                service: review.worker?.role || "General Service",
-                rating: review.rating,
-                review: review.comment,
-                date: new Date(review.reviewedDate).toLocaleDateString(
-                  "en-IN",
-                  {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  }
-                ),
-                profilePic: userProfile,
-              };
-            }
-          })
+            return {
+              id: review.id,
+              user: review.userProfile?.fullName || "Anonymous User",
+              service: serviceName, // Use the productName from booking
+              rating: review.rating,
+              review: review.comment,
+              date: new Date(review.reviewedDate).toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              }),
+              profilePic: userProfile,
+            };
+          } catch (bookingError) {
+            console.error(
+              `Error fetching booking for review ${review.id}:`,
+              bookingError
+            );
+            // Fallback to worker's role if booking fetch fails
+            return {
+              id: review.id,
+              user: review.userProfile?.fullName || "Anonymous User",
+              service: review.worker?.role || "General Service",
+              rating: review.rating,
+              review: review.comment,
+              date: new Date(review.reviewedDate).toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              }),
+              profilePic: userProfile,
+            };
+          }
+        })
+      );
+
+      setReviews(reviewsWithService.sort((a, b) => b.id - a.id));
+    } catch (err) {
+      if (err.message === "Network Error") {
+        setNetworkError(true);
+        setError(
+          "No internet connection. Please check your network and try again."
         );
-
-        setReviews(reviewsWithService.sort((a, b) => b.id - a.id));
-      } catch (err) {
+      } else {
         setError("Failed to fetch reviews.");
-        console.error("Error fetching reviews:", err);
-      } finally {
-        setLoading(false);
       }
-    };
+      console.error("Error fetching reviews:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchReviews();
   }, []);
 
@@ -153,10 +156,6 @@ const Reviews = () => {
   const displayReviews =
     activeTab === "recent" ? recentReviews : filteredAllReviews;
 
-  if (error) {
-    return <div className="text-center mt-5 text-danger">{error}</div>;
-  }
-
   return (
     <div>
       {/* Navbar */}
@@ -187,7 +186,7 @@ const Reviews = () => {
           </div>
 
           {/* Filters - Only show when "All Reviews" tab is active */}
-          {activeTab === "all" && (
+          {activeTab === "all" && !networkError && (
             <div
               className="d-flex gap-2 p-2 "
               style={{ height: "50px", marginTop: "-5px", marginRight: "25px" }}
@@ -237,10 +236,32 @@ const Reviews = () => {
 
         {/* Reviews */}
         <div className="mt-4 p-3">
-          <div className="row scrollable-reviews">
-            {loading ? (
-              // Skeleton loaders (repeat 3 times for demo)
-              Array.from({ length: 3 }).map((_, index) => (
+          {networkError ? (
+            <div
+              className="text-center mt-5"
+              style={{ width: "60%", margin: "auto" }}
+            >
+              <div className="alert alert-danger">
+                <div className="mb-3">
+                  <i
+                    className="bi bi-wifi-off"
+                    style={{ fontSize: "2rem" }}
+                  ></i>
+                </div>
+                <p>{error}</p>
+                <button
+                  className="btn btn-primary mt-2"
+                  style={{ backgroundColor: "#0076CE", color: "white" }}
+                  onClick={fetchReviews}
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          ) : loading ? (
+            // Skeleton loaders (repeat 3 times for demo)
+            <div className="row scrollable-reviews">
+              {Array.from({ length: 3 }).map((_, index) => (
                 <div key={index} className="col-12 mb-4">
                   <div className="skeleton-card d-flex align-items-start">
                     <div className="skeleton-avatar"></div>
@@ -260,9 +281,13 @@ const Reviews = () => {
                     </div>
                   </div>
                 </div>
-              ))
-            ) : displayReviews.length > 0 ? (
-              displayReviews.map((review) => (
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center mt-5 text-danger">{error}</div>
+          ) : displayReviews.length > 0 ? (
+            <div className="row scrollable-reviews">
+              {displayReviews.map((review) => (
                 <div key={review.id} className="col-12 mb-4">
                   <div className="card p-2">
                     <div className="d-flex align-items-center">
@@ -301,14 +326,14 @@ const Reviews = () => {
                     </p>
                   </div>
                 </div>
-              ))
-            ) : (
-              <p className="text-center text-muted">
-                No reviews found
-                {activeTab === "all" ? " for the selected filters" : ""}.
-              </p>
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted">
+              No reviews found
+              {activeTab === "all" ? " for the selected filters" : ""}.
+            </p>
+          )}
         </div>
       </div>
     </div>

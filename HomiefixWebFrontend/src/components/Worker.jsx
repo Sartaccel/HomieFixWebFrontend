@@ -193,7 +193,7 @@ const Worker = () => {
       <Header />
 
       <div className="navigation-barr d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
-        <div className="d-flex gap-3 align-items-center">
+        <div className="d-flex gap-3 align-items-center" >
           <button
             className="btn btn-light p-2"
             style={{ marginBottom: "-20px" }}
@@ -207,7 +207,7 @@ const Worker = () => {
           <h5
             className="px-3 pb-3 text-black mx-1"
             style={{
-              borderBottom: "4px solid #000",
+              borderBottom: "3px solid #000",
               position: "relative",
               marginBottom: "-38px",
             }}
@@ -223,7 +223,7 @@ const Worker = () => {
           {/* Worker Details Section */}
           <div
             className="col-4 border p-3 mt-4 rounded align-self-start h-auto d-flex flex-column"
-            style={{ marginLeft: "70px", marginRight: "10px" }}
+            style={{ marginLeft: "70px", marginRight: "10px", minHeight: "500px"  }}
           >
             {loading ? (
               <>
@@ -324,7 +324,7 @@ const Worker = () => {
           </div>
 
           {/* Table content */}
-          <div className="col-7 mt-4 border px-3 rounded">
+          <div className="col-7 mt-4 border px-3 rounded" style={{ minHeight: "500px" }}>
             {/* Header Section with Active Border */}
             <div className="row">
               <div className="d-flex mt-3 pb-2">
@@ -381,7 +381,7 @@ const Worker = () => {
             <div className="row">
               <div
                 className="table-responsive custom-table"
-                style={{ maxHeight: "440px", overflow: "hidden" }}
+                style={{ maxHeight: "420px", overflow: "hidden" }}
               >
                 {loading ? (
                   <Skeleton height={30} />
@@ -579,7 +579,7 @@ const Worker = () => {
                     </div>
                     <div
                       className="w-100"
-                      style={{ maxHeight: "40vh", overflowY: "auto" }}
+                      style={{ maxHeight: "60vh", overflowY: "auto" }}
                     >
                       {feedbackData.length === 0 ? (
                         <p className="text-center py-4">No reviews found</p>
@@ -610,13 +610,13 @@ const Worker = () => {
                                     />
                                   </div>
                                   <div className="ms-3">
-                                    <p className="mb-1">
+                                    <p className="mb-1" style={{width: "300px"}}>
                                       {feedback.productName}
                                     </p>
-                                    <p className="mb-1">
+                                    <p className="mb-1 text-muted" style={{width: "300px"}}>
                                       {feedback.userFullName}
                                     </p>
-                                    <p className="text-muted">
+                                    <p className="text-muted" style={{width: "470px"}}>
                                       "{feedback.comment}"
                                     </p>
                                   </div>

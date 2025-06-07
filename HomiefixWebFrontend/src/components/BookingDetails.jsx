@@ -594,7 +594,8 @@ const BookingDetails = () => {
                 </div>
                 {error}
                 <button
-                  className="btn btn-sm btn-primary ms-3"
+                  className="btn  ms-3"
+                  style={{ backgroundColor: "#0076CE", color: "white" }}
                   onClick={() => window.location.reload()}
                 >
                   Retry

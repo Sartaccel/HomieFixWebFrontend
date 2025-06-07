@@ -98,6 +98,8 @@ const Dashboard = () => {
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingAnalytics, setLoadingAnalytics] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [networkError, setNetworkError] = useState(false);
+  const [error, setError] = useState(null);
 
   const years = [];
   for (let year = 2020; year <= currentYear; year++) {
@@ -120,65 +122,86 @@ const Dashboard = () => {
   ];
 
   // Fetch stats data (cards)
-  useEffect(() => {
-    const fetchStatsData = async () => {
-      try {
-        setLoadingStats(true);
-        const [bookingRes, workerRes] = await Promise.all([
-          api.get(`/booking/statistics-by-year?year=${selectedYear}`),
-          api.get(`/workers/count/active-by-year?year=${selectedYear}`),
-        ]);
-        setBookingStats(bookingRes.data[selectedYear]);
-        setWorkerStats(workerRes.data[selectedYear]);
-        setLoadingStats(false);
-      } catch (error) {
-        console.error("Error fetching stats data:", error);
-        setLoadingStats(false);
+  const fetchStatsData = async () => {
+    try {
+      setLoadingStats(true);
+      setNetworkError(false);
+      const [bookingRes, workerRes] = await Promise.all([
+        api.get(`/booking/statistics-by-year?year=${selectedYear}`),
+        api.get(`/workers/count/active-by-year?year=${selectedYear}`),
+      ]);
+      setBookingStats(bookingRes.data[selectedYear]);
+      setWorkerStats(workerRes.data[selectedYear]);
+    } catch (error) {
+      console.error("Error fetching stats data:", error);
+      if (error.message === "Network Error") {
+        setNetworkError(true);
+        setError(
+          "No internet connection. Please check your network and try again."
+        );
       }
-    };
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
+  // Fetch analytics data (chart)
+  const fetchAnalyticsData = async () => {
+    try {
+      setLoadingAnalytics(true);
+      setNetworkError(false);
+      const monthlyRes = await api.get(
+        `/booking/monthly-stats?year=${analyticsYear}`
+      );
+      setMonthlyStats(monthlyRes.data);
+    } catch (error) {
+      console.error("Error fetching analytics data:", error);
+      if (error.message === "Network Error") {
+        setNetworkError(true);
+        setError(
+          "No internet connection. Please check your network and try again."
+        );
+      }
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
+
+  // Fetch product data (table)
+  const fetchProductData = async () => {
+    try {
+      setLoadingProducts(true);
+      setNetworkError(false);
+      const productRes = await api.get(
+        `/booking/monthly-product-stats?year=${mostBookingYear}&month=${mostBookingMonth}`
+      );
+      setProductStats(
+        productRes.data[
+          `${mostBookingYear}-${mostBookingMonth.toString().padStart(2, "0")}`
+        ]
+      );
+    } catch (error) {
+      console.error("Error fetching product data:", error);
+      if (error.message === "Network Error") {
+        setNetworkError(true);
+        setError(
+          "No internet connection. Please check your network and try again."
+        );
+      }
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  useEffect(() => {
     fetchStatsData();
   }, [selectedYear]);
 
-  // Fetch analytics data (chart)
   useEffect(() => {
-    const fetchAnalyticsData = async () => {
-      try {
-        setLoadingAnalytics(true);
-        const monthlyRes = await api.get(
-          `/booking/monthly-stats?year=${analyticsYear}`
-        );
-        setMonthlyStats(monthlyRes.data);
-        setLoadingAnalytics(false);
-      } catch (error) {
-        console.error("Error fetching analytics data:", error);
-        setLoadingAnalytics(false);
-      }
-    };
-
     fetchAnalyticsData();
   }, [analyticsYear]);
 
-  // Fetch product data (table)
   useEffect(() => {
-    const fetchProductData = async () => {
-      try {
-        setLoadingProducts(true);
-        const productRes = await api.get(
-          `/booking/monthly-product-stats?year=${mostBookingYear}&month=${mostBookingMonth}`
-        );
-        setProductStats(
-          productRes.data[
-            `${mostBookingYear}-${mostBookingMonth.toString().padStart(2, "0")}`
-          ]
-        );
-        setLoadingProducts(false);
-      } catch (error) {
-        console.error("Error fetching product data:", error);
-        setLoadingProducts(false);
-      }
-    };
-
     fetchProductData();
   }, [mostBookingYear, mostBookingMonth]);
 
@@ -245,8 +268,6 @@ const Dashboard = () => {
   // Helper function to check if we have data for the selected year
   const hasDataForSelectedYear = (stats, year) => {
     if (!stats || !stats.monthlyStats) return false;
-
-    // Check if any month key starts with the selected year
     return Object.keys(stats.monthlyStats).some((monthKey) =>
       monthKey.startsWith(year)
     );
@@ -256,7 +277,6 @@ const Dashboard = () => {
   const prepareAreaData = () => {
     const allMonthsData = [];
 
-    // Initialize all months with zero values
     for (let i = 0; i < 12; i++) {
       allMonthsData.push({
         month: months[i].substring(0, 3),
@@ -267,7 +287,6 @@ const Dashboard = () => {
 
     if (monthlyStats?.monthlyStats) {
       Object.entries(monthlyStats.monthlyStats).forEach(([monthKey, data]) => {
-        // Only process data for the selected year
         if (monthKey.startsWith(analyticsYear)) {
           const monthNum = parseInt(monthKey.split("-")[1]);
           if (monthNum >= 1 && monthNum <= 12) {
@@ -289,7 +308,6 @@ const Dashboard = () => {
   // Prepare most booking services data
   const prepareProductData = () => {
     if (!productStats) return [];
-
     return Object.entries(productStats)
       .map(([productKey, data]) => ({
         productName: data.productName,
@@ -306,7 +324,6 @@ const Dashboard = () => {
     if (active && payload && payload.length) {
       const currentData = payload[0].payload;
       const index = areaData.findIndex((data) => data.month === label);
-
       let previousPercentage =
         index > 0 ? areaData[index - 1].percentage : currentData.percentage;
       let isUp = currentData.percentage >= previousPercentage;
@@ -355,90 +372,51 @@ const Dashboard = () => {
         </div>
       );
     }
-
     return null;
   };
 
+  // Function to retry all data fetches
+  const retryAllData = () => {
+    fetchStatsData();
+    fetchAnalyticsData();
+    fetchProductData();
+  };
+
   return (
-    <div>
+    <>
       <Header />
-
-      <div className="container p-5">
-        {/* ✅ Manage Service Header with Year Dropdown */}
-        <div
-          className="d-flex justify-content-between align-items-center mb-3"
-          style={{ marginTop: "50px" }}
-        >
-          <h4>Manage Service</h4>
-          <select
-            className="form-select w-auto shadow-none"
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
+      <div>
+        {networkError ? (
+          <div
+            className="text-center "
+            style={{ width: "60%", margin: "auto", marginTop: "100px" }}
           >
-            {years.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* ✅ Cards Section */}
-        <div className="row mb-0">
-          {loadingStats
-            ? [...Array(4)].map((_, index) => (
-                <div key={index} className="col-md-3">
-                  <CardSkeleton />
-                </div>
-              ))
-            : stats.map((stat, index) => (
-                <div key={index} className="col-md-3">
-                  <div
-                    className="card mb-2"
-                    style={{
-                      borderTop: `4px solid ${stat.borderColor}`,
-                      height: "140px",
-                    }}
-                  >
-                    <div className="card-body p-2">
-                      <div className="display-6 mb-1">{stat.icon}</div>
-                      <h3 className="mb-1">{stat.count}</h3>
-                      <div className="d-flex justify-content-between">
-                        <h6 className="card-title fw-normal">{stat.title}</h6>
-                        <div className="d-flex align-items-center gap-2">
-                          {stat.pic === neutralarrow ? (
-                            <span
-                              className="mb-3"
-                              style={{ fontSize: "15px" }}
-                            ></span>
-                          ) : (
-                            <img
-                              className="mb-3"
-                              src={stat.pic}
-                              alt=""
-                              height={15}
-                              width={15}
-                            />
-                          )}
-                          <p>{stat.percentage}%</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-        </div>
-
-        {/* ✅ Two Column Row: Analytics & Most Booking Services */}
-        <div className="row mt-2">
-          {/* 🔹 Analytics Section */}
-          <div className="col-md-7">
-            <div className="d-flex justify-content-between align-items-center">
-              <h4>Analytics</h4>
+            <div className="alert alert-danger">
+              <div className="mb-3">
+                <i className="bi bi-wifi-off" style={{ fontSize: "2rem" }}></i>
+              </div>
+              <p>{error}</p>
+              <button
+                className="btn mt-2"
+                style={{ backgroundColor: "#0076CE", color: "white" }}
+                onClick={retryAllData}
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="container p-5">
+            {/* ✅ Manage Service Header with Year Dropdown */}
+            <div
+              className="d-flex justify-content-between align-items-center mb-3"
+              style={{ marginTop: "50px" }}
+            >
+              <h4>Manage Service</h4>
               <select
-                className="form-select w-auto mb-2 shadow-none"
-                value={analyticsYear}
-                onChange={(e) => setAnalyticsYear(e.target.value)}
+                className="form-select w-auto shadow-none"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
               >
                 {years.map((year) => (
                   <option key={year} value={year}>
@@ -448,179 +426,251 @@ const Dashboard = () => {
               </select>
             </div>
 
-            {loadingAnalytics ? (
-              <ChartSkeleton />
-            ) : (
-              <div className="card" style={{ height: "325px" }}>
-                {/* Check if we have data for the selected year */}
-                {hasDataForSelectedYear(monthlyStats, analyticsYear) ? (
-                  <>
-                    {monthlyStats?.highestBookingMonth &&
-                      monthlyStats.highestBookingMonth.month.startsWith(
-                        analyticsYear
-                      ) && (
-                        <h6 className="mb-3 text-muted ms-5">
-                          Highest Service Month:{" "}
-                          <strong>
-                            {
-                              months[
-                                parseInt(
-                                  monthlyStats.highestBookingMonth.month.split(
-                                    "-"
-                                  )[1]
-                                ) - 1
-                              ]
-                            }{" "}
-                            -{monthlyStats.highestBookingMonth.percentage}%,
-                            {
-                              monthlyStats.highestBookingMonth.bookingsCount
-                            }{" "}
-                            Services
-                          </strong>
-                        </h6>
-                      )}
-                    <ResponsiveContainer width="120%" height={340}>
-                      <AreaChart
-                        data={areaData}
-                        margin={{ top: 10 }}
-                        style={{ height: "280px", marginLeft: "-70px" }}
+            {/* ✅ Cards Section */}
+            <div className="row mb-0">
+              {loadingStats
+                ? [...Array(4)].map((_, index) => (
+                    <div key={index} className="col-md-3">
+                      <CardSkeleton />
+                    </div>
+                  ))
+                : stats.map((stat, index) => (
+                    <div key={index} className="col-md-3">
+                      <div
+                        className="card mb-2"
+                        style={{
+                          borderTop: `4px solid ${stat.borderColor}`,
+                          height: "140px",
+                        }}
                       >
-                        <defs>
-                          <linearGradient
-                            id="colorUv"
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
+                        <div className="card-body p-2">
+                          <div className="display-6 mb-1">{stat.icon}</div>
+                          <h3 className="mb-1">{stat.count}</h3>
+                          <div className="d-flex justify-content-between">
+                            <h6 className="card-title fw-normal">
+                              {stat.title}
+                            </h6>
+                            <div className="d-flex align-items-center gap-2">
+                              {stat.pic === neutralarrow ? (
+                                <span
+                                  className="mb-3"
+                                  style={{ fontSize: "15px" }}
+                                ></span>
+                              ) : (
+                                <img
+                                  className="mb-3"
+                                  src={stat.pic}
+                                  alt=""
+                                  height={15}
+                                  width={15}
+                                />
+                              )}
+                              <p>{stat.percentage}%</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+            </div>
+
+            {/* ✅ Two Column Row: Analytics & Most Booking Services */}
+            <div className="row mt-2">
+              {/* 🔹 Analytics Section */}
+              <div className="col-md-7">
+                <div className="d-flex justify-content-between align-items-center">
+                  <h4>Analytics</h4>
+                  <select
+                    className="form-select w-auto mb-2 shadow-none"
+                    value={analyticsYear}
+                    onChange={(e) => setAnalyticsYear(e.target.value)}
+                  >
+                    {years.map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {loadingAnalytics ? (
+                  <ChartSkeleton />
+                ) : (
+                  <div className="card" style={{ height: "325px" }}>
+                    {hasDataForSelectedYear(monthlyStats, analyticsYear) ? (
+                      <>
+                        {monthlyStats?.highestBookingMonth &&
+                          monthlyStats.highestBookingMonth.month.startsWith(
+                            analyticsYear
+                          ) && (
+                            <h6 className="mb-3 text-muted ms-5">
+                              Highest Service Month:{" "}
+                              <strong>
+                                {
+                                  months[
+                                    parseInt(
+                                      monthlyStats.highestBookingMonth.month.split(
+                                        "-"
+                                      )[1]
+                                    ) - 1
+                                  ]
+                                }{" "}
+                                -{monthlyStats.highestBookingMonth.percentage}%,
+                                {
+                                  monthlyStats.highestBookingMonth.bookingsCount
+                                }{" "}
+                                Services
+                              </strong>
+                            </h6>
+                          )}
+                        <ResponsiveContainer width="120%" height={340}>
+                          <AreaChart
+                            data={areaData}
+                            margin={{ top: 10 }}
+                            style={{ height: "280px", marginLeft: "-70px" }}
                           >
-                            <stop
-                              offset="5%"
-                              stopColor="#1782D2"
-                              stopOpacity={0.8}
+                            <defs>
+                              <linearGradient
+                                id="colorUv"
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                              >
+                                <stop
+                                  offset="5%"
+                                  stopColor="#1782D2"
+                                  stopOpacity={0.8}
+                                />
+                                <stop
+                                  offset="95%"
+                                  stopColor="#1782D2"
+                                  stopOpacity={0}
+                                />
+                              </linearGradient>
+                            </defs>
+                            <XAxis
+                              dataKey="month"
+                              ticks={areaData.map((item) => item.month)}
                             />
-                            <stop
-                              offset="95%"
-                              stopColor="#1782D2"
-                              stopOpacity={0}
+                            <YAxis
+                              domain={[0, 100]}
+                              ticks={[
+                                0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
+                              ]}
+                              interval={0}
                             />
-                          </linearGradient>
-                        </defs>
-                        <XAxis
-                          dataKey="month"
-                          ticks={areaData.map((item) => item.month)}
-                        />
-                        <YAxis
-                          domain={[0, 100]}
-                          ticks={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}
-                          interval={0}
-                        />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Area
-                          type="spline"
-                          dataKey="percentage"
-                          stroke="#1782D2"
-                          fillOpacity={1}
-                          fill="url(#colorUv)"
-                          connectNulls={true}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </>
+                            <Tooltip content={<CustomTooltip />} />
+                            <Area
+                              type="spline"
+                              dataKey="percentage"
+                              stroke="#1782D2"
+                              fillOpacity={1}
+                              fill="url(#colorUv)"
+                              connectNulls={true}
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </>
+                    ) : (
+                      <div
+                        className="d-flex justify-content-center align-items-center"
+                        style={{ height: "100%" }}
+                      >
+                        <div className="text-center">
+                          <h5>No data available for {analyticsYear}</h5>
+                          <p className="text-muted">
+                            Please select another year
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* 🔹 Most Booking Services Section */}
+              <div className="col-md-5">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <h4 className="fs-5">Most Booking Services</h4>
+                  <div className="d-flex">
+                    <select
+                      className="form-select me-2 w-auto shadow-none"
+                      value={mostBookingMonth}
+                      onChange={(e) => setMostBookingMonth(e.target.value)}
+                    >
+                      {months.map((month, index) => (
+                        <option key={index + 1} value={index + 1}>
+                          {month}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      className="form-select w-auto shadow-none"
+                      value={mostBookingYear}
+                      onChange={(e) => setMostBookingYear(e.target.value)}
+                    >
+                      {years.map((year) => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {loadingProducts ? (
+                  <TableSkeleton />
                 ) : (
                   <div
-                    className="d-flex justify-content-center align-items-center"
-                    style={{ height: "100%" }}
+                    className="card p-2"
+                    style={{ height: "325px", overflow: "hidden" }}
                   >
-                    <div className="text-center">
-                      <h5>No data available for {analyticsYear}</h5>
-                      <p className="text-muted">Please select another year</p>
+                    <div style={{ height: "290px", overflowY: "auto" }}>
+                      <table
+                        className="table table-borderless"
+                        style={{ width: "100%" }}
+                      >
+                        <thead
+                          style={{
+                            position: "sticky",
+                            top: 0,
+                            background: "#fff",
+                            zIndex: 10,
+                          }}
+                        >
+                          <tr style={{ lineHeight: "0.7" }}>
+                            <th className="text-muted">Service Name</th>
+                            <th className="text-muted">Services</th>
+                            <th className="text-muted">Booking (%)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {productData.map((product, index) => (
+                            <tr key={index}>
+                              <td>
+                                {index + 1}. {product.productName}
+                              </td>
+                              <td>{product.totalBookings}</td>
+                              <td>{product.percentage.toFixed(2)}%</td>
+                            </tr>
+                          ))}
+                          {productData.length === 0 && (
+                            <tr className="text-center">
+                              <td colSpan="12">No data available</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 )}
               </div>
-            )}
-          </div>
-
-          {/* 🔹 Most Booking Services Section */}
-          <div className="col-md-5">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <h4 className="fs-5">Most Booking Services</h4>
-              <div className="d-flex">
-                <select
-                  className="form-select me-2 w-auto shadow-none"
-                  value={mostBookingMonth}
-                  onChange={(e) => setMostBookingMonth(e.target.value)}
-                >
-                  {months.map((month, index) => (
-                    <option key={index + 1} value={index + 1}>
-                      {month}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  className="form-select w-auto shadow-none"
-                  value={mostBookingYear}
-                  onChange={(e) => setMostBookingYear(e.target.value)}
-                >
-                  {years.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              </div>
             </div>
-
-            {loadingProducts ? (
-              <TableSkeleton />
-            ) : (
-              <div
-                className="card p-2"
-                style={{ height: "325px", overflow: "hidden" }}
-              >
-                <div style={{ height: "290px", overflowY: "auto" }}>
-                  <table
-                    className="table table-borderless"
-                    style={{ width: "100%" }}
-                  >
-                    <thead
-                      style={{
-                        position: "sticky",
-                        top: 0,
-                        background: "#fff",
-                        zIndex: 10,
-                      }}
-                    >
-                      <tr style={{ lineHeight: "0.7" }}>
-                        <th className="text-muted">Service Name</th>
-                        <th className="text-muted">Services</th>
-                        <th className="text-muted">Booking (%)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {productData.map((product, index) => (
-                        <tr key={index}>
-                          <td>
-                            {index + 1}. {product.productName}
-                          </td>
-                          <td>{product.totalBookings}</td>
-                          <td>{product.percentage.toFixed(2)}%</td>
-                        </tr>
-                      ))}
-                      {productData.length === 0 && (
-                        <tr className="text-center">
-                          <td colSpan="12">No data available</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
           </div>
-        </div>
+        )}
       </div>
-    </div>
+    </>
   );
 };
 

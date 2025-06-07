@@ -77,7 +77,6 @@ const ViewBookings = () => {
   const fetchBookingDetails = async () => {
     try {
       const { data } = await api.get(`/booking/${id}`);
-      console.log("API Response:", data); // Debugging line
       setBooking(data);
       setNotes(data.notes || "");
 
@@ -613,7 +612,7 @@ const ViewBookings = () => {
                         >
                           {formatDate(feedback.bookingDate)}
                         </span>
-                        <p
+                        <span
                           className="feedback-text"
                           style={{
                             display: "-webkit-box",
@@ -644,7 +643,7 @@ const ViewBookings = () => {
                               </span>
                             </>
                           )}
-                        </p>
+                        </span>
                       </p>
                     </>
                   ) : (

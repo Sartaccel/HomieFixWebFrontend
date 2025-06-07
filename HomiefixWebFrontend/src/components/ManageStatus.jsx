@@ -166,6 +166,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       setLoading(false);
     }
   };
+
   const getHighlightStyle = (rowType) => {
     const highlightStyles = {
       BOOKING_SUCCESSFUL: { borderLeft: "4px solid black" },
@@ -312,7 +313,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
   return (
     <div>
       <div
-        className="card rounded p-4"
+        className="card rounded p-3"
         style={{
           marginTop: "47px",
           minHeight: "300px",
@@ -328,7 +329,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
         }}
       >
         <h5 style={{ paddingLeft: "20px" }}>Status update</h5>
-        <div className="p-3 mt-2">
+        <div className="p-2">
           <table
             className="table w-100"
             style={{
@@ -685,7 +686,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                     renderStatusDropdown(
                       serviceStarted,
                       setServiceStarted,
-                      true // This is the start dropdown
+                      true
                     )
                   ) : (
                     <span
@@ -773,11 +774,12 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                 >
                   {isLoading ? (
                     <SkeletonLoader width="40px" height="24px" />
-                  ) : safeBooking.bookingStatus !== "CANCELLED" ? (
+                  ) : safeBooking.bookingStatus !== "CANCELLED" &&
+                    safeBooking.bookingStatus !== "COMPLETED" ? (
                     renderStatusDropdown(
                       serviceCompleted,
                       setServiceCompleted,
-                      false // This is the completed dropdown
+                      false
                     )
                   ) : (
                     <span
@@ -811,7 +813,9 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                       className="btn btn-primary"
                       onClick={handleUpdateStatus}
                       disabled={
-                        safeBooking.bookingStatus === "CANCELLED" || loading
+                        safeBooking.bookingStatus === "CANCELLED" || 
+                        loading || 
+                        safeBooking.bookingStatus === "COMPLETED"
                       }
                       style={{
                         marginTop: "10px",
@@ -820,16 +824,22 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                         border: "none",
                         borderRadius: "12px",
                         backgroundColor:
-                          safeBooking.bookingStatus === "CANCELLED" || loading
+                          safeBooking.bookingStatus === "CANCELLED" || 
+                          loading ||
+                          safeBooking.bookingStatus === "COMPLETED"
                             ? "#A0A0A0"
                             : "#0076CE",
                         marginBottom: "10px",
                         cursor:
-                          safeBooking.bookingStatus === "CANCELLED" || loading
+                          safeBooking.bookingStatus === "CANCELLED" || 
+                          loading ||
+                          safeBooking.bookingStatus === "COMPLETED"
                             ? "not-allowed"
                             : "pointer",
                         opacity:
-                          safeBooking.bookingStatus === "CANCELLED" || loading
+                          safeBooking.bookingStatus === "CANCELLED" || 
+                          loading ||
+                          safeBooking.bookingStatus === "COMPLETED"
                             ? 0.6
                             : 1,
                         display: "flex",
@@ -844,6 +854,8 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                           role="status"
                           aria-hidden="true"
                         ></span>
+                      ) : safeBooking.bookingStatus === "COMPLETED" ? (
+                        "Completed"
                       ) : (
                         "Update"
                       )}

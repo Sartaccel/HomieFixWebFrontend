@@ -81,7 +81,6 @@ const Profile = () => {
 
         if (data.profilePicUrl) {
           const imageUrl = formatImageUrl(data.profilePicUrl);
-          console.log("Formatted image URL:", imageUrl);
           setPreviewImage(imageUrl);
         } else {
           setPreviewImage(addWorker);
@@ -217,9 +216,9 @@ const Profile = () => {
             ></i>
           </button>
           <h5
-            className="px-3 pb-3 text-black"
+            className="px-3 pb-2 text-black"
             style={{
-              borderBottom: "4px solid #000",
+              borderBottom: "3px solid #000",
               position: "relative",
               marginBottom: "-30px",
             }}
@@ -233,7 +232,7 @@ const Profile = () => {
         className="container"
         style={{
           height: "80vh",
-          overflowY: "auto",
+          overflowY: "hidden",
           overflowX: "hidden",
           marginTop: "20px",
         }}
@@ -241,7 +240,7 @@ const Profile = () => {
         <form onSubmit={handleSubmit}>
           {/* Profile Photo */}
           <div
-            className="container mt-2"
+            className="container mt-1"
             style={{ marginLeft: "64px", maxWidth: "100%" }}
           >
             <p>Profile Photo</p>
@@ -385,12 +384,12 @@ const Profile = () => {
                 />
               </div>
               <div className="col-md-3" style={{ marginLeft: "60px" }}>
-                <label htmlFor="econtactNumber" className="form-label">
+                <label htmlFor="econtactNumber" className="form-label ">
                   Emergency Contact Number
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control shadow-none"
                   name="econtactNumber"
                   id="econtactNumber"
                   required
@@ -406,7 +405,7 @@ const Profile = () => {
                 </label>
                 <input
                   type="date"
-                  className="form-control"
+                  className="form-control shadow-none"
                   name="dateOfBirth"
                   id="dateOfBirth"
                   required
@@ -421,14 +420,14 @@ const Profile = () => {
             <div className="row mt-3">
               <p className="fw-bold">Address Details</p>
             </div>
-            <div className="row" style={{ marginTop: "-5px" }}>
+            <div className="row" style={{ marginTop: "-15px" }}>
               <div className="col-md-3">
                 <label htmlFor="houseNumber" className="form-label">
                   House no/ Building name
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control shadow-none"
                   name="houseNumber"
                   id="houseNumber"
                   required
@@ -444,7 +443,7 @@ const Profile = () => {
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control shadow-none"
                   name="town"
                   id="town"
                   required
@@ -460,7 +459,7 @@ const Profile = () => {
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control shadow-none"
                   name="pincode"
                   id="pincode"
                   required
@@ -480,7 +479,7 @@ const Profile = () => {
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control shadow-none"
                   name="nearbyLandmark"
                   id="nearbyLandmark"
                   required
@@ -496,7 +495,7 @@ const Profile = () => {
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control shadow-none"
                   name="district"
                   id="district"
                   required
@@ -512,7 +511,7 @@ const Profile = () => {
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control shadow-none"
                   name="state"
                   id="state"
                   required
