@@ -262,43 +262,38 @@ const Dashboard = () => {
     };
 
 
- // Prepare area chart data
-const prepareAreaData = () => {
-    const allMonthsData = [];
-    const currentDate = new Date();
-    const currentYearNum = currentDate.getFullYear();
-    const currentMonthNum = currentDate.getMonth() + 1; // 1-12
-  
-    // Only show months up to current month if the selected year is current year
-    const monthsToShow = analyticsYear === currentYearNum.toString() 
-      ? currentMonthNum 
-      : 12;
-  
-    for (let i = 0; i < monthsToShow; i++) {
-      allMonthsData.push({
-        month: months[i].substring(0, 3),
-        percentage: 0,
-        services: 0,
-      });
-    }
-  
-    if (monthlyStats?.monthlyStats) {
-      Object.entries(monthlyStats.monthlyStats).forEach(([monthKey, data]) => {
-        if (monthKey.startsWith(analyticsYear)) {
-          const monthNum = parseInt(monthKey.split("-")[1]);
-          if (monthNum >= 1 && monthNum <= monthsToShow) {
-            allMonthsData[monthNum - 1] = {
-              month: months[monthNum - 1].substring(0, 3),
-              percentage: data.percentage,
-              services: data.bookingsCount,
-            };
-          }
+    // Prepare area chart data
+    const prepareAreaData = () => {
+        const allMonthsData = [];
+
+
+        for (let i = 0; i < 12; i++) {
+            allMonthsData.push({
+                month: months[i].substring(0, 3),
+                percentage: 0,
+                services: 0,
+            });
         }
-      });
-    }
-  
-    return allMonthsData;
-  };
+
+
+        if (monthlyStats?.monthlyStats) {
+            Object.entries(monthlyStats.monthlyStats).forEach(([monthKey, data]) => {
+                if (monthKey.startsWith(analyticsYear)) {
+                    const monthNum = parseInt(monthKey.split("-")[1]);
+                    if (monthNum >= 1 && monthNum <= 12) {
+                        allMonthsData[monthNum - 1] = {
+                            month: months[monthNum - 1].substring(0, 3),
+                            percentage: data.percentage,
+                            services: data.bookingsCount,
+                        };
+                    }
+                }
+            });
+        }
+
+
+        return allMonthsData;
+    };
 
 
     const areaData = prepareAreaData();
@@ -518,7 +513,7 @@ const prepareAreaData = () => {
                                                                     ]
                                                                 }{" "}
                                                                 - {monthlyStats.highestBookingMonth.percentage}%,
-                                                                 {
+                                                                {
                                                                     monthlyStats.highestBookingMonth.bookingsCount
                                                                 }{" "}
                                                                 Services
