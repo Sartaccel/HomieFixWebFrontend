@@ -7,7 +7,6 @@ import "../styles/Dashboard.css";
 import Header from "./Header";
 import uparrow from "../assets/primary.jpg";
 import downarrow from "../assets/primary.png";
-import neutralarrow from "../assets/neutral.png";
 import api from "../api";
 
 
@@ -263,38 +262,49 @@ const Dashboard = () => {
 
 
     // Prepare area chart data
+    // Update prepareAreaData function
     const prepareAreaData = () => {
         const allMonthsData = [];
+        const currentDate = new Date();
+        const currentYearNum = currentDate.getFullYear();
+        const currentMonthNum = currentDate.getMonth(); // 0-11 for array index
 
+        // Get the months that actually have data
+        const monthsWithData = monthlyStats?.monthlyStats
+            ? Object.keys(monthlyStats.monthlyStats)
+                .filter(key => key.startsWith(analyticsYear))
+                .map(key => parseInt(key.split('-')[1]) - 1) // convert to 0-11 index
+            : [];
+
+        // Find the last month with data
+        const lastDataMonth = monthsWithData.length > 0
+            ? Math.max(...monthsWithData)
+            : -1;
+
+        // Determine the last month to show (either current month or last data month)
+        const lastMonthToShow = analyticsYear === currentYearNum.toString()
+            ? Math.min(currentMonthNum, lastDataMonth)
+            : lastDataMonth;
 
         for (let i = 0; i < 12; i++) {
-            allMonthsData.push({
+            const monthKey = `${analyticsYear}-${String(i + 1).padStart(2, '0')}`;
+            const hasData = monthlyStats?.monthlyStats?.[monthKey];
+            const isCurrent = analyticsYear === currentYearNum.toString() && i === currentMonthNum;
+
+            const monthData = {
                 month: months[i].substring(0, 3),
-                percentage: 0,
-                services: 0,
-            });
+                percentage: hasData ? monthlyStats.monthlyStats[monthKey].percentage : null, // Use null instead of 0
+                services: hasData ? monthlyStats.monthlyStats[monthKey].bookingsCount : null,
+                active: i <= lastMonthToShow, // Only active up to last month to show
+                isCurrent: isCurrent,
+                hasData: !!hasData
+            };
+
+            allMonthsData.push(monthData);
         }
-
-
-        if (monthlyStats?.monthlyStats) {
-            Object.entries(monthlyStats.monthlyStats).forEach(([monthKey, data]) => {
-                if (monthKey.startsWith(analyticsYear)) {
-                    const monthNum = parseInt(monthKey.split("-")[1]);
-                    if (monthNum >= 1 && monthNum <= 12) {
-                        allMonthsData[monthNum - 1] = {
-                            month: months[monthNum - 1].substring(0, 3),
-                            percentage: data.percentage,
-                            services: data.bookingsCount,
-                        };
-                    }
-                }
-            });
-        }
-
 
         return allMonthsData;
     };
-
 
     const areaData = prepareAreaData();
 
@@ -548,7 +558,10 @@ const Dashboard = () => {
                                                         </defs>
                                                         <XAxis
                                                             dataKey="month"
-                                                            ticks={areaData.map((item) => item.month)}
+                                                            ticks={areaData
+                                                                .filter(month => month.active)
+                                                                .map(item => item.month)
+                                                            }
                                                         />
                                                         <YAxis
                                                             domain={[0, 100]}
@@ -564,7 +577,38 @@ const Dashboard = () => {
                                                             stroke="#1782D2"
                                                             fillOpacity={1}
                                                             fill="url(#colorUv)"
-                                                            connectNulls={true}
+                                                            connectNulls={false} // This will stop the line at the last data point
+                                                            activeDot={(props) => {
+                                                                const { payload } = props;
+                                                                return payload.hasData ? (
+                                                                    <circle
+                                                                        cx={props.cx}
+                                                                        cy={props.cy}
+                                                                        r={payload.isCurrent ? 8 : 6}
+                                                                        fill="#1782D2"
+                                                                        stroke="#fff"
+                                                                        strokeWidth={2}
+                                                                        style={{
+                                                                            filter: 'drop-shadow(0px 0px 4px rgba(23, 130, 210, 0.8))',
+                                                                            animation: payload.isCurrent ? 'pulse 1.5s infinite' : 'none',
+                                                                            display: payload.active ? 'block' : 'none'
+                                                                        }}
+                                                                    />
+                                                                ) : null;
+                                                            }}
+                                                            dot={(props) => {
+                                                                const { payload } = props;
+                                                                return payload.hasData && payload.active ? (
+                                                                    <circle
+                                                                        cx={props.cx}
+                                                                        cy={props.cy}
+                                                                        r={4}
+                                                                        fill="#1782D2"
+                                                                        stroke="#fff"
+                                                                        strokeWidth={1}
+                                                                    />
+                                                                ) : null;
+                                                            }}
                                                         />
                                                     </AreaChart>
                                                 </ResponsiveContainer>
