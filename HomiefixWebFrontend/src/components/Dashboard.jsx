@@ -321,63 +321,61 @@ const prepareAreaData = () => {
 
 
     // Custom Tooltip for Area Chart
-const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-        const currentData = payload[0].payload;
-        const index = areaData.findIndex((data) => data.month === label);
-        let previousPercentage =
-            index > 0 ? areaData[index - 1].percentage : currentData.percentage;
-        let isUp = currentData.percentage >= previousPercentage;
-        let arrowColor = isUp ? "#22EC07" : "#F00";
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            const currentData = payload[0].payload;
+            const index = areaData.findIndex((data) => data.month === label);
+            let previousPercentage =
+                index > 0 ? areaData[index - 1].percentage : currentData.percentage;
+            let isUp = currentData.percentage >= previousPercentage;
+            let arrowColor = isUp ? "#22EC07" : "#F00";
 
-        return (
-            <div
-                className="custom-tooltip p-2"
-                style={{
-                    backgroundColor: "white",
-                    border: "1px solid #ddd",
-                    borderRadius: "5px",
-                    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                    zIndex: 9999, // Very high z-index to ensure it's on top
-                    position: "relative" // Needed for z-index to work
-                }}
-            >
-                <div>
-                    {isUp ? (
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="8"
-                            height="15"
-                            viewBox="0 0 8 15"
-                            fill="none"
-                        >
-                            <path
-                                d="M3.64645 0.646446C3.84171 0.451184 4.15829 0.451184 4.35355 0.646446L7.53553 3.82843C7.7308 4.02369 7.7308 4.34027 7.53553 4.53553C7.34027 4.7308 7.02369 4.7308 6.82843 4.53553L4 1.70711L1.17157 4.53553C0.97631 4.7308 0.659728 4.7308 0.464466 4.53553C0.269203 4.34027 0.269203 4.02369 0.464466 3.82843L3.64645 0.646446ZM3.5 15L3.5 1L4.5 1L4.5 15L3.5 15Z"
-                                fill={arrowColor}
-                            />
-                        </svg>
-                    ) : (
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="8"
-                            height="15"
-                            viewBox="0 0 8 15"
-                            fill="none"
-                        >
-                            <path
-                                d="M3.64645 14.3536C3.84171 14.5488 4.15829 14.5488 4.35355 14.3536L7.53553 11.1716C7.7308 10.9763 7.7308 10.6597 7.53553 10.4645C7.34027 10.2692 7.02369 10.2692 6.82843 10.4645L4 13.2929L1.17157 10.4645C0.97631 10.2692 0.659728 10.2692 0.464466 10.4645C0.269203 10.6597 0.269203 10.9763 0.464466 11.1716L3.64645 14.3536ZM3.5 0L3.5 14L4.5 14L4.5 0L3.5 0Z"
-                                fill={arrowColor}
-                            />
-                        </svg>
-                    )}
-                    <span className="ms-2">{currentData.percentage}%</span>,{" "}
-                    <span>{currentData.services} Services</span>
+
+            return (
+                <div
+                    className="custom-tooltip p-2"
+                    style={{
+                        backgroundColor: "white",
+                        border: "1px solid #ddd",
+                        borderRadius: "5px",
+                    }}
+                >
+                    <div>
+                        {isUp ? (
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="8"
+                                height="15"
+                                viewBox="0 0 8 15"
+                                fill="none"
+                            >
+                                <path
+                                    d="M3.64645 0.646446C3.84171 0.451184 4.15829 0.451184 4.35355 0.646446L7.53553 3.82843C7.7308 4.02369 7.7308 4.34027 7.53553 4.53553C7.34027 4.7308 7.02369 4.7308 6.82843 4.53553L4 1.70711L1.17157 4.53553C0.97631 4.7308 0.659728 4.7308 0.464466 4.53553C0.269203 4.34027 0.269203 4.02369 0.464466 3.82843L3.64645 0.646446ZM3.5 15L3.5 1L4.5 1L4.5 15L3.5 15Z"
+                                    fill={arrowColor}
+                                />
+                            </svg>
+                        ) : (
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="8"
+                                height="15"
+                                viewBox="0 0 8 15"
+                                fill="none"
+                            >
+                                <path
+                                    d="M3.64645 14.3536C3.84171 14.5488 4.15829 14.5488 4.35355 14.3536L7.53553 11.1716C7.7308 10.9763 7.7308 10.6597 7.53553 10.4645C7.34027 10.2692 7.02369 10.2692 6.82843 10.4645L4 13.2929L1.17157 10.4645C0.97631 10.2692 0.659728 10.2692 0.464466 10.4645C0.269203 10.6597 0.269203 10.9763 0.464466 11.1716L3.64645 14.3536ZM3.5 0L3.5 14L4.5 14L4.5 0L3.5 0Z"
+                                    fill={arrowColor}
+                                />
+                            </svg>
+                        )}
+                        <span className="ms-2">{currentData.percentage}%</span>,{" "}
+                        <span>{currentData.services} Services</span>
+                    </div>
                 </div>
-            </div>
-        );
-    }
-    return null;
-};
+            );
+        }
+        return null;
+    };
 
 
     // Function to retry all data fetches
