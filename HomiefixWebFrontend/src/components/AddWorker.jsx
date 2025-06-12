@@ -254,6 +254,21 @@ const AddWorker = () => {
     }
   };
 
+  const checkEmailExists = async (email) => {
+    try {
+      if (!email) return false; // Skip check if email is empty
+      const response = await api.get(`/workers/view`);
+      const workers = response.data;
+      const emailExists = workers.some(
+        (worker) => worker.email && worker.email.toLowerCase() === email.toLowerCase()
+      );
+      return emailExists;
+    } catch (error) {
+      console.error("Error checking email:", error);
+      return false;
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
     let isValid = true;
@@ -351,7 +366,7 @@ const AddWorker = () => {
       !validateDrivingLicense(formData.drivingLicenseNumber)
     ) {
       newErrors.drivingLicenseNumber =
-        "License should be in format DL- followed by 13 alphanumeric characters";
+        "License should be in format DL- followed by 15 alphanumeric characters";
       isValid = false;
     }
 
@@ -395,6 +410,20 @@ const AddWorker = () => {
       });
       setIsLoading(false);
       return;
+    }
+
+    // Check if email already exists
+    if (formData.email) {
+      const emailExists = await checkEmailExists(formData.email);
+      if (emailExists) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "This email is already associated with another worker.",
+        });
+        setIsLoading(false);
+        return;
+      }
     }
 
     const isContactNumberAvailable = await checkContactNumberExists(
@@ -475,7 +504,7 @@ const AddWorker = () => {
           <h5
             className="px-3 pb-3 text-black"
             style={{
-              borderBottom: "4px solid #000",
+              borderBottom: "3px solid #000",
               position: "relative",
               marginBottom: "-30px",
             }}

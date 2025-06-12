@@ -237,7 +237,7 @@ const WorkerDetails = ({ token, setToken }) => {
         <div style={{ overflow: "hidden", padding: "10px 15px" }}>
           <div
             style={{
-              maxHeight: "77vh",
+              maxHeight: "75vh",
               overflowY: "auto",
               border: "1px solid #dee2e6",
             }}

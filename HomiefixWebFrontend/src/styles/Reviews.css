@@ -33,7 +33,7 @@ html {
 
 /* Make review content scrollable */
 .scrollable-reviews {
-  max-height: 630px;
+  max-height: 490px;
   overflow-y: auto;
   padding-right: 10px;
 }

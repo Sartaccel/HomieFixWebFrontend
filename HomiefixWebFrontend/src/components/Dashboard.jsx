@@ -19,7 +19,6 @@ import "../styles/Dashboard.css";
 import Header from "./Header";
 import uparrow from "../assets/primary.jpg";
 import downarrow from "../assets/primary.png";
-import neutralarrow from "../assets/neutral.png";
 import api from "../api";
 
 // Skeleton components
@@ -212,42 +211,35 @@ const Dashboard = () => {
       count: bookingStats?.totalBookings || 0,
       icon: <FaClipboardList />,
       borderColor: "#EA6C6E",
-      percentage: bookingStats?.percentageChange || 0,
-      pic:
-        bookingStats?.trend === "increase" ||
-        bookingStats?.trend === "no change"
-          ? uparrow
-          : bookingStats?.trend === "decrease"
-          ? downarrow
-          : neutralarrow,
+      percentage: bookingStats?.totalPercentageChange || 0,
+      showArrow:
+        bookingStats?.totalTrend && bookingStats.totalTrend !== "no change",
+      isUp: bookingStats?.totalTrend === "increase",
+      hasData: bookingStats !== null, // Add this flag
     },
     {
       title: "Completed",
       count: bookingStats?.completedBookings || 0,
       icon: <FaCheckCircle />,
       borderColor: "#EFA066",
-      percentage: bookingStats?.percentageChange || 0,
-      pic:
-        bookingStats?.trend === "increase" ||
-        bookingStats?.trend === "no change"
-          ? uparrow
-          : bookingStats?.trend === "decrease"
-          ? downarrow
-          : neutralarrow,
+      percentage: bookingStats?.completedPercentageChange || 0,
+      showArrow:
+        bookingStats?.completedTrend &&
+        bookingStats.completedTrend !== "no change",
+      isUp: bookingStats?.completedTrend === "increase",
+      hasData: bookingStats !== null,
     },
     {
       title: "Cancelled",
       count: bookingStats?.cancelledBookings || 0,
       icon: <FaTimesCircle />,
       borderColor: "#31DDFC",
-      percentage: bookingStats?.percentageChange || 0,
-      pic:
-        bookingStats?.trend === "increase" ||
-        bookingStats?.trend === "no change"
-          ? uparrow
-          : bookingStats?.trend === "decrease"
-          ? downarrow
-          : neutralarrow,
+      percentage: bookingStats?.cancelledPercentageChange || 0,
+      showArrow:
+        bookingStats?.cancelledTrend &&
+        bookingStats.cancelledTrend !== "no change",
+      isUp: bookingStats?.cancelledTrend === "increase",
+      hasData: bookingStats !== null,
     },
     {
       title: "Total Workers",
@@ -255,13 +247,9 @@ const Dashboard = () => {
       icon: <FaUsers />,
       borderColor: "#1FA2FF",
       percentage: workerStats?.percentage_change || 0,
-      pic:
-        bookingStats?.trend === "increase" ||
-        bookingStats?.trend === "no change"
-          ? uparrow
-          : workerStats?.trend === "decrease"
-          ? downarrow
-          : neutralarrow,
+      showArrow: workerStats?.trend && workerStats.trend !== "no_change",
+      isUp: workerStats?.trend === "increase",
+      hasData: workerStats !== null,
     },
   ];
 
@@ -274,30 +262,50 @@ const Dashboard = () => {
   };
 
   // Prepare area chart data
+  // Update prepareAreaData function
   const prepareAreaData = () => {
     const allMonthsData = [];
+    const currentDate = new Date();
+    const currentYearNum = currentDate.getFullYear();
+    const currentMonthNum = currentDate.getMonth(); // 0-11 for array index
+
+    // Get the months that actually have data
+    const monthsWithData = monthlyStats?.monthlyStats
+      ? Object.keys(monthlyStats.monthlyStats)
+          .filter((key) => key.startsWith(analyticsYear))
+          .map((key) => parseInt(key.split("-")[1]) - 1) // convert to 0-11 index
+      : [];
+
+    // Find the last month with data
+    const lastDataMonth =
+      monthsWithData.length > 0 ? Math.max(...monthsWithData) : -1;
+
+    // Determine the last month to show (either current month or last data month)
+    const lastMonthToShow =
+      analyticsYear === currentYearNum.toString()
+        ? Math.min(currentMonthNum, lastDataMonth)
+        : lastDataMonth;
 
     for (let i = 0; i < 12; i++) {
-      allMonthsData.push({
-        month: months[i].substring(0, 3),
-        percentage: 0,
-        services: 0,
-      });
-    }
+      const monthKey = `${analyticsYear}-${String(i + 1).padStart(2, "0")}`;
+      const hasData = monthlyStats?.monthlyStats?.[monthKey];
+      const isCurrent =
+        analyticsYear === currentYearNum.toString() && i === currentMonthNum;
 
-    if (monthlyStats?.monthlyStats) {
-      Object.entries(monthlyStats.monthlyStats).forEach(([monthKey, data]) => {
-        if (monthKey.startsWith(analyticsYear)) {
-          const monthNum = parseInt(monthKey.split("-")[1]);
-          if (monthNum >= 1 && monthNum <= 12) {
-            allMonthsData[monthNum - 1] = {
-              month: months[monthNum - 1].substring(0, 3),
-              percentage: data.percentage,
-              services: data.bookingsCount,
-            };
-          }
-        }
-      });
+      const monthData = {
+        month: months[i].substring(0, 3),
+        percentage: hasData
+          ? monthlyStats.monthlyStats[monthKey].percentage
+          : null, // Use null instead of 0
+        services: hasData
+          ? monthlyStats.monthlyStats[monthKey].bookingsCount
+          : null,
+        active: i <= lastMonthToShow, // Only active up to last month to show
+        isCurrent: isCurrent,
+        hasData: !!hasData,
+      };
+
+      allMonthsData.push(monthData);
     }
 
     return allMonthsData;
@@ -451,20 +459,15 @@ const Dashboard = () => {
                               {stat.title}
                             </h6>
                             <div className="d-flex align-items-center gap-2">
-                              {stat.pic === neutralarrow ? (
-                                <span
-                                  className="mb-3"
-                                  style={{ fontSize: "15px" }}
-                                ></span>
-                              ) : (
+                              {stat.hasData && stat.showArrow ? (
                                 <img
                                   className="mb-3"
-                                  src={stat.pic}
+                                  src={stat.isUp ? uparrow : downarrow}
                                   alt=""
                                   height={15}
                                   width={15}
                                 />
-                              )}
+                              ) : null}
                               <p>{stat.percentage}%</p>
                             </div>
                           </div>
@@ -515,7 +518,8 @@ const Dashboard = () => {
                                     ) - 1
                                   ]
                                 }{" "}
-                                -{monthlyStats.highestBookingMonth.percentage}%,
+                                - {monthlyStats.highestBookingMonth.percentage}
+                                %,
                                 {
                                   monthlyStats.highestBookingMonth.bookingsCount
                                 }{" "}
@@ -551,7 +555,9 @@ const Dashboard = () => {
                             </defs>
                             <XAxis
                               dataKey="month"
-                              ticks={areaData.map((item) => item.month)}
+                              ticks={areaData
+                                .filter((month) => month.active)
+                                .map((item) => item.month)}
                             />
                             <YAxis
                               domain={[0, 100]}
@@ -567,7 +573,43 @@ const Dashboard = () => {
                               stroke="#1782D2"
                               fillOpacity={1}
                               fill="url(#colorUv)"
-                              connectNulls={true}
+                              connectNulls={false} // This will stop the line at the last data point
+                              activeDot={(props) => {
+                                const { payload } = props;
+                                return payload.hasData ? (
+                                  <circle
+                                    cx={props.cx}
+                                    cy={props.cy}
+                                    r={payload.isCurrent ? 8 : 6}
+                                    fill="#1782D2"
+                                    stroke="#fff"
+                                    strokeWidth={2}
+                                    style={{
+                                      filter:
+                                        "drop-shadow(0px 0px 4px rgba(23, 130, 210, 0.8))",
+                                      animation: payload.isCurrent
+                                        ? "pulse 1.5s infinite"
+                                        : "none",
+                                      display: payload.active
+                                        ? "block"
+                                        : "none",
+                                    }}
+                                  />
+                                ) : null;
+                              }}
+                              dot={(props) => {
+                                const { payload } = props;
+                                return payload.hasData && payload.active ? (
+                                  <circle
+                                    cx={props.cx}
+                                    cy={props.cy}
+                                    r={4}
+                                    fill="#1782D2"
+                                    stroke="#fff"
+                                    strokeWidth={1}
+                                  />
+                                ) : null;
+                              }}
                             />
                           </AreaChart>
                         </ResponsiveContainer>

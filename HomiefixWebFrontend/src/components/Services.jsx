@@ -37,12 +37,12 @@ const Services = () => {
       "Bed",
       "Cupboard & Drawer",
       "Door",
-      "Windows",
-      "Drill & Hang",
+      "Window",
+      "Drill & Hang ",
       "Furniture",
     ],
     Plumbing: [
-      "Washbasin Installation",
+      "WashBasin Installation",
       "Blockage Removal",
       "Shower",
       "Toilet",
@@ -59,7 +59,7 @@ const Services = () => {
     ],
     "Care Taker": [
       "Child Care",
-      "PhysioTheraphy",
+      "PhysioTherapy",
       "Old Age Care",
       "Companion Support",
       "Home Nursing",
@@ -223,7 +223,9 @@ const Services = () => {
                                 style={{ backgroundColor: "#EDF3F7" }}
                               >
                                 <span className="bi bi-star-fill text-warning"></span>{" "}
-                                {service.averageRating || "0"}
+                                {service.averageRating
+                                  ? Number(service.averageRating).toFixed(1)
+                                  : "0.0"}
                               </span>
                             </p>
                           </div>

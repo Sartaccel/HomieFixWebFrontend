@@ -24,7 +24,9 @@ const Service = () => {
           id: response.data.id,
           name: response.data.name,
           price: response.data.price,
-          ratings: response.data.averageRating.toString(),
+          ratings: response.data.averageRating 
+            ? Number(response.data.averageRating).toFixed(1)
+            : "0.0",
           bookings: response.data.bookingCount.toString(),
           pic: response.data.productImage || profile, // Fallback to local image if no productImage
           content: serviceContent[response.data.name] || {
@@ -127,15 +129,15 @@ const Service = () => {
         <div className="d-flex justify-content-between border-bottom mt-4">
           <div className="d-flex gap-4 mx-4 align-items-center">
             <button
-            className="btn btn-light p-2"
-            style={{ marginBottom: "2px" }}
-            onClick={() => navigate(-1)}
-          >
-            <i
-              className="bi bi-arrow-left"
-              style={{ fontSize: "1.5rem", fontWeight: "bold" }}
-            ></i>
-          </button>
+              className="btn btn-light p-2"
+              style={{ marginBottom: "2px" }}
+              onClick={() => navigate(-1)}
+            >
+              <i
+                className="bi bi-arrow-left"
+                style={{ fontSize: "1.5rem", fontWeight: "bold" }}
+              ></i>
+            </button>
             <button
               className={`tab-btn ${
                 activeTab === "recent" ? "active-tab" : ""
