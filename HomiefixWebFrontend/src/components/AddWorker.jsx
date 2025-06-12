@@ -8,6 +8,7 @@ import Header from "./Header";
 import api from "../api";
 import Select from "react-select";
 
+
 const AddWorker = () => {
   const navigate = useNavigate();
   const [clickedButtons, setClickedButtons] = useState({});
@@ -38,15 +39,18 @@ const AddWorker = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDrivingLicenseFocused, setIsDrivingLicenseFocused] = useState(false);
 
+
   const languageOptions = [
     { value: "Tamil", label: "Tamil" },
     { value: "English", label: "English" },
     { value: "Hindi", label: "Hindi" },
   ];
 
+
   useEffect(() => {
     resetForm();
   }, []);
+
 
   const resetForm = () => {
     setFormData({
@@ -77,6 +81,7 @@ const AddWorker = () => {
     setIsDrivingLicenseFocused(false);
   };
 
+
   const validateName = (name) => /^[a-zA-Z\s]*$/.test(name);
   const validateContactNumber = (number) => /^\d{10}$/.test(number);
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -89,6 +94,7 @@ const AddWorker = () => {
     !license || /^DL-[a-zA-Z0-9]{15}$/.test(license);
   const validateWorkExperience = (experience) => /^[0-9]+$/.test(experience);
 
+
   const validateDate = (dateString, isDOB = false) => {
     if (!dateString) return false;
     const date = new Date(dateString);
@@ -100,6 +106,7 @@ const AddWorker = () => {
     }
     return date <= today;
   };
+
 
   const handleButtonClick = (item, roleHeading) => {
     setClickedButtons((prev) => ({ ...prev, [item]: !prev[item] }));
@@ -114,9 +121,11 @@ const AddWorker = () => {
     }));
   };
 
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     let error = "";
+
 
     switch (name) {
       case "name":
@@ -174,9 +183,11 @@ const AddWorker = () => {
         break;
     }
 
+
     setErrors((prev) => ({ ...prev, [name]: error }));
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
 
   const handleDrivingLicenseChange = (e) => {
     let value = e.target.value;
@@ -189,6 +200,7 @@ const AddWorker = () => {
       if (value.length > 18) value = value.substring(0, 18);
     }
 
+
     setFormData((prev) => ({ ...prev, drivingLicenseNumber: value }));
     setErrors((prev) => ({
       ...prev,
@@ -199,6 +211,7 @@ const AddWorker = () => {
     }));
   };
 
+
   const handleLanguageChange = (selectedOptions) => {
     const languages = selectedOptions.map((option) => option.value);
     setFormData((prev) => ({ ...prev, language: languages }));
@@ -207,9 +220,11 @@ const AddWorker = () => {
     }
   };
 
+
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
 
     // Validate file type and size
     const validTypes = ["image/jpeg", "image/png", "image/jpg"];
@@ -228,7 +243,9 @@ const AddWorker = () => {
       return;
     }
 
+
     setErrors((prev) => ({ ...prev, profilePic: "" }));
+
 
     // Create preview using FileReader
     const reader = new FileReader();
@@ -239,8 +256,10 @@ const AddWorker = () => {
     };
     reader.readAsDataURL(file);
 
+
     setFormData((prev) => ({ ...prev, profilePic: file }));
   };
+
 
   const checkContactNumberExists = async (contactNumber) => {
     try {
@@ -254,15 +273,34 @@ const AddWorker = () => {
     }
   };
 
+
+  const checkEmailExists = async (email) => {
+    try {
+      if (!email) return false; // Skip check if email is empty
+      const response = await api.get(`/workers/view`);
+      const workers = response.data;
+      const emailExists = workers.some(
+        (worker) => worker.email && worker.email.toLowerCase() === email.toLowerCase()
+      );
+      return emailExists;
+    } catch (error) {
+      console.error("Error checking email:", error);
+      return false;
+    }
+  };
+
+
   const validateForm = () => {
     const newErrors = {};
     let isValid = true;
+
 
     // Add job title validation
     if (formData.specification.length === 0) {
       newErrors.jobTitle = "Please select at least one job title";
       isValid = false;
     }
+
 
     if (
       formData.workExperience &&
@@ -271,6 +309,7 @@ const AddWorker = () => {
       newErrors.workExperience = "Work experience should contain only numbers";
       isValid = false;
     }
+
 
     // Required fields validation
     if (!formData.name.trim()) {
@@ -281,6 +320,7 @@ const AddWorker = () => {
       isValid = false;
     }
 
+
     if (!formData.contactNumber) {
       newErrors.contactNumber = "Contact Number is required";
       isValid = false;
@@ -289,30 +329,36 @@ const AddWorker = () => {
       isValid = false;
     }
 
+
     if (formData.email && !validateEmail(formData.email)) {
       newErrors.email = "Please enter a valid email address";
       isValid = false;
     }
+
 
     if (formData.dateOfBirth && !validateDate(formData.dateOfBirth, true)) {
       newErrors.dateOfBirth = "Worker must be at least 18 years old";
       isValid = false;
     }
 
+
     if (!validateLanguage(formData.language)) {
       newErrors.language = "Please select at least one language";
       isValid = false;
     }
+
 
     if (!formData.houseNumber) {
       newErrors.houseNumber = "House number is required";
       isValid = false;
     }
 
+
     if (!formData.town) {
       newErrors.town = "Town is required";
       isValid = false;
     }
+
 
     if (!formData.pincode) {
       newErrors.pincode = "Pincode is required";
@@ -322,6 +368,7 @@ const AddWorker = () => {
       isValid = false;
     }
 
+
     if (!formData.district) {
       newErrors.district = "District is required";
       isValid = false;
@@ -329,6 +376,7 @@ const AddWorker = () => {
       newErrors.district = "District should only contain alphabets";
       isValid = false;
     }
+
 
     if (!formData.state) {
       newErrors.state = "State is required";
@@ -338,6 +386,7 @@ const AddWorker = () => {
       isValid = false;
     }
 
+
     if (!formData.aadharNumber) {
       newErrors.aadharNumber = "Aadhar number is required";
       isValid = false;
@@ -346,14 +395,16 @@ const AddWorker = () => {
       isValid = false;
     }
 
+
     if (
       formData.drivingLicenseNumber &&
       !validateDrivingLicense(formData.drivingLicenseNumber)
     ) {
       newErrors.drivingLicenseNumber =
-        "License should be in format DL- followed by 13 alphanumeric characters";
+        "License should be in format DL- followed by 15 alphanumeric characters";
       isValid = false;
     }
+
 
     if (!formData.joiningDate) {
       newErrors.joiningDate = "Joining date is required";
@@ -363,13 +414,16 @@ const AddWorker = () => {
       isValid = false;
     }
 
+
     setErrors(newErrors);
     return isValid;
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+
 
     // Validate job titles first
     if (formData.specification.length === 0) {
@@ -382,10 +436,12 @@ const AddWorker = () => {
       return;
     }
 
+
     if (!validateForm()) {
       setIsLoading(false);
       return;
     }
+
 
     if (formData.contactNumber === formData.econtactNumber) {
       Swal.fire({
@@ -396,6 +452,22 @@ const AddWorker = () => {
       setIsLoading(false);
       return;
     }
+
+
+    // Check if email already exists
+    if (formData.email) {
+      const emailExists = await checkEmailExists(formData.email);
+      if (emailExists) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "This email is already associated with another worker.",
+        });
+        setIsLoading(false);
+        return;
+      }
+    }
+
 
     const isContactNumberAvailable = await checkContactNumberExists(
       formData.contactNumber
@@ -409,6 +481,7 @@ const AddWorker = () => {
       setIsLoading(false);
       return;
     }
+
 
     try {
       const formDataToSend = new FormData();
@@ -424,11 +497,13 @@ const AddWorker = () => {
         }
       }
 
+
       const response = await api.post("/workers/add", formDataToSend, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+
 
       Swal.fire({
         icon: "success",
@@ -450,15 +525,18 @@ const AddWorker = () => {
     }
   };
 
+
   // Style for required field asterisk
   const requiredFieldStyle = {
     color: "#B8141A",
     marginLeft: "2px",
   };
 
+
   return (
     <>
       <Header />
+
 
       <div className="container" style={{ paddingTop: "80px" }}>
         <div className="d-flex gap-4 mx-2 align-items-center">
@@ -475,7 +553,7 @@ const AddWorker = () => {
           <h5
             className="px-3 pb-3 text-black"
             style={{
-              borderBottom: "4px solid #000",
+              borderBottom: "3px solid #000",
               position: "relative",
               marginBottom: "-30px",
             }}
@@ -484,6 +562,7 @@ const AddWorker = () => {
           </h5>
         </div>
       </div>
+
 
       <div
         className="container"
@@ -543,6 +622,7 @@ const AddWorker = () => {
             </div>
           </div>
 
+
           {/* Main container */}
           <div
             className="container mt-4"
@@ -556,8 +636,9 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.name ? "is-invalid" : ""
-                    }`}
+                  className={`form-control shadow-none ${
+                    errors.name ? "is-invalid" : ""
+                  }`}
                   name="name"
                   id="name"
                   required
@@ -575,8 +656,9 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="email"
-                  className={`form-control  shadow-none ${errors.email ? "is-invalid" : ""
-                    }`}
+                  className={`form-control  shadow-none ${
+                    errors.email ? "is-invalid" : ""
+                  }`}
                   name="email"
                   id="email"
                   placeholder="Enter Email"
@@ -593,8 +675,9 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="tel"
-                  className={`form-control shadow-none ${errors.contactNumber ? "is-invalid" : ""
-                    }`}
+                  className={`form-control shadow-none ${
+                    errors.contactNumber ? "is-invalid" : ""
+                  }`}
                   name="contactNumber"
                   id="contactNumber"
                   required
@@ -613,8 +696,9 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="tel"
-                  className={`form-control shadow-none ${errors.econtactNumber ? "is-invalid" : ""
-                    }`}
+                  className={`form-control shadow-none ${
+                    errors.econtactNumber ? "is-invalid" : ""
+                  }`}
                   name="econtactNumber"
                   id="eContactNumber"
                   placeholder="Enter Emergency Contact Number"
@@ -630,6 +714,7 @@ const AddWorker = () => {
               </div>
             </div>
 
+
             {/* Row 2 */}
             <div className="row mt-4">
               <div className="col-md-2">
@@ -639,8 +724,9 @@ const AddWorker = () => {
                 <Select
                   isMulti
                   options={languageOptions}
-                  className={`basic-multi-select ${errors.language ? "is-invalid" : ""
-                    }`}
+                  className={`basic-multi-select ${
+                    errors.language ? "is-invalid" : ""
+                  }`}
                   classNamePrefix="select"
                   onChange={handleLanguageChange}
                   value={languageOptions.filter((option) =>
@@ -658,8 +744,9 @@ const AddWorker = () => {
                 <input
                   type="number"
                   min="0"
-                  className={`form-control shadow-none ${errors.workExperience ? "is-invalid" : ""
-                    }`}
+                  className={`form-control shadow-none ${
+                    errors.workExperience ? "is-invalid" : ""
+                  }`}
                   name="workExperience"
                   id="workExperience"
                   placeholder="Enter Work Experience"
@@ -689,8 +776,9 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.dateOfBirth ? "is-invalid" : ""
-                    }`}
+                  className={`form-control shadow-none ${
+                    errors.dateOfBirth ? "is-invalid" : ""
+                  }`}
                   name="dateOfBirth"
                   id="dateOfBirth"
                   onChange={handleChange}
@@ -713,6 +801,7 @@ const AddWorker = () => {
                   <div className="invalid-feedback">{errors.dateOfBirth}</div>
                 )}
               </div>
+
 
               <div className="col-md-2">
                 <label htmlFor="gender" className="form-label">
@@ -750,6 +839,7 @@ const AddWorker = () => {
               </div>
             </div>
 
+
             {/* Job Title Section */}
             <div className="row mt-4">
               <p className="fw-bold">
@@ -759,6 +849,7 @@ const AddWorker = () => {
                 <div className="text-danger small">{errors.jobTitle}</div>
               )}
             </div>
+
 
             {/* Home Appliances */}
             <div className="row">
@@ -780,8 +871,9 @@ const AddWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
-                      }`}
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
                     onClick={() => handleButtonClick(item, "Home Appliances")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -789,6 +881,7 @@ const AddWorker = () => {
                 ))}
               </div>
             </div>
+
 
             {/* Electrician */}
             <div className="row mt-3">
@@ -806,8 +899,9 @@ const AddWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
-                      }`}
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
                     onClick={() => handleButtonClick(item, "Electrician")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -815,6 +909,7 @@ const AddWorker = () => {
                 ))}
               </div>
             </div>
+
 
             {/* Carpentry */}
             <div className="row mt-3">
@@ -833,8 +928,9 @@ const AddWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
-                      }`}
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
                     onClick={() => handleButtonClick(item, "Carpentry")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -842,6 +938,7 @@ const AddWorker = () => {
                 ))}
               </div>
             </div>
+
 
             {/* Plumbing */}
             <div className="row mt-3">
@@ -860,8 +957,9 @@ const AddWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
-                      }`}
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
                     onClick={() => handleButtonClick(item, "Plumbing")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -869,6 +967,7 @@ const AddWorker = () => {
                 ))}
               </div>
             </div>
+
 
             {/* Vehicle Service */}
             <div className="row mt-3">
@@ -887,8 +986,9 @@ const AddWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
-                      }`}
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
                     onClick={() => handleButtonClick(item, "Vehicle service")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -896,6 +996,7 @@ const AddWorker = () => {
                 ))}
               </div>
             </div>
+
 
             {/* Care Taker */}
             <div className="row mt-3">
@@ -913,8 +1014,9 @@ const AddWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
-                      }`}
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
                     onClick={() => handleButtonClick(item, "Care Taker")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -922,6 +1024,7 @@ const AddWorker = () => {
                 ))}
               </div>
             </div>
+
 
             {/* Cleaning */}
             <div className="row mt-3">
@@ -933,8 +1036,9 @@ const AddWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
-                      }`}
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
                     onClick={() => handleButtonClick(item, "Cleaning")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -942,6 +1046,7 @@ const AddWorker = () => {
                 ))}
               </div>
             </div>
+
 
             {/* CCTV */}
             <div className="row mt-3">
@@ -953,8 +1058,9 @@ const AddWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
-                      }`}
+                    className={`btn btn-outline-secondary ${
+                      clickedButtons[item] ? "active" : ""
+                    }`}
                     onClick={() => handleButtonClick(item, "CCTV")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -962,6 +1068,7 @@ const AddWorker = () => {
                 ))}
               </div>
             </div>
+
 
             {/* Address Details */}
             <div className="row mt-4">
@@ -975,8 +1082,9 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.houseNumber ? "is-invalid" : ""
-                    }`}
+                  className={`form-control shadow-none ${
+                    errors.houseNumber ? "is-invalid" : ""
+                  }`}
                   name="houseNumber"
                   id="houseNumber"
                   required
@@ -994,8 +1102,9 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.town ? "is-invalid" : ""
-                    }`}
+                  className={`form-control shadow-none ${
+                    errors.town ? "is-invalid" : ""
+                  }`}
                   name="town"
                   id="town"
                   required
@@ -1013,8 +1122,9 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.pincode ? "is-invalid" : ""
-                    }`}
+                  className={`form-control shadow-none ${
+                    errors.pincode ? "is-invalid" : ""
+                  }`}
                   name="pincode"
                   id="pincode"
                   required
@@ -1029,6 +1139,7 @@ const AddWorker = () => {
               </div>
             </div>
 
+
             {/* Row 2 */}
             <div className="row mt-4">
               <div className="col-md-3">
@@ -1037,8 +1148,9 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.nearbyLandmark ? "is-invalid" : ""
-                    }`}
+                  className={`form-control shadow-none ${
+                    errors.nearbyLandmark ? "is-invalid" : ""
+                  }`}
                   name="nearbyLandmark"
                   id="nearbyLandmark"
                   required
@@ -1058,8 +1170,9 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.district ? "is-invalid" : ""
-                    }`}
+                  className={`form-control shadow-none ${
+                    errors.district ? "is-invalid" : ""
+                  }`}
                   name="district"
                   id="district"
                   required
@@ -1077,8 +1190,9 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.state ? "is-invalid" : ""
-                    }`}
+                  className={`form-control shadow-none ${
+                    errors.state ? "is-invalid" : ""
+                  }`}
                   name="state"
                   id="state"
                   required
@@ -1092,6 +1206,7 @@ const AddWorker = () => {
               </div>
             </div>
 
+
             {/* Identification Details */}
             <div className="row mt-4">
               <p className="fw-bold">Identification & Document</p>
@@ -1103,8 +1218,9 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.aadharNumber ? "is-invalid" : ""
-                    }`}
+                  className={`form-control shadow-none ${
+                    errors.aadharNumber ? "is-invalid" : ""
+                  }`}
                   name="aadharNumber"
                   id="aadharNumber"
                   required
@@ -1123,8 +1239,9 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.drivingLicenseNumber ? "is-invalid" : ""
-                    }`}
+                  className={`form-control shadow-none ${
+                    errors.drivingLicenseNumber ? "is-invalid" : ""
+                  }`}
                   name="drivingLicenseNumber"
                   id="drivingLicenseNumber"
                   placeholder="DL-YYXXXXXXXXXXXXX"
@@ -1154,8 +1271,9 @@ const AddWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${errors.joiningDate ? "is-invalid" : ""
-                    }`}
+                  className={`form-control shadow-none ${
+                    errors.joiningDate ? "is-invalid" : ""
+                  }`}
                   name="joiningDate"
                   id="joiningDate"
                   required
@@ -1174,6 +1292,7 @@ const AddWorker = () => {
                 )}
               </div>
             </div>
+
 
             {/* Submit Button */}
             <div className="row mb-4">
@@ -1205,5 +1324,6 @@ const AddWorker = () => {
     </>
   );
 };
+
 
 export default AddWorker;
