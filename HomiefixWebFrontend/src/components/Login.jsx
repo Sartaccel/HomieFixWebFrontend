@@ -49,7 +49,7 @@ const Login = ({ setToken }) => {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("username", username);
         setToken(response.data.token);
-        navigate("/booking-details");
+        navigate("/dashboard");
       } else {
         throw new Error("No token in response");
       }

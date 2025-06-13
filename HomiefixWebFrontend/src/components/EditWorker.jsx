@@ -676,7 +676,7 @@ const EditWorker = () => {
           <h5
             className="px-3 pb-3 text-black"
             style={{
-              borderBottom: "4px solid #000",
+              borderBottom: "3px solid #000",
               position: "relative",
               marginBottom: "-30px",
             }}

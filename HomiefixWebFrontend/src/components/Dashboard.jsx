@@ -262,7 +262,6 @@ const Dashboard = () => {
 
 
     // Prepare area chart data
-    // Update prepareAreaData function
     const prepareAreaData = () => {
         const allMonthsData = [];
         const currentDate = new Date();
@@ -584,31 +583,18 @@ const Dashboard = () => {
                                                                     <circle
                                                                         cx={props.cx}
                                                                         cy={props.cy}
-                                                                        r={payload.isCurrent ? 8 : 6}
+                                                                        r={payload.isCurrent ? 6 : 6}
                                                                         fill="#1782D2"
                                                                         stroke="#fff"
-                                                                        strokeWidth={2}
+                                                                        // strokeWidth={payload.isCurrent ? 1 : 1}
                                                                         style={{
-                                                                            filter: 'drop-shadow(0px 0px 4px rgba(23, 130, 210, 0.8))',
-                                                                            animation: payload.isCurrent ? 'pulse 1.5s infinite' : 'none',
-                                                                            display: payload.active ? 'block' : 'none'
+                                                                            filter: payload.isCurrent ? 'rgba(23, 130, 210, 0.8)' : 'none',
+                                                                            animation: payload.isCurrent ? 'pulse 1.5s infinite' : 'none'
                                                                         }}
                                                                     />
                                                                 ) : null;
                                                             }}
-                                                            dot={(props) => {
-                                                                const { payload } = props;
-                                                                return payload.hasData && payload.active ? (
-                                                                    <circle
-                                                                        cx={props.cx}
-                                                                        cy={props.cy}
-                                                                        r={4}
-                                                                        fill="#1782D2"
-                                                                        stroke="#fff"
-                                                                        strokeWidth={1}
-                                                                    />
-                                                                ) : null;
-                                                            }}
+
                                                         />
                                                     </AreaChart>
                                                 </ResponsiveContainer>
