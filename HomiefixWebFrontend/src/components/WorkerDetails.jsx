@@ -8,7 +8,6 @@ import alenSamImg from "../assets/home1.png";
 import Header from "./Header";
 import api from "../api";
 
-
 const WorkerDetails = ({ token, setToken }) => {
   const navigate = useNavigate();
   const [workers, setWorkers] = useState([]);
@@ -16,7 +15,6 @@ const WorkerDetails = ({ token, setToken }) => {
   const [selectedSpecifications, setSelectedSpecifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
 
   useEffect(() => {
     const fetchWorkers = async () => {
@@ -31,7 +29,6 @@ const WorkerDetails = ({ token, setToken }) => {
         setWorkers(sortedData);
       } catch (error) {
         console.error("Error fetching worker data:", error);
-
 
         if (error.message === "Network Error") {
           setError(
@@ -52,8 +49,6 @@ const WorkerDetails = ({ token, setToken }) => {
     };
     fetchWorkers();
   }, [token, setToken, navigate]);
-
-
   const specifications = {
     "Home Appliances": [
       "AC",
@@ -108,13 +103,30 @@ const WorkerDetails = ({ token, setToken }) => {
     CCTV: ["CCTV"],
   };
 
-
   const handleFilterChange = (spec) => {
     setSelectedSpecifications((prev) =>
       prev.includes(spec) ? prev.filter((s) => s !== spec) : [...prev, spec]
     );
   };
 
+  const handleDateChange = (e) => {
+  const rawDate = e.target.value;
+  const formattedDate = formatDate(rawDate);
+
+  setFormData((prev) => ({
+    ...prev,
+    joiningDate: formattedDate
+  }));
+};
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
   const filteredWorkers = workers
     .filter(
@@ -131,11 +143,9 @@ const WorkerDetails = ({ token, setToken }) => {
     // but it ensures the order is maintained even if something changes
     .sort((a, b) => new Date(b.joiningDate) - new Date(a.joiningDate));
 
-
   return (
     <div>
       <Header />
-
 
       <div className="container pt-5" style={{ paddingTop: "80px" }}>
         <div
@@ -396,7 +406,7 @@ const WorkerDetails = ({ token, setToken }) => {
                           {worker.averageRating || "N/A"}
                         </td>
                         <td>{`${worker.houseNumber}, ${worker.town}, ${worker.nearbyLandmark}, ${worker.district}, ${worker.state}, ${worker.pincode}`}</td>
-                        <td>{worker.joiningDate}</td>
+                        <td>{formatDate(worker.joiningDate)}</td>
                       </tr>
                     ))
                   ) : (
@@ -417,6 +427,5 @@ const WorkerDetails = ({ token, setToken }) => {
     </div>
   );
 };
-
 
 export default WorkerDetails;

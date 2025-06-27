@@ -22,18 +22,13 @@ import "bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js";
 import Header from "./Header";
 import api from "../api";
 
-
 const hasBookingChanges = (newBookings, prevBookings) => {
   if (newBookings.length !== prevBookings.length) return true;
 
-
   const prevBookingMap = new Map(prevBookings.map((b) => [b.id, b]));
-
 
   for (const newBooking of newBookings) {
     const prevBooking = prevBookingMap.get(newBooking.id);
-
-
     if (
       !prevBooking ||
       newBooking.status !== prevBooking.status ||
@@ -44,11 +39,8 @@ const hasBookingChanges = (newBookings, prevBookings) => {
       return true;
     }
   }
-
-
   return false;
 };
-
 
 const transformBookingData = (booking) => ({
   id: Number(booking.id),
@@ -83,7 +75,6 @@ const transformBookingData = (booking) => ({
   isDeletedUser: !booking.userProfile.active, // Add flag for deleted users
 });
 
-
 const BookingDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -104,7 +95,6 @@ const BookingDetails = () => {
   const [error, setError] = useState(null);
   const prevBookingsRef = useRef([]);
 
-
   // Date filters for each tab
   const [selectedDates, setSelectedDates] = useState({
     bookings: null,
@@ -114,6 +104,8 @@ const BookingDetails = () => {
   });
 
 
+
+
   const fetchBookings = useCallback(async () => {
     try {
       setError(null);
@@ -121,7 +113,6 @@ const BookingDetails = () => {
       const transformedBookings = response.data
         .map(transformBookingData)
         .sort((a, b) => b.id - a.id);
-
 
       if (hasBookingChanges(transformedBookings, prevBookingsRef.current)) {
         setBookings(transformedBookings);
@@ -145,7 +136,6 @@ const BookingDetails = () => {
     }
   }, [navigate]);
 
-
   useEffect(() => {
     fetchBookings();
     const interval = setInterval(() => {
@@ -154,17 +144,14 @@ const BookingDetails = () => {
     return () => clearInterval(interval);
   }, [fetchBookings]);
 
-
   useEffect(() => {
     if (activeTab !== "completed" || initialLoad) return;
-
 
     const fetchRatings = async () => {
       const completedBookings = bookings.filter(
         (booking) => booking.status === "Completed"
       );
       const ratingsData = {};
-
 
       for (const booking of completedBookings) {
         try {
@@ -181,15 +168,10 @@ const BookingDetails = () => {
           }
         }
       }
-
-
       setRatings(ratingsData);
     };
-
-
     fetchRatings();
   }, [bookings, activeTab, initialLoad]);
-
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -201,7 +183,6 @@ const BookingDetails = () => {
       setActiveTab(tab);
     }
   }, [location.search]);
-
 
   const { pendingBookings, inProgress, completed, canceled } = useMemo(() => {
     return {
@@ -222,7 +203,6 @@ const BookingDetails = () => {
     };
   }, [bookings]);
 
-
   const filterBookingsByDate = useCallback((date, bookingsToFilter) => {
     if (!date) return bookingsToFilter;
     const formattedSelectedDate =
@@ -237,16 +217,12 @@ const BookingDetails = () => {
     );
   }, []);
 
-
   useEffect(() => {
     if (initialLoad) return;
-
-
     let filtered = [];
     const currentTab = activeTab;
     const dateFilter = selectedDates[currentTab];
     const currentStatusFilter = statusFilter[currentTab];
-
 
     switch (currentTab) {
       case "bookings":
@@ -278,7 +254,6 @@ const BookingDetails = () => {
         filtered = [];
     }
 
-
     setFilteredBookings(filtered);
   }, [
     activeTab,
@@ -295,7 +270,6 @@ const BookingDetails = () => {
     initialLoad,
   ]);
 
-
   const handleDateChange = (date) => {
     setSelectedDates((prev) => ({
       ...prev,
@@ -303,14 +277,12 @@ const BookingDetails = () => {
     }));
   };
 
-
   const clearDateFilter = () => {
     setSelectedDates((prev) => ({
       ...prev,
       [activeTab]: null,
     }));
   };
-
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -325,7 +297,6 @@ const BookingDetails = () => {
     }
   };
 
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -335,14 +306,12 @@ const BookingDetails = () => {
     });
   };
 
-
   const truncateText = (text, maxLength = 53) => {
     if (!text) return "No Reason Provided";
     return text.length > maxLength
       ? text.substring(0, maxLength) + "..."
       : text;
   };
-
 
   const renderSkeletonRows = (count) => {
     return Array.from({ length: count }).map((_, index) => (
@@ -402,7 +371,6 @@ const BookingDetails = () => {
     ));
   };
 
-
   useEffect(() => {
     if (dropdownOpen) {
       $("#sandbox-container div")
@@ -417,7 +385,6 @@ const BookingDetails = () => {
     }
   }, [dropdownOpen]);
 
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -425,13 +392,11 @@ const BookingDetails = () => {
       }
     };
 
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
 
   // Get filtered counts for each tab
   const getFilteredCounts = useMemo(() => {
@@ -441,7 +406,6 @@ const BookingDetails = () => {
       completed: completed.length,
       canceled: canceled.length,
     };
-
 
     // Apply date filters to counts
     Object.keys(selectedDates).forEach((tab) => {
@@ -453,14 +417,12 @@ const BookingDetails = () => {
           canceled: canceled,
         }[tab];
 
-
         counts[tab] = filterBookingsByDate(
           selectedDates[tab],
           bookingsToFilter
         ).length;
       }
     });
-
 
     // Apply status filter to inProgress tab
     if (statusFilter.inProgress !== "All") {
@@ -469,7 +431,6 @@ const BookingDetails = () => {
         inProgress
       ).filter((b) => b.status === statusFilter.inProgress).length;
     }
-
 
     // Apply rating filter to completed tab
     if (ratingFilter !== "All") {
@@ -481,7 +442,6 @@ const BookingDetails = () => {
         return ratings[b.id] === parseInt(ratingFilter, 10);
       }).length;
     }
-
 
     return counts;
   }, [
@@ -496,10 +456,10 @@ const BookingDetails = () => {
     filterBookingsByDate,
   ]);
 
-
   // Determine column classes based on active tab
   const getColumnClasses = () => {
     const baseClasses = "text-left align-middle";
+
 
     if (activeTab === "bookings") {
       return {
@@ -522,16 +482,13 @@ const BookingDetails = () => {
     }
   };
 
-
   const columnClasses = getColumnClasses();
-
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
           <Header />
-
 
           <div className="navigation-barr d-flex gap-3 py-3 bg-white border-bottom w-100">
             <div
@@ -613,7 +570,6 @@ const BookingDetails = () => {
             </div>
           </div>
 
-
           <div
             className="table-responsive mt-3 w-100 px-0 overflow-auto"
             style={{ maxHeight: "100%", minHeight: "100%" }}
@@ -651,10 +607,11 @@ const BookingDetails = () => {
                     </th>
 
 
+
+
                     <th className={`p-3 ${columnClasses.name}`}>
                       Name
                     </th>
-
 
                     {activeTab === "inProgress" ||
                       activeTab === "completed" ||
@@ -673,9 +630,8 @@ const BookingDetails = () => {
                       </>
                     )}
 
-
                     <th className={`p-3 ${columnClasses.date}`}>
-                      Date
+
                       {!initialLoad && (
                         <>
                           <div
@@ -683,10 +639,11 @@ const BookingDetails = () => {
                             ref={dropdownRef}
                           >
                             <button
+
                               className="btn btn-light btn-sm dropdown-toggle p-0"
                               type="button"
                               onClick={() => setDropdownOpen(!dropdownOpen)}
-                            ></button>
+                            >Date </button>
                             {dropdownOpen && (
                               <div className="dropdown-menu show p-2">
                                 <div id="sandbox-container">
@@ -707,7 +664,6 @@ const BookingDetails = () => {
                         </>
                       )}
                     </th>
-
 
                     {activeTab !== "bookings" && (
                       <th className={`p-3 ${columnClasses.status}`}>
@@ -815,7 +771,6 @@ const BookingDetails = () => {
                       </th>
                     )}
 
-
                     <th className={`p-3 ${columnClasses.action}`}></th>
                   </tr>
                 </thead>
@@ -859,7 +814,6 @@ const BookingDetails = () => {
                           </div>
                         </td>
 
-
                         <td className={`p-3 ${columnClasses.name}`}>
                           {booking.name}
                           {booking.isDeletedUser && (
@@ -874,7 +828,6 @@ const BookingDetails = () => {
                               <span>{booking.contact}</span>
                             )}
                         </td>
-
 
                         {activeTab === "inProgress" ||
                           activeTab === "completed" ||
@@ -900,12 +853,10 @@ const BookingDetails = () => {
                           </>
                         )}
 
-
                         <td className={`p-3 ${columnClasses.date}`}>
                           {formatDate(booking.date)} <br />
                           <span>{booking.timeslot}</span>
                         </td>
-
 
                         {activeTab !== "bookings" && (
                           <td className={`p-3 ${columnClasses.status}`}>
@@ -941,7 +892,6 @@ const BookingDetails = () => {
                             )}
                           </td>
                         )}
-
 
                         <td className={`p-3 ${columnClasses.action}`}>
                           {activeTab === "inProgress" ||
@@ -1036,6 +986,5 @@ const BookingDetails = () => {
     </div>
   );
 };
-
 
 export default BookingDetails;
