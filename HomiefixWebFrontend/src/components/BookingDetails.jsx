@@ -626,9 +626,8 @@ const BookingDetails = () => {
                         </th>
                       </>
                     )}
-
                     <th className={`p-3 ${columnClasses.date}`}>
-                      Date
+                      
                       {!initialLoad && (
                         <>
                           <div
@@ -639,7 +638,7 @@ const BookingDetails = () => {
                               className="btn btn-light btn-sm dropdown-toggle p-0"
                               type="button"
                               onClick={() => setDropdownOpen(!dropdownOpen)}
-                            ></button>
+                            >Date</button>
                             {dropdownOpen && (
                               <div className="dropdown-menu show p-2">
                                 <div id="sandbox-container">

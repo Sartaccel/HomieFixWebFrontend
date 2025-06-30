@@ -276,7 +276,7 @@ const Profile = () => {
                   borderRadius: "2px",
                 }}
               >
-                Edit Profile
+                Upload Photo
               </label>
             </div>
           </div>

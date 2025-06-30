@@ -49,7 +49,6 @@ const WorkerDetails = ({ token, setToken }) => {
     };
     fetchWorkers();
   }, [token, setToken, navigate]);
-
   const specifications = {
     "Home Appliances": [
       "AC",
@@ -108,6 +107,25 @@ const WorkerDetails = ({ token, setToken }) => {
     setSelectedSpecifications((prev) =>
       prev.includes(spec) ? prev.filter((s) => s !== spec) : [...prev, spec]
     );
+  };
+
+  const handleDateChange = (e) => {
+    const rawDate = e.target.value;
+    const formattedDate = formatDate(rawDate);
+
+    setFormData((prev) => ({
+      ...prev,
+      joiningDate: formattedDate,
+    }));
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   const filteredWorkers = workers
@@ -388,7 +406,7 @@ const WorkerDetails = ({ token, setToken }) => {
                           {worker.averageRating || "N/A"}
                         </td>
                         <td>{`${worker.houseNumber}, ${worker.town}, ${worker.nearbyLandmark}, ${worker.district}, ${worker.state}, ${worker.pincode}`}</td>
-                        <td>{worker.joiningDate}</td>
+                        <td>{formatDate(worker.joiningDate)}</td>
                       </tr>
                     ))
                   ) : (

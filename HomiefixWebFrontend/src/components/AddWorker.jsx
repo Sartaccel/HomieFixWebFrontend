@@ -86,7 +86,7 @@ const AddWorker = () => {
   const validateState = (state) => /^[a-zA-Z\s]*$/.test(state);
   const validateAadhar = (aadhar) => /^\d{12}$/.test(aadhar);
   const validateDrivingLicense = (license) =>
-    !license || /^DL-[a-zA-Z0-9]{15}$/.test(license);
+    !license || /[a-zA-Z0-9]{15}$/.test(license);
   const validateWorkExperience = (experience) => /^[0-9]+$/.test(experience);
 
   const validateDate = (dateString, isDOB = false) => {
@@ -142,7 +142,15 @@ const AddWorker = () => {
             : "";
         break;
       case "pincode":
-        error = !validatePincode(value) ? "Pincode should be 6 digits" : "";
+        if (!value) {
+          error = "Pincode is required";
+        } else if (/[a-zA-Z]/.test(value)) {
+          error = "Only numeric digits are allowed in pincode";
+        } else if (!validatePincode(value)) {
+          error = "Pincode should be exactly 6 digits";
+        } else {
+          error = "";
+        }
         break;
       case "district":
         error = !validateDistrict(value)
@@ -162,7 +170,7 @@ const AddWorker = () => {
       case "drivingLicenseNumber":
         error =
           value && !validateDrivingLicense(value)
-            ? "License should be in format DL- followed by 15 alphanumeric characters"
+            ? "License should be 15 alphanumeric characters"
             : "";
         break;
       case "dateOfBirth":
@@ -173,20 +181,15 @@ const AddWorker = () => {
       default:
         break;
     }
-
     setErrors((prev) => ({ ...prev, [name]: error }));
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleDrivingLicenseChange = (e) => {
     let value = e.target.value;
-    if (isDrivingLicenseFocused || value) {
-      if (!value.startsWith("DL-")) {
-        value = "DL-" + value.replace(/^DL-/, "").replace(/[^a-zA-Z0-9]/g, "");
-      } else {
-        value = "DL-" + value.substring(3).replace(/[^a-zA-Z0-9]/g, "");
-      }
-      if (value.length > 18) value = value.substring(0, 18);
+    value = value.replace(/[^a-zA-Z0-9]/g, "");
+    if (value.length > 18) {
+      value = value.substring(0, 18);
     }
 
     setFormData((prev) => ({ ...prev, drivingLicenseNumber: value }));
@@ -194,7 +197,7 @@ const AddWorker = () => {
       ...prev,
       drivingLicenseNumber:
         value && !validateDrivingLicense(value)
-          ? "License should be in format DL- followed by 15 alphanumeric characters"
+          ? "License should be 15 alphanumeric characters"
           : "",
     }));
   };
@@ -238,7 +241,6 @@ const AddWorker = () => {
       setPreviewImage(addWorker);
     };
     reader.readAsDataURL(file);
-
     setFormData((prev) => ({ ...prev, profilePic: file }));
   };
 
@@ -260,7 +262,8 @@ const AddWorker = () => {
       const response = await api.get(`/workers/view`);
       const workers = response.data;
       const emailExists = workers.some(
-        (worker) => worker.email && worker.email.toLowerCase() === email.toLowerCase()
+        (worker) =>
+          worker.email && worker.email.toLowerCase() === email.toLowerCase()
       );
       return emailExists;
     } catch (error) {
@@ -366,7 +369,7 @@ const AddWorker = () => {
       !validateDrivingLicense(formData.drivingLicenseNumber)
     ) {
       newErrors.drivingLicenseNumber =
-        "License should be in format DL- followed by 15 alphanumeric characters";
+        "License should be 15 alphanumeric characters";
       isValid = false;
     }
 
@@ -440,6 +443,14 @@ const AddWorker = () => {
     }
 
     try {
+      if (!formData.profilePic) {
+        Swal.fire({
+          icon: "error",
+          title: "Profile Picture Required",
+          text: "Please upload a profile picture before submitting.",
+        });
+        return;
+      }
       const formDataToSend = new FormData();
       for (const key in formData) {
         if (key === "specification" || key === "role") {
@@ -458,7 +469,6 @@ const AddWorker = () => {
           "Content-Type": "multipart/form-data",
         },
       });
-
       Swal.fire({
         icon: "success",
         title: "Success",
@@ -1179,20 +1189,20 @@ const AddWorker = () => {
                   }`}
                   name="drivingLicenseNumber"
                   id="drivingLicenseNumber"
-                  placeholder="DL-YYXXXXXXXXXXXXX"
+                  placeholder="YYXXXXXXXXXXXXX"
                   onChange={handleDrivingLicenseChange}
                   onFocus={() => {
                     setIsDrivingLicenseFocused(true);
                     if (!formData.drivingLicenseNumber) {
                       setFormData((prev) => ({
                         ...prev,
-                        drivingLicenseNumber: "DL-",
+                        drivingLicenseNumber: "",
                       }));
                     }
                   }}
                   onBlur={() => setIsDrivingLicenseFocused(false)}
                   value={formData.drivingLicenseNumber}
-                  maxLength="18"
+                  maxLength="15"
                 />
                 {errors.drivingLicenseNumber && (
                   <div className="invalid-feedback">
