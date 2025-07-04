@@ -72,10 +72,10 @@ const Sidebar = ({ onLogout }) => {
             Workers Details
           </Link>
 
-          <Link to="/user-details" className={`menu-item ${location.pathname.startsWith("/user-details") ? "active" : ""}`}>
+          {/* <Link to="/user-details" className={`menu-item ${location.pathname.startsWith("/user-details") ? "active" : ""}`}>
             <img src={workersIcon} alt="Users" className="menu-icon" />
             User Details
-          </Link>
+          </Link> */}
 
           <Link to="/reviews" className={`menu-item ${location.pathname.startsWith("/reviews") ? "active" : ""}`}>
             <img src={reviewsIcon} alt="Reviews" className="menu-icon" />
