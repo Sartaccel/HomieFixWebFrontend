@@ -25,7 +25,7 @@ const Reviews = () => {
   const years = Array.from({ length: currentYear - 2019 }, (_, i) => 2020 + i);
 
   // Months array
-  const months = [
+  const allMonths = [
     "January",
     "February",
     "March",
@@ -39,6 +39,8 @@ const Reviews = () => {
     "November",
     "December",
   ];
+  const currentMonthIndex = new Date().getMonth(); // 0 for Jan, 5 for June, etc.
+  const months = allMonths.slice(0, currentMonthIndex + 1);
 
   const fetchReviews = async () => {
     setLoading(true);

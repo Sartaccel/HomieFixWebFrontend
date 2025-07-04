@@ -20,9 +20,11 @@ const Header = () => {
   const getHeading = () => {
     if (location.pathname.startsWith("/booking-details")) return "Booking Details";
     if (location.pathname.startsWith("/worker-details")) return "Worker Details";
+    if (location.pathname.startsWith("/user-details")) return "User Details";
     if (location.pathname.startsWith("/services")) return "Services";
     if (location.pathname.startsWith("/reviews")) return "Reviews";
     if (location.pathname.startsWith("/profile")) return "Profile";
+
     return "Dashboard";
   };
 

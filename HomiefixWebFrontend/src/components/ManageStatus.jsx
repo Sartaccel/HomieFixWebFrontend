@@ -191,15 +191,17 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
     if (!dateString || !timeString) return "Not Assigned";
 
     try {
-      const date = new Date(`${dateString}T${timeString}`);
+      const date = new Date(`${dateString}T${timeString}+05:30`);
       if (isNaN(date.getTime())) return "Not Assigned";
 
       const formattedDate = date.toLocaleDateString("en-US", {
+        timeZone:"Asia/Kolkata",
         month: "short",
         day: "2-digit",
         year: "numeric",
       });
       const formattedTime = date.toLocaleTimeString("en-US", {
+        timeZone:"Asia/Kolkata",
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
