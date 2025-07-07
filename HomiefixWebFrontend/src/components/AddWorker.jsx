@@ -707,11 +707,11 @@ const AddWorker = () => {
               </div>
               <div className="col-md-3">
                 <label htmlFor="workExperience" className="form-label">
-                  Work Experience <span style={{ color: "red" }}>*</span>
+                  Work Experience
                 </label>
                 <input
                   type="number"
-                  min="0" required
+                  min="0"
                   className={`form-control shadow-none ${
                     errors.workExperience ? "is-invalid" : ""
                   }`}
@@ -740,11 +740,10 @@ const AddWorker = () => {
               </div>
               <div className="col-md-3">
                 <label htmlFor="dateOfBirth" className="form-label">
-                  D.O.B  <span style={{ color: "red" }}>*</span>
+                  D.O.B  
                 </label>
                 <input
                   type="date"
-                  required
                   className={`form-control shadow-none ${
                     errors.dateOfBirth ? "is-invalid" : ""
                   }`}
@@ -1194,10 +1193,10 @@ const AddWorker = () => {
               </div>
               <div className="col-md-3">
                 <label htmlFor="drivingLicenseNumber" className="form-label">
-                  Driving license number <span style={requiredFieldStyle}>*</span>
+                  Driving license number
                 </label>
                 <input
-                  type="text" required
+                  type="text"
                   className={`form-control shadow-none ${
                     errors.drivingLicenseNumber ? "is-invalid" : ""
                   }`}

@@ -4,35 +4,173 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import alenSamImg from "../assets/home1.png";
 import Header from "./Header";
 import api from "../api";
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
+import moment from 'moment';
+import { DateRangePicker } from 'react-date-range';
+import 'react-date-range/dist/styles.css';
+import 'react-date-range/dist/theme/default.css';
+import profileImg from "../assets/addWorker.jpg";
 
-function UserDetails() {
-  const UserDetails = [
-    {
-      name: "subin",
-      contactNumber: "1234567890",
-      address: "Nagercoil",
-      totalBookings: 1,
-      lastBooking: "10-08-2002",
-      profile:alenSamImg
-    },
-    {
-      name: "sundar",
-      contactNumber: "45632178",
-      address: "Kanyakumari",
-      totalBookings: 2,
-      lastBooking: "10-08-2002",
-    },
-    {
-      name: "Subi",
-      contactNumber: "7896541203",
-      address: "NGL",
-      totalBookings: 0,
-      lastBooking: "10-08-2002",
-    },
-  ];
+const UserDetails = ({ token, setToken }) => {
+  const navigate = useNavigate();
+  const [profiles, setProfiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [dateRange, setDateRange] = useState({
+    startDate: null,
+    endDate: null,
+    key: 'selection'
+  });
+  const [statusFilter, setStatusFilter] = useState("All");
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setError(null);
+        const response = await api.get("/profile/all");
+        const userProfiles = response.data;
+        
+        const sortedData = userProfiles.sort((a, b) => 
+          new Date(b.lastBookingDate) - new Date(a.lastBookingDate)
+        );
+        setProfiles(sortedData);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        if (error.message === "Network Error") {
+          setError("No internet connection. Please check your network and try again.");
+        } else if (error.response?.status === 403) {
+          localStorage.removeItem("token");
+          setToken("");
+          navigate("/");
+        } else {
+          setError("Failed to load user data. Please try again later.");
+        }
+        setProfiles([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, [token, setToken, navigate]);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return moment(dateString).format('MMM D, YYYY');
+  };
+
+  const getPrimaryAddress = (addresses) => {
+    if (!addresses || addresses.length === 0) return null;
+    return addresses.reduce((prev, current) => 
+      (parseInt(prev.id) > parseInt(current.id) ? prev : current)
+    );
+  };
+
+  const handleUserSelect = (userId) => {
+    setSelectedUsers(prev =>
+      prev.includes(userId)
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedUsers(filteredProfiles.map(profile => profile.id));
+    } else {
+      setSelectedUsers([]);
+    }
+  };
+
+  const exportToPDF = () => {
+    if (selectedUsers.length === 0) {
+      alert("Please select at least one user to export");
+      return;
+    }
+
+    const doc = new jsPDF();
+    const headers = [["Name", "Contact", "Address", "Total Bookings", "Last Booking", "Status"]];
+    const data = profiles
+      .filter(profile => selectedUsers.includes(profile.id))
+      .map(profile => {
+        const address = getPrimaryAddress(profile.addresses);
+        return [
+          profile.fullName,
+          profile.mobileNumber,
+          address ? 
+            `${address.houseNumber}, ${address.town}, ${address.district}, ${address.state} - ${address.pincode}` : 
+            "No address",
+          profile.totalBookings,
+          formatDate(profile.lastBookingDate),
+          profile.isActive ? "Active" : "Deleted"
+        ];
+      });
+
+    doc.autoTable({
+      head: headers,
+      body: data,
+      startY: 20,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [0, 118, 206] }
+    });
+
+    doc.text("User Details Report", 14, 15);
+    doc.save(`user-details-${moment().format('YYYY-MM-DD')}.pdf`);
+  };
+
+  const handleDateRangeChange = (ranges) => {
+    setDateRange(ranges.selection);
+  };
+
+  const applyDateFilter = () => {
+    setShowDatePicker(false);
+  };
+
+  const clearDateFilter = () => {
+    setDateRange({
+      startDate: null,
+      endDate: null,
+      key: 'selection'
+    });
+    setShowDatePicker(false);
+  };
+
+  const filteredProfiles = profiles
+    .filter(profile => {
+      if (statusFilter === "All") return true;
+      if (statusFilter === "Active") return profile.isActive;
+      if (statusFilter === "Deleted") return !profile.isActive;
+      return true;
+    })
+    .filter(profile => {
+      if (!dateRange.startDate && !dateRange.endDate) return true;
+      
+      const userDate = moment(profile.lastBookingDate);
+      const startDate = dateRange.startDate ? moment(dateRange.startDate) : null;
+      const endDate = dateRange.endDate ? moment(dateRange.endDate) : null;
+      
+      if (startDate && endDate) {
+        return userDate.isBetween(startDate, endDate, null, '[]');
+      } else if (startDate) {
+        return userDate.isSameOrAfter(startDate);
+      } else if (endDate) {
+        return userDate.isSameOrBefore(endDate);
+      }
+      return true;
+    })
+    .sort((a, b) => new Date(b.lastBookingDate) - new Date(a.lastBookingDate));
+
+  const getDateRangeLabel = () => {
+    if (!dateRange.startDate && !dateRange.endDate) {
+      return "Select Date Range";
+    }
+    return `${dateRange.startDate ? formatDate(dateRange.startDate) : ''} - ${dateRange.endDate ? formatDate(dateRange.endDate) : ''}`;
+  };
+
   return (
     <div>
       <Header />
@@ -48,169 +186,215 @@ function UserDetails() {
           >
             User Details
           </h5>
-          <div className="d-flex align-items-center gap-2 mb-3">
-            <button
-              className="btn border text-black"
-              //   onClick={() => setShowFilter(true)}
-            >
-              <i className="bi bi-calendar me-2"></i>
-              Filter
-            </button>
-            <div className="dropdown ms-2">
+          <div className="d-flex align-items-center">
+            <div className="me-3 position-relative">
               <button
-                className="btn text-light dropdown-toggle"
                 type="button"
-                id="sortByDropdown"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-                style={{ backgroundColor: "#0076CE" }}
+                className="btn btn-outline-secondary"
+                onClick={() => setShowDatePicker(!showDatePicker)}
               >
-                Sort By
+                {getDateRangeLabel()} <i className="bi bi-calendar"></i>
               </button>
-              <ul className="dropdown-menu" aria-labelledby="sortByDropdown">
-                <li>
-                  <button
-                    className="dropdown-item"
-                    // onClick={() => handleSort("Ascending")}
-                  >
-                    Ascending
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className="dropdown-item"
-                    // onClick={() => handleSort("Descending")}
-                  >
-                    Desending
-                  </button>
-                </li>
-              </ul>
+              {showDatePicker && (
+                <div className="position-absolute bg-white p-3 border shadow rounded mt-1 z-3">
+                  <DateRangePicker
+                    ranges={[dateRange]}
+                    onChange={handleDateRangeChange}
+                  />
+                  <div className="d-flex justify-content-end mt-2">
+                    <button 
+                      className="btn btn-sm btn-outline-secondary me-2"
+                      onClick={clearDateFilter}
+                    >
+                      Clear
+                    </button>
+                    <button 
+                      className="btn btn-sm btn-primary"
+                      onClick={applyDateFilter}
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
+            <button
+              className="btn text-light"
+              onClick={exportToPDF}
+              style={{ backgroundColor: "#0076CE" }}
+            >
+              Export <i className="bi bi-download"></i>
+            </button>
           </div>
         </div>
-        <div>
-          <table
-            className="table table-hover"
+
+        <div style={{ overflow: "hidden", padding: "10px 15px" }}>
+          <div
             style={{
-              width: "100%",
-              marginBottom: "0",
-              tableLayout: "fixed",
+              maxHeight: "75vh",
+              overflowY: "auto",
+              border: "1px solid #dee2e6",
             }}
           >
-            <thead
-              className="table-light"
-              style={{ position: "sticky", top: 0, zIndex: 2 }}
-            >
-              <tr>
-                <th
-                  style={{
-                    width: "5%",
-                    padding: "12px",
-                    verticalAlign: "middle",
-                    textAlign: "center",
-                  }}
+            {error ? (
+              <div
+                className="alert alert-danger text-center m-3"
+                style={{ width: "60%", margin: "auto", left: "18%" }}
+              >
+                <div className="mb-3">
+                  <i
+                    className="bi bi-wifi-off"
+                    style={{ fontSize: "2rem" }}
+                  ></i>
+                </div>
+                {error}
+                <button
+                  className="btn  ms-3"
+                  onClick={() => window.location.reload()}
+                  style={{ backgroundColor: "#0076CE", color: "white" }}
                 >
-                  <input
-                    type="checkbox"
-                    // onChange={handleSelectAll} // You can define logic for select all
-                  />
-                </th>
-                <th
-                  style={{
-                    width: "13%",
-                    padding: "12px",
-                    verticalAlign: "middle",
-                  }}
+                  Retry
+                </button>
+              </div>
+            ) : (
+              <table
+                className="table table-hover"
+                style={{
+                  width: "100%",
+                  marginBottom: "0",
+                  tableLayout: "fixed",
+                }}
+              >
+                <thead
+                  className="table-light"
+                  style={{ position: "sticky", top: 0, zIndex: 2 }}
                 >
-                  Name
-                </th>
-                <th
-                  style={{
-                    width: "10%",
-                    padding: "12px",
-                    verticalAlign: "middle",
-                  }}
-                >
-                  Contact
-                </th>
-                <th
-                  style={{
-                    width: "20%",
-                    padding: "12px",
-                    verticalAlign: "middle",
-                  }}
-                >
-                  Address
-                </th>
-                <th
-                  style={{
-                    width: "8%",
-                    padding: "12px",
-                    verticalAlign: "middle",
-                    textAlign: "center",
-                  }}
-                >
-                  Total Bookings
-                </th>
-                <th
-                  style={{
-                    width: "7%",
-                    padding: "12px",
-                    verticalAlign: "middle",
-                    textAlign: "center",
-                  }}
-                >
-                  Last Booking
-                </th>
-                <th
-                  className="text-centered"
-                  style={{
-                    width: "3%",
-                    padding: "12px",
-                    verticalAlign: "middle",
-                  }}
-                >
-                  View
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {UserDetails.map((user, index) => (
-                <tr key={index}>
-                  <td className="text-center" style={{verticalAlign: "middle",textAlign:"center"}}>
-                    <input type="checkbox" />
-                  </td>
-                    <td className="d-flex align-items-center gap-2">
-                      <img
-                        src={user.profile}
-                        alt={user.name}
-                        style={{
-                          width: "31px",
-                          height: "31px",
-                          borderRadius: "50%",
-                          objectFit: "cover",
-                        }}
+                  <tr>
+                    <th style={{ width: "5%", padding: "12px" }}>
+                      <input
+                        type="checkbox"
+                        onChange={handleSelectAll}
+                        checked={selectedUsers.length === filteredProfiles.length && filteredProfiles.length > 0}
                       />
-                      {user.name}
-                  </td>
-                  <td style={{verticalAlign: "middle"}}>{user.contactNumber }</td>
-                  <td style={{verticalAlign: "middle"}}>{user.address}</td>
-                  <td className="text-center" style={{verticalAlign: "middle"}}>{user.totalBookings}</td>
-                  <td className="text-center" style={{verticalAlign: "middle"}}>{user.lastBooking}</td>
-                  <td className="text-center" style={{verticalAlign: "middle"}}>
-                    <button className="btn p-0 border-0 bg-transparent">
-                      <i className="bi bi-eye"
-                        style={{ color: "black", fontSize: "1.2rem" }} ></i>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </th>
+                    <th style={{ width: "15%", padding: "12px" }}>Name</th>
+                    <th style={{ width: "15%", padding: "12px" }}>Contact</th>
+                    <th style={{ width: "25%", padding: "12px" }}>Address</th>
+                    <th style={{ width: "15%", padding: "12px" }}>Total Bookings</th>
+                    <th style={{ width: "15%", padding: "12px" }}>Last Booking</th>
+                    <th style={{ width: "10%", padding: "12px" }}>
+                      <div className="dropdown">
+                        <button
+                          className="btn btn-sm dropdown-toggle"
+                          type="button"
+                          id="statusFilterDropdown"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                          style={{ 
+                            backgroundColor: "transparent",
+                            color: "#000"
+                          }}
+                        >
+                          Status
+                        </button>
+                        <ul className="dropdown-menu" aria-labelledby="statusFilterDropdown">
+                          <li><button className="dropdown-item" onClick={() => setStatusFilter("All")}>All</button></li>
+                          <li><button className="dropdown-item" onClick={() => setStatusFilter("Active")}>Active</button></li>
+                          <li><button className="dropdown-item" onClick={() => setStatusFilter("Deleted")}>Deleted</button></li>
+                        </ul>
+                      </div>
+                    </th>
+                    <th style={{ width: "5%", padding: "12px" }}>View</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    Array(5)
+                      .fill()
+                      .map((_, index) => (
+                        <tr key={index}>
+                          <td><Skeleton width={20} height={20} /></td>
+                          <td><Skeleton width={100} height={20} /></td>
+                          <td><Skeleton width={100} height={20} /></td>
+                          <td><Skeleton width={200} height={20} /></td>
+                          <td><Skeleton width={80} height={20} /></td>
+                          <td><Skeleton width={100} height={20} /></td>
+                          <td><Skeleton width={50} height={20} /></td>
+                          <td><Skeleton width={30} height={20} /></td>
+                        </tr>
+                      ))
+                  ) : filteredProfiles.length > 0 ? (
+                    filteredProfiles.map((profile) => {
+                      const address = getPrimaryAddress(profile.addresses);
+                      return (
+                        <tr key={profile.id}>
+                          <td>
+                            <input
+                              type="checkbox"
+                              className="m-1"
+                              checked={selectedUsers.includes(profile.id)}
+                              onChange={() => handleUserSelect(profile.id)}
+                            />
+                          </td>
+                          <td>
+                            <div style={{ display: "flex", alignItems: "center" }}>
+                              <img
+                                src={profileImg}
+                                alt={profile.fullName}
+                                className="rounded-circle me-2"
+                                width="40"
+                                height="40"
+                              />
+                              {profile.fullName}
+                            </div>
+                          </td>
+                          <td>{profile.mobileNumber}</td>
+                          <td>
+                            {address ? 
+                              `${address.houseNumber}, ${address.town}, ${address.district}, ${address.state} - ${address.pincode}` : 
+                              "No address"}
+                          </td>
+                          <td style={{ textAlign: "center" , paddingRight: "70px"}}>{profile.totalBookings}</td>
+                          <td className="p-2">{formatDate(profile.lastBookingDate)}</td>
+                          <td className="p-3">
+                            <span 
+                              className="badge " 
+                              style={{
+                                backgroundColor: profile.isActive ? "#CDFFF7" : "#FFD5D5",
+                                color: profile.isActive ? "#14AE5C" : "#FF5757",
+                                padding: "5px 10px"
+                              }}
+                            >
+                              {profile.isActive ? "Active" : "Deleted"}
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              className="btn btn-link p-0"
+                              onClick={() => navigate(`/user-details/${profile.id}`)}
+                              style={{ color: "#474444" }}
+                            >
+                              <i className="bi bi-eye"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan="8" className="text-center">
+                        No users found matching your criteria
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default UserDetails;

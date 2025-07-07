@@ -9,7 +9,7 @@ const Layout = () => {
       <Sidebar />
 
       {/* Main Content */}
-      <div className="main-content flex-grow-1 " style={{ marginLeft: "250px" }}>
+      <div className="main-content flex-grow-1 " style={{ marginLeft: "210px" }}>
         <Outlet />
       </div>
     </div>
