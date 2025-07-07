@@ -21,6 +21,8 @@ import EditWorker from "./components/EditWorker";
 import Profile from "./components/Profile";
 import Notifications from "./components/Notifications";
 import Service from "./components/Service";
+import ReAssign from "./components/ReAssign";
+import UserDetails from "./components/UserDetails";
 
 const App = () => {
   const navigate = useNavigate();
@@ -43,6 +45,7 @@ const App = () => {
           <Route path="/booking-details" element={<BookingDetails />} />
           <Route path="/booking-details/view-bookings/:id" element={<ViewBookings />} />
           <Route path="/booking-details/reschedule/:id" element={<Reschedule />} />
+          <Route path="/booking-details/reassign/:id" element={<ReAssign />} />
           <Route path="/booking-details/cancel/:id" element={<CancelBooking />} />
           <Route path="/booking-details/assign-bookings/:id" element={<AssignBookings />} />
           <Route path="/reviews" element={<Reviews />} />
@@ -55,6 +58,8 @@ const App = () => {
           <Route path="/services/:productId" element={<Service />} />
           <Route path="/profile/:username" element={<Profile />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/user-details" element={<UserDetails />} />
+
         </Route>
       </Route>
     </Routes>

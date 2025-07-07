@@ -4,6 +4,7 @@ import Header from "./Header";
 import Reschedule from "./Reschedule";
 import CancelBooking from "./CancelBooking";
 import ManageStatus from "./ManageStatus";
+import ReAssign from "./ReAssign";
 import api from "../api";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
@@ -22,14 +23,17 @@ const ViewBookings = () => {
   const [feedback, setFeedback] = useState(null);
   const [activeTab, setActiveTab] = useState("serviceDetails");
   const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
+  const [isReAssignHovered, setIsReAssignHovered] = useState(false);
   const [isCancelHovered, setIsCancelHovered] = useState(false);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [showCancelBookingModal, setShowCancelBookingModal] = useState(false);
+  const [isReAssignModalOpen, setIsReAssignModalOpen] = useState(false);
   const [showFullComment, setShowFullComment] = useState(false);
   const [currentComment, setCurrentComment] = useState("");
   const [workerError, setWorkerError] = useState(null);
   const [allWorkers, setAllWorkers] = useState([]);
   const [refresh, setRefresh] = useState(false);
+  const [originalNotes, setOriginalNotes] = useState("");
 
   const formatDate = (dateString) => {
     if (!dateString) return "Not Assigned";
@@ -41,13 +45,24 @@ const ViewBookings = () => {
     });
   };
 
+  const handleReAssignSuccess = () => {
+    setIsReAssignModalOpen(false);
+    setRefresh(!refresh); // Trigger a refresh of booking data
+  };
+
+  // Update your reassign button click handler
+  const handleReassignButtonClick = () => {
+    setIsReAssignModalOpen(true);
+  };
+
   const handleGoBack = () => {
     if (!booking) {
       navigate(-1); // Fallback if booking data isn't loaded
       return;
     }
 
-     const previousTab = location.state?.previousTab || 
+    const previousTab =
+      location.state?.previousTab ||
       (() => {
         switch (booking.bookingStatus) {
           case "COMPLETED":
@@ -288,6 +303,21 @@ const ViewBookings = () => {
                     Reschedule
                   </button>
                   <button
+                    className="btn btn-outline-primary"
+                    onClick={handleReassignButtonClick} // Changed from handleRescheduleButtonClick
+                    onMouseEnter={() => setIsReAssignHovered(true)}
+                    onMouseLeave={() => setIsReAssignHovered(false)}
+                    style={{
+                      border: "1px solid #F4B400",
+                      backgroundColor: isReAssignHovered
+                        ? "#F4B400"
+                        : "transparent",
+                      color: isReAssignHovered ? "white" : "#F4B400",
+                    }}
+                  >
+                    ReAssign
+                  </button>
+                  <button
                     className="btn btn-outline-danger"
                     onClick={handleCancelBookingButtonClick}
                     onMouseEnter={() => setIsCancelHovered(true)}
@@ -454,6 +484,7 @@ const ViewBookings = () => {
                               onClick={(e) => {
                                 e.preventDefault();
                                 setIsEditing(true);
+                                setOriginalNotes(notes);
                                 document.getElementById("notesText").focus();
                               }}
                             >
@@ -470,6 +501,10 @@ const ViewBookings = () => {
                                 if (!saving) {
                                   const textarea =
                                     document.getElementById("notesText");
+                                  const trimmed = textarea.value.trim();
+                                  if (trimmed === originalNotes.trim()) {
+                                    return;
+                                  }
                                   if (textarea.reportValidity()) {
                                     saveNotes();
                                   }
@@ -741,6 +776,14 @@ const ViewBookings = () => {
                 booking={booking}
                 onClose={closeRescheduleModal}
                 onReschedule={handleRescheduleSuccess}
+              />
+            )}
+            {isReAssignModalOpen && (
+              <ReAssign
+                id={id}
+                booking={booking}
+                onClose={() => setIsReAssignModalOpen(false)}
+                onReAssignSuccess={handleReAssignSuccess}
               />
             )}
             {showCancelBookingModal && (

@@ -30,6 +30,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
     rescheduleTime: null,
     rescheduledDate: null,
     rescheduledTimeSlot: null,
+    reassignmentReason: null,
     cancelledDate: null,
     cancelledTime: null,
     cancelReason: null,
@@ -173,6 +174,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       CANCELLED: { borderLeft: "4px solid #B8141A" },
       RESCHEDULED: { borderLeft: "4px solid #C14810" },
       ASSIGNED: { borderLeft: "4px solid black" },
+      REASSIGNED: { borderLeft: "4px solid #F4B400" },
       STARTED: { borderLeft: "4px solid black" },
       COMPLETED: { borderLeft: "4px solid #2FB467" },
     };
@@ -184,6 +186,11 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
     if (rowType === "RESCHEDULED" && safeBooking.rescheduleReason) {
       return highlightStyles.RESCHEDULED || {};
     }
+
+    if (rowType === "REASSIGNED" && safeBooking.rescheduleReason) {
+      return highlightStyles.REASSIGNED || {};
+    }
+
     return {};
   };
 
@@ -309,6 +316,17 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       </div>
     );
   };
+  const isReassigned = safeBooking.bookingStatus === "REASSIGNED";
+
+  const bookingInfo = {
+    label: isReassigned ? "Reassigned Service On" : "Rescheduled Service On",
+    color: isReassigned ? "#F4B400" : "#C14810",
+    date: safeBooking.rescheduledDate,
+    timeSlot: safeBooking.rescheduledTimeSlot,
+    reason: safeBooking.rescheduleReason,
+    dateLabel: safeBooking.rescheduleDate,
+    timeLabel: safeBooking.rescheduleTime,
+  };
 
   return (
     <div>
@@ -395,93 +413,68 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                 ></td>
               </tr>
 
-              {safeBooking.rescheduleReason && (
+              
+              {bookingInfo.date && bookingInfo.timeSlot && (
                 <tr
                   style={{
-                    height: "40px",
-                    ...(safeBooking.bookingStatus === "RESCHEDULED"
-                      ? getHighlightStyle("RESCHEDULED")
-                      : {}),
+                    color: "grey",
+                    borderLeft: `4px solid ${
+                     bookingInfo.label.includes("Rescheduled") ? "#C14810" : "#F4B400" }`,
                   }}
                 >
-                  <td
-                    className="text-start border-right"
-                    style={{ border: "1px solid #E6E6E6" }}
-                  >
-                    {isLoading ? (
-                      <>
-                        <SkeletonLoader width="60%" height="12px" />
-                        <SkeletonLoader
-                          width="80%"
-                          height="16px"
-                          style={{ marginTop: "4px" }}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <span style={{ color: "grey" }}>
-                          {formatDateTime(
-                            safeBooking.rescheduleDate,
-                            safeBooking.rescheduleTime
-                          )}
-                        </span>
-                        <span
-                          className="booking-details"
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "5px",
-                            fontSize: "14px",
-                          }}
-                        >
-                          <span
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              fontWeight: "bold",
-                              gap: "5px",
-                            }}
-                          >
-                            <span style={{ color: "#C14810" }}>
-                              Reschedule Service On{" "}
-                              {safeBooking.rescheduledDate
-                                ? new Date(
-                                    safeBooking.rescheduledDate
-                                  ).toLocaleDateString("en-US", {
-                                    month: "short",
-                                    day: "2-digit",
-                                    year: "numeric",
-                                  })
-                                : "Not Assigned"}
-                              {" | "}
-                              {safeBooking.rescheduledTimeSlot ||
-                                "Not Assigned"}
-                            </span>
-                          </span>
-                          <span style={{ fontSize: "14px" }}>
-                            {safeBooking.rescheduleReason
-                              ? safeBooking.rescheduleReason.split(" ").length >
-                                7
-                                ? safeBooking.rescheduleReason
-                                    .split(" ")
-                                    .slice(0, 7)
-                                    .join(" ") + "..."
-                                : safeBooking.rescheduleReason
-                              : ""}
-                          </span>
-                        </span>
-                      </>
-                    )}
-                  </td>
-                  <td
-                    className="text-end"
-                    style={{
-                      backgroundColor: "#FAFAFA",
-                      border: "1px solid #E6E6E6",
-                      width: "80px",
-                    }}
-                  ></td>
-                </tr>
+                  <td className="text-start border-right" style={{ border: "1px solid #E6E6E6" }}>
+  {isLoading ? (
+    <>
+   <SkeletonLoader width="60%" height="12px" />
+                      <SkeletonLoader
+                        width="80%"
+                        height="16px"
+                        style={{ marginTop: "4px" }}/>
+                        </>
+  ) : (
+    <>
+      <span>
+        {formatDateTime(bookingInfo.dateLabel, bookingInfo.timeLabel)}
+      </span>
+      <span
+        className="booking-details"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "5px",
+          fontSize: "14px",
+        }}
+      >
+        <span
+          style={{
+            display: "flex",
+            alignItems: "center",
+            fontWeight: "bold",
+            gap: "5px",
+          }}
+        >
+          <span style={{ color: bookingInfo.color }}>
+            {bookingInfo.label}{" "}
+            {bookingInfo.date
+              ? new Date(bookingInfo.date).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "2-digit",
+                  year: "numeric",
+                })
+              : "Not Assigned"}{" "}
+            | {bookingInfo.timeSlot || "Not Assigned"}
+          </span>
+        </span>
+        <span style={{ fontSize: "14px" }}>
+          {bookingInfo.reason?.split(" ").length > 7
+            ? bookingInfo.reason.split(" ").slice(0, 7).join(" ") + "..."
+            : bookingInfo.reason}
+        </span>
+      </span>
+    </>
+  )}
+</td>
+</tr>
               )}
 
               {/* Cancelled Row */}
@@ -813,8 +806,8 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                       className="btn btn-primary"
                       onClick={handleUpdateStatus}
                       disabled={
-                        safeBooking.bookingStatus === "CANCELLED" || 
-                        loading || 
+                        safeBooking.bookingStatus === "CANCELLED" ||
+                        loading ||
                         safeBooking.bookingStatus === "COMPLETED"
                       }
                       style={{
@@ -824,20 +817,20 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                         border: "none",
                         borderRadius: "12px",
                         backgroundColor:
-                          safeBooking.bookingStatus === "CANCELLED" || 
+                          safeBooking.bookingStatus === "CANCELLED" ||
                           loading ||
                           safeBooking.bookingStatus === "COMPLETED"
                             ? "#A0A0A0"
                             : "#0076CE",
                         marginBottom: "10px",
                         cursor:
-                          safeBooking.bookingStatus === "CANCELLED" || 
+                          safeBooking.bookingStatus === "CANCELLED" ||
                           loading ||
                           safeBooking.bookingStatus === "COMPLETED"
                             ? "not-allowed"
                             : "pointer",
                         opacity:
-                          safeBooking.bookingStatus === "CANCELLED" || 
+                          safeBooking.bookingStatus === "CANCELLED" ||
                           loading ||
                           safeBooking.bookingStatus === "COMPLETED"
                             ? 0.6

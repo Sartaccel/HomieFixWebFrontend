@@ -6,6 +6,7 @@ import notificationIcon from "../assets/noti.png";
 import notificationFeedback from "../assets/feedback.svg";
 import api from "../api";
 
+
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -13,11 +14,13 @@ const Notifications = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+
   useEffect(() => {
     fetchNotifications(true);
     const interval = setInterval(() => fetchNotifications(false), 5000);
     return () => clearInterval(interval);
   }, []);
+
 
   const fetchNotifications = async (isInitialLoad) => {
     try {
@@ -27,8 +30,10 @@ const Notifications = () => {
         setRefreshing(true);
       }
 
+
       const response = await api.get("/notifications/recent");
       let notificationsData = response.data;
+
 
       const bookingPromises = notificationsData.map(async (notification) => {
         if (notification.bookingId) {
@@ -38,9 +43,10 @@ const Notifications = () => {
             );
             const bookingData = bookingResponse.data;
 
+
             // Initialize rating as null
             let rating = null;
-            
+           
             // Only fetch rating if it's a feedback notification
             if (notification.notificationType === "FEEDBACK_BOOKING") {
               try {
@@ -56,6 +62,7 @@ const Notifications = () => {
                 rating = null;
               }
             }
+
 
             return {
               ...notification,
@@ -77,11 +84,14 @@ const Notifications = () => {
         return notification;
       });
 
+
       const enrichedNotifications = await Promise.all(bookingPromises);
+
 
       enrichedNotifications.sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
       );
+
 
       if (
         JSON.stringify(enrichedNotifications) !== JSON.stringify(notifications)
@@ -100,13 +110,14 @@ const Notifications = () => {
     }
   };
 
+
   const formatDateTime = (dateString) => {
     const utcDate = new Date(dateString);
-  
+ 
     // Offset IST is +5:30 => 330 minutes
     const istOffset = 330; // in minutes
     const istDate = new Date(utcDate.getTime() + istOffset * 60000);
-  
+ 
     return istDate.toLocaleString("en-IN", {
       day: "numeric",
       month: "short",
@@ -116,7 +127,8 @@ const Notifications = () => {
       hour12: true,
     });
   };
-  
+ 
+
 
   const getStatusBadge = (type, rating) => {
     return (
@@ -131,8 +143,9 @@ const Notifications = () => {
               : type === "BOOKING_TODAY"
               ? "#F3EDF7"
               : type === "RESCHEDULE_BOOKING"
-              ? "#FFFFE0"
-              : "#EDF3F7",
+              ? "#FBDED0"
+              : type === "WORKER_REASSIGNED"
+              ? "#FFFFE0" : "#EDF3F7",
           color:
             type === "NEW_BOOKING"
               ? "#0076CE"
@@ -141,6 +154,8 @@ const Notifications = () => {
               : type === "BOOKING_TODAY"
               ? "#6D15A1"
               : type === "RESCHEDULE_BOOKING"
+              ? "#EC692B"
+              : type === "WORKER_REASSIGNED"
               ? "#E5A900"
               : "#000000",
           fontSize: "14px",
@@ -154,10 +169,13 @@ const Notifications = () => {
           ? "Due"
           : type === "RESCHEDULE_BOOKING"
           ? "Rescheduled"
+          : type === "WORKER_REASSIGNED"
+          ? "ReAssigned"
           : `⭐ ${rating !== null ? rating : ''}`}
       </span>
     );
   };
+
 
   const getIcon = (type) => {
     if (type === "FEEDBACK_BOOKING") {
@@ -165,16 +183,19 @@ const Notifications = () => {
     }
     return <img src={notificationIcon} alt="Notification" width={65} />;
   };
-  
+ 
+
 
   const handleNotificationClick = async (notification) => {
     if (!notification.bookingId) return;
+
 
     try {
       const bookingResponse = await api.get(
         `/booking/${notification.bookingId}`
       );
       const bookingData = bookingResponse.data;
+
 
       if (bookingData.bookingStatus === "PENDING") {
         navigate(`/booking-details/assign-bookings/${notification.bookingId}`, {
@@ -187,6 +208,7 @@ const Notifications = () => {
       }
     } catch (error) {
       console.error("Error fetching booking details:", error);
+
 
       // Fallback navigation if API fails
       navigate(`/booking-details/assign-bookings/${notification.bookingId}`, {
@@ -205,6 +227,7 @@ const Notifications = () => {
       });
     }
   };
+
 
   const NotificationSkeleton = () => (
     <div className="d-flex align-items-start mt-1 p-0 gap-3 border-bottom">
@@ -244,12 +267,14 @@ const Notifications = () => {
     </div>
   );
 
+
   return (
     <Card className="p-3 shadow-sm" style={{ minWidth: "400px", marginLeft: "-40px" }}>
       <div className="d-flex justify-content-between align-items-center">
         <h5 className="mb-0">Notifications</h5>
         {/* {refreshing && <small className="text-muted">Updating...</small>} */}
       </div>
+
 
       <div className="mt-3" style={{ maxHeight: "400px", overflowY: "auto", overflowX: "hidden" }}>
         {initialLoading ? (
@@ -272,6 +297,7 @@ const Notifications = () => {
             >
               <div className="bg-light rounded d-flex align-items-center mt-2">
               {getIcon(notification.notificationType)}
+
 
               </div>
               <div className="w-100 mt-3">
@@ -297,4 +323,6 @@ const Notifications = () => {
   );
 };
 
+
 export default Notifications;
+

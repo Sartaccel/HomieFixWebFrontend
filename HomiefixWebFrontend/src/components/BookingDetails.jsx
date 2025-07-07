@@ -12,9 +12,10 @@ import { FaStar } from "react-icons/fa";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import "../styles/BookingDetails.css";
-import statusRescheduled from "../assets/Status Rescheduled.png";
-import statusAssigned from "../assets/Status Assigned.png";
-import statusStarted from "../assets/Status Started.png";
+import statusRescheduled from "../assets/Rescheduled.svg";
+import statusAssigned from "../assets/Assigned.svg";
+import statusStarted from "../assets/Started.svg";
+import statusReassigned from "../assets/Reassigned.svg";
 import closeDate from "../assets/close date.png";
 import $ from "jquery";
 import "bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css";
@@ -65,6 +66,8 @@ const transformBookingData = (booking) => ({
       ? "Started"
       : booking.bookingStatus === "RESCHEDULED"
       ? "Rescheduled"
+      : booking.bookingStatus === "REASSIGNED"
+      ? "Reassigned"
       : booking.bookingStatus === "PENDING"
       ? "Pending"
       : "Unknown",
@@ -74,9 +77,8 @@ const transformBookingData = (booking) => ({
         contact: booking.worker.contactNumber,
       }
     : null,
-  isDeletedUser: !booking.userProfile.active, // Add flag for deleted users
+  isDeletedUser: !booking.userProfile.active,
 });
-
 const BookingDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -196,7 +198,8 @@ const BookingDetails = () => {
         (booking) =>
           (booking.status === "Assigned" ||
             booking.status === "Started" ||
-            booking.status === "Rescheduled") &&
+            booking.status === "Rescheduled" ||
+            booking.status === "Reassigned") && // Add this line
           booking.worker
       ),
       completed: bookings.filter((booking) => booking.status === "Completed"),
@@ -294,6 +297,8 @@ const BookingDetails = () => {
         return { icon: statusAssigned, width: 110 };
       case "Started":
         return { icon: statusStarted, width: 110 };
+      case "Reassigned":
+        return { icon: statusReassigned, width: 140 };
       default:
         return null;
     }
@@ -627,7 +632,6 @@ const BookingDetails = () => {
                       </>
                     )}
                     <th className={`p-3 ${columnClasses.date}`}>
-                      
                       {!initialLoad && (
                         <>
                           <div
@@ -638,7 +642,9 @@ const BookingDetails = () => {
                               className="btn btn-light btn-sm dropdown-toggle p-0"
                               type="button"
                               onClick={() => setDropdownOpen(!dropdownOpen)}
-                            >Date</button>
+                            >
+                              Date
+                            </button>
                             {dropdownOpen && (
                               <div className="dropdown-menu show p-2">
                                 <div id="sandbox-container">
@@ -695,6 +701,7 @@ const BookingDetails = () => {
                                 "All",
                                 "Assigned",
                                 "Rescheduled",
+                                "Reassigned", // Add this option
                                 "Started",
                               ].map((status) => (
                                 <li key={status}>
@@ -870,6 +877,12 @@ const BookingDetails = () => {
                                     : 0
                                 }
                                 height="40"
+                                style={{
+                                  marginLeft:
+                                    booking.status === "Reassigned"
+                                      ? "-8px"
+                                      : "0px", // tweak as needed
+                                }}
                               />
                             ) : activeTab === "completed" ? (
                               <div

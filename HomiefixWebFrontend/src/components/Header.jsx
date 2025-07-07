@@ -20,9 +20,11 @@ const Header = () => {
   const getHeading = () => {
     if (location.pathname.startsWith("/booking-details")) return "Booking Details";
     if (location.pathname.startsWith("/worker-details")) return "Worker Details";
+    if (location.pathname.startsWith("/user-details")) return "User Details";
     if (location.pathname.startsWith("/services")) return "Services";
     if (location.pathname.startsWith("/reviews")) return "Reviews";
     if (location.pathname.startsWith("/profile")) return "Profile";
+
     return "Dashboard";
   };
 
@@ -123,10 +125,10 @@ const Header = () => {
 
   return (
     <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
-      <h2 className="heading align-items-center mb-0" style={{ marginLeft: "31px" }}>
+      <h2 className="heading align-items-center mb-0" style={{ marginLeft: "30px" }}>
         {getHeading()}
       </h2>
-      <div className="header-right d-flex align-items-center gap-3">
+      <div className="header-right d-flex align-items-center gap-3" style={{ marginRight: "250px" }}>
         <SearchBar />
         
         <div className="position-relative" ref={popupRef}>

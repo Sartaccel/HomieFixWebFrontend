@@ -322,13 +322,18 @@ const AddWorker = () => {
       isValid = false;
     }
 
-    if (!formData.houseNumber) {
+    if (!formData.houseNumber.trim()) {
       newErrors.houseNumber = "House number is required";
       isValid = false;
     }
 
-    if (!formData.town) {
+    if (!formData.town.trim()) {
       newErrors.town = "Town is required";
+      isValid = false;
+    }
+
+    if (!formData.gender.trim()) {
+      newErrors.gender = "Gender is required";
       isValid = false;
     }
 
@@ -340,7 +345,12 @@ const AddWorker = () => {
       isValid = false;
     }
 
-    if (!formData.district) {
+    if (!formData.nearbyLandmark.trim()) {
+      newErrors.nearbyLandmark = "Nearby Landmark is required";
+      isValid = false;
+    }
+
+    if (!formData.district.trim()) {
       newErrors.district = "District is required";
       isValid = false;
     } else if (!validateDistrict(formData.district)) {
@@ -348,7 +358,7 @@ const AddWorker = () => {
       isValid = false;
     }
 
-    if (!formData.state) {
+    if (!formData.state.trim()) {
       newErrors.state = "State is required";
       isValid = false;
     } else if (!validateState(formData.state)) {
@@ -672,7 +682,6 @@ const AddWorker = () => {
                 )}
               </div>
             </div>
-
             {/* Row 2 */}
             <div className="row mt-4">
               <div className="col-md-2">
@@ -680,6 +689,7 @@ const AddWorker = () => {
                   Language <span style={requiredFieldStyle}>*</span>
                 </label>
                 <Select
+                required
                   isMulti
                   options={languageOptions}
                   className={`basic-multi-select ${
@@ -730,10 +740,10 @@ const AddWorker = () => {
               </div>
               <div className="col-md-3">
                 <label htmlFor="dateOfBirth" className="form-label">
-                  D.O.B
+                  D.O.B  
                 </label>
                 <input
-                  type="text"
+                  type="date"
                   className={`form-control shadow-none ${
                     errors.dateOfBirth ? "is-invalid" : ""
                   }`}
@@ -743,10 +753,6 @@ const AddWorker = () => {
                   value={formData.dateOfBirth}
                   placeholder="dd-mm-yyyy"
                   style={{ color: formData.dateOfBirth ? "#000" : "#aaa" }}
-                  onFocus={(e) => (e.target.type = "date")}
-                  onBlur={(e) => {
-                    if (!e.target.value) e.target.type = "text";
-                  }}
                   max={
                     new Date(
                       new Date().setFullYear(new Date().getFullYear() - 18)
@@ -762,7 +768,8 @@ const AddWorker = () => {
 
               <div className="col-md-2">
                 <label htmlFor="gender" className="form-label">
-                  Gender <span style={requiredFieldStyle}>*</span>
+                  Gender&nbsp;
+                  <span style={{ color: "red" }}>*</span>
                 </label>{" "}
                 <br />
                 <div className="form-check form-check-inline mt-2">
@@ -774,6 +781,7 @@ const AddWorker = () => {
                     value="Male"
                     onChange={handleChange}
                     checked={formData.gender === "Male"}
+                    required
                   />
                   <label className="form-check-label" htmlFor="male">
                     Male
@@ -793,6 +801,11 @@ const AddWorker = () => {
                     Female
                   </label>
                 </div>
+                 {errors.gender && (
+                <div className="text-danger" style={{ fontSize: "0.875em" }}>
+                {errors.gender}
+               </div>
+               )}
               </div>
             </div>
 
@@ -1215,7 +1228,7 @@ const AddWorker = () => {
                   Joining date <span style={requiredFieldStyle}>*</span>
                 </label>
                 <input
-                  type="text"
+                  type="date"
                   className={`form-control shadow-none ${
                     errors.joiningDate ? "is-invalid" : ""
                   }`}
@@ -1226,10 +1239,6 @@ const AddWorker = () => {
                   value={formData.joiningDate}
                   placeholder="dd-mm-yyyy"
                   style={{ color: formData.joiningDate ? "#000" : "#aaa" }}
-                  onFocus={(e) => (e.target.type = "date")}
-                  onBlur={(e) => {
-                    if (!e.target.value) e.target.type = "text";
-                  }}
                   max={new Date().toISOString().split("T")[0]}
                 />
                 {errors.joiningDate && (

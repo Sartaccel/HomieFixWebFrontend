@@ -143,7 +143,7 @@ const EditWorker = () => {
 
   const validateDrivingLicense = (license) => {
     if (!license) return true; // Optional field
-    const regex = /^DL-[a-zA-Z0-9]{15}$/;
+    const regex = /^[a-zA-Z0-9]{15}$/;
     return regex.test(license);
   };
 
@@ -220,7 +220,7 @@ const EditWorker = () => {
     const { value } = e.target;
 
     // Allow complete clearing of the field
-    if (value === "DL-" || value === "") {
+    if (value === "") {
       setFormData((prevState) => ({
         ...prevState,
         drivingLicenseNumber: "",
@@ -231,18 +231,12 @@ const EditWorker = () => {
 
     // Process the input value
     let processedValue = value;
-
-    // Ensure it starts with DL- if there's any content
-    if (!value.startsWith("DL-")) {
-      processedValue =
-        "DL-" + value.replace(/^DL-/, "").replace(/[^a-zA-Z0-9]/g, "");
-    } else {
-      processedValue = "DL-" + value.substring(3).replace(/[^a-zA-Z0-9]/g, "");
-    }
+      processedValue = value.replace(/[^a-zA-Z0-9]/g, "");
+    
 
     // Limit to 15 characters after DL-
-    if (processedValue.length > 18) {
-      processedValue = processedValue.substring(0, 18);
+    if (processedValue.length > 15) {
+      processedValue = processedValue.substring(0, 15);
     }
 
     setFormData((prevState) => ({
@@ -255,7 +249,7 @@ const EditWorker = () => {
       setErrors((prev) => ({
         ...prev,
         drivingLicenseNumber:
-          "License should be in format DL- followed by 15 alphanumeric characters",
+          "License should be 15 alphanumeric characters",
       }));
     } else {
       setErrors((prev) => ({ ...prev, drivingLicenseNumber: "" }));
