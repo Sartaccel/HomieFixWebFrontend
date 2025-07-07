@@ -4,9 +4,11 @@ import "react-loading-skeleton/dist/skeleton.css";
 import "../styles/AssignBookings.css";
 import dropdown from "../assets/dropdown.svg";
 import api from "../api";
+import profile from "../assets/addWorker.jpg";
 
 
 const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
+  // State declarations
   const [availableDates, setAvailableDates] = useState([]);
   const [availableTimes, setAvailableTimes] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
@@ -19,104 +21,168 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
   const [services, setServices] = useState([]);
   const [selectedService, setSelectedService] = useState("");
   const [workers, setWorkers] = useState([]);
-  const [selectedWorker, setSelectedWorker] = useState("");
+  const [selectedWorkerId, setSelectedWorkerId] = useState(null);
+  const [selectedWorkerDetails, setSelectedWorkerDetails] = useState(null);
   const [loadingWorkers, setLoadingWorkers] = useState(false);
-  const [workerDetails, setWorkerDetails] = useState([]);
+  const [showServiceDropdown, setShowServiceDropdown] = useState(false);
+  const [showWorkerDropdown, setShowWorkerDropdown] = useState(false);
+  const [groupedServices, setGroupedServices] = useState({});
 
 
+  // Fetch available dates
   useEffect(() => {
     const fetchAvailableDates = async () => {
       try {
         const response = await api.get("/booking/available-dates");
         const data = response.data;
-
-
         const validDates = data
           .map((dateStr) => {
             const parts = dateStr.split(" ");
             if (parts.length < 4) return null;
-
-
             const day = parts[0];
             const month = parts[1];
             const year = parts[3];
-
-
             const date = new Date(`${month} ${day}, ${year} 12:00:00`);
-
-
-            if (isNaN(date.getTime())) {
-              console.warn("Invalid date found:", dateStr);
-              return null;
-            }
-
-
-            return date.toISOString().split("T")[0];
+            return isNaN(date.getTime())
+              ? null
+              : date.toISOString().split("T")[0];
           })
           .filter((date) => date !== null);
-
-
         setAvailableDates(validDates);
       } catch (error) {
-        console.error("Error fetching available dates:", error);
+        console.error("Error fetching dates:", error);
       } finally {
         setLoadingDates(false);
       }
     };
+    fetchAvailableDates();
+  }, []);
 
 
+  // Fetch available times
+  useEffect(() => {
     const fetchAvailableTimes = async () => {
       try {
         const response = await api.get("/booking/available-times");
         const data = response.data;
-
-
         const formattedTimes = data.map((time) => {
           return time.replace(/(\d{1,2}):(\d{2})/g, (match, hour, minute) => {
             return hour.padStart(2, "0") + ":" + minute;
           });
         });
-
-
         setAvailableTimes(formattedTimes);
       } catch (error) {
-        console.error("Error fetching available times:", error);
+        console.error("Error fetching times:", error);
       } finally {
         setLoadingTimes(false);
       }
     };
-
-
-    fetchAvailableDates();
     fetchAvailableTimes();
   }, []);
 
 
-  const fetchServices = async () => {
-    try {
-      const response = await api.get("/products/view");
-      const serviceNames = response.data.map((item) => item.name);
-      setServices(serviceNames);
-      // Set initial selected service to current booking's product
-      if (booking?.productName) {
-        setSelectedService(booking.productName);
-      }
-    } catch (error) {
-      console.error("Error fetching services:", error);
-    }
-  };
-
-
+  // Fetch services
   useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        setLoadingWorkers(true);
+        const response = await api.get("/products/view");
+        const serviceData = response.data.map((item) => ({
+          name: item.productName || item.name,
+          image: item.productImage || profile,
+        }));
+        setServices(serviceData);
+        if (booking?.productName) {
+          setSelectedService(booking.productName);
+        }
+      } catch (error) {
+        console.error("Error fetching services:", error);
+      } finally {
+        setLoadingWorkers(false);
+      }
+    };
     fetchServices();
   }, [booking]);
 
 
+  // Group services by category
+  useEffect(() => {
+    if (services.length > 0) {
+      const grouped = {};
+      const productCategories = {
+        "Home Appliances": [
+          "AC",
+          "Geyser",
+          "Microwave",
+          "Inverter & Stabilizers",
+          "Water Purifier",
+          "TV",
+          "Fridge",
+          "Washing Machine",
+          "Fan",
+        ],
+        Electrician: [
+          "Switch & Socket",
+          "Wiring",
+          "Doorbell",
+          "MCB & Submeter",
+          "Light and Wall light",
+        ],
+        Carpentry: [
+          "Bed",
+          "Cupboard & Drawer",
+          "Door",
+          "Window",
+          "Drill & Hang",
+          "Furniture",
+        ],
+        Plumbing: [
+          "WashBasin Installation",
+          "Blockage Removal",
+          "Shower",
+          "Toilet",
+          "Tap, Pipe works",
+          "Watertank & Motor",
+        ],
+        "Vehicle Service": [
+          "Batteries",
+          "Health checkup",
+          "Water Wash",
+          "Denting & Painting",
+          "Tyre Service",
+          "Vehicle AC",
+        ],
+        "Care Taker": [
+          "Child Care",
+          "PhysioTherapy",
+          "Old Age Care",
+          "Companion Support",
+          "Home Nursing",
+        ],
+        Cleaning: ["Cleaning"],
+        CCTV: ["CCTV"],
+      };
+
+
+      Object.keys(productCategories).forEach((category) => {
+        const categoryServices = services.filter((service) =>
+          productCategories[category].includes(service.name)
+        );
+        if (categoryServices.length > 0) {
+          grouped[category] = categoryServices;
+        }
+      });
+      setGroupedServices(grouped);
+    }
+  }, [services]);
+
+
+  // Fetch workers when service changes
   useEffect(() => {
     const fetchWorkersByService = async () => {
       setWorkers([]);
-      setSelectedWorker("");
-      setWorkerDetails([]);
+      setSelectedWorkerId(null);
+      setSelectedWorkerDetails(null);
 
 
       if (!selectedService) return;
@@ -127,14 +193,18 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
         const response = await api.get(
           `/workers/view/by-product/${selectedService}?t=${Date.now()}`
         );
-        const workerData = response.data;
-        setWorkerDetails(workerData);
-        const workerNames = workerData.map((worker) => worker.name);
-        setWorkers(workerNames);
-       
-        // If current worker is available for the selected service, preselect them
-        if (booking?.worker && workerData.some(w => w.id === booking.worker.id)) {
-          setSelectedWorker(booking.worker.name);
+        const workerData = response.data.filter((worker) => worker.active);
+        setWorkers(workerData);
+
+
+        if (
+          booking?.worker &&
+          workerData.some((w) => w.id === booking.worker.id)
+        ) {
+          setSelectedWorkerId(booking.worker.id);
+          setSelectedWorkerDetails(
+            workerData.find((w) => w.id === booking.worker.id)
+          );
         }
       } catch (error) {
         console.error("Error fetching workers:", error);
@@ -143,38 +213,64 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
         setLoadingWorkers(false);
       }
     };
-
-
     fetchWorkersByService();
   }, [selectedService, booking]);
 
 
-  const handleDateSelection = (date) => {
-    setSelectedDate(date);
+  const handleServiceSelect = (service) => {
+    setSelectedService(service);
+    setShowServiceDropdown(false);
+    setSelectedWorkerId(null);
+    setSelectedWorkerDetails(null);
+    setShowWorkerDropdown(false); // Close worker dropdown when service changes
   };
 
 
-  const handleTimeSlotSelection = (time) => {
-    setSelectedTimeSlot(time);
+  const confirmWorkerSelection = () => {
+    setShowWorkerDropdown(false); // Close dropdown when confirming selection
   };
 
 
-  const isReassignDisabled = () => {
-    const isOtherReasonEmpty = reassignReason === "other" && !otherReason.trim();
-    const isWorkerSelected = selectedWorker && selectedWorker.trim() !== "";
-   
-    return (
-      !selectedDate ||
-      !selectedTimeSlot ||
-      !reassignReason ||
-      isOtherReasonEmpty ||
-      !isWorkerSelected
-    );
+  const handleServiceDropdownToggle = () => {
+    if (showWorkerDropdown) {
+      setShowWorkerDropdown(false);
+    }
+    setShowServiceDropdown(!showServiceDropdown);
+  };
+
+
+  const handleWorkerDropdownToggle = () => {
+    if (!selectedService) {
+      alert("Please select a service first");
+      return;
+    }
+    if (showServiceDropdown) {
+      setShowServiceDropdown(false);
+    }
+    setShowWorkerDropdown(!showWorkerDropdown);
+  };
+
+
+  const handleWorkerSelection = (workerId) => {
+    if (selectedWorkerId === workerId) {
+      setSelectedWorkerId(null);
+      setSelectedWorkerDetails(null);
+    } else {
+      setSelectedWorkerId(workerId);
+      const worker = workers.find((worker) => worker.id === workerId);
+      setSelectedWorkerDetails(worker);
+    }
+    // Don't close dropdown here - we'll keep it open for selection
   };
 
 
   const handleReassign = async () => {
-    if (!selectedDate || !selectedTimeSlot || !reassignReason || !selectedWorker) {
+    if (
+      !selectedDate ||
+      !selectedTimeSlot ||
+      !reassignReason ||
+      !selectedWorkerId
+    ) {
       alert("Please fill all required fields");
       return;
     }
@@ -186,32 +282,16 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
     }
 
 
-    const parsedDate = new Date(selectedDate);
-    if (isNaN(parsedDate.getTime())) {
-      alert("Please select a valid date");
-      return;
-    }
-
-
-    const reason = reassignReason === "other" ? otherReason : reassignReason;
-    const formattedDate = parsedDate.toISOString().split("T")[0];
-   
-    // Find the selected worker's ID from workerDetails
-    const selectedWorkerObj = workerDetails.find(w => w.name === selectedWorker);
-    if (!selectedWorkerObj) {
-      alert("Selected worker not found");
-      return;
-    }
-
-
     try {
       setIsReassigning(true);
-     
       const params = new URLSearchParams();
-      params.append('workerId', selectedWorkerObj.id);
-      params.append('selectedDate', formattedDate);
-      params.append('selectedTimeSlot', selectedTimeSlot);
-      params.append('reassignmentReason', reason);
+      params.append("workerId", selectedWorkerId);
+      params.append("selectedDate", selectedDate);
+      params.append("selectedTimeSlot", selectedTimeSlot);
+      params.append(
+        "reassignmentReason",
+        reassignReason === "other" ? otherReason : reassignReason
+      );
 
 
       const response = await api.put(
@@ -224,12 +304,7 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
         onReAssignSuccess();
         onClose();
       } else {
-        console.error("Reassign failed:", response.status, response.data);
-        alert(
-          `Failed to reassign booking: ${response.status} - ${
-            response.data.message || "Unknown error"
-          }`
-        );
+        alert(`Failed to reassign booking: ${response.status}`);
       }
     } catch (error) {
       console.error("Error reassigning booking:", error);
@@ -245,8 +320,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
     const day = date.getDate();
     const month = date.toLocaleString("en-US", { month: "short" });
     const dayOfWeek = date.toLocaleString("en-US", { weekday: "long" });
-
-
     return (
       <div>
         <div>{`${day} ${month}`}</div>
@@ -262,7 +335,7 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
       style={{ width: "550px", zIndex: 1000 }}
     >
       <div className="p-4">
-        <div className="d-flex justify-content-between align-items-center mb-3">
+        <div className="d-flex justify-content-between align-items-center mb-2">
           <h4>ReAssign Service</h4>
           <button className="btn btn-light" onClick={onClose}>
             <i className="bi bi-x-lg"></i>
@@ -273,76 +346,291 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
         ></div>
 
 
-        <div className="mb-3 mt-3">
+        <div className="mb-2 mt-2">
           <h6>Change Worker</h6>
           <div className="d-flex justify-content-start gap-4 flex-nowrap">
-            {/* Service Dropdown - Only for filtering workers */}
+            {/* Service Dropdown */}
             <div className="position-relative" style={{ width: "250px" }}>
-              <select
-                className="form-select shadow-none"
-                style={{ padding: "6px 18px", borderRadius: "4px" }}
-                value={selectedService}
-                onChange={(e) => {
-                  setSelectedService(e.target.value);
-                  setSelectedWorker("");
-                }}
-              >
-                <option value="">Select service</option>
-                {services.map((service, index) => (
-                  <option key={index} value={service}>
-                    {service}
-                  </option>
-                ))}
-              </select>
-              <img
-                src={dropdown}
-                alt="dropdown"
-                className="position-absolute"
+              <div
+                className="border shadow-none d-flex align-items-center justify-content-between"
                 style={{
-                  right: "15px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  pointerEvents: "none",
-                  width: "15px",
+                  padding: "6px 14px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
                 }}
-              />
+                onClick={handleServiceDropdownToggle}
+              >
+                {selectedService || "Select service"}
+                <img
+                  src={dropdown}
+                  alt="dropdown"
+                  style={{
+                    width: "15px",
+                    transform: showServiceDropdown ? "rotate(180deg)" : "none",
+                    transition: "transform 0.3s",
+                  }}
+                />
+              </div>
+
+
+              {showServiceDropdown && (
+                <div
+                  className="position-absolute bg-white shadow-lg p-3 mt-1"
+                  style={{
+                    width: "500px",
+                    maxHeight: "450px",
+                    overflowY: "auto",
+                    zIndex: 1001,
+                    borderRadius: "8px",
+                    border: "1px solid #ddd",
+                  }}
+                >
+                  {Object.keys(groupedServices).map((category) => (
+                    <div key={category} className="mb-3">
+                      <div className="d-flex justify-content-between mb-2">
+                        <div className="d-flex gap-4">
+                          <button
+                            className="tab-btn active-tab"
+                            style={{ fontSize: "14px", fontWeight: "500" }}
+                          >
+                            {category}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="row">
+                        {groupedServices[category].map((service, index) => (
+                          <div className="col-3 mb-2" key={index}>
+                            <div
+                              className="card service-card"
+                              onClick={() => handleServiceSelect(service.name)}
+                              style={{
+                                cursor: "pointer",
+                                border:
+                                  selectedService === service.name
+                                    ? "2px solid #0076CE"
+                                    : "1px solid transparent",
+                                backgroundColor: "#F7F7F7",
+                                height: "100px",
+                                width: "100px",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: "10px",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: "40px",
+                                  height: "40px",
+                                  marginBottom: "8px",
+                                }}
+                              >
+                                <img
+                                  src={service.image || profile}
+                                  alt={service.name}
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                    borderRadius: "4px",
+                                  }}
+                                />
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "12px",
+                                  textAlign: "center",
+                                  fontWeight: "500",
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  width: "100%",
+                                }}
+                              >
+                                {service.name}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
 
             {/* Worker Dropdown */}
             <div className="position-relative" style={{ width: "250px" }}>
-              <select
-                className="form-select shadow-none"
-                style={{ padding: "6px 18px", borderRadius: "4px" }}
-                value={selectedWorker}
-                onChange={(e) => setSelectedWorker(e.target.value)}
-                disabled={loadingWorkers || !workers.length}
-              >
-                <option value="">Choose worker</option>
-                {loadingWorkers ? (
-                  <option value="" disabled>
-                    Loading workers...
-                  </option>
-                ) : (
-                  workers.map((worker, index) => (
-                    <option key={index} value={worker}>
-                      {worker}
-                    </option>
-                  ))
-                )}
-              </select>
-              <img
-                src={dropdown}
-                alt="dropdown"
-                className="position-absolute"
+              <div
+                className="border shadow-none d-flex align-items-center justify-content-between"
                 style={{
-                  right: "15px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  pointerEvents: "none",
-                  width: "15px",
+                  padding: "6px 14px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
                 }}
-              />
+                onClick={handleWorkerDropdownToggle}
+              >
+                {selectedWorkerDetails?.name || "Choose worker"}
+                <img
+                  src={dropdown}
+                  alt="dropdown"
+                  style={{
+                    width: "15px",
+                    transform: showWorkerDropdown ? "rotate(180deg)" : "none",
+                    transition: "transform 0.3s",
+                  }}
+                />
+              </div>
+
+
+              {showWorkerDropdown && (
+                <div
+                  className="position-absolute bg-white shadow-lg p-3 mt-1"
+                  style={{
+                    width: "500px",
+                    height: "455px",
+                    overflow: "hidden",
+                    zIndex: 1001,
+                    borderRadius: "8px",
+                    border: "1px solid #ddd",
+                    left: "-260px",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <div
+                    className="card p-3"
+                    style={{
+                      border: "none",
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      className="d-flex align-items-center justify-content-between"
+                      style={{ height: "30px" }}
+                    >
+                      <h6 className="mb-0">Workers</h6>
+                    </div>
+
+
+                    {/* Scrollable content */}
+                    <div
+                      style={{
+                        flex: 1,
+                        overflowY: "auto",
+                        overflowX: "hidden",
+                        paddingRight: "10px",
+                        marginBottom: "10px", // Add some space before the button
+                      }}
+                    >
+                      <div
+                        className="row d-flex flex-wrap"
+                        style={{ gap: "8px", marginLeft: "0px" }}
+                      >
+                        {loadingWorkers ? (
+                          Array.from({ length: 4 }).map((_, index) => (
+                            <div
+                              key={index}
+                              className="col-6"
+                              style={{
+                                width: "48%",
+                                border: "1px solid #ddd",
+                                borderRadius: "8px",
+                                padding: "8px",
+                                background: "#f9f9f9",
+                              }}
+                            >
+                              <div className="d-flex align-items-center gap-2">
+                                <Skeleton circle width={40} height={40} />
+                                <div>
+                                  <Skeleton width={100} height={15} />
+                                  <Skeleton width={80} height={12} />
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : workers.length === 0 ? (
+                          <div className="col-12 text-center mt-3">
+                            <p style={{ color: "#888" }}>
+                              No workers available for this product.
+                            </p>
+                          </div>
+                        ) : (
+                          workers.map((worker, index) => (
+                            <div
+                              key={index}
+                              className="col-6"
+                              style={{
+                                width: "48%",
+                                border:
+                                  selectedWorkerId === worker.id
+                                    ? "2px solid #0076CE"
+                                    : "1px solid #ddd",
+                                borderRadius: "8px",
+                                padding: "8px",
+                                background:
+                                  selectedWorkerId === worker.id
+                                    ? "#e6f3ff"
+                                    : "#f9f9f9",
+                                cursor: "pointer",
+                              }}
+                              onClick={() => handleWorkerSelection(worker.id)}
+                            >
+                              <div className="d-flex align-items-center gap-2">
+                                <div
+                                  className="rounded-circle bg-secondary"
+                                  style={{
+                                    width: "40px",
+                                    height: "40px",
+                                    flexShrink: 0,
+                                    backgroundImage: `url(${worker.profilePicUrl})`,
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                  }}
+                                ></div>
+                                <div>
+                                  <p className="mb-0">{worker.name}</p>
+                                  <small style={{ color: "#666666" }}>
+                                    {worker.town}, {worker.pincode}
+                                  </small>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+
+                    {/* Fixed button at the bottom */}
+                    <div
+                      style={{
+                        paddingTop: "10px",
+                        borderTop: "1px solid #eee",
+                        marginTop: "auto", // Pushes to bottom
+                      }}
+                    >
+                      <button
+                        className="btn w-100"
+                        style={{
+                          background: selectedWorkerId ? "#0076CE" : "#999999",
+                          color: "white",
+                          borderRadius: "14px",
+                        }}
+                        disabled={!selectedWorkerId}
+                        onClick={confirmWorkerSelection}
+                      >
+                        Select Worker
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -353,7 +641,7 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
         ></div>
 
 
-        <div className="mb-3 mt-3">
+        <div className="mb-2 mt-2">
           <h6>Date</h6>
           <div className="d-flex flex-wrap gap-2">
             {loadingDates
@@ -363,13 +651,20 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
               : availableDates.map((date, index) => (
                   <button
                     key={index}
-                    className={`btn btn-sm ${selectedDate === date ? "btn-primary" : "btn-outline-secondary"}`}
+                    className={`btn btn-sm `}
                     style={{
                       fontSize: "15px",
                       padding: "5px 10px",
                       borderRadius: "5px",
+                      border:
+                        selectedDate === date
+                          ? "1px solid #0076CE"
+                          : "1px solid #D2D2D2",
+                      color: "#333",
+                      backgroundColor: "transparent",
+                      maxWidth: "93px",
                     }}
-                    onClick={() => handleDateSelection(date)}
+                    onClick={() => setSelectedDate(date)}
                   >
                     {formatDate(date)}
                   </button>
@@ -381,7 +676,7 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
         ></div>
 
 
-        <div className="mb-3 mt-3">
+        <div className="mb-2 mt-2">
           <h6>Time</h6>
           <div className="d-flex flex-wrap gap-2">
             {loadingTimes
@@ -391,13 +686,19 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
               : availableTimes.map((time, index) => (
                   <button
                     key={index}
-                    className={`btn btn-sm ${selectedTimeSlot === time ? "btn-primary" : "btn-outline-secondary"}`}
+                    className={`btn btn-sm `}
                     style={{
                       fontSize: "15px",
                       padding: "5px 10px",
                       borderRadius: "5px",
+                      border:
+                        selectedTimeSlot === time
+                          ? "1px solid #0076CE"
+                          : "1px solid #D2D2D2",
+                      color: "#333",
+                      backgroundColor: "transparent",
                     }}
-                    onClick={() => handleTimeSlotSelection(time)}
+                    onClick={() => setSelectedTimeSlot(time)}
                   >
                     {time}
                   </button>
@@ -409,11 +710,14 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
         ></div>
 
 
-        <div className="mb-3 mt-3">
+        <div className="mb-2 mt-2">
           <h6>Reason for ReAssign</h6>
           <div className="mb-2">
             {[
-              { value: "problem in other", label: "Problem in other" },
+              {
+                value: "Different Service Needed",
+                label: "Different Service Needed",
+              },
               { value: "other", label: "Other" },
             ].map((option) => (
               <div key={option.value} className="form-check mb-2">
@@ -440,7 +744,7 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
 
           {reassignReason === "other" && (
             <textarea
-              className="form-control"
+              className="form-control shadow-none"
               placeholder="Other reason (required)"
               rows="3"
               value={otherReason}
@@ -465,7 +769,14 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
           className="btn btn-primary w-100 mt-3"
           style={{ backgroundColor: "#0076CE" }}
           onClick={handleReassign}
-          disabled={isReassignDisabled() || isReassigning}
+          disabled={
+            !selectedDate ||
+            !selectedTimeSlot ||
+            !reassignReason ||
+            (reassignReason === "other" && !otherReason.trim()) ||
+            !selectedWorkerId ||
+            isReassigning
+          }
         >
           {isReassigning ? (
             <>
@@ -485,6 +796,4 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
   );
 };
 
-
 export default ReAssign;
-

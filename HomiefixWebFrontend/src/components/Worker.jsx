@@ -4,9 +4,10 @@ import Swal from "sweetalert2";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import Header from "./Header";
-import startedImg from "../assets/Status Started.png";
-import rescheduledImg from "../assets/Status Rescheduled.png";
-import assignedImg from "../assets/Status Assigned.png";
+import startedImg from "../assets/Started.svg";
+import rescheduledImg from "../assets/Rescheduled.svg";
+import reassignedImg from "../assets/Reassigned.svg";
+import assignedImg from "../assets/Assigned.svg";
 import api from "../api";
 import profile from "../assets/addWorker.jpg";
 
@@ -73,7 +74,8 @@ const Worker = () => {
           (booking) =>
             booking.bookingStatus === "ASSIGNED" ||
             booking.bookingStatus === "STARTED" ||
-            booking.bookingStatus === "RESCHEDULED"
+            booking.bookingStatus === "RESCHEDULED" ||
+            booking.bookingStatus === "REASSIGNED"
         );
 
         // Map backend data to frontend format
@@ -193,7 +195,7 @@ const Worker = () => {
       <Header />
 
       <div className="navigation-barr d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
-        <div className="d-flex gap-3 align-items-center" >
+        <div className="d-flex gap-3 align-items-center">
           <button
             className="btn btn-light p-2"
             style={{ marginBottom: "-20px" }}
@@ -223,7 +225,11 @@ const Worker = () => {
           {/* Worker Details Section */}
           <div
             className="col-4 border p-3 mt-4 rounded align-self-start h-auto d-flex flex-column"
-            style={{ marginLeft: "70px", marginRight: "10px", minHeight: "500px"  }}
+            style={{
+              marginLeft: "70px",
+              marginRight: "10px",
+              minHeight: "500px",
+            }}
           >
             {loading ? (
               <>
@@ -324,7 +330,10 @@ const Worker = () => {
           </div>
 
           {/* Table content */}
-          <div className="col-7 mt-4 border px-3 rounded" style={{ minHeight: "500px" }}>
+          <div
+            className="col-7 mt-4 border px-3 rounded"
+            style={{ minHeight: "500px" }}
+          >
             {/* Header Section with Active Border */}
             <div className="row">
               <div className="d-flex mt-3 pb-2">
@@ -545,6 +554,13 @@ const Worker = () => {
                                     style={{ width: "100px", height: "40px" }}
                                   />
                                 )}
+                                {item.status === "REASSIGNED" && (
+                                  <img
+                                    src={reassignedImg}
+                                    alt="ReAssigned"
+                                    style={{ width: "100px", height: "40px" }}
+                                  />
+                                )}
                               </td>
                             </tr>
                           ))}
@@ -610,13 +626,22 @@ const Worker = () => {
                                     />
                                   </div>
                                   <div className="ms-3">
-                                    <p className="mb-1" style={{width: "300px"}}>
+                                    <p
+                                      className="mb-1"
+                                      style={{ width: "300px" }}
+                                    >
                                       {feedback.productName}
                                     </p>
-                                    <p className="mb-1 text-muted" style={{width: "300px"}}>
+                                    <p
+                                      className="mb-1 text-muted"
+                                      style={{ width: "300px" }}
+                                    >
                                       {feedback.userFullName}
                                     </p>
-                                    <p className="text-muted" style={{width: "470px"}}>
+                                    <p
+                                      className="text-muted"
+                                      style={{ width: "470px" }}
+                                    >
                                       "{feedback.comment}"
                                     </p>
                                   </div>

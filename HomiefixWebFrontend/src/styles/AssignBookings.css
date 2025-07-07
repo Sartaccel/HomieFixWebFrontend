@@ -15,4 +15,9 @@
     border-radius: 50%;
     position: absolute;
   }
+
+  .tab-btn.active-tab::after {
+    background: none!important;
+  }
+
   

@@ -13,6 +13,7 @@ import Reschedule from "./components/Reschedule";
 import CancelBooking from "./components/CancelBooking";
 import ViewBookings from "./components/ViewBookings";
 import WorkerDetails from "./components/WorkerDetails";
+import UserDetails from "./components/UserDetails";
 import AddWorker from "./components/AddWorker";
 import Services from "./components/Services";
 import ComingSoon from "./components/ComingSoon";
@@ -21,6 +22,7 @@ import EditWorker from "./components/EditWorker";
 import Profile from "./components/Profile";
 import Notifications from "./components/Notifications";
 import Service from "./components/Service";
+import ReAssign from "./components/ReAssign";
 
 const App = () => {
   const navigate = useNavigate();
@@ -48,6 +50,7 @@ const App = () => {
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/reviews/customer-review/:id" element={<CustomerReview />} />
           <Route path="/worker-details" element={<WorkerDetails />} />
+          <Route path="/user-details" element={<UserDetails />} />
           <Route path="/worker-details/worker/:id" element={<Worker />} />
           <Route path="/worker-details/add-worker" element={<AddWorker />} />
           <Route path="/worker-details/worker/edit/:id" element={<EditWorker />} />
@@ -55,6 +58,7 @@ const App = () => {
           <Route path="/services/:productId" element={<Service />} />
           <Route path="/profile/:username" element={<Profile />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/booking-details/reassign/:id" element={<ReAssign />} />
         </Route>
       </Route>
     </Routes>
