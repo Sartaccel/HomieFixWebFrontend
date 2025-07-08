@@ -521,7 +521,7 @@ const Dashboard = () => {
                                                                     ) - 1
                                                                     ]
                                                                 }{" "}
-                                                                - {monthlyStats.highestBookingMonth.percentage}%,
+                                                                - {monthlyStats.highestBookingMonth.percentage}%,{" "}
                                                                 {
                                                                     monthlyStats.highestBookingMonth.bookingsCount
                                                                 }{" "}

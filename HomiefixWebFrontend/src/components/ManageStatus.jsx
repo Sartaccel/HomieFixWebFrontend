@@ -170,21 +170,27 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
 
   const formatDateTime = (dateString, timeString) => {
     if (!dateString || !timeString) return "Not Assigned";
-
+  
     try {
-      const date = new Date(`${dateString}T${timeString}`);
-      if (isNaN(date.getTime())) return "Not Assigned";
+      // Combine date and time and create a UTC date object
+      const utcDate = new Date(`${dateString}T${timeString}Z`);
       
-      const formattedDate = date.toLocaleDateString("en-US", {
+      // Offset IST is +5:30 => 330 minutes
+      const istOffset = 330; // in minutes
+      const istDate = new Date(utcDate.getTime() + istOffset * 60000);
+  
+      const formattedDate = istDate.toLocaleDateString("en-US", {
         month: "short",
         day: "2-digit",
         year: "numeric",
       });
-      const formattedTime = date.toLocaleTimeString("en-US", {
+      
+      const formattedTime = istDate.toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
       });
+      
       return `${formattedDate} | ${formattedTime}`;
     } catch (e) {
       return "Not Assigned";
