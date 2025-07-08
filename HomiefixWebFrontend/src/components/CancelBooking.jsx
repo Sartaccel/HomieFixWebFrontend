@@ -2,12 +2,10 @@ import React, { useState } from "react";
 import "../styles/AssignBookings.css";
 import api from "../api";
 
-
 const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
   const [cancelReason, setCancelReason] = useState("");
   const [otherReason, setOtherReason] = useState("");
   const [loading, setLoading] = useState(false);
-
 
   const isCancelDisabled = () => {
     if (!cancelReason) return true;
@@ -15,34 +13,27 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
     return false;
   };
 
-
   const handleCancel = async () => {
     if (isCancelDisabled()) {
       alert("Please provide a complete reason for cancellation");
       return;
     }
 
-
     const reason = cancelReason === "other" ? otherReason : cancelReason;
     setLoading(true);
-
 
     try {
       const encodedReason = encodeURIComponent(reason);
       const url = `/booking/cancel/${id}?reason=${encodedReason}`;
 
-
       const response = await api.put(url);
-
 
       if (response.status === 200) {
         alert("Booking cancelled successfully");
 
-
         if (typeof onCancelSuccess === "function") {
           onCancelSuccess(reason);
         }
-
 
         onClose();
       } else {
@@ -60,7 +51,6 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
       setLoading(false);
     }
   };
-
 
   return (
     <div
@@ -81,7 +71,6 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
         <div
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
-
 
         <div className="mb-4 mt-3">
           <h6>Reason for Cancellation</h6>
@@ -121,7 +110,6 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
             ))}
           </div>
 
-
           {cancelReason === "other" && (
             <textarea
               className="form-control"
@@ -144,7 +132,6 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
         <div
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
-
 
         <button
           className="btn btn-primary w-100 mt-3"
@@ -169,6 +156,5 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
     </div>
   );
 };
-
 
 export default CancelBooking;

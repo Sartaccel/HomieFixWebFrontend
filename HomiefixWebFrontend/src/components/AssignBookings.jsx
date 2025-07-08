@@ -15,7 +15,6 @@ const AssignBookings = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-
   // Initialize state with proper default values
   const [booking, setBooking] = useState({
     id: id,
@@ -42,7 +41,6 @@ const AssignBookings = () => {
     ...(location.state?.booking || {}),
   });
 
-
   const [workers, setWorkers] = useState([]);
   const [selectedWorkerId, setSelectedWorkerId] = useState(null);
   const [selectedWorkerDetails, setSelectedWorkerDetails] = useState(null);
@@ -66,7 +64,6 @@ const AssignBookings = () => {
   const [isExpired, setIsExpired] = useState(false);
   const [error, setError] = useState(null);
 
-
   // Helper function to format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -76,7 +73,6 @@ const AssignBookings = () => {
       day: "numeric",
     });
   };
-
 
   // Helper function to decode URL-encoded time slot
   const decodeTimeSlot = (timeSlot) => {
@@ -88,7 +84,6 @@ const AssignBookings = () => {
     }
   };
 
-
   // Check if booking date is expired
   const isBookingExpired = (bookingDate) => {
     const today = new Date();
@@ -96,7 +91,6 @@ const AssignBookings = () => {
     const bookingDateObj = new Date(bookingDate);
     return bookingDateObj < today;
   };
-
 
   // Enhanced fetchBookingDetails function
   const fetchBookingDetails = async () => {
@@ -107,14 +101,11 @@ const AssignBookings = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-
       const data = response.data;
-
 
       // Check if booking is expired
       const expired = isBookingExpired(data.bookedDate);
       setIsExpired(expired);
-
 
       // Update booking state with all required fields
       setBooking((prev) => ({
@@ -134,13 +125,11 @@ const AssignBookings = () => {
         deliveryAddress: data.deliveryAddress || prev.deliveryAddress,
       }));
 
-
       setRescheduledDate(data.rescheduledDate || data.bookedDate);
       setRescheduledTimeSlot(
         decodeTimeSlot(data.rescheduledTimeSlot || data.timeSlot)
       );
       setNotes(data.notes || "");
-
 
       // If worker is already assigned, redirect to view bookings
       if (data.assignedWorkerId) {
@@ -149,7 +138,6 @@ const AssignBookings = () => {
         });
         return;
       }
-
 
       setError(null);
     } catch (error) {
@@ -163,34 +151,28 @@ const AssignBookings = () => {
     }
   };
 
-
   // Enhanced fetchWorkers function
   const fetchWorkers = async () => {
     try {
       setLoadingWorkers(true);
       const token = localStorage.getItem("token");
 
-
       // Use the productName from the booking state
       const productName = booking.productName?.trim()?.toLowerCase();
-
 
       if (!productName) {
         setWorkers([]);
         return;
       }
 
-
       const workersResponse = await api.get(
         `/workers/view/by-product/${encodeURIComponent(productName)}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-
       const activeWorkers = workersResponse.data.filter(
         (worker) => worker.active
       );
-
 
       setWorkers(activeWorkers);
     } catch (error) {
@@ -204,18 +186,15 @@ const AssignBookings = () => {
     }
   };
 
-
   useEffect(() => {
     fetchBookingDetails();
   }, [id]);
-
 
   useEffect(() => {
     if (booking.productName && !booking.assignedWorkerId) {
       fetchWorkers();
     }
   }, [booking.productName, booking.assignedWorkerId]);
-
 
   // Handle worker selection and deselection
   const handleWorkerSelection = (workerId) => {
@@ -229,14 +208,12 @@ const AssignBookings = () => {
     }
   };
 
-
   // Assign worker to booking
   const assignWorker = async () => {
     if (isExpired) {
       alert("Cannot assign worker to an expired booking");
       return;
     }
-
 
     if (!selectedWorkerId) {
       alert("Please select a worker");
@@ -276,17 +253,14 @@ const AssignBookings = () => {
     }
   };
 
-
   // Save notes to the booking
   const saveNotes = async () => {
     const trimmedNotes = notes.trim();
-
 
     if (!trimmedNotes) {
       alert("Please enter some notes before saving");
       return;
     }
-
 
     setIsSaving(true);
     try {
@@ -300,7 +274,6 @@ const AssignBookings = () => {
           },
         }
       );
-
 
       if (response.status === 200) {
         alert("Notes saved successfully");
@@ -317,7 +290,6 @@ const AssignBookings = () => {
     setIsSaving(false);
   };
 
-
   // Handle rescheduling
   const handleReschedule = (newDate, newTimeslot) => {
     // Add the current rescheduled date and time slot to the history
@@ -326,26 +298,21 @@ const AssignBookings = () => {
       { date: rescheduledDate, timeSlot: rescheduledTimeSlot },
     ]);
 
-
     // Update the rescheduled date and time slot
     setRescheduledDate(newDate);
     setRescheduledTimeSlot(newTimeslot);
-
 
     // Store the rescheduled date and time slot in localStorage
     localStorage.setItem("rescheduledDate", newDate);
     localStorage.setItem("rescheduledTimeSlot", newTimeslot); // Store the decoded time slot
 
-
     setShowRescheduleSlider(false);
   };
-
 
   // Undo rescheduling
   const undoReschedule = async () => {
     try {
       const token = localStorage.getItem("token");
-
 
       // Get the previous rescheduled date and time slot from the history
       const previousReschedule =
@@ -356,7 +323,6 @@ const AssignBookings = () => {
       const previousTimeSlot = previousReschedule
         ? decodeTimeSlot(previousReschedule.timeSlot) // Decode the time slot
         : booking.timeSlot;
-
 
       // Make the API call to undo rescheduling
       const undoResponse = await api.put(
@@ -374,17 +340,14 @@ const AssignBookings = () => {
         }
       );
 
-
       if (undoResponse.status === 200) {
         // Update local state to reflect the previous booking details
         setRescheduledDate(previousDate);
         setRescheduledTimeSlot(previousTimeSlot);
 
-
         // Remove the last entry from the reschedule history
         setRescheduleHistory((prevHistory) => {
           const updatedHistory = prevHistory.slice(0, -1);
-
 
           // Clear local storage if no more reschedules
           if (updatedHistory.length === 0) {
@@ -402,10 +365,8 @@ const AssignBookings = () => {
             );
           }
 
-
           return updatedHistory;
         });
-
 
         alert("Rescheduling undone successfully");
       } else {
@@ -414,7 +375,6 @@ const AssignBookings = () => {
       }
     } catch (error) {
       console.error("Error undoing rescheduling:", error);
-
 
       if (error.response) {
         if (error.response.status === 400) {
@@ -431,7 +391,6 @@ const AssignBookings = () => {
     }
   };
 
-
   // Clear localStorage on component unmount
   useEffect(() => {
     return () => {
@@ -440,7 +399,6 @@ const AssignBookings = () => {
     };
   }, []);
 
-
   // Check for reschedule history on component mount
   useEffect(() => {
     const storedRescheduledDate = localStorage.getItem("rescheduledDate");
@@ -448,20 +406,17 @@ const AssignBookings = () => {
       "rescheduledTimeSlot"
     );
 
-
     if (storedRescheduledDate && storedRescheduledTimeSlot) {
       setRescheduledDate(storedRescheduledDate);
       setRescheduledTimeSlot(decodeTimeSlot(storedRescheduledTimeSlot)); // Decode the time slot
     }
   }, []);
 
-
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
           <Header />
-
 
           {/* Navigation Bar */}
           <div className="navigation-barr d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
@@ -478,7 +433,6 @@ const AssignBookings = () => {
               </button>
               <div className="section active">Service Details</div>
             </div>
-
 
             <div className="d-flex gap-3 p-2" style={{ marginRight: "300px" }}>
               <button
@@ -497,7 +451,6 @@ const AssignBookings = () => {
                 Reschedule
               </button>
 
-
               <button
                 className="btn"
                 onClick={() => setShowCancelBookingModal(true)}
@@ -514,7 +467,6 @@ const AssignBookings = () => {
               </button>
             </div>
           </div>
-
 
           {/* Content */}
           <div className="container mt-5 pt-4">
@@ -563,7 +515,6 @@ const AssignBookings = () => {
                     </div>
                   </div>
 
-
                   <div className="p-0 m-0">
                     <div className="mt-4">
                       <h6>Customer Details</h6>
@@ -590,20 +541,20 @@ const AssignBookings = () => {
                           style={{
                             backgroundColor:
                               localStorage.getItem("rescheduledDate") &&
-                                localStorage.getItem("rescheduledTimeSlot")
+                              localStorage.getItem("rescheduledTimeSlot")
                                 ? "#EDF3F7"
                                 : "transparent",
                             borderRadius: "5px",
                             display: "inline-block",
                             padding:
                               localStorage.getItem("rescheduledDate") &&
-                                localStorage.getItem("rescheduledTimeSlot")
+                              localStorage.getItem("rescheduledTimeSlot")
                                 ? "0px 10px 0px 0px"
                                 : "0",
                           }}
                         >
                           {localStorage.getItem("rescheduledDate") &&
-                            localStorage.getItem("rescheduledTimeSlot") ? (
+                          localStorage.getItem("rescheduledTimeSlot") ? (
                             <img
                               src={closeDate}
                               alt="Close"
@@ -631,7 +582,6 @@ const AssignBookings = () => {
                             "Not Available"}
                         </p>
 
-
                         <p className="mb-1">
                           <i className="bi bi-geo-alt fw-bold me-2"></i>{" "}
                           {booking.address}
@@ -639,7 +589,6 @@ const AssignBookings = () => {
                       </>
                     )}
                   </div>
-
 
                   {/* Comment Field (Notes) */}
                   <div
@@ -718,7 +667,6 @@ const AssignBookings = () => {
                     )}
                   </div>
                 </div>
-
 
                 {/* Right Card - Service Details */}
                 <div
@@ -833,7 +781,6 @@ const AssignBookings = () => {
                         )}
                       </div>
                     </div>
-
 
                     {/* Worker Details Section */}
                     {selectedWorkerDetails ? (
@@ -951,8 +898,8 @@ const AssignBookings = () => {
                             background: isExpired
                               ? "#CCCCCC"
                               : selectedWorkerId
-                                ? "#0076CE"
-                                : "#999999",
+                              ? "#0076CE"
+                              : "#999999",
                             color: "white",
                             width: "350px",
                             borderRadius: "14px",
@@ -978,7 +925,6 @@ const AssignBookings = () => {
               </div>
             )}
 
-
             {/* Reschedule Slider */}
             {showRescheduleSlider && (
               <Reschedule
@@ -988,7 +934,6 @@ const AssignBookings = () => {
                 onReschedule={handleReschedule}
               />
             )}
-
 
             {/* Cancel Booking Modal */}
             {showCancelBookingModal && (

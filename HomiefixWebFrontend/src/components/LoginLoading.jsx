@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import "../styles/LoginLoading.css";
 
-
 const LoginLoading = ({ onFinish }) => {
   useEffect(() => {
     // Reset animation by forcing reflow
@@ -12,11 +11,9 @@ const LoginLoading = ({ onFinish }) => {
       progress.style.animation = 'progressLoad 2.5s ease-in-out forwards';
     }
 
-
     const timer = setTimeout(onFinish, 3000);
     return () => clearTimeout(timer);
   }, [onFinish]);
-
 
   return (
     <div className="loading-container">
@@ -29,6 +26,5 @@ const LoginLoading = ({ onFinish }) => {
     </div>
   );
 };
-
 
 export default LoginLoading;

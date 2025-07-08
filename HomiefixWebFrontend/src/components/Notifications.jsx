@@ -46,7 +46,7 @@ const Notifications = () => {
 
             // Initialize rating as null
             let rating = null;
-
+           
             // Only fetch rating if it's a feedback notification
             if (notification.notificationType === "FEEDBACK_BOOKING") {
               try {
@@ -113,11 +113,11 @@ const Notifications = () => {
 
   const formatDateTime = (dateString) => {
     const utcDate = new Date(dateString);
-
+ 
     // Offset IST is +5:30 => 330 minutes
     const istOffset = 330; // in minutes
     const istDate = new Date(utcDate.getTime() + istOffset * 60000);
-
+ 
     return istDate.toLocaleString("en-IN", {
       day: "numeric",
       month: "short",
@@ -127,7 +127,7 @@ const Notifications = () => {
       hour12: true,
     });
   };
-
+ 
 
 
   const getStatusBadge = (type, rating) => {
@@ -139,34 +139,39 @@ const Notifications = () => {
             type === "NEW_BOOKING"
               ? "#EDF3F7"
               : type === "CANCELLED_BOOKING"
-                ? "#F7EDED"
-                : type === "BOOKING_TODAY"
-                  ? "#F3EDF7"
-                  : type === "RESCHEDULE_BOOKING"
-                    ? "#FFFFE0"
-                    : "#EDF3F7",
+              ? "#F7EDED"
+              : type === "BOOKING_TODAY"
+              ? "#F3EDF7"
+              : type === "RESCHEDULE_BOOKING"
+              ? "#FBDED0"
+              : type === "WORKER_REASSIGNED"
+              ? "#FFFFE0" : "#EDF3F7",
           color:
             type === "NEW_BOOKING"
               ? "#0076CE"
               : type === "CANCELLED_BOOKING"
-                ? "#AE1319"
-                : type === "BOOKING_TODAY"
-                  ? "#6D15A1"
-                  : type === "RESCHEDULE_BOOKING"
-                    ? "#E5A900"
-                    : "#000000",
+              ? "#AE1319"
+              : type === "BOOKING_TODAY"
+              ? "#6D15A1"
+              : type === "RESCHEDULE_BOOKING"
+              ? "#EC692B"
+              : type === "WORKER_REASSIGNED"
+              ? "#E5A900"
+              : "#000000",
           fontSize: "14px",
         }}
       >
         {type === "NEW_BOOKING"
           ? "New"
           : type === "CANCELLED_BOOKING"
-            ? "Cancel"
-            : type === "BOOKING_TODAY"
-              ? "Due"
-              : type === "RESCHEDULE_BOOKING"
-                ? "Rescheduled"
-                : `⭐ ${rating !== null ? rating : ''}`}
+          ? "Cancel"
+          : type === "BOOKING_TODAY"
+          ? "Due"
+          : type === "RESCHEDULE_BOOKING"
+          ? "Rescheduled"
+          : type === "WORKER_REASSIGNED"
+          ? "ReAssigned"
+          : `⭐ ${rating !== null ? rating : ''}`}
       </span>
     );
   };
@@ -178,7 +183,7 @@ const Notifications = () => {
     }
     return <img src={notificationIcon} alt="Notification" width={65} />;
   };
-
+ 
 
 
   const handleNotificationClick = async (notification) => {
@@ -291,7 +296,7 @@ const Notifications = () => {
               onClick={() => handleNotificationClick(notification)}
             >
               <div className="bg-light rounded d-flex align-items-center mt-2">
-                {getIcon(notification.notificationType)}
+              {getIcon(notification.notificationType)}
 
 
               </div>
@@ -320,3 +325,4 @@ const Notifications = () => {
 
 
 export default Notifications;
+

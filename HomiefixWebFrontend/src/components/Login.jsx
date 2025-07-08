@@ -8,7 +8,6 @@ import "../styles/Login.css";
 import api from "../api";
 import LoginLoading from "./LoginLoading";
 
-
 const Login = ({ setToken }) => {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
@@ -20,8 +19,6 @@ const Login = ({ setToken }) => {
   const [showLoading, setShowLoading] = useState(true);
 
 
-
-
   useEffect(() => {
     setTimeout(() => setShowLoading(false), 3000); // Show loading for 3 seconds
   }, []);
@@ -30,20 +27,17 @@ const Login = ({ setToken }) => {
     setToken("");
   }, [setToken]);
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrorMessage("");
     setIsInvalid(false);
 
-
     try {
       const response = await api.post("/admin/login", {
         username,
         password,
       });
-
 
       if (response.data?.token) {
         localStorage.setItem("token", response.data.token);
@@ -66,11 +60,9 @@ const Login = ({ setToken }) => {
     }
   };
 
-
   if (showLoading) {
     return <LoginLoading onFinish={() => setShowLoading(false)} />;
   }
-
 
   return (
     <div
@@ -105,7 +97,6 @@ const Login = ({ setToken }) => {
           }}
         >
           <h3 className="text-center mb-3">Login</h3>
-
 
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
@@ -160,7 +151,6 @@ const Login = ({ setToken }) => {
               </div>
             </div>
 
-
             <div className="mb-2">
               <div
                 className="input-group"
@@ -213,7 +203,6 @@ const Login = ({ setToken }) => {
               </div>
             </div>
 
-
             {isInvalid && (
               <div
                 className="mb-3 text-start"
@@ -226,7 +215,6 @@ const Login = ({ setToken }) => {
                 {errorMessage}
               </div>
             )}
-
 
             <button
               type="submit"
@@ -269,6 +257,5 @@ const Login = ({ setToken }) => {
     </div>
   );
 };
-
 
 export default Login;

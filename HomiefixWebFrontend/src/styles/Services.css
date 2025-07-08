@@ -1,57 +1,66 @@
 .scrollable-container {
-  max-height: 90vh;
-  /* adjust based on your header height */
-  overflow-y: auto;
+ max-height: 90vh;
+ /* adjust based on your header height */
+ overflow-y: auto;
 }
+
 
 .sticky-tabs {
-  position: sticky;
-  top: 60px;
-  /* adjust if you have a fixed header */
-  background-color: white;
-  z-index: 10;
+ position: sticky;
+ top: 60px;
+ /* adjust if you have a fixed header */
+ background-color: white;
+ z-index: 10;
 }
+
 
 .card:hover {
-  background-color: #FAFAFA;
+ background-color: #FAFAFA;
 }
+
 
 .skeleton-card {
-  background-color: #f0f0f0;
-  border-radius: 5px;
-  height: 90px;
-  margin-bottom: 15px;
-  display: flex;
-  align-items: center;
-  padding: 10px;
-  animation: pulse 1.5s infinite ease-in-out;
+ background-color: #f0f0f0;
+ border-radius: 5px;
+ height: 90px;
+ margin-bottom: 15px;
+ display: flex;
+ align-items: center;
+ padding: 10px;
+ animation: pulse 1.5s infinite ease-in-out;
 }
+
 
 .skeleton-image {
-  width: 60px;
-  height: 60px;
-  background-color: #ddd;
-  border-radius: 5px;
+ width: 60px;
+ height: 60px;
+ background-color: #ddd;
+ border-radius: 5px;
 }
+
 
 .skeleton-text {
-  width: 70%;
-  height: 15px;
-  background-color: #ddd;
-  margin-left: 15px;
-  border-radius: 4px;
+ width: 70%;
+ height: 15px;
+ background-color: #ddd;
+ margin-left: 15px;
+ border-radius: 4px;
 }
+
 
 @keyframes pulse {
-  0% {
-    background-color: #e0e0e0;
-  }
+ 0% {
+   background-color: #e0e0e0;
+ }
 
-  50% {
-    background-color: #f0f0f0;
-  }
 
-  100% {
-    background-color: #e0e0e0;
-  }
+ 50% {
+   background-color: #f0f0f0;
+ }
+
+
+ 100% {
+   background-color: #e0e0e0;
+ }
 }
+

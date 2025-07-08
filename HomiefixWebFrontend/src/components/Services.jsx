@@ -5,7 +5,6 @@ import "../styles/Services.css";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 
-
 const Services = () => {
   const [activeTab, setActiveTab] = useState("recent");
   const [products, setProducts] = useState([]);
@@ -13,7 +12,6 @@ const Services = () => {
   const [error, setError] = useState(null);
   const [networkError, setNetworkError] = useState(false);
   const navigate = useNavigate();
-
 
   // Group products by category
   const productCategories = {
@@ -70,7 +68,6 @@ const Services = () => {
     CCTV: ["CCTV"],
   };
 
-
   const fetchProducts = async () => {
     setLoading(true);
     setError(null);
@@ -93,11 +90,9 @@ const Services = () => {
     }
   };
 
-
   useEffect(() => {
     fetchProducts();
   }, []);
-
 
   // Filter products by category
   const getProductsByCategory = (category) => {
@@ -106,7 +101,6 @@ const Services = () => {
       categoryItems.includes(product.productName)
     );
   };
-
 
   if (loading) {
     return (
@@ -140,11 +134,9 @@ const Services = () => {
     );
   }
 
-
   return (
     <>
       <Header />
-
 
       <div
         className="container-fluid p-0 pt-5 scrollable-container"
@@ -176,10 +168,8 @@ const Services = () => {
           Object.keys(productCategories).map((category) => {
             const categoryProducts = getProductsByCategory(category);
 
-
             // Only render the category if there are products in it
             if (categoryProducts.length === 0) return null;
-
 
             return (
               <div key={category}>
@@ -196,7 +186,6 @@ const Services = () => {
                     </button>
                   </div>
                 </div>
-
 
                 {/* Products Grid */}
                 <div className="row px-4">
@@ -253,6 +242,5 @@ const Services = () => {
     </>
   );
 };
-
 
 export default Services;

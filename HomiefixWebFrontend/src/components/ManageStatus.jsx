@@ -11,11 +11,11 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
   const [isServiceDateFuture, setIsServiceDateFuture] = useState(false);
   const [localServiceStarted, setLocalServiceStarted] = useState({
     date: null,
-    time: null
+    time: null,
   });
   const [localServiceCompleted, setLocalServiceCompleted] = useState({
     date: null,
-    time: null
+    time: null,
   });
   const [forceUpdate, setForceUpdate] = useState(0);
 
@@ -30,6 +30,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
     rescheduleTime: null,
     rescheduledDate: null,
     rescheduledTimeSlot: null,
+    reassignmentReason: null,
     cancelledDate: null,
     cancelledTime: null,
     cancelReason: null,
@@ -63,15 +64,15 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       setServiceCompleted(
         safeBooking.bookingStatus === "COMPLETED" ? "Yes" : "No"
       );
-      
+
       setLocalServiceStarted({
         date: safeBooking.serviceStartedDate,
-        time: safeBooking.serviceStartedTime
+        time: safeBooking.serviceStartedTime,
       });
-      
+
       setLocalServiceCompleted({
         date: safeBooking.serviceCompletedDate,
-        time: safeBooking.serviceCompletedTime
+        time: safeBooking.serviceCompletedTime,
       });
     }
 
@@ -94,8 +95,8 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
 
     try {
       const now = new Date();
-      const currentDate = now.toISOString().split('T')[0];
-      const currentTime = now.toTimeString().split(' ')[0].substring(0, 8);
+      const currentDate = now.toISOString().split("T")[0];
+      const currentTime = now.toTimeString().split(" ")[0].substring(0, 8);
 
       let newStatus = safeBooking.bookingStatus;
       let startedDate = localServiceStarted.date;
@@ -103,11 +104,18 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       let completedDate = localServiceCompleted.date;
       let completedTime = localServiceCompleted.time;
 
-      if (serviceStarted === "Yes" && safeBooking.bookingStatus !== "STARTED" && safeBooking.bookingStatus !== "COMPLETED") {
+      if (
+        serviceStarted === "Yes" &&
+        safeBooking.bookingStatus !== "STARTED" &&
+        safeBooking.bookingStatus !== "COMPLETED"
+      ) {
         newStatus = "STARTED";
         startedDate = currentDate;
         startedTime = currentTime;
-      } else if (serviceCompleted === "Yes" && safeBooking.bookingStatus !== "COMPLETED") {
+      } else if (
+        serviceCompleted === "Yes" &&
+        safeBooking.bookingStatus !== "COMPLETED"
+      ) {
         newStatus = "COMPLETED";
         completedDate = currentDate;
         completedTime = currentTime;
@@ -116,11 +124,17 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
           startedDate = currentDate;
           startedTime = currentTime;
         }
-      } else if (serviceStarted === "No" && safeBooking.bookingStatus === "STARTED") {
+      } else if (
+        serviceStarted === "No" &&
+        safeBooking.bookingStatus === "STARTED"
+      ) {
         newStatus = "ASSIGNED";
         startedDate = null;
         startedTime = null;
-      } else if (serviceCompleted === "No" && safeBooking.bookingStatus === "COMPLETED") {
+      } else if (
+        serviceCompleted === "No" &&
+        safeBooking.bookingStatus === "COMPLETED"
+      ) {
         newStatus = "STARTED";
         completedDate = null;
         completedTime = null;
@@ -129,31 +143,38 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       setLocalServiceStarted({ date: startedDate, time: startedTime });
       setLocalServiceCompleted({ date: completedDate, time: completedTime });
 
-      await onStatusUpdate(newStatus, startedDate, startedTime, completedDate, completedTime);
-      
-      setForceUpdate(prev => prev + 1);
+      await onStatusUpdate(
+        newStatus,
+        startedDate,
+        startedTime,
+        completedDate,
+        completedTime
+      );
+
+      setForceUpdate((prev) => prev + 1);
     } catch (error) {
       console.error("Error updating status:", error);
       setErrorMessage("Failed to update status. Please try again.");
       setLocalServiceStarted({
         date: safeBooking.serviceStartedDate,
-        time: safeBooking.serviceStartedTime
+        time: safeBooking.serviceStartedTime,
       });
       setLocalServiceCompleted({
         date: safeBooking.serviceCompletedDate,
-        time: safeBooking.serviceCompletedTime
+        time: safeBooking.serviceCompletedTime,
       });
     } finally {
       setLoading(false);
     }
   };
-  
+
   const getHighlightStyle = (rowType) => {
     const highlightStyles = {
       BOOKING_SUCCESSFUL: { borderLeft: "4px solid black" },
       CANCELLED: { borderLeft: "4px solid #B8141A" },
       RESCHEDULED: { borderLeft: "4px solid #C14810" },
       ASSIGNED: { borderLeft: "4px solid black" },
+      REASSIGNED: { borderLeft: "4px solid #F4B400" },
       STARTED: { borderLeft: "4px solid black" },
       COMPLETED: { borderLeft: "4px solid #2FB467" },
     };
@@ -165,32 +186,31 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
     if (rowType === "RESCHEDULED" && safeBooking.rescheduleReason) {
       return highlightStyles.RESCHEDULED || {};
     }
+
+    if (rowType === "REASSIGNED" && safeBooking.rescheduleReason) {
+      return highlightStyles.REASSIGNED || {};
+    }
+
     return {};
   };
 
   const formatDateTime = (dateString, timeString) => {
     if (!dateString || !timeString) return "Not Assigned";
-  
+
     try {
-      // Combine date and time and create a UTC date object
-      const utcDate = new Date(`${dateString}T${timeString}Z`);
-      
-      // Offset IST is +5:30 => 330 minutes
-      const istOffset = 330; // in minutes
-      const istDate = new Date(utcDate.getTime() + istOffset * 60000);
-  
-      const formattedDate = istDate.toLocaleDateString("en-US", {
+      const date = new Date(`${dateString}T${timeString}`);
+      if (isNaN(date.getTime())) return "Not Assigned";
+
+      const formattedDate = date.toLocaleDateString("en-US", {
         month: "short",
         day: "2-digit",
         year: "numeric",
       });
-      
-      const formattedTime = istDate.toLocaleTimeString("en-US", {
+      const formattedTime = date.toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
       });
-      
       return `${formattedDate} | ${formattedTime}`;
     } catch (e) {
       return "Not Assigned";
@@ -215,23 +235,33 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
   );
 
   const renderStatusDropdown = (value, onChange, isStartDropdown = false) => {
-    const disabled = isServiceDateFuture && (isStartDropdown || !isStartDropdown);
+    const disabled =
+      isServiceDateFuture && (isStartDropdown || !isStartDropdown);
     return (
       <div style={{ position: "relative", width: "100%" }}>
         <select
           onChange={(e) => {
             const newValue = e.target.value;
             onChange(newValue);
-            
+
             if (newValue === "Yes" && !disabled) {
               const now = new Date();
-              const currentDate = now.toISOString().split('T')[0];
-              const currentTime = now.toTimeString().split(' ')[0].substring(0, 8);
-              
+              const currentDate = now.toISOString().split("T")[0];
+              const currentTime = now
+                .toTimeString()
+                .split(" ")[0]
+                .substring(0, 8);
+
               if (onChange === setServiceStarted) {
-                setLocalServiceStarted({ date: currentDate, time: currentTime });
+                setLocalServiceStarted({
+                  date: currentDate,
+                  time: currentTime,
+                });
               } else if (onChange === setServiceCompleted) {
-                setLocalServiceCompleted({ date: currentDate, time: currentTime });
+                setLocalServiceCompleted({
+                  date: currentDate,
+                  time: currentTime,
+                });
               }
             } else if (newValue === "No") {
               if (onChange === setServiceStarted) {
@@ -252,8 +282,14 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
             appearance: "none",
             padding: "4px 20px 4px 8px",
             textAlign: "center",
-            color: disabled || safeBooking.bookingStatus === "CANCELLED" ? "#ccc" : "inherit",
-            cursor: disabled || safeBooking.bookingStatus === "CANCELLED" ? "not-allowed" : "pointer",
+            color:
+              disabled || safeBooking.bookingStatus === "CANCELLED"
+                ? "#ccc"
+                : "inherit",
+            cursor:
+              disabled || safeBooking.bookingStatus === "CANCELLED"
+                ? "not-allowed"
+                : "pointer",
           }}
         >
           <option value="No">No</option>
@@ -269,7 +305,10 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
             transform: "translateY(-50%)",
             pointerEvents: "none",
             fontSize: "10px",
-            color: disabled || safeBooking.bookingStatus === "CANCELLED" ? "#ccc" : "inherit",
+            color:
+              disabled || safeBooking.bookingStatus === "CANCELLED"
+                ? "#ccc"
+                : "inherit",
           }}
         >
           ▼
@@ -277,11 +316,22 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       </div>
     );
   };
+  const isReassigned = safeBooking.bookingStatus === "REASSIGNED";
+
+  const bookingInfo = {
+    label: isReassigned ? "Reassigned Service On" : "Rescheduled Service On",
+    color: isReassigned ? "#F4B400" : "#C14810",
+    date: safeBooking.rescheduledDate,
+    timeSlot: safeBooking.rescheduledTimeSlot,
+    reason: safeBooking.rescheduleReason,
+    dateLabel: safeBooking.rescheduleDate,
+    timeLabel: safeBooking.rescheduleTime,
+  };
 
   return (
     <div>
       <div
-        className="card rounded p-4"
+        className="card rounded p-3"
         style={{
           marginTop: "47px",
           minHeight: "300px",
@@ -297,7 +347,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
         }}
       >
         <h5 style={{ paddingLeft: "20px" }}>Status update</h5>
-        <div className="p-3 mt-2">
+        <div className="p-2">
           <table
             className="table w-100"
             style={{
@@ -363,93 +413,68 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                 ></td>
               </tr>
 
-              {safeBooking.rescheduleReason && (
+              
+              {bookingInfo.date && bookingInfo.timeSlot && (
                 <tr
                   style={{
-                    height: "40px",
-                    ...(safeBooking.bookingStatus === "RESCHEDULED"
-                      ? getHighlightStyle("RESCHEDULED")
-                      : {}),
+                    color: "grey",
+                    borderLeft: `4px solid ${
+                     bookingInfo.label.includes("Rescheduled") ? "#C14810" : "#F4B400" }`,
                   }}
                 >
-                  <td
-                    className="text-start border-right"
-                    style={{ border: "1px solid #E6E6E6" }}
-                  >
-                    {isLoading ? (
-                      <>
-                        <SkeletonLoader width="60%" height="12px" />
-                        <SkeletonLoader
-                          width="80%"
-                          height="16px"
-                          style={{ marginTop: "4px" }}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <span style={{ color: "grey" }}>
-                          {formatDateTime(
-                            safeBooking.rescheduleDate,
-                            safeBooking.rescheduleTime
-                          )}
-                        </span>
-                        <span
-                          className="booking-details"
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "5px",
-                            fontSize: "14px",
-                          }}
-                        >
-                          <span
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              fontWeight: "bold",
-                              gap: "5px",
-                            }}
-                          >
-                            <span style={{ color: "#C14810" }}>
-                              Reschedule Service On{" "}
-                              {safeBooking.rescheduledDate
-                                ? new Date(
-                                    safeBooking.rescheduledDate
-                                  ).toLocaleDateString("en-US", {
-                                    month: "short",
-                                    day: "2-digit",
-                                    year: "numeric",
-                                  })
-                                : "Not Assigned"}
-                              {" | "}
-                              {safeBooking.rescheduledTimeSlot ||
-                                "Not Assigned"}
-                            </span>
-                          </span>
-                          <span style={{ fontSize: "14px" }}>
-                            {safeBooking.rescheduleReason
-                              ? safeBooking.rescheduleReason.split(" ").length >
-                                7
-                                ? safeBooking.rescheduleReason
-                                    .split(" ")
-                                    .slice(0, 7)
-                                    .join(" ") + "..."
-                                : safeBooking.rescheduleReason
-                              : ""}
-                          </span>
-                        </span>
-                      </>
-                    )}
-                  </td>
-                  <td
-                    className="text-end"
-                    style={{
-                      backgroundColor: "#FAFAFA",
-                      border: "1px solid #E6E6E6",
-                      width: "80px",
-                    }}
-                  ></td>
-                </tr>
+                  <td className="text-start border-right" style={{ border: "1px solid #E6E6E6" }}>
+  {isLoading ? (
+    <>
+   <SkeletonLoader width="60%" height="12px" />
+                      <SkeletonLoader
+                        width="80%"
+                        height="16px"
+                        style={{ marginTop: "4px" }}/>
+                        </>
+  ) : (
+    <>
+      <span>
+        {formatDateTime(bookingInfo.dateLabel, bookingInfo.timeLabel)}
+      </span>
+      <span
+        className="booking-details"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "5px",
+          fontSize: "14px",
+        }}
+      >
+        <span
+          style={{
+            display: "flex",
+            alignItems: "center",
+            fontWeight: "bold",
+            gap: "5px",
+          }}
+        >
+          <span style={{ color: bookingInfo.color }}>
+            {bookingInfo.label}{" "}
+            {bookingInfo.date
+              ? new Date(bookingInfo.date).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "2-digit",
+                  year: "numeric",
+                })
+              : "Not Assigned"}{" "}
+            | {bookingInfo.timeSlot || "Not Assigned"}
+          </span>
+        </span>
+        <span style={{ fontSize: "14px" }}>
+          {bookingInfo.reason?.split(" ").length > 7
+            ? bookingInfo.reason.split(" ").slice(0, 7).join(" ") + "..."
+            : bookingInfo.reason}
+        </span>
+      </span>
+    </>
+  )}
+</td>
+</tr>
               )}
 
               {/* Cancelled Row */}
@@ -654,7 +679,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                     renderStatusDropdown(
                       serviceStarted,
                       setServiceStarted,
-                      true // This is the start dropdown
+                      true
                     )
                   ) : (
                     <span
@@ -742,11 +767,12 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                 >
                   {isLoading ? (
                     <SkeletonLoader width="40px" height="24px" />
-                  ) : safeBooking.bookingStatus !== "CANCELLED" ? (
+                  ) : safeBooking.bookingStatus !== "CANCELLED" &&
+                    safeBooking.bookingStatus !== "COMPLETED" ? (
                     renderStatusDropdown(
                       serviceCompleted,
                       setServiceCompleted,
-                      false // This is the completed dropdown
+                      false
                     )
                   ) : (
                     <span
@@ -780,7 +806,9 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                       className="btn btn-primary"
                       onClick={handleUpdateStatus}
                       disabled={
-                        safeBooking.bookingStatus === "CANCELLED" || loading
+                        safeBooking.bookingStatus === "CANCELLED" ||
+                        loading ||
+                        safeBooking.bookingStatus === "COMPLETED"
                       }
                       style={{
                         marginTop: "10px",
@@ -789,16 +817,22 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                         border: "none",
                         borderRadius: "12px",
                         backgroundColor:
-                          safeBooking.bookingStatus === "CANCELLED" || loading
+                          safeBooking.bookingStatus === "CANCELLED" ||
+                          loading ||
+                          safeBooking.bookingStatus === "COMPLETED"
                             ? "#A0A0A0"
                             : "#0076CE",
                         marginBottom: "10px",
                         cursor:
-                          safeBooking.bookingStatus === "CANCELLED" || loading
+                          safeBooking.bookingStatus === "CANCELLED" ||
+                          loading ||
+                          safeBooking.bookingStatus === "COMPLETED"
                             ? "not-allowed"
                             : "pointer",
                         opacity:
-                          safeBooking.bookingStatus === "CANCELLED" || loading
+                          safeBooking.bookingStatus === "CANCELLED" ||
+                          loading ||
+                          safeBooking.bookingStatus === "COMPLETED"
                             ? 0.6
                             : 1,
                         display: "flex",
@@ -813,6 +847,8 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                           role="status"
                           aria-hidden="true"
                         ></span>
+                      ) : safeBooking.bookingStatus === "COMPLETED" ? (
+                        "Completed"
                       ) : (
                         "Update"
                       )}
@@ -832,12 +868,12 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
       </div>
       <style>
         {`
-         @keyframes pulse {
-           0% { opacity: 0.6; }
-           50% { opacity: 0.3; }
-           100% { opacity: 0.6; }
-         }
-       `}
+        @keyframes pulse {
+          0% { opacity: 0.6; }
+          50% { opacity: 0.3; }
+          100% { opacity: 0.6; }
+        }
+      `}
       </style>
     </div>
   );

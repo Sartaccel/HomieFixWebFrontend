@@ -7,7 +7,6 @@ import "../styles/AddWorker.css";
 import Header from "./Header";
 import api from "../api";
 
-
 const Profile = () => {
   const { username } = useParams();
   const navigate = useNavigate();
@@ -32,13 +31,34 @@ const Profile = () => {
   const [previewImage, setPreviewImage] = useState(addWorker);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Function to properly format image URLs
+  const formatImageUrl = (url) => {
+    if (!url) return addWorker; // Return default if no URL
+    
+    // If it's a data URL or already absolute URL, return as-is
+    if (url.startsWith('data:') || url.startsWith('http')) {
+      return url;
+    }
+    
+    // Handle relative paths
+    if (url.startsWith('/')) {
+      // Ensure the base URL ends with '/' and the path doesn't start with '/'
+      const baseUrl = api.defaults.baseURL.endsWith('/') 
+        ? api.defaults.baseURL 
+        : `${api.defaults.baseURL}/`;
+      const path = url.startsWith('/') ? url.substring(1) : url;
+      return `${baseUrl}${path}`;
+    }
+    
+    // Default case (shouldn't normally happen)
+    return url;
+  };
 
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
         const response = await api.get(`/admin/${username}`);
         const data = response.data;
-
 
         setFormData({
           name: data.name || "",
@@ -59,23 +79,20 @@ const Profile = () => {
           joiningDate: data.joiningDate || "",
         });
 
-
         if (data.profilePicUrl) {
-          // Ensure the URL is absolute if it's not already
-          const imageUrl = data.profilePicUrl.startsWith("http")
-            ? data.profilePicUrl
-            : `${api.defaults.baseURL}${data.profilePicUrl}`;
+          const imageUrl = formatImageUrl(data.profilePicUrl);
           setPreviewImage(imageUrl);
+        } else {
+          setPreviewImage(addWorker);
         }
       } catch (error) {
         console.error("Error fetching profile data:", error);
+        setPreviewImage(addWorker);
       }
     };
 
-
     fetchProfileData();
   }, [username]);
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -85,17 +102,38 @@ const Profile = () => {
     }));
   };
 
-
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Create a proper URL for the image preview
+      // Verify file type
+      if (!file.type.match('image.*')) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid File',
+          text: 'Please select an image file (JPEG, PNG, etc.)',
+        });
+        return;
+      }
+
+      // Verify file size (e.g., 2MB limit)
+      if (file.size > 2 * 1024 * 1024) {
+        Swal.fire({
+          icon: 'error',
+          title: 'File Too Large',
+          text: 'Please select an image smaller than 2MB',
+        });
+        return;
+      }
+
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result);
+      reader.onload = (event) => {
+        setPreviewImage(event.target.result);
+      };
+      reader.onerror = () => {
+        console.error("Error reading file");
+        setPreviewImage(addWorker);
       };
       reader.readAsDataURL(file);
-
 
       setFormData((prevState) => ({
         ...prevState,
@@ -104,11 +142,9 @@ const Profile = () => {
     }
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
 
     try {
       const formDataToSend = new FormData();
@@ -122,25 +158,26 @@ const Profile = () => {
       formDataToSend.append("district", formData.district);
       formDataToSend.append("state", formData.state);
 
-
       if (formData.profilePic) {
         formDataToSend.append("profilePic", formData.profilePic);
       }
 
-
-      await api.post("/admin/completeProfile", formDataToSend, {
+      const response = await api.post("/admin/completeProfile", formDataToSend, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
+      // Update the preview image with the new URL if returned
+      if (response.data.profilePicUrl) {
+        const imageUrl = formatImageUrl(response.data.profilePicUrl);
+        setPreviewImage(imageUrl);
+      }
 
-      // After successful update, dispatch an event to notify Header
-      const event = new CustomEvent("profileUpdated", {
+      // Notify Header component
+      window.dispatchEvent(new CustomEvent("profileUpdated", {
         detail: { username },
-      });
-      window.dispatchEvent(event);
-
+      }));
 
       Swal.fire({
         icon: "success",
@@ -155,14 +192,13 @@ const Profile = () => {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Failed to update profile details. Please try again.",
+        text: error.response?.data?.message || "Failed to update profile details. Please try again.",
         confirmButtonText: "OK",
       });
     } finally {
       setIsLoading(false);
     }
   };
-
 
   return (
     <>
@@ -180,9 +216,9 @@ const Profile = () => {
             ></i>
           </button>
           <h5
-            className="px-3 pb-3 text-black"
+            className="px-3 pb-2 text-black"
             style={{
-              borderBottom: "4px solid #000",
+              borderBottom: "3px solid #000",
               position: "relative",
               marginBottom: "-30px",
             }}
@@ -192,12 +228,11 @@ const Profile = () => {
         </div>
       </div>
 
-
       <div
         className="container"
         style={{
           height: "80vh",
-          overflowY: "auto",
+          overflowY: "hidden",
           overflowX: "hidden",
           marginTop: "20px",
         }}
@@ -205,7 +240,7 @@ const Profile = () => {
         <form onSubmit={handleSubmit}>
           {/* Profile Photo */}
           <div
-            className="container mt-2"
+            className="container mt-1"
             style={{ marginLeft: "64px", maxWidth: "100%" }}
           >
             <p>Profile Photo</p>
@@ -216,9 +251,11 @@ const Profile = () => {
                 height={100}
                 width={100}
                 className="rounded-4"
+                style={{ objectFit: "cover" }}
                 onError={(e) => {
-                  e.target.onerror = null; // Prevent infinite loop
-                  e.target.src = addWorker; // Fallback to default image
+                  console.error("Image failed to load, using fallback");
+                  e.target.onerror = null;
+                  e.target.src = addWorker;
                 }}
               />
               <input
@@ -239,11 +276,10 @@ const Profile = () => {
                   borderRadius: "2px",
                 }}
               >
-                Edit Profile
+                Upload Photo
               </label>
             </div>
           </div>
-
 
           {/* Main container */}
           <div
@@ -322,7 +358,6 @@ const Profile = () => {
               </div>
             </div>
 
-
             {/* Row 2 */}
             <div className="row mt-2">
               <div className="col-md-3">
@@ -349,12 +384,12 @@ const Profile = () => {
                 />
               </div>
               <div className="col-md-3" style={{ marginLeft: "60px" }}>
-                <label htmlFor="econtactNumber" className="form-label">
+                <label htmlFor="econtactNumber" className="form-label ">
                   Emergency Contact Number
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control shadow-none"
                   name="econtactNumber"
                   id="econtactNumber"
                   required
@@ -370,7 +405,7 @@ const Profile = () => {
                 </label>
                 <input
                   type="date"
-                  className="form-control"
+                  className="form-control shadow-none"
                   name="dateOfBirth"
                   id="dateOfBirth"
                   required
@@ -381,19 +416,18 @@ const Profile = () => {
               </div>
             </div>
 
-
             {/* Address Details */}
             <div className="row mt-3">
               <p className="fw-bold">Address Details</p>
             </div>
-            <div className="row" style={{ marginTop: "-5px" }}>
+            <div className="row" style={{ marginTop: "-15px" }}>
               <div className="col-md-3">
                 <label htmlFor="houseNumber" className="form-label">
                   House no/ Building name
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control shadow-none"
                   name="houseNumber"
                   id="houseNumber"
                   required
@@ -409,7 +443,7 @@ const Profile = () => {
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control shadow-none"
                   name="town"
                   id="town"
                   required
@@ -425,7 +459,7 @@ const Profile = () => {
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control shadow-none"
                   name="pincode"
                   id="pincode"
                   required
@@ -437,7 +471,6 @@ const Profile = () => {
               </div>
             </div>
 
-
             {/* Row 2 */}
             <div className="row mt-2">
               <div className="col-md-3">
@@ -446,7 +479,7 @@ const Profile = () => {
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control shadow-none"
                   name="nearbyLandmark"
                   id="nearbyLandmark"
                   required
@@ -462,7 +495,7 @@ const Profile = () => {
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control shadow-none"
                   name="district"
                   id="district"
                   required
@@ -478,7 +511,7 @@ const Profile = () => {
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control shadow-none"
                   name="state"
                   id="state"
                   required
@@ -490,30 +523,29 @@ const Profile = () => {
               </div>
             </div>
 
-
             {/* Submit Button */}
             <div className="row mb-3 mt-3">
               <div className="col">
-                <button
-                  type="submit"
-                  className="btn px-5"
-                  style={{ backgroundColor: "#0076CE", color: "white" }}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <span
-                        className="spinner-border spinner-border-sm"
-                        role="status"
-                        aria-hidden="true"
-                      ></span>
-                      <span className="visually-hidden">Loading...</span>
-                    </>
-                  ) : (
-                    "Submit"
-                  )}
-                </button>
-              </div>
+              <button
+                type="submit"
+                className="btn px-5"
+                style={{ backgroundColor: "#0076CE", color: "white" }}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <span
+                      className="spinner-border spinner-border-sm"
+                      role="status"
+                      aria-hidden="true"
+                    ></span>
+                    <span className="visually-hidden">Loading...</span>
+                  </>
+                ) : (
+                  "Submit"
+                )}
+              </button>
+            </div>
             </div>
           </div>
         </form>
@@ -521,6 +553,5 @@ const Profile = () => {
     </>
   );
 };
-
 
 export default Profile;

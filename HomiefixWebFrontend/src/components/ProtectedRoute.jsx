@@ -2,23 +2,18 @@ import React, { useEffect, useRef, useState } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import ConfirmationDialog from "./ConfirmationDialog";
 
-
 const ProtectedRoute = () => {
   const token = localStorage.getItem("token");
   const isValidToken = !!token;
 
-
   const navigate = useNavigate();
   const location = useLocation();
-
 
   const [showDialog, setShowDialog] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
 
-
   const cameFromLoginRef = useRef(false);
   const historyDepth = useRef(0);
-
 
   useEffect(() => {
     // When landing at /booking-details for the first time
@@ -33,7 +28,6 @@ const ProtectedRoute = () => {
     }
   }, [location.pathname, initialLoad]);
 
-
   useEffect(() => {
     const handlePopState = () => {
       // Show logout confirmation if user came directly from login
@@ -43,13 +37,11 @@ const ProtectedRoute = () => {
         return;
       }
 
-
       // Block back to "/" (login) if user moved around and came back
       if (window.location.pathname === "/") {
         window.history.pushState({ protected: true }, "");
       }
     };
-
 
     window.addEventListener("popstate", handlePopState);
     return () => {
@@ -57,24 +49,20 @@ const ProtectedRoute = () => {
     };
   }, [location.pathname]);
 
-
   const handleConfirmLogout = () => {
     localStorage.removeItem("token");
     setShowDialog(false);
     navigate("/", { replace: true });
   };
 
-
   const handleCancelLogout = () => {
     setShowDialog(false);
     window.history.pushState({ protected: true }, "");
   };
 
-
   if (!isValidToken) {
     return <Navigate to="/" replace />;
   }
-
 
   return (
     <>
@@ -92,8 +80,4 @@ const ProtectedRoute = () => {
   );
 };
 
-
 export default ProtectedRoute;
-
-
-

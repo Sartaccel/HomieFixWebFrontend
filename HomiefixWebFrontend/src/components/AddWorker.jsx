@@ -8,7 +8,6 @@ import Header from "./Header";
 import api from "../api";
 import Select from "react-select";
 
-
 const AddWorker = () => {
   const navigate = useNavigate();
   const [clickedButtons, setClickedButtons] = useState({});
@@ -39,18 +38,15 @@ const AddWorker = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDrivingLicenseFocused, setIsDrivingLicenseFocused] = useState(false);
 
-
   const languageOptions = [
     { value: "Tamil", label: "Tamil" },
     { value: "English", label: "English" },
     { value: "Hindi", label: "Hindi" },
   ];
 
-
   useEffect(() => {
     resetForm();
   }, []);
-
 
   const resetForm = () => {
     setFormData({
@@ -81,7 +77,6 @@ const AddWorker = () => {
     setIsDrivingLicenseFocused(false);
   };
 
-
   const validateName = (name) => /^[a-zA-Z\s]*$/.test(name);
   const validateContactNumber = (number) => /^\d{10}$/.test(number);
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -91,9 +86,8 @@ const AddWorker = () => {
   const validateState = (state) => /^[a-zA-Z\s]*$/.test(state);
   const validateAadhar = (aadhar) => /^\d{12}$/.test(aadhar);
   const validateDrivingLicense = (license) =>
-    !license || /^DL-[a-zA-Z0-9]{15}$/.test(license);
+    !license || /[a-zA-Z0-9]{15}$/.test(license);
   const validateWorkExperience = (experience) => /^[0-9]+$/.test(experience);
-
 
   const validateDate = (dateString, isDOB = false) => {
     if (!dateString) return false;
@@ -106,7 +100,6 @@ const AddWorker = () => {
     }
     return date <= today;
   };
-
 
   const handleButtonClick = (item, roleHeading) => {
     setClickedButtons((prev) => ({ ...prev, [item]: !prev[item] }));
@@ -121,11 +114,9 @@ const AddWorker = () => {
     }));
   };
 
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     let error = "";
-
 
     switch (name) {
       case "name":
@@ -151,7 +142,15 @@ const AddWorker = () => {
             : "";
         break;
       case "pincode":
-        error = !validatePincode(value) ? "Pincode should be 6 digits" : "";
+        if (!value) {
+          error = "Pincode is required";
+        } else if (/[a-zA-Z]/.test(value)) {
+          error = "Only numeric digits are allowed in pincode";
+        } else if (!validatePincode(value)) {
+          error = "Pincode should be exactly 6 digits";
+        } else {
+          error = "";
+        }
         break;
       case "district":
         error = !validateDistrict(value)
@@ -171,7 +170,7 @@ const AddWorker = () => {
       case "drivingLicenseNumber":
         error =
           value && !validateDrivingLicense(value)
-            ? "License should be in format DL- followed by 15 alphanumeric characters"
+            ? "License should be 15 alphanumeric characters"
             : "";
         break;
       case "dateOfBirth":
@@ -182,35 +181,26 @@ const AddWorker = () => {
       default:
         break;
     }
-
-
     setErrors((prev) => ({ ...prev, [name]: error }));
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-
   const handleDrivingLicenseChange = (e) => {
     let value = e.target.value;
-    if (isDrivingLicenseFocused || value) {
-      if (!value.startsWith("DL-")) {
-        value = "DL-" + value.replace(/^DL-/, "").replace(/[^a-zA-Z0-9]/g, "");
-      } else {
-        value = "DL-" + value.substring(3).replace(/[^a-zA-Z0-9]/g, "");
-      }
-      if (value.length > 18) value = value.substring(0, 18);
+    value = value.replace(/[^a-zA-Z0-9]/g, "");
+    if (value.length > 18) {
+      value = value.substring(0, 18);
     }
-
 
     setFormData((prev) => ({ ...prev, drivingLicenseNumber: value }));
     setErrors((prev) => ({
       ...prev,
       drivingLicenseNumber:
         value && !validateDrivingLicense(value)
-          ? "License should be in format DL- followed by 15 alphanumeric characters"
+          ? "License should be 15 alphanumeric characters"
           : "",
     }));
   };
-
 
   const handleLanguageChange = (selectedOptions) => {
     const languages = selectedOptions.map((option) => option.value);
@@ -220,11 +210,9 @@ const AddWorker = () => {
     }
   };
 
-
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
 
     // Validate file type and size
     const validTypes = ["image/jpeg", "image/png", "image/jpg"];
@@ -243,9 +231,7 @@ const AddWorker = () => {
       return;
     }
 
-
     setErrors((prev) => ({ ...prev, profilePic: "" }));
-
 
     // Create preview using FileReader
     const reader = new FileReader();
@@ -255,11 +241,8 @@ const AddWorker = () => {
       setPreviewImage(addWorker);
     };
     reader.readAsDataURL(file);
-
-
     setFormData((prev) => ({ ...prev, profilePic: file }));
   };
-
 
   const checkContactNumberExists = async (contactNumber) => {
     try {
@@ -273,14 +256,14 @@ const AddWorker = () => {
     }
   };
 
-
   const checkEmailExists = async (email) => {
     try {
       if (!email) return false; // Skip check if email is empty
       const response = await api.get(`/workers/view`);
       const workers = response.data;
       const emailExists = workers.some(
-        (worker) => worker.email && worker.email.toLowerCase() === email.toLowerCase()
+        (worker) =>
+          worker.email && worker.email.toLowerCase() === email.toLowerCase()
       );
       return emailExists;
     } catch (error) {
@@ -289,18 +272,15 @@ const AddWorker = () => {
     }
   };
 
-
   const validateForm = () => {
     const newErrors = {};
     let isValid = true;
-
 
     // Add job title validation
     if (formData.specification.length === 0) {
       newErrors.jobTitle = "Please select at least one job title";
       isValid = false;
     }
-
 
     if (
       formData.workExperience &&
@@ -309,7 +289,6 @@ const AddWorker = () => {
       newErrors.workExperience = "Work experience should contain only numbers";
       isValid = false;
     }
-
 
     // Required fields validation
     if (!formData.name.trim()) {
@@ -320,7 +299,6 @@ const AddWorker = () => {
       isValid = false;
     }
 
-
     if (!formData.contactNumber) {
       newErrors.contactNumber = "Contact Number is required";
       isValid = false;
@@ -329,36 +307,35 @@ const AddWorker = () => {
       isValid = false;
     }
 
-
     if (formData.email && !validateEmail(formData.email)) {
       newErrors.email = "Please enter a valid email address";
       isValid = false;
     }
-
 
     if (formData.dateOfBirth && !validateDate(formData.dateOfBirth, true)) {
       newErrors.dateOfBirth = "Worker must be at least 18 years old";
       isValid = false;
     }
 
-
     if (!validateLanguage(formData.language)) {
       newErrors.language = "Please select at least one language";
       isValid = false;
     }
 
-
-    if (!formData.houseNumber) {
+    if (!formData.houseNumber.trim()) {
       newErrors.houseNumber = "House number is required";
       isValid = false;
     }
 
-
-    if (!formData.town) {
+    if (!formData.town.trim()) {
       newErrors.town = "Town is required";
       isValid = false;
     }
 
+    if (!formData.gender.trim()) {
+      newErrors.gender = "Gender is required";
+      isValid = false;
+    }
 
     if (!formData.pincode) {
       newErrors.pincode = "Pincode is required";
@@ -368,8 +345,12 @@ const AddWorker = () => {
       isValid = false;
     }
 
+    if (!formData.nearbyLandmark.trim()) {
+      newErrors.nearbyLandmark = "Nearby Landmark is required";
+      isValid = false;
+    }
 
-    if (!formData.district) {
+    if (!formData.district.trim()) {
       newErrors.district = "District is required";
       isValid = false;
     } else if (!validateDistrict(formData.district)) {
@@ -377,15 +358,13 @@ const AddWorker = () => {
       isValid = false;
     }
 
-
-    if (!formData.state) {
+    if (!formData.state.trim()) {
       newErrors.state = "State is required";
       isValid = false;
     } else if (!validateState(formData.state)) {
       newErrors.state = "State should only contain alphabets";
       isValid = false;
     }
-
 
     if (!formData.aadharNumber) {
       newErrors.aadharNumber = "Aadhar number is required";
@@ -395,16 +374,14 @@ const AddWorker = () => {
       isValid = false;
     }
 
-
     if (
       formData.drivingLicenseNumber &&
       !validateDrivingLicense(formData.drivingLicenseNumber)
     ) {
       newErrors.drivingLicenseNumber =
-        "License should be in format DL- followed by 15 alphanumeric characters";
+        "License should be 15 alphanumeric characters";
       isValid = false;
     }
-
 
     if (!formData.joiningDate) {
       newErrors.joiningDate = "Joining date is required";
@@ -414,16 +391,13 @@ const AddWorker = () => {
       isValid = false;
     }
 
-
     setErrors(newErrors);
     return isValid;
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
 
     // Validate job titles first
     if (formData.specification.length === 0) {
@@ -436,12 +410,10 @@ const AddWorker = () => {
       return;
     }
 
-
     if (!validateForm()) {
       setIsLoading(false);
       return;
     }
-
 
     if (formData.contactNumber === formData.econtactNumber) {
       Swal.fire({
@@ -452,7 +424,6 @@ const AddWorker = () => {
       setIsLoading(false);
       return;
     }
-
 
     // Check if email already exists
     if (formData.email) {
@@ -468,7 +439,6 @@ const AddWorker = () => {
       }
     }
 
-
     const isContactNumberAvailable = await checkContactNumberExists(
       formData.contactNumber
     );
@@ -482,8 +452,15 @@ const AddWorker = () => {
       return;
     }
 
-
     try {
+      if (!formData.profilePic) {
+        Swal.fire({
+          icon: "error",
+          title: "Profile Picture Required",
+          text: "Please upload a profile picture before submitting.",
+        });
+        return;
+      }
       const formDataToSend = new FormData();
       for (const key in formData) {
         if (key === "specification" || key === "role") {
@@ -497,14 +474,11 @@ const AddWorker = () => {
         }
       }
 
-
       const response = await api.post("/workers/add", formDataToSend, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-
-
       Swal.fire({
         icon: "success",
         title: "Success",
@@ -525,18 +499,15 @@ const AddWorker = () => {
     }
   };
 
-
   // Style for required field asterisk
   const requiredFieldStyle = {
     color: "#B8141A",
     marginLeft: "2px",
   };
 
-
   return (
     <>
       <Header />
-
 
       <div className="container" style={{ paddingTop: "80px" }}>
         <div className="d-flex gap-4 mx-2 align-items-center">
@@ -562,7 +533,6 @@ const AddWorker = () => {
           </h5>
         </div>
       </div>
-
 
       <div
         className="container"
@@ -621,7 +591,6 @@ const AddWorker = () => {
               )}
             </div>
           </div>
-
 
           {/* Main container */}
           <div
@@ -713,8 +682,6 @@ const AddWorker = () => {
                 )}
               </div>
             </div>
-
-
             {/* Row 2 */}
             <div className="row mt-4">
               <div className="col-md-2">
@@ -722,6 +689,7 @@ const AddWorker = () => {
                   Language <span style={requiredFieldStyle}>*</span>
                 </label>
                 <Select
+                required
                   isMulti
                   options={languageOptions}
                   className={`basic-multi-select ${
@@ -772,10 +740,10 @@ const AddWorker = () => {
               </div>
               <div className="col-md-3">
                 <label htmlFor="dateOfBirth" className="form-label">
-                  D.O.B
+                  D.O.B  
                 </label>
                 <input
-                  type="text"
+                  type="date"
                   className={`form-control shadow-none ${
                     errors.dateOfBirth ? "is-invalid" : ""
                   }`}
@@ -785,10 +753,6 @@ const AddWorker = () => {
                   value={formData.dateOfBirth}
                   placeholder="dd-mm-yyyy"
                   style={{ color: formData.dateOfBirth ? "#000" : "#aaa" }}
-                  onFocus={(e) => (e.target.type = "date")}
-                  onBlur={(e) => {
-                    if (!e.target.value) e.target.type = "text";
-                  }}
                   max={
                     new Date(
                       new Date().setFullYear(new Date().getFullYear() - 18)
@@ -802,10 +766,10 @@ const AddWorker = () => {
                 )}
               </div>
 
-
               <div className="col-md-2">
                 <label htmlFor="gender" className="form-label">
-                  Gender <span style={requiredFieldStyle}>*</span>
+                  Gender&nbsp;
+                  <span style={{ color: "red" }}>*</span>
                 </label>{" "}
                 <br />
                 <div className="form-check form-check-inline mt-2">
@@ -817,6 +781,7 @@ const AddWorker = () => {
                     value="Male"
                     onChange={handleChange}
                     checked={formData.gender === "Male"}
+                    required
                   />
                   <label className="form-check-label" htmlFor="male">
                     Male
@@ -836,9 +801,13 @@ const AddWorker = () => {
                     Female
                   </label>
                 </div>
+                 {errors.gender && (
+                <div className="text-danger" style={{ fontSize: "0.875em" }}>
+                {errors.gender}
+               </div>
+               )}
               </div>
             </div>
-
 
             {/* Job Title Section */}
             <div className="row mt-4">
@@ -849,7 +818,6 @@ const AddWorker = () => {
                 <div className="text-danger small">{errors.jobTitle}</div>
               )}
             </div>
-
 
             {/* Home Appliances */}
             <div className="row">
@@ -882,7 +850,6 @@ const AddWorker = () => {
               </div>
             </div>
 
-
             {/* Electrician */}
             <div className="row mt-3">
               <p>Electrician</p>
@@ -909,7 +876,6 @@ const AddWorker = () => {
                 ))}
               </div>
             </div>
-
 
             {/* Carpentry */}
             <div className="row mt-3">
@@ -939,7 +905,6 @@ const AddWorker = () => {
               </div>
             </div>
 
-
             {/* Plumbing */}
             <div className="row mt-3">
               <p>Plumbing</p>
@@ -967,7 +932,6 @@ const AddWorker = () => {
                 ))}
               </div>
             </div>
-
 
             {/* Vehicle Service */}
             <div className="row mt-3">
@@ -997,7 +961,6 @@ const AddWorker = () => {
               </div>
             </div>
 
-
             {/* Care Taker */}
             <div className="row mt-3">
               <p>Care Taker</p>
@@ -1025,7 +988,6 @@ const AddWorker = () => {
               </div>
             </div>
 
-
             {/* Cleaning */}
             <div className="row mt-3">
               <p>Cleaning</p>
@@ -1047,7 +1009,6 @@ const AddWorker = () => {
               </div>
             </div>
 
-
             {/* CCTV */}
             <div className="row mt-3">
               <p>CCTV</p>
@@ -1068,7 +1029,6 @@ const AddWorker = () => {
                 ))}
               </div>
             </div>
-
 
             {/* Address Details */}
             <div className="row mt-4">
@@ -1139,7 +1099,6 @@ const AddWorker = () => {
               </div>
             </div>
 
-
             {/* Row 2 */}
             <div className="row mt-4">
               <div className="col-md-3">
@@ -1206,7 +1165,6 @@ const AddWorker = () => {
               </div>
             </div>
 
-
             {/* Identification Details */}
             <div className="row mt-4">
               <p className="fw-bold">Identification & Document</p>
@@ -1244,20 +1202,20 @@ const AddWorker = () => {
                   }`}
                   name="drivingLicenseNumber"
                   id="drivingLicenseNumber"
-                  placeholder="DL-YYXXXXXXXXXXXXX"
+                  placeholder="YYXXXXXXXXXXXXX"
                   onChange={handleDrivingLicenseChange}
                   onFocus={() => {
                     setIsDrivingLicenseFocused(true);
                     if (!formData.drivingLicenseNumber) {
                       setFormData((prev) => ({
                         ...prev,
-                        drivingLicenseNumber: "DL-",
+                        drivingLicenseNumber: "",
                       }));
                     }
                   }}
                   onBlur={() => setIsDrivingLicenseFocused(false)}
                   value={formData.drivingLicenseNumber}
-                  maxLength="18"
+                  maxLength="15"
                 />
                 {errors.drivingLicenseNumber && (
                   <div className="invalid-feedback">
@@ -1270,7 +1228,7 @@ const AddWorker = () => {
                   Joining date <span style={requiredFieldStyle}>*</span>
                 </label>
                 <input
-                  type="text"
+                  type="date"
                   className={`form-control shadow-none ${
                     errors.joiningDate ? "is-invalid" : ""
                   }`}
@@ -1281,10 +1239,6 @@ const AddWorker = () => {
                   value={formData.joiningDate}
                   placeholder="dd-mm-yyyy"
                   style={{ color: formData.joiningDate ? "#000" : "#aaa" }}
-                  onFocus={(e) => (e.target.type = "date")}
-                  onBlur={(e) => {
-                    if (!e.target.value) e.target.type = "text";
-                  }}
                   max={new Date().toISOString().split("T")[0]}
                 />
                 {errors.joiningDate && (
@@ -1292,7 +1246,6 @@ const AddWorker = () => {
                 )}
               </div>
             </div>
-
 
             {/* Submit Button */}
             <div className="row mb-4">
@@ -1324,6 +1277,5 @@ const AddWorker = () => {
     </>
   );
 };
-
 
 export default AddWorker;

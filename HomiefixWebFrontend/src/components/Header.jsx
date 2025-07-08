@@ -7,7 +7,6 @@ import { createPortal } from "react-dom";
 import api from "../api";
 import SearchBar from "./SearchBar";
 
-
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -18,16 +17,16 @@ const Header = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [currentUsername, setCurrentUsername] = useState("");
 
-
   const getHeading = () => {
     if (location.pathname.startsWith("/booking-details")) return "Booking Details";
     if (location.pathname.startsWith("/worker-details")) return "Worker Details";
+    if (location.pathname.startsWith("/user-details")) return "User Details";
     if (location.pathname.startsWith("/services")) return "Services";
     if (location.pathname.startsWith("/reviews")) return "Reviews";
     if (location.pathname.startsWith("/profile")) return "Profile";
+
     return "Dashboard";
   };
-
 
   const toggleNotifications = async (e) => {
     e.stopPropagation();
@@ -41,7 +40,6 @@ const Header = () => {
       }
     }
   };
-
 
   const fetchProfilePhoto = async (username) => {
     try {
@@ -58,11 +56,9 @@ const Header = () => {
     }
   };
 
-
   useEffect(() => {
     const username = localStorage.getItem("username");
     setCurrentUsername(username);
-
 
     const fetchUnreadCount = async () => {
       try {
@@ -73,9 +69,7 @@ const Header = () => {
       }
     };
 
-
     fetchUnreadCount();
-
 
     if (username) {
       const cachedPhoto = sessionStorage.getItem(`profilePhoto_${username}`);
@@ -86,21 +80,17 @@ const Header = () => {
       }
     }
 
-
     const handleProfileUpdate = (e) => {
       if (e.detail.username === username) {
         fetchProfilePhoto(username);
       }
     };
 
-
     window.addEventListener('profileUpdated', handleProfileUpdate);
-
 
     const interval = setInterval(() => {
       fetchUnreadCount();
     }, 30000);
-
 
     return () => {
       clearInterval(interval);
@@ -108,12 +98,11 @@ const Header = () => {
     };
   }, [location.pathname]);
 
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       const popup = popupRef.current;
       const notiContainer = notificationRef.current;
- 
+  
       if (
         popup &&
         !popup.contains(event.target) &&
@@ -123,26 +112,25 @@ const Header = () => {
         setShowNotifications(false);
       }
     };
- 
+  
     if (showNotifications) {
       document.addEventListener("mousedown", handleClickOutside);
     }
- 
+  
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showNotifications]);
- 
-
+  
 
   return (
     <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
-      <h2 className="heading align-items-center mb-0" style={{ marginLeft: "31px" }}>
+      <h2 className="heading align-items-center mb-0" style={{ marginLeft: "30px" }}>
         {getHeading()}
       </h2>
-      <div className="header-right d-flex align-items-center gap-3">
+      <div className="header-right d-flex align-items-center gap-3" style={{ marginRight: "250px" }}>
         <SearchBar />
-       
+        
         <div className="position-relative" ref={popupRef}>
           <img
             src={notification}
@@ -196,6 +184,5 @@ const Header = () => {
     </header>
   );
 };
-
 
 export default Header;

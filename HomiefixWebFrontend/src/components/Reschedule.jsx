@@ -4,7 +4,6 @@ import "react-loading-skeleton/dist/skeleton.css";
 import "../styles/AssignBookings.css";
 import api from "../api";
 
-
 const Reschedule = ({ id, booking, onClose, onReschedule }) => {
   const [availableDates, setAvailableDates] = useState([]);
   const [availableTimes, setAvailableTimes] = useState([]);
@@ -16,31 +15,29 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
   const [loadingTimes, setLoadingTimes] = useState(true);
   const [isRescheduling, setIsRescheduling] = useState(false);
 
-
   useEffect(() => {
     const fetchAvailableDates = async () => {
       try {
         const response = await api.get("/booking/available-dates");
         const data = response.data;
-       
+        
         const validDates = data.map((dateStr) => {
           const parts = dateStr.split(' ');
           if (parts.length < 4) return null;
-         
+          
           const day = parts[0];
           const month = parts[1];
           const year = parts[3];
-         
+          
           const date = new Date(`${month} ${day}, ${year} 12:00:00`);
-         
+          
           if (isNaN(date.getTime())) {
             console.warn("Invalid date found:", dateStr);
             return null;
           }
-         
+          
           return date.toISOString().split("T")[0];
         }).filter(date => date !== null);
-
 
         setAvailableDates(validDates);
       } catch (error) {
@@ -50,18 +47,17 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       }
     };
 
-
     const fetchAvailableTimes = async () => {
       try {
         const response = await api.get("/booking/available-times");
         const data = response.data;
-       
+        
         const formattedTimes = data.map(time => {
           return time.replace(/(\d{1,2}):(\d{2})/g, (match, hour, minute) => {
             return hour.padStart(2, '0') + ':' + minute;
           });
         });
-       
+        
         setAvailableTimes(formattedTimes);
       } catch (error) {
         console.error("Error fetching available times:", error);
@@ -70,11 +66,9 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       }
     };
 
-
     fetchAvailableDates();
     fetchAvailableTimes();
   }, []);
-
 
   const handleDateSelection = (date) => {
     if (selectedDate === date) {
@@ -84,7 +78,6 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
     }
   };
 
-
   const handleTimeSlotSelection = (time) => {
     if (selectedTimeSlot === time) {
       setSelectedTimeSlot("");
@@ -93,38 +86,35 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
     }
   };
 
-
   const isSameAsExistingBooking = () => {
     if (booking.rescheduledDate && booking.rescheduledTimeSlot) {
       return (
-        selectedDate === booking.rescheduledDate &&
+        selectedDate === booking.rescheduledDate && 
         selectedTimeSlot === booking.rescheduledTimeSlot
       );
     }
     return (
-      selectedDate === booking.date &&
+      selectedDate === booking.date && 
       selectedTimeSlot === booking.timeslot
     );
   };
 
-
   const isRescheduleDisabled = () => {
     const isOtherReasonEmpty = rescheduleReason === "other" && !otherReason.trim();
-   
+    
     return (
-      !selectedDate ||
-      !selectedTimeSlot ||
-      !rescheduleReason ||
-      isSameAsExistingBooking() ||
+      !selectedDate || 
+      !selectedTimeSlot || 
+      !rescheduleReason || 
+      isSameAsExistingBooking() || 
       isOtherReasonEmpty ||
       (
-        (booking.rescheduledDate === null && booking.rescheduledTimeSlot === null)
-          ? (selectedDate === booking.bookedDate && selectedTimeSlot === booking.timeSlot)
+        (booking.rescheduledDate === null && booking.rescheduledTimeSlot === null) 
+          ? (selectedDate === booking.bookedDate && selectedTimeSlot === booking.timeSlot) 
           : (selectedDate === booking.rescheduledDate && selectedTimeSlot === booking.rescheduledTimeSlot)
       )
     );
   };
-
 
   const handleReschedule = async () => {
     if (isSameAsExistingBooking()) {
@@ -132,18 +122,15 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       return;
     }
 
-
     if (!selectedDate || !selectedTimeSlot || !rescheduleReason) {
       alert("Please select a date, time slot, and reason for reschedule");
       return;
     }
 
-
     if (rescheduleReason === "other" && !otherReason.trim()) {
       alert("Please provide a reason for rescheduling");
       return;
     }
-
 
     const parsedDate = new Date(selectedDate);
     if (isNaN(parsedDate.getTime())) {
@@ -151,9 +138,7 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       return;
     }
 
-
     const reason = rescheduleReason === "other" ? otherReason : rescheduleReason;
-
 
     try {
       setIsRescheduling(true);
@@ -161,12 +146,9 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       const encodedTimeSlot = encodeURIComponent(selectedTimeSlot);
       const encodedReason = encodeURIComponent(reason);
 
-
       const url = `/booking/reschedule/${id}?selectedDate=${formattedDate}&selectedTimeSlot=${encodedTimeSlot}&rescheduleReason=${encodedReason}`;
 
-
       const response = await api.put(url);
-
 
       if (response.status === 200) {
         alert("Booking rescheduled successfully");
@@ -188,13 +170,11 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
     }
   };
 
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const day = date.getDate();
     const month = date.toLocaleString("en-US", { month: "short" });
     const dayOfWeek = date.toLocaleString("en-US", { weekday: "long" });
-
 
     return (
       <div>
@@ -203,7 +183,6 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       </div>
     );
   };
-
 
   return (
     <div
@@ -220,7 +199,6 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
         <div
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
-
 
         <div className="mb-3 mt-3">
           <h6>Date</h6>
@@ -255,7 +233,6 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
 
-
         <div className="mb-3 mt-3">
           <h6>Time</h6>
           <div className="d-flex flex-wrap gap-2">
@@ -288,7 +265,6 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
         <div
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
-
 
         <div className="mb-3 mt-3">
           <h6>Reason for Reschedule</h6>
@@ -324,7 +300,6 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
             ))}
           </div>
 
-
           {rescheduleReason === "other" && (
             <textarea
               className="form-control"
@@ -346,7 +321,6 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
         <div
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
-
 
         <button
           className="btn btn-primary w-100 mt-3"
@@ -371,6 +345,5 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
     </div>
   );
 };
-
 
 export default Reschedule;

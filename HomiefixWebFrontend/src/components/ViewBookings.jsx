@@ -4,10 +4,10 @@ import Header from "./Header";
 import Reschedule from "./Reschedule";
 import CancelBooking from "./CancelBooking";
 import ManageStatus from "./ManageStatus";
+import ReAssign from "./ReAssign";
 import api from "../api";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-
 
 const ViewBookings = () => {
   const { id } = useParams();
@@ -23,15 +23,17 @@ const ViewBookings = () => {
   const [feedback, setFeedback] = useState(null);
   const [activeTab, setActiveTab] = useState("serviceDetails");
   const [isRescheduleHovered, setIsRescheduleHovered] = useState(false);
+  const [isReAssignHovered, setIsReAssignHovered] = useState(false);
   const [isCancelHovered, setIsCancelHovered] = useState(false);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [showCancelBookingModal, setShowCancelBookingModal] = useState(false);
+  const [isReAssignModalOpen, setIsReAssignModalOpen] = useState(false);
   const [showFullComment, setShowFullComment] = useState(false);
   const [currentComment, setCurrentComment] = useState("");
   const [workerError, setWorkerError] = useState(null);
   const [allWorkers, setAllWorkers] = useState([]);
   const [refresh, setRefresh] = useState(false);
-
+  const [originalNotes, setOriginalNotes] = useState("");
 
   const formatDate = (dateString) => {
     if (!dateString) return "Not Assigned";
@@ -43,6 +45,15 @@ const ViewBookings = () => {
     });
   };
 
+  const handleReAssignSuccess = () => {
+    setIsReAssignModalOpen(false);
+    setRefresh(!refresh); // Trigger a refresh of booking data
+  };
+
+  // Update your reassign button click handler
+  const handleReassignButtonClick = () => {
+    setIsReAssignModalOpen(true);
+  };
 
   const handleGoBack = () => {
     if (!booking) {
@@ -50,8 +61,8 @@ const ViewBookings = () => {
       return;
     }
 
-
-    const previousTab = location.state?.previousTab ||
+    const previousTab =
+      location.state?.previousTab ||
       (() => {
         switch (booking.bookingStatus) {
           case "COMPLETED":
@@ -67,7 +78,6 @@ const ViewBookings = () => {
         }
       })();
 
-
     navigate(`/booking-details?tab=${previousTab}`);
   };
   const fetchAllWorkers = async () => {
@@ -79,14 +89,11 @@ const ViewBookings = () => {
     }
   };
 
-
   const fetchBookingDetails = async () => {
     try {
       const { data } = await api.get(`/booking/${id}`);
-      console.log("API Response:", data); // Debugging line
       setBooking(data);
       setNotes(data.notes || "");
-
 
       if (data.worker) {
         setWorker(data.worker);
@@ -110,7 +117,6 @@ const ViewBookings = () => {
         }
       }
 
-
       await fetchFeedback(data.id, data.bookedDate);
     } catch (err) {
       console.error("Error fetching booking details:", err);
@@ -119,7 +125,6 @@ const ViewBookings = () => {
       setLoading(false);
     }
   };
-
 
   const fetchFeedback = async (bookingId, bookingDate) => {
     try {
@@ -135,19 +140,15 @@ const ViewBookings = () => {
     }
   };
 
-
   const saveNotes = async () => {
     const trimmedNotes = notes.trim();
-
 
     if (trimmedNotes === "No additional notes provided." || !trimmedNotes) {
       alert("Please enter valid notes before saving");
       return;
     }
 
-
     setSaving(true);
-
 
     try {
       await api.patch(
@@ -162,7 +163,6 @@ const ViewBookings = () => {
       setSaving(false);
     }
   };
-
 
   const handleStatusUpdate = async (
     newStatus,
@@ -181,13 +181,11 @@ const ViewBookings = () => {
         serviceCompletedTime: completedTime,
       };
 
-
       const response = await api.put(
         `/booking/update-status/${id}?status=${newStatus}` +
-        `&serviceStartedDate=${startedDate}&serviceStartedTime=${startedTime}` +
-        `&serviceCompletedDate=${completedDate}&serviceCompletedTime=${completedTime}`
+          `&serviceStartedDate=${startedDate}&serviceStartedTime=${startedTime}` +
+          `&serviceCompletedDate=${completedDate}&serviceCompletedTime=${completedTime}`
       );
-
 
       if (response.status === 200) {
         // Update local state with the new status and dates
@@ -200,7 +198,6 @@ const ViewBookings = () => {
           serviceCompletedTime: completedTime,
         }));
 
-
         // If status changed to COMPLETED and worker exists, increment their completed count
         if (newStatus === "COMPLETED" && worker) {
           setWorker((prev) => ({
@@ -208,7 +205,6 @@ const ViewBookings = () => {
             totalWorkAssigned: (prev.totalWorkAssigned || 0) + 1,
           }));
         }
-
 
         return true;
       }
@@ -219,33 +215,27 @@ const ViewBookings = () => {
     }
   };
 
-
   const handleRescheduleButtonClick = () => {
     setIsRescheduleModalOpen(true);
   };
 
-
   const closeRescheduleModal = () => {
     setIsRescheduleModalOpen(false);
   };
-
 
   const handleRescheduleSuccess = () => {
     closeRescheduleModal();
     setRefresh(!refresh); // Trigger a refresh of booking data
   };
 
-
   const handleCancelBookingButtonClick = () => {
     setShowCancelBookingModal(true);
   };
-
 
   const handleCancelBookingSuccess = () => {
     setShowCancelBookingModal(false);
     setRefresh(!refresh); // Trigger a refresh of booking data
   };
-
 
   const handleViewWorkerProfile = async (e, workerId) => {
     e.preventDefault();
@@ -257,15 +247,12 @@ const ViewBookings = () => {
     }
   };
 
-
   useEffect(() => {
     fetchAllWorkers();
     fetchBookingDetails();
   }, [id, refresh]);
 
-
   if (error) return <p className="text-danger">{error}</p>;
-
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -285,8 +272,9 @@ const ViewBookings = () => {
                 ></i>
               </button>
               <div
-                className={`section ${activeTab === "serviceDetails" ? "active" : ""
-                  }`}
+                className={`section ${
+                  activeTab === "serviceDetails" ? "active" : ""
+                }`}
                 onClick={() => setActiveTab("serviceDetails")}
               >
                 Service Details
@@ -313,6 +301,21 @@ const ViewBookings = () => {
                     }}
                   >
                     Reschedule
+                  </button>
+                  <button
+                    className="btn btn-outline-primary"
+                    onClick={handleReassignButtonClick} // Changed from handleRescheduleButtonClick
+                    onMouseEnter={() => setIsReAssignHovered(true)}
+                    onMouseLeave={() => setIsReAssignHovered(false)}
+                    style={{
+                      border: "1px solid #F4B400",
+                      backgroundColor: isReAssignHovered
+                        ? "#F4B400"
+                        : "transparent",
+                      color: isReAssignHovered ? "white" : "#F4B400",
+                    }}
+                  >
+                    ReAssign
                   </button>
                   <button
                     className="btn btn-outline-danger"
@@ -372,7 +375,6 @@ const ViewBookings = () => {
                   )}
                 </div>
 
-
                 {/* Customer Details */}
                 <div className="mt-2">
                   <h6 className="fw-bold">Customer Details</h6>
@@ -396,11 +398,13 @@ const ViewBookings = () => {
                       <p className="mb-1">
                         <i className="bi bi-calendar-event me-2"></i>{" "}
                         {booking?.rescheduledDate &&
-                          booking?.rescheduledTimeSlot
-                          ? `${formatDate(booking.rescheduledDate)} | ${booking.rescheduledTimeSlot
-                          }`
-                          : `${formatDate(booking?.bookedDate)} | ${booking?.timeSlot
-                          }`}
+                        booking?.rescheduledTimeSlot
+                          ? `${formatDate(booking.rescheduledDate)} | ${
+                              booking.rescheduledTimeSlot
+                            }`
+                          : `${formatDate(booking?.bookedDate)} | ${
+                              booking?.timeSlot
+                            }`}
                       </p>
                       <p className="mb-1">
                         <i className="bi bi-geo-alt me-2"></i>
@@ -413,7 +417,6 @@ const ViewBookings = () => {
                     </>
                   )}
                 </div>
-
 
                 {/* Notes Section */}
                 <div
@@ -481,6 +484,7 @@ const ViewBookings = () => {
                               onClick={(e) => {
                                 e.preventDefault();
                                 setIsEditing(true);
+                                setOriginalNotes(notes);
                                 document.getElementById("notesText").focus();
                               }}
                             >
@@ -489,13 +493,18 @@ const ViewBookings = () => {
                           ) : (
                             <a
                               href="#"
-                              className={`text-primary text-decoration-none ${saving ? "disabled" : ""
-                                }`}
+                              className={`text-primary text-decoration-none ${
+                                saving ? "disabled" : ""
+                              }`}
                               onClick={(e) => {
                                 e.preventDefault();
                                 if (!saving) {
                                   const textarea =
                                     document.getElementById("notesText");
+                                  const trimmed = textarea.value.trim();
+                                  if (trimmed === originalNotes.trim()) {
+                                    return;
+                                  }
                                   if (textarea.reportValidity()) {
                                     saveNotes();
                                   }
@@ -514,7 +523,6 @@ const ViewBookings = () => {
                     </>
                   )}
                 </div>
-
 
                 {/* Worker Details */}
                 <div className="mt-1">
@@ -602,7 +610,6 @@ const ViewBookings = () => {
                   )}
                 </div>
 
-
                 {/* Customer Review */}
                 <div className="mt-1">
                   <h6>Customer Review</h6>
@@ -640,7 +647,7 @@ const ViewBookings = () => {
                         >
                           {formatDate(feedback.bookingDate)}
                         </span>
-                        <p
+                        <span
                           className="feedback-text"
                           style={{
                             display: "-webkit-box",
@@ -671,14 +678,13 @@ const ViewBookings = () => {
                               </span>
                             </>
                           )}
-                        </p>
+                        </span>
                       </p>
                     </>
                   ) : (
                     <p>No feedback available.</p>
                   )}
                 </div>
-
 
                 {/* Full Comment Modal */}
                 {showFullComment && (
@@ -729,7 +735,6 @@ const ViewBookings = () => {
                 )}
               </div>
 
-
               {/* Status Management */}
               <div className="col-6">
                 {loading ? (
@@ -764,7 +769,6 @@ const ViewBookings = () => {
               </div>
             </div>
 
-
             {/* Modals */}
             {isRescheduleModalOpen && (
               <Reschedule
@@ -772,6 +776,14 @@ const ViewBookings = () => {
                 booking={booking}
                 onClose={closeRescheduleModal}
                 onReschedule={handleRescheduleSuccess}
+              />
+            )}
+            {isReAssignModalOpen && (
+              <ReAssign
+                id={id}
+                booking={booking}
+                onClose={() => setIsReAssignModalOpen(false)}
+                onReAssignSuccess={handleReAssignSuccess}
               />
             )}
             {showCancelBookingModal && (
@@ -788,6 +800,5 @@ const ViewBookings = () => {
     </div>
   );
 };
-
 
 export default ViewBookings;

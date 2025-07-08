@@ -4,9 +4,10 @@ import Swal from "sweetalert2";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import Header from "./Header";
-import startedImg from "../assets/Status Started.png";
-import rescheduledImg from "../assets/Status Rescheduled.png";
-import assignedImg from "../assets/Status Assigned.png";
+import startedImg from "../assets/Started.svg";
+import rescheduledImg from "../assets/Rescheduled.svg";
+import reassignedImg from "../assets/Reassigned.svg";
+import assignedImg from "../assets/Assigned.svg";
 import api from "../api";
 import profile from "../assets/addWorker.jpg";
 
@@ -15,10 +16,8 @@ const Worker = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("serviceDetails");
 
-
   // State for worker data
   const [workerData, setWorkerData] = useState(null);
-
 
   // State for bookings
   const [serviceDetailsData, setServiceDetailsData] = useState([]);
@@ -26,13 +25,11 @@ const Worker = () => {
   const [loading, setLoading] = useState(true);
   const [ratings, setRatings] = useState({});
 
-
   // Function to format date
   const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    const options = { year: "numeric", month: "short", day: "numeric" };
+    return new Date(dateString).toLocaleDateString("en-US", options);
   };
-
 
   // Fetch worker data
   useEffect(() => {
@@ -45,7 +42,6 @@ const Worker = () => {
         console.error("Error fetching worker data:", error);
       });
   }, [id]);
-
 
   // Function to fetch rating for a booking
   const fetchRating = async (bookingId) => {
@@ -61,17 +57,14 @@ const Worker = () => {
     }
   };
 
-
   // Fetch worker bookings and ratings
   useEffect(() => {
     if (!workerData) return;
-
 
     const fetchWorkerBookings = async () => {
       try {
         const response = await api.get(`/booking/worker/${id}`);
         const data = response.data;
-
 
         // Filter data based on booking status
         const completedBookings = data.filter(
@@ -81,9 +74,9 @@ const Worker = () => {
           (booking) =>
             booking.bookingStatus === "ASSIGNED" ||
             booking.bookingStatus === "STARTED" ||
-            booking.bookingStatus === "RESCHEDULED"
+            booking.bookingStatus === "RESCHEDULED" ||
+            booking.bookingStatus === "REASSIGNED"
         );
-
 
         // Map backend data to frontend format
         const mappedCompletedBookings = completedBookings.map((booking) => ({
@@ -95,7 +88,6 @@ const Worker = () => {
           status: booking.bookingStatus,
         }));
 
-
         const mappedInProgressBookings = inProgressBookings.map((booking) => ({
           id: booking.id,
           service: booking.worker?.role || "N/A",
@@ -105,12 +97,10 @@ const Worker = () => {
           status: booking.bookingStatus,
         }));
 
-
         // Update state with bookings
         setServiceDetailsData(mappedCompletedBookings);
         setInProgressData(mappedInProgressBookings);
         setLoading(false);
-
 
         // Fetch ratings for completed bookings
         const ratingsMap = {};
@@ -125,10 +115,8 @@ const Worker = () => {
       }
     };
 
-
     fetchWorkerBookings();
   }, [id, workerData]);
-
 
   const handleDeleteWorker = () => {
     Swal.fire({
@@ -154,7 +142,6 @@ const Worker = () => {
     });
   };
 
-
   // Function to render stars based on rating
   const renderStars = (rating) => {
     if (rating === null || rating === undefined) return "N/A";
@@ -163,18 +150,24 @@ const Worker = () => {
     const hasHalfStar = rating % 1 >= 0.5;
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
 
-
     return (
       <>
-        {Array(fullStars).fill().map((_, i) => (
-          <i key={`full-${i}`} className="bi bi-star-fill text-warning mx-1"></i>
-        ))}
+        {Array(fullStars)
+          .fill()
+          .map((_, i) => (
+            <i
+              key={`full-${i}`}
+              className="bi bi-star-fill text-warning mx-1"
+            ></i>
+          ))}
         {hasHalfStar && (
           <i key="half" className="bi bi-star-half text-warning mx-1"></i>
         )}
-        {Array(emptyStars).fill().map((_, i) => (
-          <i key={`empty-${i}`} className="bi bi-star text-warning mx-1"></i>
-        ))}
+        {Array(emptyStars)
+          .fill()
+          .map((_, i) => (
+            <i key={`empty-${i}`} className="bi bi-star text-warning mx-1"></i>
+          ))}
         <span className="mx-1">{rating.toFixed(1)}</span>
       </>
     );
@@ -185,11 +178,12 @@ const Worker = () => {
 
   useEffect(() => {
     if (activeTab === "reviews") {
-      api.get(`/feedback/byWorker/${id}`)
-        .then(response => {
+      api
+        .get(`/feedback/byWorker/${id}`)
+        .then((response) => {
           setFeedbackData(response.data);
         })
-        .catch(error => {
+        .catch((error) => {
           console.error("Error fetching feedback data:", error);
         });
     }
@@ -199,7 +193,6 @@ const Worker = () => {
     <div className="col-12 p-0 m-0 d-flex flex-column">
       {/* Navbar */}
       <Header />
-
 
       <div className="navigation-barr d-flex justify-content-between align-items-center py-3 px-3 bg-white border-bottom w-100">
         <div className="d-flex gap-3 align-items-center">
@@ -216,7 +209,7 @@ const Worker = () => {
           <h5
             className="px-3 pb-3 text-black mx-1"
             style={{
-              borderBottom: "4px solid #000",
+              borderBottom: "3px solid #000",
               position: "relative",
               marginBottom: "-38px",
             }}
@@ -226,14 +219,17 @@ const Worker = () => {
         </div>
       </div>
 
-
       {/* Main content */}
       <div className="container" style={{ marginTop: "150px" }}>
         <div className="row">
           {/* Worker Details Section */}
           <div
             className="col-4 border p-3 mt-4 rounded align-self-start h-auto d-flex flex-column"
-            style={{ marginLeft: "70px", marginRight: "10px" }}
+            style={{
+              marginLeft: "70px",
+              marginRight: "10px",
+              minHeight: "500px",
+            }}
           >
             {loading ? (
               <>
@@ -271,7 +267,6 @@ const Worker = () => {
                   </div>
                 </div>
 
-
                 {/* Profile Section */}
                 <div className="row">
                   <div className="d-flex">
@@ -294,12 +289,14 @@ const Worker = () => {
                         {workerData.contactNumber}
                       </p>
                       <p className="mx-1">
-                        Rating: {workerData.averageRating ? renderStars(workerData.averageRating) : "N/A"}
+                        Rating:{" "}
+                        {workerData.averageRating
+                          ? renderStars(workerData.averageRating)
+                          : "N/A"}
                       </p>
                     </div>
                   </div>
                 </div>
-
 
                 {/* Location Section */}
                 <div className="row">
@@ -312,7 +309,6 @@ const Worker = () => {
                     </p>
                   </div>
                 </div>
-
 
                 {/* Additional Details */}
                 <div className="row">
@@ -333,47 +329,55 @@ const Worker = () => {
             )}
           </div>
 
-
           {/* Table content */}
-          <div className="col-7 mt-4 border px-3 rounded">
+          <div
+            className="col-7 mt-4 border px-3 rounded"
+            style={{ minHeight: "500px" }}
+          >
             {/* Header Section with Active Border */}
             <div className="row">
               <div className="d-flex mt-3 pb-2">
                 <p
-                  className={`px-4 pb-2 ${activeTab === "serviceDetails"
-                    ? "border-bottom border-3 border-dark"
-                    : ""
-                    }`}
+                  className={`px-4 pb-2 ${
+                    activeTab === "serviceDetails"
+                      ? "border-bottom border-3 border-dark"
+                      : ""
+                  }`}
                   onClick={() => setActiveTab("serviceDetails")}
                   style={{ cursor: "pointer" }}
                 >
                   Service Details
                 </p>
                 <p
-                  className={`mx-1 px-4 pb-2 ${activeTab === "inProgress"
-                    ? "border-bottom border-3 border-dark"
-                    : ""
-                    }`}
+                  className={`mx-1 px-4 pb-2 ${
+                    activeTab === "inProgress"
+                      ? "border-bottom border-3 border-dark"
+                      : ""
+                  }`}
                   onClick={() => setActiveTab("inProgress")}
                   style={{ cursor: "pointer" }}
                 >
                   In Progress
                 </p>
                 <p
-                  className={`px-4 pb-2 ${activeTab === "reviews"
-                    ? "border-bottom border-3 border-dark"
-                    : ""
-                    }`}
+                  className={`px-4 pb-2 ${
+                    activeTab === "reviews"
+                      ? "border-bottom border-3 border-dark"
+                      : ""
+                  }`}
                   onClick={() => setActiveTab("reviews")}
                   style={{ cursor: "pointer" }}
                 >
                   Reviews
                 </p>
 
-
                 <p
                   className="border border-danger rounded px-2"
-                  style={{ marginLeft: "100px", paddingTop: "3px", cursor: "pointer" }}
+                  style={{
+                    marginLeft: "100px",
+                    paddingTop: "3px",
+                    cursor: "pointer",
+                  }}
                   onClick={handleDeleteWorker}
                 >
                   <i className="bi bi-trash text-danger mx-1"></i>
@@ -382,12 +386,11 @@ const Worker = () => {
               </div>
             </div>
 
-
             {/* Dynamic Content Section */}
             <div className="row">
               <div
                 className="table-responsive custom-table"
-                style={{ maxHeight: "440px", overflow: "hidden" }}
+                style={{ maxHeight: "420px", overflow: "hidden" }}
               >
                 {loading ? (
                   <Skeleton height={30} />
@@ -401,7 +404,10 @@ const Worker = () => {
                     }}
                   >
                     <div style={{ overflowY: "auto", flex: 1 }}>
-                      <table className="table table-bordered table-hover" style={{ marginBottom: 0 }}>
+                      <table
+                        className="table table-bordered table-hover"
+                        style={{ marginBottom: 0 }}
+                      >
                         <thead
                           className="table-light"
                           style={{
@@ -435,7 +441,9 @@ const Worker = () => {
                               <td>{index + 1}</td>
                               <td>
                                 {item.service} <br />
-                                <span style={{ color: "#0076CE" }}>ID: {item.id}</span>
+                                <span style={{ color: "#0076CE" }}>
+                                  ID: {item.id}
+                                </span>
                               </td>
                               <td>
                                 {item.name} <br /> {item.phone}
@@ -447,7 +455,8 @@ const Worker = () => {
                                 {ratings[item.id] !== null ? (
                                   ratings[item.id] !== undefined ? (
                                     <>
-                                      <i className="bi bi-star-fill text-warning"></i> {ratings[item.id]}
+                                      <i className="bi bi-star-fill text-warning"></i>{" "}
+                                      {ratings[item.id]}
                                     </>
                                   ) : (
                                     <Skeleton width={25} />
@@ -463,9 +472,18 @@ const Worker = () => {
                     </div>
                   </div>
                 ) : activeTab === "inProgress" ? (
-                  <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+                  <div
+                    style={{
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
                     <div style={{ flex: 1, overflowY: "auto" }}>
-                      <table className="table table-bordered table-hover" style={{ margin: 0 }}>
+                      <table
+                        className="table table-bordered table-hover"
+                        style={{ margin: 0 }}
+                      >
                         <thead
                           className="table-light"
                           style={{
@@ -500,7 +518,9 @@ const Worker = () => {
                               <td>
                                 {item.service}
                                 <br />
-                                <span style={{ color: "#0076CE" }}>ID: {item.id}</span>
+                                <span style={{ color: "#0076CE" }}>
+                                  ID: {item.id}
+                                </span>
                               </td>
                               <td>
                                 {item.name}
@@ -534,6 +554,13 @@ const Worker = () => {
                                     style={{ width: "100px", height: "40px" }}
                                   />
                                 )}
+                                {item.status === "REASSIGNED" && (
+                                  <img
+                                    src={reassignedImg}
+                                    alt="ReAssigned"
+                                    style={{ width: "100px", height: "40px" }}
+                                  />
+                                )}
                               </td>
                             </tr>
                           ))}
@@ -545,7 +572,9 @@ const Worker = () => {
                   <div className="d-flex flex-wrap">
                     <div className="row w-100 border-bottom pb-3">
                       <div className="col-10">
-                        <p className="h5">Total Reviews ({feedbackData.length})</p>
+                        <p className="h5">
+                          Total Reviews ({feedbackData.length})
+                        </p>
                       </div>
                       <div className="col-2">
                         <select
@@ -564,34 +593,67 @@ const Worker = () => {
                         </select>
                       </div>
                     </div>
-                    <div className="w-100" style={{ maxHeight: '40vh', overflowY: 'auto' }}>
+                    <div
+                      className="w-100"
+                      style={{ maxHeight: "60vh", overflowY: "auto" }}
+                    >
                       {feedbackData.length === 0 ? (
                         <p className="text-center py-4">No reviews found</p>
                       ) : (
                         (() => {
-                          const filteredFeedback = feedbackData.filter(feedback =>
-                            filterRating === "all" || feedback.rating === parseInt(filterRating)
+                          const filteredFeedback = feedbackData.filter(
+                            (feedback) =>
+                              filterRating === "all" ||
+                              feedback.rating === parseInt(filterRating)
                           );
                           return filteredFeedback.length === 0 ? (
-                            <p className="text-center py-4">No results found for this filter</p>
+                            <p className="text-center py-4">
+                              No results found for this filter
+                            </p>
                           ) : (
                             filteredFeedback.map((feedback, index) => (
-                              <div className="row w-100 border-bottom mt-3" key={index}>
+                              <div
+                                className="row w-100 border-bottom mt-3"
+                                key={index}
+                              >
                                 <div className="col-12 d-flex">
                                   <div>
-                                    <img src={profile} alt="" height={"65px"} width={"65px"} />
+                                    <img
+                                      src={profile}
+                                      alt=""
+                                      height={"65px"}
+                                      width={"65px"}
+                                    />
                                   </div>
                                   <div className="ms-3">
-                                    <p className="mb-1">{feedback.productName}</p>
-                                    <p className="mb-1">{feedback.userFullName}</p>
-                                    <p className="text-muted">"{feedback.comment}"</p>
+                                    <p
+                                      className="mb-1"
+                                      style={{ width: "300px" }}
+                                    >
+                                      {feedback.productName}
+                                    </p>
+                                    <p
+                                      className="mb-1 text-muted"
+                                      style={{ width: "300px" }}
+                                    >
+                                      {feedback.userFullName}
+                                    </p>
+                                    <p
+                                      className="text-muted"
+                                      style={{ width: "470px" }}
+                                    >
+                                      "{feedback.comment}"
+                                    </p>
                                   </div>
                                   <div className="ms-auto">
                                     <p className="mb-1">
                                       <span className="bi bi-star-fill text-warning mx-1"></span>
                                       {feedback.rating}
                                     </p>
-                                    <p>{feedback.userMobile?.mobileNumber || "N/A"}</p>
+                                    <p>
+                                      {feedback.userMobile?.mobileNumber ||
+                                        "N/A"}
+                                    </p>
                                   </div>
                                 </div>
                               </div>
@@ -611,7 +673,4 @@ const Worker = () => {
   );
 };
 
-
 export default Worker;
-
-

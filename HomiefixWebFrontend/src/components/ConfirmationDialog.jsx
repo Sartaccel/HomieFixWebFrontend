@@ -1,7 +1,6 @@
 import React from "react";
 import { Modal, Button } from "react-bootstrap";
 
-
 const ConfirmationDialog = ({
   show,
   onClose,
@@ -13,7 +12,6 @@ const ConfirmationDialog = ({
 }) => {
   const themeColor = "#0076CE";
   const hoverColor = "#005fa3";
-
 
   return (
     <Modal
@@ -47,7 +45,6 @@ const ConfirmationDialog = ({
           <Modal.Title style={{ fontWeight: 600 }}>{title}</Modal.Title>
         </Modal.Header>
 
-
         <Modal.Body
           style={{
             padding: "1.8rem",
@@ -60,7 +57,6 @@ const ConfirmationDialog = ({
         >
           {message}
         </Modal.Body>
-
 
         <Modal.Footer
           style={{
@@ -121,7 +117,4 @@ const ConfirmationDialog = ({
   );
 };
 
-
 export default ConfirmationDialog;
-
-

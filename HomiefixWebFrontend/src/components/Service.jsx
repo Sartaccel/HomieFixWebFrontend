@@ -6,7 +6,6 @@ import { serviceContent } from "../components/serviceContent";
 import api from "../api";
 import "../styles/Services.css";
 
-
 const Service = () => {
   const [activeTab, setActiveTab] = useState("recent");
   const [serviceData, setServiceData] = useState(null);
@@ -15,19 +14,17 @@ const Service = () => {
   const navigate = useNavigate();
   const { productId } = useParams();
 
-
   useEffect(() => {
     const fetchServiceData = async () => {
       try {
         const response = await api.get(`/products/view/${productId}`);
-
 
         // Transform API data to match your component's expected structure
         const transformedData = {
           id: response.data.id,
           name: response.data.name,
           price: response.data.price,
-          ratings: response.data.averageRating
+          ratings: response.data.averageRating 
             ? Number(response.data.averageRating).toFixed(1)
             : "0.0",
           bookings: response.data.bookingCount.toString(),
@@ -38,7 +35,6 @@ const Service = () => {
           },
         };
 
-
         setServiceData(transformedData);
         setLoading(false);
       } catch (err) {
@@ -47,10 +43,8 @@ const Service = () => {
       }
     };
 
-
     fetchServiceData();
   }, [productId]);
-
 
   if (loading) {
     return (
@@ -69,7 +63,6 @@ const Service = () => {
               ></div>
             </div>
           </div>
-
 
           {/* Skeleton Card */}
           <div className="row px-4 mx-2">
@@ -91,7 +84,6 @@ const Service = () => {
               </div>
             </div>
           </div>
-
 
           {/* Skeleton Content */}
           <div className="row mx-5 bg-light">
@@ -118,16 +110,13 @@ const Service = () => {
     );
   }
 
-
   if (error) {
     return <div>Error: {error}</div>;
   }
 
-
   if (!serviceData) {
     return <div></div>;
   }
-
 
   return (
     <>
@@ -160,7 +149,6 @@ const Service = () => {
             </button>
           </div>
         </div>
-
 
         {/* Service Info */}
         <div className="row px-4 mx-2">
@@ -199,7 +187,6 @@ const Service = () => {
           </div>
         </div>
 
-
         {/* Dynamic Content */}
         <div className="row mx-5 bg-light">
           {serviceData.content.sections.map((section, index) => (
@@ -217,6 +204,5 @@ const Service = () => {
     </>
   );
 };
-
 
 export default Service;

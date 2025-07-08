@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import searchIcon from "../assets/Search.png";
 
-
 const SearchBar = () => {
   const [keyword, setKeyword] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -13,7 +12,6 @@ const SearchBar = () => {
   const searchRef = useRef(null);
   const navigate = useNavigate();
 
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -21,13 +19,11 @@ const SearchBar = () => {
       }
     };
 
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -36,7 +32,6 @@ const SearchBar = () => {
         setHasSearched(false);
         return;
       }
-
 
       setIsLoading(true);
       setHasSearched(true);
@@ -55,15 +50,12 @@ const SearchBar = () => {
       }
     };
 
-
     const debounceTimer = setTimeout(() => {
       fetchSuggestions();
     }, 300);
 
-
     return () => clearTimeout(debounceTimer);
   }, [keyword]);
-
 
   const formatSuggestions = (data) => {
     const workerSuggestions =
@@ -73,7 +65,6 @@ const SearchBar = () => {
         ...worker,
       })) || [];
 
-
     const bookingSuggestions =
       data.bookingIds?.map((booking) => ({
         type: "booking",
@@ -81,10 +72,8 @@ const SearchBar = () => {
         ...booking,
       })) || [];
 
-
     return [...workerSuggestions, ...bookingSuggestions];
   };
-
 
   const handleSuggestionClick = (suggestion) => {
     if (suggestion.type === "worker") {
@@ -100,10 +89,8 @@ const SearchBar = () => {
     setKeyword("");
   };
 
-
   const highlightMatch = (text) => {
     if (!text || !keyword) return text;
-
 
     const regex = new RegExp(`(${keyword})`, "gi");
     return text
@@ -120,13 +107,11 @@ const SearchBar = () => {
       );
   };
 
-
   const renderSuggestionContent = (item) => {
     const excludedFields = ["type", "id", "status"];
     const keys = Object.keys(item).filter(
       (key) => !excludedFields.includes(key)
     );
-
 
     return (
       <div>
@@ -146,7 +131,6 @@ const SearchBar = () => {
           )}
         </div>
 
-
         {keys.map((key) => (
           <div key={key} className="text-muted small">
             <span className="text-capitalize">
@@ -158,7 +142,6 @@ const SearchBar = () => {
       </div>
     );
   };
-
 
   const SkeletonLoader = () => (
     <div className="p-2">
@@ -186,7 +169,6 @@ const SearchBar = () => {
       ))}
     </div>
   );
-
 
   return (
     <div
@@ -217,7 +199,6 @@ const SearchBar = () => {
           }}
         />
       </div>
-
 
       {showSuggestions &&
         keyword.trim() !== "" &&
@@ -259,7 +240,4 @@ const SearchBar = () => {
   );
 };
 
-
 export default SearchBar;
-
-

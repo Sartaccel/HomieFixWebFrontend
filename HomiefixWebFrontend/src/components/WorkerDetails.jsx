@@ -110,14 +110,14 @@ const WorkerDetails = ({ token, setToken }) => {
   };
 
   const handleDateChange = (e) => {
-  const rawDate = e.target.value;
-  const formattedDate = formatDate(rawDate);
+    const rawDate = e.target.value;
+    const formattedDate = formatDate(rawDate);
 
-  setFormData((prev) => ({
-    ...prev,
-    joiningDate: formattedDate
-  }));
-};
+    setFormData((prev) => ({
+      ...prev,
+      joiningDate: formattedDate,
+    }));
+  };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
