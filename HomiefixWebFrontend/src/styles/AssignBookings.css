@@ -19,4 +19,8 @@
   .tab-btn.active-tab::after {
     background: none!important;
   }
+
+  .rdrDefinedRangesWrapper{
+    display: none;
+  }
   
