@@ -21,6 +21,9 @@ import EditWorker from "./components/EditWorker";
 import Profile from "./components/Profile";
 import Notifications from "./components/Notifications";
 import Service from "./components/Service";
+import ReAssign from "./components/ReAssign";
+import UserDetails from "./components/UserDetails";
+import User from "./components/User"
 
 const App = () => {
   const navigate = useNavigate();
@@ -43,6 +46,7 @@ const App = () => {
           <Route path="/booking-details" element={<BookingDetails />} />
           <Route path="/booking-details/view-bookings/:id" element={<ViewBookings />} />
           <Route path="/booking-details/reschedule/:id" element={<Reschedule />} />
+          <Route path="/booking-details/reassign/:id" element={<ReAssign />} />
           <Route path="/booking-details/cancel/:id" element={<CancelBooking />} />
           <Route path="/booking-details/assign-bookings/:id" element={<AssignBookings />} />
           <Route path="/reviews" element={<Reviews />} />
@@ -51,11 +55,13 @@ const App = () => {
           <Route path="/worker-details/worker/:id" element={<Worker />} />
           <Route path="/worker-details/add-worker" element={<AddWorker />} />
           <Route path="/worker-details/worker/edit/:id" element={<EditWorker />} />
-          <Route path="/user-details" element={<ComingSoon/>} />
           <Route path="/services" element={<Services />} />
           <Route path="/services/:productId" element={<Service />} />
           <Route path="/profile/:username" element={<Profile />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/user-details" element={<UserDetails />} />
+          <Route path="/user-details/user/:id" element={<User />} />
+
         </Route>
       </Route>
     </Routes>
