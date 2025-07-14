@@ -58,7 +58,7 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
       style={{ width: "550px", zIndex: 1000 }}
     >
       <div className="p-4">
-        <div className="d-flex justify-content-between align-items-center mb-3">
+        <div className="d-flex justify-content-between align-items-center mb-2">
           <h4>Cancel Service</h4>
           <button
             className="btn btn-light"

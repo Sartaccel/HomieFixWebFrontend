@@ -6,7 +6,6 @@ import dropdown from "../assets/dropdown.svg";
 import api from "../api";
 import profile from "../assets/addWorker.jpg";
 
-
 const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
   // State declarations
   const [availableDates, setAvailableDates] = useState([]);
@@ -28,6 +27,42 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
   const [showWorkerDropdown, setShowWorkerDropdown] = useState(false);
   const [groupedServices, setGroupedServices] = useState({});
 
+  const isTimeSlotExpired = (timeSlot) => {
+    if (!selectedDate) return false;
+
+    const today = new Date();
+    const selected = new Date(selectedDate);
+
+    // Check if selected date is today
+    if (
+      selected.getDate() === today.getDate() &&
+      selected.getMonth() === today.getMonth() &&
+      selected.getFullYear() === today.getFullYear()
+    ) {
+      // Extract the start time from the time slot (e.g., "9:00 AM" from "9:00 AM - 11:00 AM")
+      const startTimeStr = timeSlot.split(" - ")[0];
+
+      // Parse the start time
+      const [time, period] = startTimeStr.split(" ");
+      let [hours, minutes] = time.split(":").map(Number);
+
+      // Convert to 24-hour format
+      if (period === "PM" && hours !== 12) {
+        hours += 12;
+      } else if (period === "AM" && hours === 12) {
+        hours = 0;
+      }
+
+      // Create a Date object for the time slot's start time
+      const slotTime = new Date(today);
+      slotTime.setHours(hours, minutes, 0, 0);
+
+      // Compare with current time
+      return slotTime < today;
+    }
+
+    return false;
+  };
 
   // Fetch available dates
   useEffect(() => {
@@ -58,7 +93,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
     fetchAvailableDates();
   }, []);
 
-
   // Fetch available times
   useEffect(() => {
     const fetchAvailableTimes = async () => {
@@ -79,7 +113,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
     };
     fetchAvailableTimes();
   }, []);
-
 
   // Fetch services
   useEffect(() => {
@@ -103,7 +136,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
     };
     fetchServices();
   }, [booking]);
-
 
   // Group services by category
   useEffect(() => {
@@ -163,7 +195,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
         CCTV: ["CCTV"],
       };
 
-
       Object.keys(productCategories).forEach((category) => {
         const categoryServices = services.filter((service) =>
           productCategories[category].includes(service.name)
@@ -176,7 +207,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
     }
   }, [services]);
 
-
   // Fetch workers when service changes
   useEffect(() => {
     const fetchWorkersByService = async () => {
@@ -184,9 +214,7 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
       setSelectedWorkerId(null);
       setSelectedWorkerDetails(null);
 
-
       if (!selectedService) return;
-
 
       try {
         setLoadingWorkers(true);
@@ -195,7 +223,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
         );
         const workerData = response.data.filter((worker) => worker.active);
         setWorkers(workerData);
-
 
         if (
           booking?.worker &&
@@ -216,7 +243,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
     fetchWorkersByService();
   }, [selectedService, booking]);
 
-
   const handleServiceSelect = (service) => {
     setSelectedService(service);
     setShowServiceDropdown(false);
@@ -225,11 +251,9 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
     setShowWorkerDropdown(false); // Close worker dropdown when service changes
   };
 
-
   const confirmWorkerSelection = () => {
     setShowWorkerDropdown(false); // Close dropdown when confirming selection
   };
-
 
   const handleServiceDropdownToggle = () => {
     if (showWorkerDropdown) {
@@ -237,7 +261,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
     }
     setShowServiceDropdown(!showServiceDropdown);
   };
-
 
   const handleWorkerDropdownToggle = () => {
     if (!selectedService) {
@@ -249,7 +272,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
     }
     setShowWorkerDropdown(!showWorkerDropdown);
   };
-
 
   const handleWorkerSelection = (workerId) => {
     if (selectedWorkerId === workerId) {
@@ -263,7 +285,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
     // Don't close dropdown here - we'll keep it open for selection
   };
 
-
   const handleReassign = async () => {
     if (
       !selectedDate ||
@@ -275,12 +296,10 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
       return;
     }
 
-
     if (reassignReason === "other" && !otherReason.trim()) {
       alert("Please provide a reason for reassignment");
       return;
     }
-
 
     try {
       setIsReassigning(true);
@@ -293,11 +312,9 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
         reassignReason === "other" ? otherReason : reassignReason
       );
 
-
       const response = await api.put(
         `/booking/reassign-worker/${id}?${params.toString()}`
       );
-
 
       if (response.status === 200) {
         alert("Booking reassigned successfully");
@@ -314,7 +331,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
     }
   };
 
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const day = date.getDate();
@@ -327,7 +343,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
       </div>
     );
   };
-
 
   return (
     <div
@@ -344,7 +359,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
         <div
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
-
 
         <div className="mb-2 mt-2">
           <h6>Change Worker</h6>
@@ -371,7 +385,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
                   }}
                 />
               </div>
-
 
               {showServiceDropdown && (
                 <div
@@ -460,7 +473,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
               )}
             </div>
 
-
             {/* Worker Dropdown */}
             <div className="position-relative" style={{ width: "250px" }}>
               <div
@@ -483,7 +495,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
                   }}
                 />
               </div>
-
 
               {showWorkerDropdown && (
                 <div
@@ -516,7 +527,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
                     >
                       <h6 className="mb-0">Workers</h6>
                     </div>
-
 
                     {/* Scrollable content */}
                     <div
@@ -606,7 +616,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
                       </div>
                     </div>
 
-
                     {/* Fixed button at the bottom */}
                     <div
                       style={{
@@ -635,11 +644,9 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
           </div>
         </div>
 
-
         <div
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
-
 
         <div className="mb-2 mt-2">
           <h6>Date</h6>
@@ -675,7 +682,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
 
-
         <div className="mb-2 mt-2">
           <h6>Time</h6>
           <div className="d-flex flex-wrap gap-2">
@@ -683,32 +689,36 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
               ? Array.from({ length: 5 }).map((_, index) => (
                   <Skeleton key={index} width={80} height={30} />
                 ))
-              : availableTimes.map((time, index) => (
-                  <button
-                    key={index}
-                    className={`btn btn-sm `}
-                    style={{
-                      fontSize: "15px",
-                      padding: "5px 10px",
-                      borderRadius: "5px",
-                      border:
-                        selectedTimeSlot === time
-                          ? "1px solid #0076CE"
-                          : "1px solid #D2D2D2",
-                      color: "#333",
-                      backgroundColor: "transparent",
-                    }}
-                    onClick={() => setSelectedTimeSlot(time)}
-                  >
-                    {time}
-                  </button>
-                ))}
+              : availableTimes.map((time, index) => {
+                  const isExpired = isTimeSlotExpired(time);
+                  return (
+                    <button
+                      key={index}
+                      className={`btn btn-sm`}
+                      style={{
+                        fontSize: "15px",
+                        padding: "5px 10px",
+                        borderRadius: "5px",
+                        border:
+                          selectedTimeSlot === time
+                            ? "1px solid #0076CE"
+                            : "1px solid #D2D2D2",
+                        color: isExpired ? "#999" : "#333",
+                        backgroundColor: isExpired ? "#f5f5f5" : "transparent",
+                        cursor: isExpired ? "not-allowed" : "pointer",
+                      }}
+                      onClick={() => !isExpired && setSelectedTimeSlot(time)}
+                      disabled={isExpired}
+                    >
+                      {time}
+                    </button>
+                  );
+                })}
           </div>
         </div>
         <div
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
-
 
         <div className="mb-2 mt-2">
           <h6>Reason for ReAssign</h6>
@@ -741,7 +751,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
             ))}
           </div>
 
-
           {reassignReason === "other" && (
             <textarea
               className="form-control shadow-none"
@@ -763,7 +772,6 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
         <div
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
-
 
         <button
           className="btn btn-primary w-100 mt-3"

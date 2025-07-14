@@ -15,6 +15,43 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
   const [loadingTimes, setLoadingTimes] = useState(true);
   const [isRescheduling, setIsRescheduling] = useState(false);
 
+  const isTimeSlotExpired = (timeSlot) => {
+    if (!selectedDate) return false;
+    
+    const today = new Date();
+    const selected = new Date(selectedDate);
+    
+    // Check if selected date is today
+    if (
+      selected.getDate() === today.getDate() &&
+      selected.getMonth() === today.getMonth() &&
+      selected.getFullYear() === today.getFullYear()
+    ) {
+      // Extract the start time from the time slot (e.g., "9:00 AM" from "9:00 AM - 11:00 AM")
+      const startTimeStr = timeSlot.split(" - ")[0];
+      
+      // Parse the start time
+      const [time, period] = startTimeStr.split(" ");
+      let [hours, minutes] = time.split(":").map(Number);
+      
+      // Convert to 24-hour format
+      if (period === "PM" && hours !== 12) {
+        hours += 12;
+      } else if (period === "AM" && hours === 12) {
+        hours = 0;
+      }
+      
+      // Create a Date object for the time slot's start time
+      const slotTime = new Date(today);
+      slotTime.setHours(hours, minutes, 0, 0);
+      
+      // Compare with current time
+      return slotTime < today;
+    }
+    
+    return false;
+  };
+
   useEffect(() => {
     const fetchAvailableDates = async () => {
       try {
@@ -190,7 +227,7 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
       style={{ width: "550px", zIndex: 1000 }}
     >
       <div className="p-4">
-        <div className="d-flex justify-content-between align-items-center mb-3">
+        <div className="d-flex justify-content-between align-items-center mb-2">
           <h4>Reschedule Service</h4>
           <button className="btn btn-light" onClick={onClose}>
             <i className="bi bi-x-lg"></i>
@@ -200,7 +237,7 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
 
-        <div className="mb-3 mt-3">
+        <div className="mb-2 mt-2">
           <h6>Date</h6>
           <div className="d-flex flex-wrap gap-2">
             {loadingDates
@@ -233,40 +270,45 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
 
-        <div className="mb-3 mt-3">
+        <div className="mb-2 mt-2">
           <h6>Time</h6>
           <div className="d-flex flex-wrap gap-2">
-            {loadingTimes
-              ? Array.from({ length: 5 }).map((_, index) => (
-                  <Skeleton key={index} width={80} height={30} />
-                ))
-              : availableTimes.map((time, index) => (
-                  <button
-                    key={index}
-                    className="btn btn-sm"
-                    style={{
-                      fontSize: "15px",
-                      padding: "5px 10px",
-                      borderRadius: "5px",
-                      border:
-                        selectedTimeSlot === time
-                          ? "1px solid #0076CE"
-                          : "1px solid #D2D2D2",
-                      color: "#333",
-                      backgroundColor: "transparent",
-                    }}
-                    onClick={() => handleTimeSlotSelection(time)}
-                  >
-                    {time}
-                  </button>
-                ))}
+             {loadingTimes
+    ? Array.from({ length: 5 }).map((_, index) => (
+        <Skeleton key={index} width={80} height={30} />
+      ))
+    : availableTimes.map((time, index) => {
+        const isExpired = isTimeSlotExpired(time);
+        return (
+          <button
+            key={index}
+            className="btn btn-sm"
+            style={{
+              fontSize: "15px",
+              padding: "5px 10px",
+              borderRadius: "5px",
+              border:
+                selectedTimeSlot === time
+                  ? "1px solid #0076CE"
+                  : "1px solid #D2D2D2",
+              color: isExpired ? "#999" : "#333",
+              backgroundColor: isExpired ? "#f5f5f5" : "transparent",
+              cursor: isExpired ? "not-allowed" : "pointer",
+            }}
+            onClick={() => !isExpired && handleTimeSlotSelection(time)}
+            disabled={isExpired}
+          >
+            {time}
+          </button>
+        );
+      })}
           </div>
         </div>
         <div
           style={{ borderBottom: "1px solid #D2D2D2", margin: "0 -16px" }}
         ></div>
 
-        <div className="mb-3 mt-3">
+        <div className="mb-2 mt-2">
           <h6>Reason for Reschedule</h6>
           <div className="mb-2">
             {[
@@ -323,7 +365,7 @@ const Reschedule = ({ id, booking, onClose, onReschedule }) => {
         ></div>
 
         <button
-          className="btn btn-primary w-100 mt-3"
+          className="btn btn-primary w-100 mt-2"
           style={{ backgroundColor: "#0076CE" }}
           onClick={handleReschedule}
           disabled={isRescheduleDisabled() || isRescheduling}
