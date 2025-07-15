@@ -24,7 +24,7 @@ import Service from "./components/Service";
 import ReAssign from "./components/ReAssign";
 import UserDetails from "./components/UserDetails";
 import User from "./components/User"
-import Enquiry from "./components/Enquiry"
+// import Enquiry from "./components/Enquiry"
 
 
 const App = () => {
