@@ -24,6 +24,8 @@ import Service from "./components/Service";
 import ReAssign from "./components/ReAssign";
 import UserDetails from "./components/UserDetails";
 import User from "./components/User"
+import Enquiry from "./components/Enquiry"
+
 
 const App = () => {
   const navigate = useNavigate();
@@ -61,6 +63,8 @@ const App = () => {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/user-details" element={<UserDetails />} />
           <Route path="/user-details/user/:id" element={<User />} />
+          {/* <Route path="/enquiry" element={<Enquiry />} /> */}
+
 
         </Route>
       </Route>
