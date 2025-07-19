@@ -27,7 +27,7 @@ const Enquiry = () => {
       setIsLoading(true); // Start loading
 
       try {
-        if (activeTab === "worker_request") {
+       
           const res = await api.get("/static/partner/all");
 
           const sortedRequests = res.data.sort((a, b) => {
@@ -35,15 +35,15 @@ const Enquiry = () => {
           });
 
           setWorkerRequests(sortedRequests);
-        } else if (activeTab === "support") {
-          const res = await api.get("/static/contact/all");
+        
+          const Sres = await api.get("/static/contact/all");
 
-          const sortedTickets = res.data.sort((a, b) => {
+          const sortedTickets = Sres.data.sort((a, b) => {
             return new Date(b.issuedDate) - new Date(a.issuedDate);
           });
 
           setSupportTickets(sortedTickets);
-        }
+        
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -76,12 +76,10 @@ const Enquiry = () => {
 
         if (alreadyExists) {
           alert("Worker already exists!");
-
-          // ✅ Update that specific worker's row to show "Added"
           setWorkerRequests((prev) =>
             prev.map((worker) =>
               worker.id === id
-                ? { ...worker, joiningStatus: "ADDED_ALREADY" }
+                ? { ...worker, joiningStatus: "PENDING" || "REJECTED" }
                 : worker
             )
           );
@@ -89,9 +87,7 @@ const Enquiry = () => {
           return;
         }
       }
-
-      await api.put(`/static/partner/status/${id}?status=${newStatus}`);
-
+      await api.put(`/static/partner/status/${id}?status=${newStatus}&phoneNumber=${phoneNumber}`);
       setWorkerRequests((prev) =>
         prev.map((worker) =>
           worker.id === id ? { ...worker, joiningStatus: newStatus } : worker
@@ -240,48 +236,22 @@ const Enquiry = () => {
                       <tr key={idx}>
                         {activeTab === "worker_request" ? (
                           <>
-                            <td>
-                              <Skeleton height={20} />
-                            </td>
-                            <td>
-                              <Skeleton height={20} />
-                            </td>
-                            <td>
-                              <Skeleton height={20} />
-                            </td>
-                            <td>
-                              <Skeleton height={20} />
-                            </td>
-                            <td>
-                              <Skeleton height={20} />
-                            </td>
-                            <td>
-                              <Skeleton height={20} width={60} />
-                            </td>
+                            <td><Skeleton height={20} /></td>
+                            <td><Skeleton height={20} /></td>
+                            <td><Skeleton height={20} /></td>
+                            <td><Skeleton height={20} /></td>
+                            <td><Skeleton height={20} /></td>
+                            <td><Skeleton height={20} width={60} /></td>  
                           </>
                         ) : (
                           <>
-                            <td>
-                              <Skeleton height={20} />
-                            </td>
-                            <td>
-                              <Skeleton height={20} />
-                            </td>
-                            <td>
-                              <Skeleton height={20} width={150} />
-                            </td>
-                            <td>
-                              <Skeleton height={20} />
-                            </td>
-                            <td>
-                              <Skeleton height={20} />
-                            </td>
-                            <td>
-                              <Skeleton height={40} />
-                            </td>
-                            <td>
-                              <Skeleton height={20} width={60} />
-                            </td>
+                            <td><Skeleton height={20} /></td>
+                            <td><Skeleton height={20} /></td>
+                            <td><Skeleton height={20} width={150} /></td>  
+                            <td><Skeleton height={20} /></td>
+                            <td><Skeleton height={20} /></td>
+                            <td><Skeleton height={40} /></td>
+                            <td><Skeleton height={20} width={60}/></td>
                           </>
                         )}
                       </tr>
@@ -361,14 +331,6 @@ const Enquiry = () => {
                             {worker.joiningStatus === "REJECTED" && (
                               <span>N/A</span>
                             )}
-                            {worker.joiningStatus === "ADDED_ALREADY" && (
-                              <span
-                                className="badge bg-secondary"
-                                style={{ fontSize: "12px", padding: "6px" }}
-                              >
-                                Already Added
-                              </span>
-                            )}
                           </td>
                         </tr>
                       ))
@@ -422,7 +384,7 @@ const Enquiry = () => {
                           />
                         </td>
                         <td className="text-left align-middle">
-                          <button>
+                          <button style={{marginLeft:"12px"}}>
                             <img src={mail} alt="Mail" />
                           </button>
                         </td>
