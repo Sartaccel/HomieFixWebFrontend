@@ -63,7 +63,7 @@ const App = () => {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/user-details" element={<UserDetails />} />
           <Route path="/user-details/user/:id" element={<User />} />
-          {/* <Route path="/enquiry" element={<Enquiry />} /> */}
+          <Route path="/enquiry" element={<Enquiry />} />
 
 
         </Route>
