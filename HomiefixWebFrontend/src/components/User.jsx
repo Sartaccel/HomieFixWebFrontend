@@ -424,7 +424,6 @@ const User = () => {
                                     ? "#6C757D"
                                     : "#6F42C1",
                                 fontWeight: "500",
-                                textTransform: "capitalize",
                               }}
                             >
                               {booking.bookingStatus === "PENDING"

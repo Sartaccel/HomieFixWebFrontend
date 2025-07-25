@@ -643,7 +643,11 @@ const BookingDetails = () => {
                               type="button"
                               onClick={() => setDropdownOpen(!dropdownOpen)}
                             >
-                              Date
+                              {selectedDates[activeTab]
+                                ? formatDate(new Date(
+                                    selectedDates[activeTab]
+                                  ))
+                                : "Date"}
                             </button>
                             {dropdownOpen && (
                               <div className="dropdown-menu show p-2">

@@ -7,6 +7,8 @@ import logo from "../assets/HomiefixLogo.png";
 import dashboardIcon from "../assets/Dashboard.svg";
 import workersIcon from "../assets/WorkerDetails.svg";
 import reviewsIcon from "../assets/Reviews.svg";
+import enquiryIcon from "../assets/enquiryIcon.svg";
+import transactionIcon from "../assets/transaction.svg";
 import servicesIcon from "../assets/Service.svg";
 import logoutIcon from "../assets/Logout.svg";
 import bookingDetails from "../assets/BookingDetails.png";
@@ -86,6 +88,17 @@ const Sidebar = ({ onLogout }) => {
             <img src={servicesIcon} alt="Services" className="menu-icon" />
             Services
           </Link>
+
+          <Link to="/transaction-details" className={`menu-item ${location.pathname.startsWith("/transaction-details") ? "active" : ""}`}>
+            <img src={transactionIcon} alt="transaction" className="menu-icon" />
+            Transaction Details
+           </Link>
+
+          <Link to="/enquiry" className={`menu-item ${location.pathname.startsWith("/enquiry") ? "active" : ""}`}>
+            <img src={enquiryIcon} alt="enquiry" className="menu-icon" />
+            Enquiry
+           </Link>
+
         </nav>
 
         <div className="logout-container">

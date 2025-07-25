@@ -1,6 +1,6 @@
 .custom-radio {
     appearance: none;
-    
+   
     border: 2px solid #808080;
     border-radius: 50%;
     outline: none;
@@ -8,19 +8,22 @@
     position: relative;
   }
 
-  
   .custom-radio:checked::before {
+
 
     background-color: #333;
     border-radius: 50%;
     position: absolute;
   }
 
+
   .tab-btn.active-tab::after {
     background: none!important;
   }
 
+
   .rdrDefinedRangesWrapper{
     display: none;
   }
-  
+ 
+

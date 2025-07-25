@@ -610,7 +610,7 @@ const AddWorker = () => {
                   }`}
                   name="name"
                   id="name"
-                  required
+                  // required
                   placeholder="Enter Name"
                   onChange={handleChange}
                   value={formData.name}
@@ -649,7 +649,7 @@ const AddWorker = () => {
                   }`}
                   name="contactNumber"
                   id="contactNumber"
-                  required
+                  // required
                   placeholder="Enter Contact Number"
                   onChange={handleChange}
                   value={formData.contactNumber}
@@ -689,7 +689,7 @@ const AddWorker = () => {
                   Language <span style={requiredFieldStyle}>*</span>
                 </label>
                 <Select
-                required
+                // required
                   isMulti
                   options={languageOptions}
                   className={`basic-multi-select ${
@@ -781,7 +781,7 @@ const AddWorker = () => {
                     value="Male"
                     onChange={handleChange}
                     checked={formData.gender === "Male"}
-                    required
+                    // required
                   />
                   <label className="form-check-label" htmlFor="male">
                     Male
@@ -1047,7 +1047,7 @@ const AddWorker = () => {
                   }`}
                   name="houseNumber"
                   id="houseNumber"
-                  required
+                  // required
                   placeholder="Enter House no/ Building name"
                   onChange={handleChange}
                   value={formData.houseNumber}
@@ -1067,7 +1067,7 @@ const AddWorker = () => {
                   }`}
                   name="town"
                   id="town"
-                  required
+                  // required
                   placeholder="Enter Locality/ Town"
                   onChange={handleChange}
                   value={formData.town}
@@ -1087,7 +1087,7 @@ const AddWorker = () => {
                   }`}
                   name="pincode"
                   id="pincode"
-                  required
+                  // required
                   placeholder="Enter Pin code"
                   onChange={handleChange}
                   value={formData.pincode}
@@ -1112,7 +1112,7 @@ const AddWorker = () => {
                   }`}
                   name="nearbyLandmark"
                   id="nearbyLandmark"
-                  required
+                  // required
                   placeholder="Enter Nearby Landmark"
                   onChange={handleChange}
                   value={formData.nearbyLandmark}
@@ -1134,7 +1134,7 @@ const AddWorker = () => {
                   }`}
                   name="district"
                   id="district"
-                  required
+                  // required
                   placeholder="Enter District"
                   onChange={handleChange}
                   value={formData.district}
@@ -1154,7 +1154,7 @@ const AddWorker = () => {
                   }`}
                   name="state"
                   id="state"
-                  required
+                  // required
                   placeholder="Enter State"
                   onChange={handleChange}
                   value={formData.state}
@@ -1181,7 +1181,7 @@ const AddWorker = () => {
                   }`}
                   name="aadharNumber"
                   id="aadharNumber"
-                  required
+                  // required
                   placeholder="Enter Aadhar number"
                   onChange={handleChange}
                   value={formData.aadharNumber}
@@ -1234,7 +1234,7 @@ const AddWorker = () => {
                   }`}
                   name="joiningDate"
                   id="joiningDate"
-                  required
+                  // required
                   onChange={handleChange}
                   value={formData.joiningDate}
                   placeholder="dd-mm-yyyy"
