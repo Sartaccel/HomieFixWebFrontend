@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Header from "./Header";
 
+
 const ComingSoon = () => {
     return (
         <>
@@ -38,6 +39,7 @@ const ComingSoon = () => {
                     🐣
                 </motion.span>
 
+
                 {/* Animated Heading */}
                 <motion.h1
                     initial={{ opacity: 0, scale: 0.5 }}
@@ -52,6 +54,7 @@ const ComingSoon = () => {
                     Coming Soon...
                 </motion.h1>
 
+
                 {/* Animated Subtext */}
                 <motion.p
                     initial={{ opacity: 0, y: 20 }}
@@ -64,6 +67,7 @@ const ComingSoon = () => {
                 >
                     Something exciting is hatching! Stay tuned.
                 </motion.p>
+
 
                 {/* Floating Dots for Extra Effect */}
                 <motion.div
@@ -90,4 +94,7 @@ const ComingSoon = () => {
     );
 };
 
+
 export default ComingSoon;
+
+

@@ -1,13 +1,16 @@
 import axios from "axios";
 
+
 let globalNavigate = null;
+
 
 export const setGlobalNavigate = (navigate) => {
   globalNavigate = navigate;
 };
 
+
 // https://admin.homiefix.in/api
-// http://localhost:1212
+// http://localhost:2222
 const api = axios.create({
   baseURL: "http://localhost:1212",
   headers: {
@@ -16,18 +19,19 @@ const api = axios.create({
   }
 });
 
+
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
-      
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
+
 
 // Response interceptor
 api.interceptors.response.use(
@@ -50,4 +54,8 @@ api.interceptors.response.use(
   }
 );
 
+
 export default api;
+
+
+
