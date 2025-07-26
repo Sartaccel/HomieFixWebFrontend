@@ -5,6 +5,31 @@ import api from "../api";
 import moment from "moment";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import { DateRangePicker } from "react-date-range";
+
+import {
+  PDFDownloadLink,
+  Document,
+  Page,
+  View,
+  Text,
+  StyleSheet,
+  Font,
+} from "@react-pdf/renderer";
+
+// Register fonts for PDF
+Font.register({
+  family: "Roboto",
+  fonts: [
+    {
+      src: "https://fonts.gstatic.com/s/roboto/v27/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2",
+    },
+    {
+      src: "https://fonts.gstatic.com/s/roboto/v27/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2",
+      fontWeight: "bold",
+    },
+  ],
+});
 
 const TransactionDetails = ({ token, setToken }) => {
   const navigate = useNavigate();
@@ -15,6 +40,12 @@ const TransactionDetails = ({ token, setToken }) => {
   const [loading, setLoading] = useState([true]);
   const [profiles, setProfiles] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [dateRange, setDateRange] = useState({
+    startDate: null,
+    endDate: null,
+    key: "selection",
+  });
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
@@ -49,45 +80,6 @@ const TransactionDetails = ({ token, setToken }) => {
     fetchBookingDetails();
   }, [token, setToken, navigate]);
 
-  //   useEffect(() => {
-  //   setLoading(true);
-  //   // Simulate API or use dummy data
-  //   setTimeout(() => {
-  //     setDetails(fakeBookings); // ✅ Your dummy data
-  //     setLoading(false); // ✅ Stop loader
-  //   }, 500); // Simulate loading delay (optional)
-  // }, []);
-
-  const fakeBookings = [
-    {
-      id: 1,
-      paymentStatus: "CAPTURED",
-      productName: "AC Repair",
-      orderId: "order_Qvf2wO1LlTmflt",
-      userFullName: "Subin",
-      paymentId: "pay_Qvf36AwUxaLhFc",
-      paymentCapturedAt: "2025-07-21 14:33:32.170251",
-    },
-    {
-      id: 2,
-      paymentStatus: "PENDING",
-      productName: "Washing Machine Repair",
-      orderId: "order_Qvf2wO1LlTmf7t",
-      userFullName: "Sundar",
-      paymentId: "pay_Qvf36AwULhFc88",
-      paymentCapturedAt: "2025-07-20 14:33:32.170251",
-    },
-    {
-      id: 3,
-      paymentStatus: "CAPTURED",
-      productName: "Fridge Repair",
-      orderId: "order_Qvf2wO1LlTmflt",
-      userFullName: "SubIII",
-      paymentId: "pay_Qvf36AwUxaLh620",
-      paymentCapturedAt: "2025-07-22 14:33:32.170251",
-    },
-  ];
-
   const handleSelectAll = (e) => {
     if (e.target.checked) {
       setSelectedUsers(filteredBookings.map((profile) => profile.id));
@@ -97,14 +89,18 @@ const TransactionDetails = ({ token, setToken }) => {
   };
   const filteredBookings = details
     .filter((profile) => {
-      if (statusFilter === "All") return true;
+      // Status Filter
+      if (statusFilter === "Paid" && profile.paymentStatus !== "CAPTURED")
+        return false;
+      if (statusFilter === "Pending" && profile.paymentStatus !== "PENDING")
+        return false;
 
-      if (statusFilter === "Paid") {
-        return profile.paymentStatus === "CAPTURED";
-      }
-
-      if (statusFilter === "Pending") {
-        return profile.paymentStatus === "PENDING";
+      // Date Filter
+      if (dateRange.startDate && dateRange.endDate) {
+        const bookingDate = new Date(profile.paymentCapturedAt);
+        const start = new Date(dateRange.startDate);
+        const end = new Date(dateRange.endDate);
+        return bookingDate >= start && bookingDate <= end;
       }
 
       return true;
@@ -112,6 +108,15 @@ const TransactionDetails = ({ token, setToken }) => {
     .sort(
       (a, b) => new Date(b.paymentCapturedAt) - new Date(a.paymentCapturedAt)
     );
+
+  const getDateRangeLabel = () => {
+    if (!dateRange.startDate && !dateRange.endDate) {
+      return "Select Date Range";
+    }
+    return `${dateRange.startDate ? formatDate(dateRange.startDate) : ""} - ${
+      dateRange.endDate ? formatDate(dateRange.endDate) : ""
+    }`;
+  };
 
   const handleUserSelect = (userId) => {
     setSelectedUsers((prev) =>
@@ -124,6 +129,125 @@ const TransactionDetails = ({ token, setToken }) => {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     return moment(dateString).format("MMM D, YYYY");
+  };
+
+  const handleDateRangeChange = (ranges) => {
+    setDateRange(ranges.selection);
+  };
+
+  const applyDateFilter = () => {
+    setShowDatePicker(false);
+  };
+
+  const clearDateFilter = () => {
+    setDateRange({
+      startDate: null,
+      endDate: null,
+      key: "selection",
+    });
+    setShowDatePicker(false);
+  };
+
+  // PDF Component - Moved inside to access component state and props
+  const TransactionPDFDocument = () => {
+    // Filter profiles based on selected users
+    const usersToExport = filteredBookings.filter((profile) =>
+      selectedUsers.includes(profile.id)
+    );
+
+    // PDF Styles
+    const styles = StyleSheet.create({
+      page: {
+        padding: 30,
+        fontFamily: "Helvetica",
+      },
+      header: {
+        fontSize: 18,
+        marginBottom: 10,
+        fontWeight: "bold",
+        textAlign: "center",
+      },
+      table: {
+        display: "table",
+        width: "auto",
+        borderStyle: "solid",
+        borderWidth: 1,
+        borderRightWidth: 0,
+        borderBottomWidth: 0,
+      },
+      tableRow: {
+        flexDirection: "row",
+      },
+      tableColHeader: {
+        width: "16.66%",
+        borderStyle: "solid",
+        borderWidth: 1,
+        borderLeftWidth: 0,
+        borderTopWidth: 0,
+        backgroundColor: "#0076CE",
+        color: "white",
+        padding: 5,
+        fontWeight: "bold",
+        fontSize: 10,
+      },
+      tableCol: {
+        width: "16.66%",
+        borderStyle: "solid",
+        borderWidth: 1,
+        borderLeftWidth: 0,
+        borderTopWidth: 0,
+        padding: 5,
+        fontSize: 7,
+        color: "black",
+      },
+      footer: {
+        fontSize: 10,
+        marginTop: 10,
+        textAlign: "center",
+        color: "gray",
+      },
+    });
+
+    return (
+      <Document>
+        <Page style={styles.page}>
+          <Text style={styles.header}>Transaction Details Report</Text>
+          <Text style={styles.footer}>
+            Generated on: {moment().format("MMMM D, YYYY HH:mm")}
+          </Text>
+
+          <View style={styles.table}>
+            {/* Table Header */}
+            <View style={styles.tableRow}>
+              <Text style={styles.tableColHeader}>Order Id</Text>
+              <Text style={styles.tableColHeader}>Customer Name</Text>
+              <Text style={styles.tableColHeader}>Transaction Id</Text>
+              <Text style={styles.tableColHeader}>Service Name</Text>
+              <Text style={styles.tableColHeader}>Date</Text>
+              <Text style={styles.tableColHeader}>Status</Text>
+            </View>
+
+            {/* Table Rows */}
+            {usersToExport.map((user, index) => {
+              return (
+                <View key={index} style={styles.tableRow}>
+                  <Text style={styles.tableCol}>{user.orderId}</Text>
+                  <Text style={styles.tableCol}>{user.userFullName}</Text>
+                  <Text style={styles.tableCol}>{user.paymentId}</Text>
+                  <Text style={styles.tableCol}>{user.productName}</Text>
+                  <Text style={styles.tableCol}>
+                    {formatDate(user.paymentCapturedAt)}
+                  </Text>
+                  <Text style={styles.tableCol}>
+                    {user.paymentStatus === "CAPTURED" ? "Paid" : "Pending"}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </Page>
+      </Document>
+    );
   };
   return (
     <div>
@@ -140,6 +264,56 @@ const TransactionDetails = ({ token, setToken }) => {
           >
             Transaction Details
           </h5>
+          <div className="d-flex align-items-center">
+            <div className="me-3 position-relative">
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={() => setShowDatePicker(!showDatePicker)}
+              >
+                {getDateRangeLabel()} <i className="bi bi-calendar"></i>
+              </button>
+              {showDatePicker && (
+                <div
+                  className="position-absolute bg-white p-3 border shadow rounded mt-1 z-3 position-fixed"
+                  style={{ marginLeft: "-70px" }}
+                >
+                  <DateRangePicker
+                    ranges={[dateRange]}
+                    onChange={handleDateRangeChange}
+                  />
+                  <div className="d-flex justify-content-end mt-2">
+                    <button
+                      className="btn btn-sm btn-outline-secondary me-2"
+                      onClick={clearDateFilter}
+                    >
+                      Clear
+                    </button>
+                    <button
+                      className="btn btn-sm "
+                      onClick={applyDateFilter}
+                      style={{ backgroundColor: "#0076CE", color: "white" }}
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <PDFDownloadLink
+              document={<TransactionPDFDocument />}
+              fileName={`user-details-${moment().format("YYYY-MM-DD")}.pdf`}
+              className="btn text-light"
+              style={{
+                backgroundColor: "#0076CE",
+                pointerEvents: selectedUsers.length === 0 ? "none" : "auto",
+                opacity: selectedUsers.length === 0 ? 0.6 : 1,
+              }}
+            >
+              {({ loading }) => (loading ? "Generating PDF..." : "Export")}
+            </PDFDownloadLink>
+          </div>
         </div>
         <div style={{ overflow: "hidden", padding: "10px 15px" }}>
           <div
@@ -193,7 +367,7 @@ const TransactionDetails = ({ token, setToken }) => {
                         }
                       />
                     </th>
-                    <th style={{ width: "12%", padding: "12px" }}>Order Id</th>
+                    <th style={{ width: "14%", padding: "12px" }}>Order Id</th>
                     <th style={{ width: "15%", padding: "12px" }}>
                       Customer Name
                     </th>
@@ -313,7 +487,7 @@ const TransactionDetails = ({ token, setToken }) => {
                     filteredBookings.map((booking) => {
                       return (
                         <tr key={booking.id}>
-                          <td>
+                          <td className="p-2 pt-3">
                             <input
                               type="checkbox"
                               className="m-1"
@@ -321,22 +495,16 @@ const TransactionDetails = ({ token, setToken }) => {
                               onChange={() => handleUserSelect(booking.id)}
                             />
                           </td>
-                          <td className="p-2 pt-3">
-                            {booking.orderId}
-                          </td>
+                          <td className="p-2 pt-3">{booking.orderId}</td>
                           <td className="p-2 pt-3 ps-3">
                             {booking.userFullName}
                           </td>
-                          <td className="p-2 pt-3">
-                            {booking.paymentId }
-                          </td>
+                          <td className="p-2 pt-3">{booking.paymentId}</td>
                           <td className="p-2 pt-3 ps-3">
                             {booking.productName}
                           </td>
                           <td className="p-2 pt-3">
-                            {formatDate(
-                              booking.paymentCapturedAt
-                            )}
+                            {formatDate(booking.paymentCapturedAt)}
                           </td>
                           <td className="p-3">
                             <span
@@ -361,7 +529,7 @@ const TransactionDetails = ({ token, setToken }) => {
                             </span>
                           </td>
 
-                          <td className="p-2 pt-3">
+                          <td className="p-2 pt-3 ps-3">
                             <button>
                               <i className="bi bi-eye"></i>
                             </button>
