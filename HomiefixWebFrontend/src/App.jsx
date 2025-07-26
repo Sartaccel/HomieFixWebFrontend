@@ -26,6 +26,7 @@ import UserDetails from "./components/UserDetails";
 import User from "./components/User"
 import Enquiry from "./components/Enquiry"
 import TransactionDetails from"./components/TransactionDetails"
+import Transaction from "./components/Transaction";
 
 
 const App = () => {
@@ -66,8 +67,7 @@ const App = () => {
           <Route path="/user-details/user/:id" element={<User />} />
           <Route path="/enquiry" element={<Enquiry />} />
           <Route path="/transaction-details" element={<TransactionDetails/>}/>
-
-
+          <Route path="/transaction" element = {<Transaction/>} />
         </Route>
       </Route>
     </Routes>
