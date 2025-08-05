@@ -29,15 +29,14 @@ const User = () => {
       .then((response) => {
         const allUsers = response.data;
         const selectedUser = allUsers.find((user) => user.id === Number(id));
-        setUserData(selectedUser);
+        setUserData(selectedUser);       
       })
       .catch((error) => {
         console.error("Error fetching user data:", error);
       });
   }, [id]);
 
-  //  Fetch Booking data
-
+  //  Fetch Booking data and Ratings
   useEffect(() => {
     const fetchBookingsAndRatings = async () => {
       try {
@@ -48,14 +47,10 @@ const User = () => {
 
         const bookings = bookingRes.data;
         const feedbacks = feedbackRes.data;
-
-        // Step 1: Map feedbacks by bookingId
         const feedbackMap = new Map();
         feedbacks.forEach((fb) => {
-          feedbackMap.set(fb.bookingId, fb.rating); // Map bookingId -> rating
+          feedbackMap.set(fb.bookingId, fb.rating); 
         });
-
-        // Step 2: Merge feedback into bookings
         const merged = bookings
           .map((booking) => ({
             ...booking,
@@ -78,7 +73,7 @@ const User = () => {
     fetchBookingsAndRatings();
   }, [id]);
 
-  // Ensure addresses exist
+
   const addresses = userData.addresses || [];
 
   // Sort addresses by ID (converted to number)
@@ -142,9 +137,7 @@ const User = () => {
       {/* Main content */}
       <div className="container" style={{ marginTop: "140px" }}>
         <div className="d-flex">
-          {/* LEFT SIDE - stacked boxes */}
           <div className="d-flex flex-column" style={{ width: "33.33%" }}>
-            {/* Box 1: User Details */}
             <div
               className="col-12 border p-3 rounded align-self-start h-auto d-flex flex-column"
               style={{
@@ -224,8 +217,6 @@ const User = () => {
                 </>
               )}
             </div>
-
-            {/* Box 2: Other Addresses */}
             <div
               className="col-12 border p-3 mt-1 rounded align-self-start h-auto d-flex flex-column"
               style={{
@@ -269,8 +260,6 @@ const User = () => {
               )}
             </div>
           </div>
-
-          {/* RIGHT SIDE - third box */}
           <div
             className="border p-3   rounded"
             style={{
@@ -364,7 +353,6 @@ const User = () => {
                   </thead>
                   <tbody>
                     {loading ? (
-                      // Show skeletons while loading
                       Array(5)
                         .fill()
                         .map((_, index) => (
@@ -379,14 +367,12 @@ const User = () => {
                           </tr>
                         ))
                     ) : filteredBookings.length === 0 ? (
-                      // Show "No bookings found"
                       <tr>
                         <td colSpan="7" className="text-center py-4" style={{ overflow: "hidden"}}>
                           No bookings found
                         </td>
                       </tr>
                     ) : (
-                      // Show actual bookings
                       filteredBookings.map((booking, index) => (
                         <tr key={booking.id}>
                           <td style={{ padding: "12px" }}>{index + 1}</td>

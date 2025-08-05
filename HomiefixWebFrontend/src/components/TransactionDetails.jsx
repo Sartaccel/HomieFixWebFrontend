@@ -89,13 +89,11 @@ const TransactionDetails = ({ token, setToken }) => {
   };
   const filteredBookings = details
     .filter((profile) => {
-      // Status Filter
       if (statusFilter === "Paid" && profile.paymentStatus !== "CAPTURED")
         return false;
       if (statusFilter === "Pending" && profile.paymentStatus !== "PENDING")
         return false;
 
-      // Date Filter
       if (dateRange.startDate && dateRange.endDate) {
         const bookingDate = new Date(profile.paymentCapturedAt);
         const start = new Date(dateRange.startDate);
@@ -148,9 +146,7 @@ const TransactionDetails = ({ token, setToken }) => {
     setShowDatePicker(false);
   };
 
-  // PDF Component - Moved inside to access component state and props
   const TransactionPDFDocument = () => {
-    // Filter profiles based on selected users
     const usersToExport = filteredBookings.filter((profile) =>
       selectedUsers.includes(profile.id)
     );
@@ -530,8 +526,11 @@ const TransactionDetails = ({ token, setToken }) => {
                           </td>
 
                           <td className="p-2 pt-3 ps-3">
-                            <button>
+                            <button  onClick={() =>
+                                navigate(`/transaction-details/${booking.id}`)
+                              }>
                               <i className="bi bi-eye"></i>
+                             
                             </button>
                           </td>
                         </tr>
