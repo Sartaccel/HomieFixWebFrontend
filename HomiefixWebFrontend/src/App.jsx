@@ -25,6 +25,7 @@ import ReAssign from "./components/ReAssign";
 import UserDetails from "./components/UserDetails";
 import User from "./components/User"
 import Enquiry from "./components/Enquiry"
+import Email from "./components/Email"
 import TransactionDetails from"./components/TransactionDetails"
 import Transaction from "./components/Transaction";
 
@@ -66,6 +67,7 @@ const App = () => {
           <Route path="/user-details" element={<UserDetails />} />
           <Route path="/user-details/user/:id" element={<User />} />
           <Route path="/enquiry" element={<Enquiry />} />
+          <Route path="/mail" element={<Email />} />
           <Route path="/transaction-details" element={<TransactionDetails/>}/>
           <Route path="/transaction-details/:id" element = {<Transaction/>} />
         </Route>

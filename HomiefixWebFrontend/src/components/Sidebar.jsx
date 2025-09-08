@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap-icons/font/bootstrap-icons.css"; 
+import "bootstrap-icons/font/bootstrap-icons.css";
 import "../styles/Sidebar.css";
 import logo from "../assets/HomiefixLogo.png";
 import dashboardIcon from "../assets/Dashboard.svg";
@@ -10,9 +10,11 @@ import reviewsIcon from "../assets/Reviews.svg";
 import enquiryIcon from "../assets/enquiryIcon.svg";
 import transactionIcon from "../assets/transaction.svg";
 import servicesIcon from "../assets/Service.svg";
+import mailIcon from "../assets/mail.svg";
 import logoutIcon from "../assets/Logout.svg";
 import bookingDetails from "../assets/BookingDetails.png";
 import ConfirmationDialog from "./ConfirmationDialog";
+
 
 const Sidebar = ({ onLogout }) => {
   const location = useLocation();
@@ -20,32 +22,37 @@ const Sidebar = ({ onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
 
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("username");
     sessionStorage.clear();
-    
+   
     if (typeof onLogout === "function") {
       onLogout();
     }
-    
+   
     setTimeout(() => {
       navigate("/", { replace: true });
     }, 100);
   };
 
+
   const handleLogoutClick = () => {
     setShowLogoutConfirmation(true);
   };
+
 
   const handleConfirmLogout = () => {
     setShowLogoutConfirmation(false);
     handleLogout();
   };
 
+
   const handleCancelLogout = () => {
     setShowLogoutConfirmation(false);
   };
+
 
   return (
     <>
@@ -53,10 +60,12 @@ const Sidebar = ({ onLogout }) => {
         <i className={`bi ${isOpen ? "bi-x" : "bi-list"}`} style={{ fontSize: "30px" }}></i>
       </button>
 
+
       <div className={`sidebar ${isOpen ? "show" : ""}`}>
         <div className="logo-container">
           <img src={logo} alt="Logo" className="logo" />
         </div>
+
 
         <nav className="menu-container">
           <Link to="/dashboard" className={`menu-item ${location.pathname === "/dashboard" ? "active" : ""}`}>
@@ -64,42 +73,57 @@ const Sidebar = ({ onLogout }) => {
             Dashboard
           </Link>
 
+
           <Link to="/booking-details" className={`menu-item ${location.pathname.startsWith("/booking-details") ? "active" : ""}`}>
             <img src={bookingDetails} alt="Booking Details" className="menu-icon" />
             Booking Details
           </Link>
+
 
           <Link to="/worker-details" className={`menu-item ${location.pathname.startsWith("/worker-details") ? "active" : ""}`}>
             <img src={workersIcon} alt="Workers" className="menu-icon" />
             Workers Details
           </Link>
 
+
           <Link to="/user-details" className={`menu-item ${location.pathname.startsWith("/user-details") ? "active" : ""}`}>
             <img src={workersIcon} alt="Users" className="menu-icon" />
             User Details
           </Link>
+
 
           <Link to="/reviews" className={`menu-item ${location.pathname.startsWith("/reviews") ? "active" : ""}`}>
             <img src={reviewsIcon} alt="Reviews" className="menu-icon" />
             Reviews
           </Link>
 
+
           <Link to="/services" className={`menu-item ${location.pathname.startsWith("/services") ? "active" : ""}`}>
             <img src={servicesIcon} alt="Services" className="menu-icon" />
             Services
           </Link>
+
 
           <Link to="/transaction-details" className={`menu-item ${location.pathname.startsWith("/transaction-details") ? "active" : ""}`}>
             <img src={transactionIcon} alt="transaction" className="menu-icon" />
             Transaction Details
            </Link>
 
+
+          <Link to="/mail" className={`menu-item ${location.pathname.startsWith("/mail") ? "active" : ""}`}>
+            <img src={mailIcon} alt="mail" className="menu-icon" />
+            Email
+           </Link>
+
+
           <Link to="/enquiry" className={`menu-item ${location.pathname.startsWith("/enquiry") ? "active" : ""}`}>
             <img src={enquiryIcon} alt="enquiry" className="menu-icon" />
             Enquiry
            </Link>
 
+
         </nav>
+
 
         <div className="logout-container">
           <button onClick={handleLogoutClick} className="logout-button">
@@ -108,6 +132,7 @@ const Sidebar = ({ onLogout }) => {
           </button>
         </div>
       </div>
+
 
       <ConfirmationDialog
         show={showLogoutConfirmation}
@@ -122,4 +147,6 @@ const Sidebar = ({ onLogout }) => {
   );
 };
 
+
 export default Sidebar;
+

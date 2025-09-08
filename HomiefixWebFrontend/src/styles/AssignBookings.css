@@ -8,7 +8,10 @@
     position: relative;
   }
 
+
   .custom-radio:checked::before {
+
+
 
 
     background-color: #333;
@@ -17,13 +20,23 @@
   }
 
 
+
+
   .tab-btn.active-tab::after {
     background: none!important;
   }
+
+
 
 
   .rdrDefinedRangesWrapper{
     display: none;
   }
  
+
+
+.form-check-input:checked{
+    background-color: #0076CE;
+    border-color: #0076CE;
+}
 
