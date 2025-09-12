@@ -6,7 +6,7 @@ import addWorker from "../assets/addWorker.jpg";
 import "../styles/AddWorker.css";
 import Header from "./Header";
 import api from "../api";
-import Select from "react-select";
+
 
 const AddWorker = () => {
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ const AddWorker = () => {
     econtactNumber: "",
     role: [],
     specification: [],
-    language: [],
+    language: "",
     profilePic: null,
   });
   const [previewImage, setPreviewImage] = useState(addWorker);
@@ -38,15 +38,11 @@ const AddWorker = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDrivingLicenseFocused, setIsDrivingLicenseFocused] = useState(false);
 
-  const languageOptions = [
-    { value: "Tamil", label: "Tamil" },
-    { value: "English", label: "English" },
-    { value: "Hindi", label: "Hindi" },
-  ];
 
   useEffect(() => {
     resetForm();
   }, []);
+
 
   const resetForm = () => {
     setFormData({
@@ -68,7 +64,7 @@ const AddWorker = () => {
       econtactNumber: "",
       role: [],
       specification: [],
-      language: [],
+      language: "",
       profilePic: null,
     });
     setPreviewImage(addWorker);
@@ -77,10 +73,11 @@ const AddWorker = () => {
     setIsDrivingLicenseFocused(false);
   };
 
+
   const validateName = (name) => /^[a-zA-Z\s]*$/.test(name);
   const validateContactNumber = (number) => /^\d{10}$/.test(number);
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const validateLanguage = (languages) => languages && languages.length > 0;
+  const validateLanguage = (language) => language && language.trim() !== "";
   const validatePincode = (pincode) => /^\d{6}$/.test(pincode);
   const validateDistrict = (district) => /^[a-zA-Z\s]*$/.test(district);
   const validateState = (state) => /^[a-zA-Z\s]*$/.test(state);
@@ -88,6 +85,7 @@ const AddWorker = () => {
   const validateDrivingLicense = (license) =>
     !license || /[a-zA-Z0-9]{15}$/.test(license);
   const validateWorkExperience = (experience) => /^[0-9]+$/.test(experience);
+
 
   const validateDate = (dateString, isDOB = false) => {
     if (!dateString) return false;
@@ -100,6 +98,7 @@ const AddWorker = () => {
     }
     return date <= today;
   };
+
 
   const handleButtonClick = (item, roleHeading) => {
     setClickedButtons((prev) => ({ ...prev, [item]: !prev[item] }));
@@ -114,9 +113,11 @@ const AddWorker = () => {
     }));
   };
 
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     let error = "";
+
 
     switch (name) {
       case "name":
@@ -178,6 +179,9 @@ const AddWorker = () => {
         error =
           value && !validateDate(value) ? "Date cannot be in the future" : "";
         break;
+      case "language":
+        error = !validateLanguage(value) ? "Language is required" : "";
+        break;
       default:
         break;
     }
@@ -185,12 +189,14 @@ const AddWorker = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+
   const handleDrivingLicenseChange = (e) => {
     let value = e.target.value;
     value = value.replace(/[^a-zA-Z0-9]/g, "");
     if (value.length > 18) {
       value = value.substring(0, 18);
     }
+
 
     setFormData((prev) => ({ ...prev, drivingLicenseNumber: value }));
     setErrors((prev) => ({
@@ -202,17 +208,11 @@ const AddWorker = () => {
     }));
   };
 
-  const handleLanguageChange = (selectedOptions) => {
-    const languages = selectedOptions.map((option) => option.value);
-    setFormData((prev) => ({ ...prev, language: languages }));
-    if (selectedOptions.length > 0) {
-      setErrors((prev) => ({ ...prev, language: "" }));
-    }
-  };
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
 
     // Validate file type and size
     const validTypes = ["image/jpeg", "image/png", "image/jpg"];
@@ -231,7 +231,9 @@ const AddWorker = () => {
       return;
     }
 
+
     setErrors((prev) => ({ ...prev, profilePic: "" }));
+
 
     // Create preview using FileReader
     const reader = new FileReader();
@@ -244,6 +246,7 @@ const AddWorker = () => {
     setFormData((prev) => ({ ...prev, profilePic: file }));
   };
 
+
   const checkContactNumberExists = async (contactNumber) => {
     try {
       const response = await api.get(`/workers/check-contact`, {
@@ -255,6 +258,7 @@ const AddWorker = () => {
       return false;
     }
   };
+
 
   const checkEmailExists = async (email) => {
     try {
@@ -272,15 +276,18 @@ const AddWorker = () => {
     }
   };
 
+
   const validateForm = () => {
     const newErrors = {};
     let isValid = true;
+
 
     // Add job title validation
     if (formData.specification.length === 0) {
       newErrors.jobTitle = "Please select at least one job title";
       isValid = false;
     }
+
 
     if (
       formData.workExperience &&
@@ -289,6 +296,7 @@ const AddWorker = () => {
       newErrors.workExperience = "Work experience should contain only numbers";
       isValid = false;
     }
+
 
     // Required fields validation
     if (!formData.name.trim()) {
@@ -299,6 +307,7 @@ const AddWorker = () => {
       isValid = false;
     }
 
+
     if (!formData.contactNumber) {
       newErrors.contactNumber = "Contact Number is required";
       isValid = false;
@@ -307,35 +316,42 @@ const AddWorker = () => {
       isValid = false;
     }
 
+
     if (formData.email && !validateEmail(formData.email)) {
       newErrors.email = "Please enter a valid email address";
       isValid = false;
     }
+
 
     if (formData.dateOfBirth && !validateDate(formData.dateOfBirth, true)) {
       newErrors.dateOfBirth = "Worker must be at least 18 years old";
       isValid = false;
     }
 
+
     if (!validateLanguage(formData.language)) {
-      newErrors.language = "Please select at least one language";
+      newErrors.language = "Please enter at least one language";
       isValid = false;
     }
+
 
     if (!formData.houseNumber.trim()) {
       newErrors.houseNumber = "House number is required";
       isValid = false;
     }
 
+
     if (!formData.town.trim()) {
       newErrors.town = "Town is required";
       isValid = false;
     }
 
+
     if (!formData.gender.trim()) {
       newErrors.gender = "Gender is required";
       isValid = false;
     }
+
 
     if (!formData.pincode) {
       newErrors.pincode = "Pincode is required";
@@ -345,10 +361,12 @@ const AddWorker = () => {
       isValid = false;
     }
 
+
     if (!formData.nearbyLandmark.trim()) {
       newErrors.nearbyLandmark = "Nearby Landmark is required";
       isValid = false;
     }
+
 
     if (!formData.district.trim()) {
       newErrors.district = "District is required";
@@ -358,6 +376,7 @@ const AddWorker = () => {
       isValid = false;
     }
 
+
     if (!formData.state.trim()) {
       newErrors.state = "State is required";
       isValid = false;
@@ -366,6 +385,7 @@ const AddWorker = () => {
       isValid = false;
     }
 
+
     if (!formData.aadharNumber) {
       newErrors.aadharNumber = "Aadhar number is required";
       isValid = false;
@@ -373,6 +393,7 @@ const AddWorker = () => {
       newErrors.aadharNumber = "Aadhar number should be 12 digits";
       isValid = false;
     }
+
 
     if (
       formData.drivingLicenseNumber &&
@@ -383,6 +404,7 @@ const AddWorker = () => {
       isValid = false;
     }
 
+
     if (!formData.joiningDate) {
       newErrors.joiningDate = "Joining date is required";
       isValid = false;
@@ -391,13 +413,16 @@ const AddWorker = () => {
       isValid = false;
     }
 
+
     setErrors(newErrors);
     return isValid;
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+
 
     // Validate job titles first
     if (formData.specification.length === 0) {
@@ -410,10 +435,12 @@ const AddWorker = () => {
       return;
     }
 
+
     if (!validateForm()) {
       setIsLoading(false);
       return;
     }
+
 
     if (formData.contactNumber === formData.econtactNumber) {
       Swal.fire({
@@ -424,6 +451,7 @@ const AddWorker = () => {
       setIsLoading(false);
       return;
     }
+
 
     // Check if email already exists
     if (formData.email) {
@@ -439,6 +467,7 @@ const AddWorker = () => {
       }
     }
 
+
     const isContactNumberAvailable = await checkContactNumberExists(
       formData.contactNumber
     );
@@ -451,6 +480,7 @@ const AddWorker = () => {
       setIsLoading(false);
       return;
     }
+
 
     try {
       if (!formData.profilePic) {
@@ -467,12 +497,11 @@ const AddWorker = () => {
           formDataToSend.append(key, formData[key].join(","));
         } else if (key === "econtactNumber") {
           formDataToSend.append("eContactNumber", formData[key]);
-        } else if (key === "language") {
-          formDataToSend.append("language", formData[key].join(","));
         } else {
           formDataToSend.append(key, formData[key]);
         }
       }
+
 
       const response = await api.post("/workers/add", formDataToSend, {
         headers: {
@@ -499,15 +528,18 @@ const AddWorker = () => {
     }
   };
 
+
   // Style for required field asterisk
   const requiredFieldStyle = {
     color: "#B8141A",
     marginLeft: "2px",
   };
 
+
   return (
     <>
       <Header />
+
 
       <div className="container" style={{ paddingTop: "80px" }}>
         <div className="d-flex gap-4 mx-2 align-items-center">
@@ -533,6 +565,7 @@ const AddWorker = () => {
           </h5>
         </div>
       </div>
+
 
       <div
         className="container"
@@ -592,6 +625,7 @@ const AddWorker = () => {
             </div>
           </div>
 
+
           {/* Main container */}
           <div
             className="container mt-4"
@@ -610,7 +644,6 @@ const AddWorker = () => {
                   }`}
                   name="name"
                   id="name"
-                  // required
                   placeholder="Enter Name"
                   onChange={handleChange}
                   value={formData.name}
@@ -649,7 +682,6 @@ const AddWorker = () => {
                   }`}
                   name="contactNumber"
                   id="contactNumber"
-                  // required
                   placeholder="Enter Contact Number"
                   onChange={handleChange}
                   value={formData.contactNumber}
@@ -688,21 +720,19 @@ const AddWorker = () => {
                 <label htmlFor="language" className="form-label">
                   Language <span style={requiredFieldStyle}>*</span>
                 </label>
-                <Select
-                // required
-                  isMulti
-                  options={languageOptions}
-                  className={`basic-multi-select ${
+                <input
+                  type="text"
+                  className={`form-control shadow-none ${
                     errors.language ? "is-invalid" : ""
                   }`}
-                  classNamePrefix="select"
-                  onChange={handleLanguageChange}
-                  value={languageOptions.filter((option) =>
-                    formData.language.includes(option.value)
-                  )}
+                  name="language"
+                  id="language"
+                  placeholder="Enter Language"
+                  onChange={handleChange}
+                  value={formData.language}
                 />
                 {errors.language && (
-                  <div className="text-danger small">{errors.language}</div>
+                  <div className="invalid-feedback">{errors.language}</div>
                 )}
               </div>
               <div className="col-md-3">
@@ -766,6 +796,7 @@ const AddWorker = () => {
                 )}
               </div>
 
+
               <div className="col-md-2">
                 <label htmlFor="gender" className="form-label">
                   Gender&nbsp;
@@ -781,7 +812,6 @@ const AddWorker = () => {
                     value="Male"
                     onChange={handleChange}
                     checked={formData.gender === "Male"}
-                    // required
                   />
                   <label className="form-check-label" htmlFor="male">
                     Male
@@ -809,6 +839,7 @@ const AddWorker = () => {
               </div>
             </div>
 
+
             {/* Job Title Section */}
             <div className="row mt-4">
               <p className="fw-bold">
@@ -818,6 +849,7 @@ const AddWorker = () => {
                 <div className="text-danger small">{errors.jobTitle}</div>
               )}
             </div>
+
 
             {/* Home Appliances */}
             <div className="row">
@@ -850,6 +882,7 @@ const AddWorker = () => {
               </div>
             </div>
 
+
             {/* Electrician */}
             <div className="row mt-3">
               <p>Electrician</p>
@@ -876,6 +909,7 @@ const AddWorker = () => {
                 ))}
               </div>
             </div>
+
 
             {/* Carpentry */}
             <div className="row mt-3">
@@ -905,6 +939,7 @@ const AddWorker = () => {
               </div>
             </div>
 
+
             {/* Plumbing */}
             <div className="row mt-3">
               <p>Plumbing</p>
@@ -932,6 +967,7 @@ const AddWorker = () => {
                 ))}
               </div>
             </div>
+
 
             {/* Vehicle Service */}
             <div className="row mt-3">
@@ -961,6 +997,7 @@ const AddWorker = () => {
               </div>
             </div>
 
+
             {/* Care Taker */}
             <div className="row mt-3">
               <p>Care Taker</p>
@@ -988,6 +1025,7 @@ const AddWorker = () => {
               </div>
             </div>
 
+
             {/* Cleaning */}
             <div className="row mt-3">
               <p>Cleaning</p>
@@ -1008,6 +1046,7 @@ const AddWorker = () => {
                 ))}
               </div>
             </div>
+
 
             {/* CCTV */}
             <div className="row mt-3">
@@ -1030,6 +1069,7 @@ const AddWorker = () => {
               </div>
             </div>
 
+
             {/* Address Details */}
             <div className="row mt-4">
               <p className="fw-bold">Address Details</p>
@@ -1047,7 +1087,6 @@ const AddWorker = () => {
                   }`}
                   name="houseNumber"
                   id="houseNumber"
-                  // required
                   placeholder="Enter House no/ Building name"
                   onChange={handleChange}
                   value={formData.houseNumber}
@@ -1067,7 +1106,6 @@ const AddWorker = () => {
                   }`}
                   name="town"
                   id="town"
-                  // required
                   placeholder="Enter Locality/ Town"
                   onChange={handleChange}
                   value={formData.town}
@@ -1087,7 +1125,6 @@ const AddWorker = () => {
                   }`}
                   name="pincode"
                   id="pincode"
-                  // required
                   placeholder="Enter Pin code"
                   onChange={handleChange}
                   value={formData.pincode}
@@ -1098,6 +1135,7 @@ const AddWorker = () => {
                 )}
               </div>
             </div>
+
 
             {/* Row 2 */}
             <div className="row mt-4">
@@ -1112,7 +1150,6 @@ const AddWorker = () => {
                   }`}
                   name="nearbyLandmark"
                   id="nearbyLandmark"
-                  // required
                   placeholder="Enter Nearby Landmark"
                   onChange={handleChange}
                   value={formData.nearbyLandmark}
@@ -1134,7 +1171,6 @@ const AddWorker = () => {
                   }`}
                   name="district"
                   id="district"
-                  // required
                   placeholder="Enter District"
                   onChange={handleChange}
                   value={formData.district}
@@ -1154,7 +1190,6 @@ const AddWorker = () => {
                   }`}
                   name="state"
                   id="state"
-                  // required
                   placeholder="Enter State"
                   onChange={handleChange}
                   value={formData.state}
@@ -1164,6 +1199,7 @@ const AddWorker = () => {
                 )}
               </div>
             </div>
+
 
             {/* Identification Details */}
             <div className="row mt-4">
@@ -1181,7 +1217,6 @@ const AddWorker = () => {
                   }`}
                   name="aadharNumber"
                   id="aadharNumber"
-                  // required
                   placeholder="Enter Aadhar number"
                   onChange={handleChange}
                   value={formData.aadharNumber}
@@ -1247,6 +1282,7 @@ const AddWorker = () => {
               </div>
             </div>
 
+
             {/* Submit Button */}
             <div className="row mb-4">
               <div className="col">
@@ -1278,4 +1314,8 @@ const AddWorker = () => {
   );
 };
 
+
 export default AddWorker;
+
+
+
