@@ -10,7 +10,6 @@ import api from "../api";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-
 const Email = () => {
   const navigate = useNavigate();
   const [keyword, setKeyword] = useState("");
@@ -25,11 +24,12 @@ const Email = () => {
   const [isSending, setIsSending] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-
-  // Allowed file types
+  // Limits
   const allowedFileTypes = ["pdf", "jpg", "jpeg", "png"];
   const allowedFileTypesString = allowedFileTypes.join(", ").toUpperCase();
-
+  const maxFiles = 5;
+  const maxFileSizeMB = 10;
+  const maxFileSizeBytes = maxFileSizeMB * 1024 * 1024;
 
   // Fetch all users
   useEffect(() => {
@@ -45,25 +45,19 @@ const Email = () => {
       }
     };
 
-
     fetchUsers();
   }, []);
 
-
-  // Filter users based on search keyword
   const filteredUsers = users.filter(
     (user) =>
       user.fullName.toLowerCase().includes(keyword.toLowerCase()) &&
       !selectedUsers.some((selectedUser) => selectedUser.id === user.id)
   );
 
-
-  // Handle user selection
   const handleUserSelect = (user) => {
     const isSelected = pendingUsers.some(
       (pendingUser) => pendingUser.id === user.id
     );
-
 
     if (isSelected) {
       setPendingUsers(
@@ -74,22 +68,16 @@ const Email = () => {
     }
   };
 
-
-  // Handle adding pending users to BCC
   const handleAddUsers = () => {
     setSelectedUsers([...selectedUsers, ...pendingUsers]);
     setPendingUsers([]);
     setKeyword("");
   };
 
-
-  // Handle removing a selected user from BCC
   const handleRemoveUser = (userId) => {
     setSelectedUsers(selectedUsers.filter((user) => user.id !== userId));
   };
 
-
-  // Reset form
   const handleNewMessage = () => {
     setSelectedUsers([]);
     setPendingUsers([]);
@@ -101,39 +89,43 @@ const Email = () => {
     setErrorMessage("");
   };
 
-
-  // Handle file attachment
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-    const invalidFiles = files.filter(
-      (file) => !allowedFileTypes.some((type) => file.name.toLowerCase().endsWith(`.${type}`))
-    );
 
-
-    if (invalidFiles.length > 0) {
-      setErrorMessage(`Only ${allowedFileTypesString} files are allowed`);
+    if (attachments.length + files.length > maxFiles) {
+      setErrorMessage(`You can attach up to ${maxFiles} files only.`);
       return;
     }
 
+    const invalidFiles = files.filter(
+      (file) =>
+        !allowedFileTypes.some((type) =>
+          file.name.toLowerCase().endsWith(`.${type}`)
+        ) ||
+        file.size > maxFileSizeBytes
+    );
+
+    if (invalidFiles.length > 0) {
+      setErrorMessage(
+        `Only ${allowedFileTypesString} files up to ${maxFileSizeMB}MB each are allowed.`
+      );
+      return;
+    }
 
     setAttachments([...attachments, ...files]);
     setErrorMessage("");
   };
 
-
-  // Handle removing an attachment
   const handleRemoveAttachment = (index) => {
     const newAttachments = [...attachments];
     newAttachments.splice(index, 1);
     setAttachments(newAttachments);
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSending(true);
     setErrorMessage("");
-
 
     if (selectedUsers.length === 0) {
       setErrorMessage("Please select at least one recipient");
@@ -141,32 +133,23 @@ const Email = () => {
       return;
     }
 
-
     const formData = new FormData();
     formData.append("subject", subject);
     formData.append("content", content);
-   
-    // Append userIds as comma-separated string
-    const userIds = selectedUsers.map(user => user.id).join(',');
+
+    const userIds = selectedUsers.map((user) => user.id).join(",");
     formData.append("userIds", userIds);
-   
-    // Append each attachment with the correct field name "attachment"
+
     attachments.forEach((file) => {
-      formData.append("attachment", file); // Note: using "attachment" not "attachments"
+      formData.append("attachment", file);
     });
 
-
     try {
-      const response = await api.post(
-        "/profile/send-bulk-email",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
+      await api.post("/profile/send-bulk-email", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       toast.success("Email sent successfully!", {
         position: "top-right",
@@ -177,19 +160,19 @@ const Email = () => {
         draggable: true,
       });
 
-
       handleNewMessage();
+      console.log("SUCCESS");
+
     } catch (error) {
       console.error("Error sending email:", error);
       setErrorMessage(
         error.response?.data?.message ||
-          "Failed to send email. Please try again."
+        "Failed to send email. Please try again."
       );
     } finally {
       setIsSending(false);
     }
   };
-
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -197,7 +180,6 @@ const Email = () => {
       <div className="row m-0 p-0 vh-100">
         <main className="col-12 p-0 m-0 d-flex flex-column">
           <Header />
-
 
           <div className="container-fluid p-3 flex-grow-1 d-flex">
             {/* Left Container - User Selection */}
@@ -210,7 +192,6 @@ const Email = () => {
                 flexShrink: 0,
               }}
             >
-              {/* Search bar */}
               <div className="position-relative mb-3">
                 {loading ? (
                   <Skeleton height={38} />
@@ -243,8 +224,6 @@ const Email = () => {
                 )}
               </div>
 
-
-              {/* Select All and Count Row */}
               <div className="d-flex justify-content-between align-items-center mb-3">
                 {loading ? (
                   <Skeleton width={100} />
@@ -298,7 +277,6 @@ const Email = () => {
                 )}
               </div>
 
-
               <div style={{ height: "calc(100% - 150px)", overflowY: "auto" }}>
                 {loading ? (
                   Array(5).fill().map((_, index) => (
@@ -341,7 +319,6 @@ const Email = () => {
                         />
                       </div>
 
-
                       <div
                         className="card p-2 flex-grow-1 d-flex flex-row align-items-center"
                         style={{ cursor: "pointer" }}
@@ -367,7 +344,6 @@ const Email = () => {
                 )}
               </div>
 
-
               <div className="mt-3">
                 {loading ? (
                   <Skeleton width={70} height={35} style={{ marginLeft: "240px" }} />
@@ -390,7 +366,6 @@ const Email = () => {
                 )}
               </div>
             </div>
-
 
             {/* Right Container - Email Composition */}
             <div
@@ -420,17 +395,14 @@ const Email = () => {
                 )}
               </div>
 
-
               {errorMessage && (
                 <div className="alert alert-danger">{errorMessage}</div>
               )}
-
 
               <form
                 onSubmit={handleSubmit}
                 className="flex-grow-1 d-flex flex-column"
               >
-                {/* BCC Field */}
                 <div className="mb-3">
                   {loading ? (
                     <Skeleton height={64} />
@@ -455,7 +427,6 @@ const Email = () => {
                       >
                         To
                       </div>
-
 
                       <div
                         style={{
@@ -487,7 +458,6 @@ const Email = () => {
                                 </span>
                               ))}
 
-
                             {selectedUsers.length > 15 && (
                               <button
                                 type="button"
@@ -509,15 +479,13 @@ const Email = () => {
                   )}
                 </div>
 
-
-                {/* Subject Field */}
                 <div className="mb-3">
                   {loading ? (
                     <Skeleton height={44} />
                   ) : (
                     <div
                       className="form-control d-flex align-items-center p-2 shadow-none"
-                      style={{ height: "44px", overflow: "hidden",  }}
+                      style={{ height: "44px", overflow: "hidden" }}
                     >
                       <span style={{ marginRight: "8px", color: "#6c757d" }}>
                         Subject
@@ -535,8 +503,6 @@ const Email = () => {
                   )}
                 </div>
 
-
-                {/* Content Field */}
                 <div className="mb-3 flex-grow-1 d-flex flex-column">
                   {loading ? (
                     <Skeleton height={300} />
@@ -552,7 +518,6 @@ const Email = () => {
                   )}
                 </div>
 
-
                 {/* Attachments and Send Button */}
                 <div className="d-flex justify-content-between align-items-center mt-3">
                   <div>
@@ -563,6 +528,11 @@ const Email = () => {
                         <small className="text-muted d-block mb-1">
                           Supported formats: {allowedFileTypesString}
                         </small>
+
+                        <small className="text-muted d-block mb-2">
+                          You can attach up to {maxFiles} files, with a maximum size of {maxFileSizeMB}MB each.
+                        </small>
+
                         {attachments.length > 0 && (
                           <div className="d-flex flex-wrap gap-2">
                             {attachments.map((file, index) => (
@@ -570,7 +540,10 @@ const Email = () => {
                                 key={index}
                                 className="d-flex align-items-center bg-light rounded px-2 py-1"
                               >
-                                <span className="me-2 text-truncate" style={{ maxWidth: "150px" }}>
+                                <span
+                                  className="me-2 text-truncate"
+                                  style={{ maxWidth: "150px" }}
+                                >
                                   {file.name}
                                 </span>
                                 <button
@@ -616,10 +589,9 @@ const Email = () => {
                             style={{ display: "none" }}
                             onChange={handleFileChange}
                             multiple
-                            accept={allowedFileTypes.map(type => `.${type}`).join(',')}
+                            accept={allowedFileTypes.map((type) => `.${type}`).join(",")}
                           />
                         </label>
-
 
                         <button
                           type="submit"
@@ -656,6 +628,3 @@ const Email = () => {
 
 
 export default Email;
-
-
-

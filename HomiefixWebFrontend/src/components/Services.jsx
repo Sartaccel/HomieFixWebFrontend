@@ -38,7 +38,7 @@ const Services = () => {
       "Cupboard & Drawer",
       "Door",
       "Window",
-      "Drill & Hang ",
+      "Drill & Hang",
       "Furniture",
     ],
     Plumbing: [
@@ -177,9 +177,8 @@ const Services = () => {
                 <div className="d-flex justify-content-between border-bottom mt-5 mb-2">
                   <div className="d-flex gap-4 mx-4">
                     <button
-                      className={`tab-btn ${
-                        activeTab === "recent" ? "active-tab" : ""
-                      }`}
+                      className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""
+                        }`}
                       onClick={() => setActiveTab("recent")}
                     >
                       {category}
