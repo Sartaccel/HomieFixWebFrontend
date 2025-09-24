@@ -1,0 +1,37 @@
+.calendar-day {
+  border-radius: 6px;
+  transition: all 0.2s ease-in-out;
+}
+
+.calendar-day:hover {
+  background: #007bff;   
+  color: white !important;
+}
+
+.calendar-day.selected {
+  background: #007bff;
+  color: white !important;
+}
+
+/* import "../styles/CustomCalendar.css"; */
+
+
+  /* const [selectedDate, setSelectedDate] = useState(null); */
+
+  /* <div
+  className="d-grid"
+  style={{ gridTemplateColumns: "repeat(7, 1fr)", gap: "4px" }}
+>
+  {days.map((day, i) => (
+    <button
+      key={i}
+      className={`btn btn-sm ${day ? "bg-transparent text-dark border-0" : "invisible"}`}
+      style={{ boxShadow: "none" }}
+      onClick={() =>
+        day && onDateSelect(new Date(currentYear, currentMonth, day))
+      }
+    >
+      {day || ""}
+    </button>
+  ))}
+</div> */

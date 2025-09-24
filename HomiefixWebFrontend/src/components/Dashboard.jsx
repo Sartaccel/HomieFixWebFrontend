@@ -6,6 +6,7 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import {
+  CartesianGrid,
   AreaChart,
   Area,
   XAxis,
@@ -20,6 +21,10 @@ import Header from "./Header";
 import uparrow from "../assets/primary.jpg";
 import downarrow from "../assets/primary.png";
 import api from "../api";
+import TotalBooking from "../assets/TotalBooking.svg";
+import TotalWorkers from "../assets/TotalWorkers.svg";
+import Completed from "../assets/Completed.svg";
+import Canceled from "../assets/canceled.svg";
 
 // Skeleton components
 const CardSkeleton = () => (
@@ -209,7 +214,9 @@ const Dashboard = () => {
     {
       title: "Total Booking",
       count: bookingStats?.totalBookings || 0,
-      icon: <FaClipboardList />,
+      icon: (
+        <img src={TotalBooking} alt="Total Booking" width="24" height="24" />
+      ),
       borderColor: "#EA6C6E",
       percentage: bookingStats?.totalPercentageChange || 0,
       showArrow:
@@ -220,7 +227,7 @@ const Dashboard = () => {
     {
       title: "Completed",
       count: bookingStats?.completedBookings || 0,
-      icon: <FaCheckCircle />,
+      icon: <img src={Completed} alt="Completed" width="26" height="26" />,
       borderColor: "#EFA066",
       percentage: bookingStats?.completedPercentageChange || 0,
       showArrow:
@@ -232,7 +239,7 @@ const Dashboard = () => {
     {
       title: "Cancelled",
       count: bookingStats?.cancelledBookings || 0,
-      icon: <FaTimesCircle />,
+      icon: <img src={Canceled} alt="Cancelled" width="26" height="26" />,
       borderColor: "#31DDFC",
       percentage: bookingStats?.cancelledPercentageChange || 0,
       showArrow:
@@ -244,7 +251,9 @@ const Dashboard = () => {
     {
       title: "Total Workers",
       count: workerStats?.count || 0,
-      icon: <FaUsers />,
+      icon: (
+        <img src={TotalWorkers} alt="Total Workers" width="27" height="27" />
+      ),
       borderColor: "#1FA2FF",
       percentage: workerStats?.percentage_change || 0,
       showArrow: workerStats?.trend && workerStats.trend !== "no_change",
@@ -505,7 +514,7 @@ const Dashboard = () => {
                           monthlyStats.highestBookingMonth.month.startsWith(
                             analyticsYear
                           ) && (
-                            <h6 className="mb-3 text-black ms-5" >
+                            <h6 className="mb-3 text-black ms-5">
                               Highest Service Month:{" "}
                               <strong>
                                 {
@@ -552,18 +561,21 @@ const Dashboard = () => {
                                 />
                               </linearGradient>
                             </defs>
+                            <CartesianGrid
+                              strokeDasharray="3 3"
+                              horizontal={true}
+                              vertical={false}
+                            />
                             <XAxis
                               dataKey="month"
                               ticks={areaData
                                 .filter((month) => month.active)
                                 .map((item) => item.month)}
-                                tickLine={false}
+                              tickLine={false}
                             />
                             <YAxis
                               domain={[0, 100]}
-                              ticks={[
-                                 10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
-                              ]}
+                              ticks={[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}
                               interval={0}
                               tickFormatter={(value) => `${value}%`}
                               tickLine={false}

@@ -22,6 +22,8 @@ import "bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css";
 import "bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js";
 import Header from "./Header";
 import api from "../api";
+import CustomCalendar from "./CustomCalendar";
+
 
 const hasBookingChanges = (newBookings, prevBookings) => {
   if (newBookings.length !== prevBookings.length) return true;
@@ -378,19 +380,19 @@ const BookingDetails = () => {
     ));
   };
 
-  useEffect(() => {
-    if (dropdownOpen) {
-      $("#sandbox-container div")
-        .datepicker({
-          autoclose: true,
-          todayHighlight: true,
-        })
-        .on("changeDate", function (e) {
-          handleDateChange(e.date);
-          setDropdownOpen(false);
-        });
-    }
-  }, [dropdownOpen]);
+  // useEffect(() => {
+  //   if (dropdownOpen) {
+  //     $("#sandbox-container div")
+  //       .datepicker({
+  //         autoclose: true,
+  //         todayHighlight: true,
+  //       })
+  //       .on("changeDate", function (e) {
+  //         handleDateChange(e.date);
+  //         setDropdownOpen(false);
+  //       });
+  //   }
+  // }, [dropdownOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -644,16 +646,17 @@ const BookingDetails = () => {
                               onClick={() => setDropdownOpen(!dropdownOpen)}
                             >
                               {selectedDates[activeTab]
-                                ? formatDate(new Date(
-                                    selectedDates[activeTab]
-                                  ))
-                                : "Date"}
+                                ? formatDate(new Date(selectedDates[activeTab]))
+                                : "Date "}
                             </button>
                             {dropdownOpen && (
-                              <div className="dropdown-menu show p-2">
-                                <div id="sandbox-container">
-                                  <div></div>
-                                </div>
+                              <div className="dropdown-menu show p-2 border rounded-2 p-2">
+                                <CustomCalendar
+                                  onDateSelect={(date) => {
+                                    handleDateChange(date);
+                                    setDropdownOpen(false);
+                                  }}
+                                />
                               </div>
                             )}
                           </div>

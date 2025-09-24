@@ -10,6 +10,7 @@ export const setGlobalNavigate = (navigate) => {
 
 
 // https://admin.homiefix.in/api
+// https://devadmin.homiefix.in/api
 // http://localhost:1212
 const api = axios.create({
   baseURL: "http://localhost:1212",

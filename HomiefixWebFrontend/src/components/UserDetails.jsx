@@ -529,13 +529,14 @@ const UserDetails = ({ token, setToken }) => {
                               {profile.fullName}
                             </div>
                           </td>
-                          <td>{profile.mobileNumber}</td>
+                          <td className="text-centered align-middle">{profile.mobileNumber}</td>
                           <td>
                             {address
                               ? `${address.houseNumber}, ${address.town}, ${address.district}, ${address.state} - ${address.pincode}`
                               : "No address"}
                           </td>
                           <td
+                          className="text-centered align-middle"
                             style={{
                               textAlign: "center",
                               paddingRight: "70px",

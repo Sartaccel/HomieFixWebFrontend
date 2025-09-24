@@ -277,6 +277,7 @@ const TransactionDetails = ({ token, setToken }) => {
                   <DateRangePicker
                     ranges={[dateRange]}
                     onChange={handleDateRangeChange}
+                    maxDate={new Date()}
                   />
                   <div className="d-flex justify-content-end mt-2">
                     <button
