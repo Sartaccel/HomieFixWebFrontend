@@ -76,7 +76,7 @@ const AddWorker = () => {
 
   const validateName = (name) => /^[a-zA-Z\s]*$/.test(name);
   const validateContactNumber = (number) => /^\d{10}$/.test(number);
-  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.com$/.test(email);
   const validateLanguage = (language) => language && language.trim() !== "";
   const validatePincode = (pincode) => /^\d{6}$/.test(pincode);
   const validateDistrict = (district) => /^[a-zA-Z\s]*$/.test(district);
@@ -336,13 +336,13 @@ const AddWorker = () => {
 
 
     if (!formData.houseNumber.trim()) {
-      newErrors.houseNumber = "House number is required";
+      newErrors.houseNumber = "House number/Building Name is required";
       isValid = false;
     }
 
 
     if (!formData.town.trim()) {
-      newErrors.town = "Town is required";
+      newErrors.town = "Locality/Town is required";
       isValid = false;
     }
 

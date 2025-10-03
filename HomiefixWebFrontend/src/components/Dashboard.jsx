@@ -461,7 +461,10 @@ const Dashboard = () => {
                       >
                         <div className="card-body p-2">
                           <div className="display-6 mb-1">{stat.icon}</div>
-                          <h3 className="mb-1">{stat.count}</h3>
+                          {/* <h3 className="mb-1">
+                         {stat.hasData && stat.count !== 0 ? stat.count : "-"}
+                       </h3> */}
+                       <h3 className="mb-1">{stat.count}</h3>
                           <div className="d-flex justify-content-between">
                             <h6 className="card-title fw-normal">
                               {stat.title}
@@ -476,7 +479,13 @@ const Dashboard = () => {
                                   width={15}
                                 />
                               ) : null}
-                              <p>{stat.percentage}%</p>
+                              <p>
+                             {stat.hasData && stat.percentage !== 0
+                               ? `${stat.percentage}%`
+                               : stat.hasData && stat.showArrow
+                                 ? `${stat.percentage}%`
+                                 : "-"}
+                           </p>
                             </div>
                           </div>
                         </div>
@@ -514,7 +523,7 @@ const Dashboard = () => {
                           monthlyStats.highestBookingMonth.month.startsWith(
                             analyticsYear
                           ) && (
-                            <h6 className="mb-3 text-black ms-5">
+                            <h6 className="mb-2 text-black ms-5 mt-2">
                               Highest Service Month:{" "}
                               <strong>
                                 {
