@@ -464,7 +464,7 @@ const Dashboard = () => {
                           {/* <h3 className="mb-1">
                          {stat.hasData && stat.count !== 0 ? stat.count : "-"}
                        </h3> */}
-                       <h3 className="mb-1">{stat.count}</h3>
+                          <h3 className="mb-1">{stat.count}</h3>
                           <div className="d-flex justify-content-between">
                             <h6 className="card-title fw-normal">
                               {stat.title}
@@ -480,12 +480,12 @@ const Dashboard = () => {
                                 />
                               ) : null}
                               <p>
-                             {stat.hasData && stat.percentage !== 0
-                               ? `${stat.percentage}%`
-                               : stat.hasData && stat.showArrow
-                                 ? `${stat.percentage}%`
-                                 : "-"}
-                           </p>
+                                {stat.hasData && stat.percentage !== 0
+                                  ? `${stat.percentage}%`
+                                  : stat.hasData && stat.showArrow
+                                  ? `${stat.percentage}%`
+                                  : "-"}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -571,9 +571,11 @@ const Dashboard = () => {
                               </linearGradient>
                             </defs>
                             <CartesianGrid
-                              strokeDasharray="3 3"
+                              // strokeDasharray="3 3"
                               horizontal={true}
                               vertical={false}
+                              stroke="#000000"
+                              strokeOpacity={0.05}
                             />
                             <XAxis
                               dataKey="month"

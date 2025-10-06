@@ -13,6 +13,24 @@
   color: white !important;
 }
 
+/* Default cell styling */
+.calendar-cell {
+  padding: 10px;
+  text-align: center;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out; /* smooth effect */
+}
+
+/* Hover effect */
+.calendar-cell:hover {
+  background-color: #0076CE; /* Blue background */
+  color: white; /* White text */
+  border-color: #0076CE; /* Optional: make border match */
+  border-radius: 5px; /* Optional: rounded corners on hover */
+}
+
+
 /* import "../styles/CustomCalendar.css"; */
 
 
