@@ -282,7 +282,7 @@ const UserDetails = ({ token, setToken }) => {
             className="px-3 pb-2 text-black mx-3"
             style={{ borderBottom: "3px solid #000" }}
           >
-            User Details
+            Customer Details
           </h5>
           <div className="d-flex align-items-center">
             <div className="me-3 position-relative">
@@ -565,7 +565,7 @@ const UserDetails = ({ token, setToken }) => {
                             <button
                               className="btn btn-link p-2"
                               onClick={() =>
-                                navigate(`/user-details/user/${profile.id}`)
+                                navigate(`/customer-details/user/${profile.id}`)
                               }
                               style={{ color: "#474444" }}
                             >

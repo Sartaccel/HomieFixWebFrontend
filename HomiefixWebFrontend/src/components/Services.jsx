@@ -53,7 +53,7 @@ const Services = () => {
    ],
    "Vehicle Service": [
      "Batteries",
-     "Health checkup",
+     "Vehicle Checkup",
      "Water Wash",
      "Denting & Painting",
      "Tyre Service",

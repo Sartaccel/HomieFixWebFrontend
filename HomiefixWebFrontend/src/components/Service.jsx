@@ -188,9 +188,9 @@ const Service = () => {
         </div>
 
         {/* Dynamic Content */}
-        <div className="row mx-5 bg-light">
+        <div className="row mx-4 bg-light">
           {serviceData.content.sections.map((section, index) => (
-            <div key={index} className="col-4 border p-3">
+            <div key={index} className="col-4 border p-3 " style={{maxHeight:"210px"}}>
               <p>{section.title}</p>
               <ul>
                 {section.items.map((item, itemIndex) => (

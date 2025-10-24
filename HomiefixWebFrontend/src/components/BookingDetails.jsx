@@ -650,7 +650,7 @@ const BookingDetails = () => {
                                 : "Date "}
                             </button>
                             {dropdownOpen && (
-                              <div className="dropdown-menu show p-2 border rounded-2 p-2">
+                              <div className="dropdown-menu show p-2 border rounded-2 p-2 ">
                                 <CustomCalendar
                                   onDateSelect={(date) => {
                                     handleDateChange(date);

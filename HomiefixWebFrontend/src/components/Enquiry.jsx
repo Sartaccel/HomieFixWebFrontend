@@ -24,26 +24,24 @@ const Enquiry = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true); // Start loading
+      setIsLoading(true);
 
       try {
-       
-          const res = await api.get("/static/partner/all");
+        const res = await api.get("/static/partner/all");
 
-          const sortedRequests = res.data.sort((a, b) => {
-            return new Date(b.partnerJdate) - new Date(a.partnerJdate);
-          });
+        const sortedRequests = res.data.sort((a, b) => {
+          return new Date(b.partnerJdate) - new Date(a.partnerJdate);
+        });
 
-          setWorkerRequests(sortedRequests);
-        
-          const Sres = await api.get("/static/contact/all");
+        setWorkerRequests(sortedRequests);
 
-          const sortedTickets = Sres.data.sort((a, b) => {
-            return new Date(b.issuedDate) - new Date(a.issuedDate);
-          });
+        const Sres = await api.get("/static/contact/all");
 
-          setSupportTickets(sortedTickets);
-        
+        const sortedTickets = Sres.data.sort((a, b) => {
+          return new Date(b.issuedDate) - new Date(a.issuedDate);
+        });
+
+        setSupportTickets(sortedTickets);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -87,7 +85,9 @@ const Enquiry = () => {
           return;
         }
       }
-      await api.put(`/static/partner/status/${id}?status=${newStatus}&phoneNumber=${phoneNumber}`);
+      await api.put(
+        `/static/partner/status/${id}?status=${newStatus}&phoneNumber=${phoneNumber}`
+      );
       setWorkerRequests((prev) =>
         prev.map((worker) =>
           worker.id === id ? { ...worker, joiningStatus: newStatus } : worker
@@ -224,7 +224,7 @@ const Enquiry = () => {
                         <th className="text-left align-middle">Contact</th>
                         <th className="text-left align-middle">Date</th>
                         <th className="text-left align-middle">Notes</th>
-                        <th className="text-left align-middle">Action</th>
+                        {/* <th className="text-left align-middle">Action</th> */}
                       </>
                     )}
                   </tr>
@@ -236,22 +236,48 @@ const Enquiry = () => {
                       <tr key={idx}>
                         {activeTab === "worker_request" ? (
                           <>
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={20} width={60} /></td>  
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} width={60} />
+                            </td>
                           </>
                         ) : (
                           <>
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={20} width={150} /></td>  
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={40} /></td>
-                            <td><Skeleton height={20} width={60}/></td>
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} width={150} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={40} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} width={60} />
+                            </td>
                           </>
                         )}
                       </tr>
@@ -315,9 +341,21 @@ const Enquiry = () => {
                             {worker.joiningStatus === "APPROVED" && (
                               <button
                                 className="btn text-light me-2"
-                                onClick={() =>
-                                  navigate("/worker-details/add-worker")
-                                }
+                                onClick={() => {
+                                  const workerExists = existingWorkers.some(
+                                    (w) =>
+                                      w.contactNumber === worker.phoneNumber
+                                  );
+
+                                  if (workerExists) {
+                                    alert("Worker already exists!");
+
+                                    console.log("ex");
+                                  } else {
+                                    console.log("no ex");
+                                    navigate("/worker-details/add-worker");
+                                  }
+                                }}
                                 style={{
                                   backgroundColor: "#0076CE",
                                   height: "32px",
@@ -328,6 +366,7 @@ const Enquiry = () => {
                                 Add Worker
                               </button>
                             )}
+
                             {worker.joiningStatus === "REJECTED" && (
                               <span>N/A</span>
                             )}
@@ -383,11 +422,11 @@ const Enquiry = () => {
                             }}
                           />
                         </td>
-                        <td className="text-left align-middle">
-                          <button style={{marginLeft:"12px"}}>
+                        {/* <td className="text-left align-middle">
+                          <button style={{ marginLeft: "12px" }}>
                             <img src={mail} alt="Mail" />
                           </button>
-                        </td>
+                        </td> */}
                       </tr>
                     ))
                   ) : (

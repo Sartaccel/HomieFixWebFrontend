@@ -986,7 +986,7 @@ export const serviceContent = {
         ]
     },
 
-    "Washbasin Installation": {
+    "WashBasin Installation": {
         title: "Washbasin Installation Checklist",
         sections: [
             {
@@ -1344,7 +1344,7 @@ export const serviceContent = {
     },
 
 
-    "Health checkup": {
+    "Vehicle Checkup": {
         title: "Vehicle Health Checkup Checklist",
         sections: [
             {
@@ -1685,7 +1685,7 @@ export const serviceContent = {
         ]
     },
 
-    "PhysioTheraphy": {
+    "PhysioTherapy": {
         title: "Physiotherapy Service Checklist",
         sections: [
             {
@@ -1711,8 +1711,7 @@ export const serviceContent = {
                 items: [
                     "Manual Therapy (Massage, Mobilization)",
                     "Therapeutic Exercises (Stretching, Strengthening)",
-                    "Use of Modalities (Ultrasound, Heat, Cold Therapy)",
-                    "Balance and Coordination Training"
+                    "Use of Modalities (Ultrasound, Heat, Cold Therapy)"
                 ]
             },
             {
@@ -1861,8 +1860,7 @@ export const serviceContent = {
                 items: [
                     "Monitor Vital Signs (Blood Pressure, Temperature, Pulse, Respiration)",
                     "Assess Patient’s Physical and Mental Condition",
-                    "Review Medical History and Current Medications",
-                    "Observe Wound Healing and Skin Condition"
+                    "Review Medical History and Current Medications"
                 ]
             },
             {
@@ -1888,17 +1886,16 @@ export const serviceContent = {
                 items: [
                     "Clean and Dress Wounds as per Medical Instructions",
                     "Monitor for Signs of Infection or Complications",
-                    "Change Dressings Regularly and Maintain Sterility",
-                    "Document Wound Progress and Report Issues"
+                    "Change Dressings Regularly and Maintain Sterility"
+
                 ]
             },
             {
                 title: "Therapeutic Care",
                 items: [
-                    "Assist with Prescribed Exercises and Physical Therapy",
+                    "Assist with Prescribed Physical Therapy",
                     "Administer Injections or IV Therapy if Trained and Authorized",
                     "Provide Respiratory Support (Oxygen Therapy, Nebulization)",
-                    "Monitor Pain Levels and Provide Comfort Measures"
                 ]
             },
             {
