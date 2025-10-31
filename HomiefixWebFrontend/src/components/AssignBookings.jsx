@@ -614,6 +614,7 @@ const AssignBookings = () => {
                             boxSizing: "border-box",
                           }}
                           required
+                          maxLength={400} 
                           onInvalid={(e) => {
                             e.target.setCustomValidity(
                               "Please enter some notes"
@@ -623,6 +624,15 @@ const AssignBookings = () => {
                             e.target.setCustomValidity("");
                           }}
                         ></textarea>
+                        <p
+                          style={{
+                            fontSize: "12px",
+                            color: "#6c757d",
+                            marginTop: "5px",
+                          }}
+                        >
+                          {notes.length}/400 characters
+                        </p>
                         <button
                           className="btn position-absolute"
                           onClick={(e) => {
@@ -636,7 +646,7 @@ const AssignBookings = () => {
                           onMouseLeave={() => setIsSaveHovered(false)}
                           disabled={isSaving}
                           style={{
-                            bottom: "10px",
+                            bottom: "30px",
                             right: "10px",
                             padding: "5px 10px",
                             borderRadius: "5px",

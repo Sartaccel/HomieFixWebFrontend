@@ -1894,7 +1894,7 @@ export const serviceContent = {
                 title: "Therapeutic Care",
                 items: [
                     "Assist with Prescribed Physical Therapy",
-                    "Administer Injections or IV Therapy if Trained and Authorized",
+                    "Administer Injections or IV Therapy if Trained",
                     "Provide Respiratory Support (Oxygen Therapy, Nebulization)",
                 ]
             },

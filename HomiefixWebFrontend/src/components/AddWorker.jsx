@@ -123,6 +123,12 @@ const AddWorker = () => {
       return;
     }
 
+    if (name === "language" && !/^[A-Za-z\s]*$/.test(value)) {
+    return; 
+  }
+
+  setFormData({ ...formData, [name]: value });
+
     switch (name) {
       case "name":
         error = !validateName(value)
