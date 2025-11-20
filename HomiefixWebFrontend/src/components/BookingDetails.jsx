@@ -24,7 +24,6 @@ import Header from "./Header";
 import api from "../api";
 import CustomCalendar from "./CustomCalendar";
 
-
 const hasBookingChanges = (newBookings, prevBookings) => {
   if (newBookings.length !== prevBookings.length) return true;
 
@@ -904,7 +903,16 @@ const BookingDetails = () => {
                                 </span>
                               </div>
                             ) : (
-                              <span>{truncateText(booking.cancelReason)}</span>
+                              <span
+                                style={{
+                                  display: "block",
+                                  whiteSpace: "normal",
+                                  wordWrap: "break-word",
+                                  overflowWrap: "anywhere",
+                                }}
+                              >
+                                {truncateText(booking.cancelReason)}
+                              </span>
                             )}
                           </td>
                         )}

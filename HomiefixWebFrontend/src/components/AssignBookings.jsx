@@ -9,6 +9,9 @@ import "../styles/AssignBookings.css";
 import bookingDetails from "../assets/BookingDetails.png";
 import Header from "./Header";
 import api from "../api";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 const AssignBookings = () => {
   const { id } = useParams();
@@ -234,7 +237,15 @@ const AssignBookings = () => {
         }
       );
       if (response.status === 200) {
-        alert("Worker assigned successfully");
+         toast.success("Worker assigned successfully!", {
+        position: "bottom-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored",
+      });
         navigate(-1);
       } else {
         alert("Failed to assign worker");
@@ -276,7 +287,16 @@ const AssignBookings = () => {
       );
 
       if (response.status === 200) {
-        alert("Notes saved successfully");
+         toast.success("Notes saved successfully!", {
+        position: "bottom-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored",
+      });
+
       } else {
         alert("Failed to save notes");
       }
@@ -640,6 +660,7 @@ const AssignBookings = () => {
                             const textarea = document.getElementById("notes");
                             if (textarea.reportValidity()) {
                               saveNotes();
+                              
                             }
                           }}
                           onMouseEnter={() => setIsSaveHovered(true)}
@@ -676,7 +697,10 @@ const AssignBookings = () => {
                       </>
                     )}
                   </div>
+                            <ToastContainer />
+
                 </div>
+                
 
                 {/* Right Card - Service Details */}
                 <div
@@ -957,6 +981,7 @@ const AssignBookings = () => {
         </main>
       </div>
     </div>
+    
   );
 };
 

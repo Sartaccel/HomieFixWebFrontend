@@ -15,6 +15,8 @@ const WorkerDetails = ({ token, setToken }) => {
   const [selectedSpecifications, setSelectedSpecifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showToast, setShowToast] = useState(false);
+
 
   useEffect(() => {
     const fetchWorkers = async () => {
@@ -49,6 +51,14 @@ const WorkerDetails = ({ token, setToken }) => {
     };
     fetchWorkers();
   }, [token, setToken, navigate]);
+    useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => {
+        setShowToast(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showToast]);
   const specifications = {
     "Home Appliances": [
       "AC",
@@ -147,6 +157,60 @@ const WorkerDetails = ({ token, setToken }) => {
     <div>
       <Header />
 
+      
+
+
+
+
+
+
+
+ {/* Toast Notification */}
+      {showToast && (
+        <div
+          className="alert alert-warning alert-dismissible fade show"
+          style={{
+            position: "fixed",
+            top: "75px",
+            right: "30px",
+            zIndex: 9999,
+            width: "350px",
+            border: "none",
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            backgroundColor: "#fff",
+            color: "#333",
+            padding: "16px",
+          }}
+          role="alert"
+        >
+          <div className="d-flex align-items-center">
+            <i
+              className="bi bi-exclamation-circle-fill me-2"
+              style={{
+                fontSize: "1.5rem",
+                color: "#0076CE"
+              }}
+            ></i>
+            <div>
+              <h6 className="mb-1" style={{ fontWeight: "600", color: "#333" }}>
+                Please Select atleast one Service
+              </h6>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn-close"
+            onClick={() => setShowToast(false)}
+            style={{
+              position: "absolute",
+              top: "5px",
+              right: "12px",
+            }}
+          ></button>
+        </div>
+      )}
+
       <div className="container pt-5" style={{ paddingTop: "80px" }}>
         <div
           className="d-flex justify-content-between align-items-center mb-3 mt-5"
@@ -239,7 +303,7 @@ const WorkerDetails = ({ token, setToken }) => {
                     style={{ backgroundColor: "#0076CE", color: "white" }}
                     onClick={() => {
                       if (selectedSpecifications.length === 0) {
-                        alert("Please select at least one service");
+                         setShowToast(true);
                       } else {
                         setShowFilter(false);
                       }

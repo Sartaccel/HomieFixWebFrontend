@@ -211,7 +211,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
         minute: "2-digit",
         hour12: true,
       });
-      
+
       return `${formattedDate} | ${formattedTime}`;
     } catch (e) {
       return "Not Assigned";
@@ -392,13 +392,13 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                       Booking Successful on{" "}
                       {safeBooking.bookedDate
                         ? new Date(safeBooking.bookedDate).toLocaleDateString(
-                          "en-IN",
-                          {
-                            month: "short",
-                            day: "2-digit",
-                            year: "numeric",
-                          }
-                        )
+                            "en-IN",
+                            {
+                              month: "short",
+                              day: "2-digit",
+                              year: "numeric",
+                            }
+                          )
                         : "Not Assigned"}
                       {safeBooking.timeSlot ? ` | ${safeBooking.timeSlot}` : ""}
                     </>
@@ -414,27 +414,37 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                 ></td>
               </tr>
 
-
               {bookingInfo.date && bookingInfo.timeSlot && (
                 <tr
                   style={{
                     color: "grey",
-                    borderLeft: `4px solid ${bookingInfo.label.includes("Rescheduled") ? "#C14810" : "#F4B400"}`,
+                    borderLeft: `4px solid ${
+                      bookingInfo.label.includes("Rescheduled")
+                        ? "#C14810"
+                        : "#F4B400"
+                    }`,
                   }}
                 >
-                  <td className="text-start border-right" style={{ border: "1px solid #E6E6E6" }}>
+                  <td
+                    className="text-start border-right"
+                    style={{ border: "1px solid #E6E6E6" }}
+                  >
                     {isLoading ? (
                       <>
                         <SkeletonLoader width="60%" height="12px" />
                         <SkeletonLoader
                           width="80%"
                           height="16px"
-                          style={{ marginTop: "4px" }} />
+                          style={{ marginTop: "4px" }}
+                        />
                       </>
                     ) : (
                       <>
                         <span>
-                          {formatDateTime(bookingInfo.dateLabel, bookingInfo.timeLabel)}
+                          {formatDateTime(
+                            bookingInfo.dateLabel,
+                            bookingInfo.timeLabel
+                          )}
                         </span>
                         <span
                           className="booking-details"
@@ -456,18 +466,24 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                             <span style={{ color: bookingInfo.color }}>
                               {bookingInfo.label}{" "}
                               {bookingInfo.date
-                                ? new Date(bookingInfo.date).toLocaleDateString("en-IN", {
-                                  month: "short",
-                                  day: "2-digit",
-                                  year: "numeric",
-                                })
+                                ? new Date(bookingInfo.date).toLocaleDateString(
+                                    "en-IN",
+                                    {
+                                      month: "short",
+                                      day: "2-digit",
+                                      year: "numeric",
+                                    }
+                                  )
                                 : "Not Assigned"}{" "}
                               | {bookingInfo.timeSlot || "Not Assigned"}
                             </span>
                           </span>
                           <span style={{ fontSize: "14px" }}>
                             {bookingInfo.reason?.split(" ").length > 7
-                              ? bookingInfo.reason.split(" ").slice(0, 7).join(" ") + "..."
+                              ? bookingInfo.reason
+                                  .split(" ")
+                                  .slice(0, 7)
+                                  .join(" ") + "..."
                               : bookingInfo.reason}
                           </span>
                         </span>
@@ -513,6 +529,7 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                             flexDirection: "column",
                             gap: "5px",
                             fontSize: "14px",
+                            minWidth: 0,
                           }}
                         >
                           <span
@@ -526,13 +543,22 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                               Service Cancelled
                             </span>
                           </span>
-                          <span style={{ fontSize: "14px" }}>
+                          <span
+                            style={{
+                              fontSize: "14px",
+                              display: "block",
+                              minWidth: 0,
+                              overflowWrap: "anywhere",
+                              wordBreak: "break-word",
+                              whiteSpace: "normal",
+                            }}
+                          >
                             {safeBooking.cancelReason
                               ? safeBooking.cancelReason.split(" ").length > 7
                                 ? safeBooking.cancelReason
-                                  .split(" ")
-                                  .slice(0, 7)
-                                  .join(" ") + "..."
+                                    .split(" ")
+                                    .slice(0, 7)
+                                    .join(" ") + "..."
                                 : safeBooking.cancelReason
                               : ""}
                           </span>
@@ -641,9 +667,9 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                       <span style={{ color: "grey" }}>
                         {serviceStarted === "Yes"
                           ? formatDateTime(
-                            localServiceStarted.date,
-                            localServiceStarted.time
-                          )
+                              localServiceStarted.date,
+                              localServiceStarted.time
+                            )
                           : "Not Assigned"}
                       </span>
                       <br />
@@ -725,9 +751,9 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                       <span style={{ color: "grey" }}>
                         {serviceCompleted === "Yes"
                           ? formatDateTime(
-                            localServiceCompleted.date,
-                            localServiceCompleted.time
-                          )
+                              localServiceCompleted.date,
+                              localServiceCompleted.time
+                            )
                           : "Not Assigned"}
                       </span>
                       <br />
@@ -818,21 +844,21 @@ const ManageStatus = ({ booking, onStatusUpdate, onReschedule, onCancel }) => {
                         borderRadius: "12px",
                         backgroundColor:
                           safeBooking.bookingStatus === "CANCELLED" ||
-                            loading ||
-                            safeBooking.bookingStatus === "COMPLETED"
+                          loading ||
+                          safeBooking.bookingStatus === "COMPLETED"
                             ? "#A0A0A0"
                             : "#0076CE",
                         marginBottom: "10px",
                         cursor:
                           safeBooking.bookingStatus === "CANCELLED" ||
-                            loading ||
-                            safeBooking.bookingStatus === "COMPLETED"
+                          loading ||
+                          safeBooking.bookingStatus === "COMPLETED"
                             ? "not-allowed"
                             : "pointer",
                         opacity:
                           safeBooking.bookingStatus === "CANCELLED" ||
-                            loading ||
-                            safeBooking.bookingStatus === "COMPLETED"
+                          loading ||
+                          safeBooking.bookingStatus === "COMPLETED"
                             ? 0.6
                             : 1,
                         display: "flex",

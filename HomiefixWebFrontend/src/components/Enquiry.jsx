@@ -1,3 +1,4 @@
+// 
 import Header from "./Header";
 import api from "../api";
 import React, { useState, useEffect } from "react";
@@ -11,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
+
 const Enquiry = () => {
   const [activeTab, setActiveTab] = useState("worker_request");
   const [workerRequests, setWorkerRequests] = useState([]);
@@ -22,24 +24,31 @@ const Enquiry = () => {
   const [existingWorkers, setExistingWorkers] = useState([]);
   const [approvedWorkers, setApprovedWorkers] = useState([]);
 
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
 
+
       try {
         const res = await api.get("/static/partner/all");
+
 
         const sortedRequests = res.data.sort((a, b) => {
           return new Date(b.partnerJdate) - new Date(a.partnerJdate);
         });
 
+
         setWorkerRequests(sortedRequests);
 
+
         const Sres = await api.get("/static/contact/all");
+
 
         const sortedTickets = Sres.data.sort((a, b) => {
           return new Date(b.issuedDate) - new Date(a.issuedDate);
         });
+
 
         setSupportTickets(sortedTickets);
       } catch (error) {
@@ -50,8 +59,10 @@ const Enquiry = () => {
       }
     };
 
+
     fetchData();
   }, [activeTab]);
+
 
   //format date
   const formatDate = (dateString) => {
@@ -60,10 +71,13 @@ const Enquiry = () => {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
 
+
     return `${day}-${month}-${year}`;
   };
 
+
   //For status update
+
 
   const handleStatusUpdate = async (id, newStatus, phoneNumber) => {
     try {
@@ -71,6 +85,7 @@ const Enquiry = () => {
         const alreadyExists = existingWorkers.some(
           (worker) => worker.contactNumber === phoneNumber
         );
+
 
         if (alreadyExists) {
           alert("Worker already exists!");
@@ -81,6 +96,7 @@ const Enquiry = () => {
                 : worker
             )
           );
+
 
           return;
         }
@@ -98,6 +114,7 @@ const Enquiry = () => {
     }
   };
 
+
   //fetch existing user
   useEffect(() => {
     const fetchExistingWorkers = async () => {
@@ -109,8 +126,16 @@ const Enquiry = () => {
       }
     };
 
+
     fetchExistingWorkers();
   }, []);
+
+
+  // Check if worker already exists
+  const checkWorkerExists = (phoneNumber) => {
+    return existingWorkers.some((worker) => worker.contactNumber === phoneNumber);
+  };
+
 
   const getStatusIcon = (status) => {
     if (status === "PENDING") {
@@ -123,6 +148,7 @@ const Enquiry = () => {
       return null;
     }
   };
+
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -284,95 +310,116 @@ const Enquiry = () => {
                     ))
                   ) : activeTab === "worker_request" ? (
                     workerRequests.length > 0 ? (
-                      workerRequests.map((worker) => (
-                        <tr key={worker.id}>
-                          <td className="p-3 text-left align-middle">
-                            {worker.service}
-                          </td>
-                          <td className="p-3 text-left align-middle">
-                            {worker.fullName}
-                          </td>
-                          <td className="p-3 text-left align-middle">
-                            {worker.phoneNumber}
-                          </td>
-                          <td className="p-3 text-left align-middle">
-                            {formatDate(worker.partnerJdate || "—")}
-                          </td>
-                          <td className="p-3 text-left align-middle">
-                            {getStatusIcon(worker.joiningStatus)}
-                          </td>
-                          <td className="p-3 text-left align-middle">
-                            {worker.joiningStatus === "PENDING" && (
-                              <>
-                                <button
-                                  onClick={() =>
-                                    handleStatusUpdate(
-                                      worker.id,
-                                      "APPROVED",
-                                      worker.phoneNumber
-                                    )
-                                  }
-                                  style={{
-                                    background: "none",
-                                    border: "none",
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  <img src={tick} alt="Accept" width="25" />
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleStatusUpdate(
-                                      worker.id,
-                                      "REJECTED",
-                                      worker.phoneNumber
-                                    )
-                                  }
-                                  style={{
-                                    background: "none",
-                                    border: "none",
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  <img src={cross} alt="Reject" width="25" />
-                                </button>
-                              </>
-                            )}
-                            {worker.joiningStatus === "APPROVED" && (
-                              <button
-                                className="btn text-light me-2"
-                                onClick={() => {
-                                  const workerExists = existingWorkers.some(
-                                    (w) =>
-                                      w.contactNumber === worker.phoneNumber
-                                  );
+                      workerRequests.map((worker) => {
+                        const workerExists = checkWorkerExists(worker.phoneNumber);
+                       
+                        return (
+                          <tr key={worker.id}>
+                            <td className="p-3 text-left align-middle">
+                              {worker.service}
+                            </td>
+                            <td className="p-3 text-left align-middle">
+                              {worker.fullName}
+                            </td>
+                            <td className="p-3 text-left align-middle">
+                              {worker.phoneNumber}
+                            </td>
+                            <td className="p-3 text-left align-middle">
+                              {formatDate(worker.partnerJdate || "—")}
+                            </td>
+                            <td className="p-3 text-left align-middle">
+                              {getStatusIcon(worker.joiningStatus)}
+                            </td>
+                            <td className="p-3 text-left align-middle">
+                              {worker.joiningStatus === "PENDING" && (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      handleStatusUpdate(
+                                        worker.id,
+                                        "APPROVED",
+                                        worker.phoneNumber
+                                      )
+                                    }
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    <img src={tick} alt="Accept" width="25" />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleStatusUpdate(
+                                        worker.id,
+                                        "REJECTED",
+                                        worker.phoneNumber
+                                      )
+                                    }
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    <img src={cross} alt="Reject" width="25" />
+                                  </button>
+                                </>
+                              )}
+                              {worker.joiningStatus === "APPROVED" && (
+                                <>
+                                  {workerExists ? (
+                                    <button
+                                      className="btn text-light me-2"
+                                      disabled
+                                      style={{
+                                        backgroundColor: "#0076CE",
+                                        height: "32px",
+                                        fontSize: "12px",
+                                        padding: "5px 10px",
+                                        cursor: "not-allowed",
+                                      }}
+                                    >
+                                      Worker Already Exists
+                                    </button>
+                                  ) : (
+                                    <button
+        className="btn text-light me-2"
+        onClick={() => {
+          // Pass worker data to the AddWorker page
+          navigate("/worker-details/add-worker", {
+            state: {
+              workerData: {
+                name: worker.fullName,
+                contactNumber: worker.phoneNumber,
+                service: worker.service,
+                // Add any other fields you want to pass
+              }
+            }
+          });
+        }}
+                                      style={{
+                                        backgroundColor: "#0076CE",
+                                        height: "32px",
+                                        fontSize: "12px",
+                                        padding: "5px 10px",
+                                      }}
+                                    >
+                                      Add Worker
+                                    </button>
+                                  )}
+                                </>
+                              )}
 
-                                  if (workerExists) {
-                                    alert("Worker already exists!");
 
-                                    console.log("ex");
-                                  } else {
-                                    console.log("no ex");
-                                    navigate("/worker-details/add-worker");
-                                  }
-                                }}
-                                style={{
-                                  backgroundColor: "#0076CE",
-                                  height: "32px",
-                                  fontSize: "12px",
-                                  padding: "5px 10px",
-                                }}
-                              >
-                                Add Worker
-                              </button>
-                            )}
-
-                            {worker.joiningStatus === "REJECTED" && (
-                              <span>N/A</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))
+                              {worker.joiningStatus === "REJECTED" && (
+                                <span>N/A</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       <tr>
                         <td colSpan="6" className="text-center text-muted">
@@ -446,4 +493,6 @@ const Enquiry = () => {
   );
 };
 
+
 export default Enquiry;
+
