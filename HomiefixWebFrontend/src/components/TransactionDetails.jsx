@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "./Header";
 import api from "../api";
@@ -37,7 +37,7 @@ const TransactionDetails = ({ token, setToken }) => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [statusFilter, setStatusFilter] = useState("All");
   const [details, setDetails] = useState([]);
-  const [loading, setLoading] = useState([true]);
+  const [loading, setLoading] = useState(true);
   const [profiles, setProfiles] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -45,6 +45,11 @@ const TransactionDetails = ({ token, setToken }) => {
     startDate: null,
     endDate: null,
     key: "selection",
+  });
+
+  const [appliedDateRange, setAppliedDateRange] = useState({
+    startDate: null,
+    endDate: null,
   });
 
   useEffect(() => {
@@ -87,19 +92,82 @@ const TransactionDetails = ({ token, setToken }) => {
       setSelectedUsers([]);
     }
   };
+  // ref for the datepicker popup
+  const datePickerRef = useRef(null);
+
+  // close date picker when clicking outside
+  // useEffect(() => {
+  //   function handleOutsideClick(e) {
+  //     if (
+  //       showDatePicker &&
+  //       datePickerRef.current &&
+  //       !datePickerRef.current.contains(e.target)
+  //     ) {
+  //       setShowDatePicker(false);
+  //     }
+  //   }
+
+  //   document.addEventListener("mousedown", handleOutsideClick);
+  //   return () => document.removeEventListener("mousedown", handleOutsideClick);
+  // }, [showDatePicker]);
+
+  // close date picker when clicking outside
+  useEffect(() => {
+    function handleOutsideClick(e) {
+      if (!showDatePicker) return;
+
+      // If click is inside your popup container, do nothing
+      const clickedInsideRef = datePickerRef.current && datePickerRef.current.contains(e.target);
+      if (clickedInsideRef) return;
+
+      // react-date-range often renders calendar nodes into body (portal).
+      // Detect common classnames used by the library and treat clicks there as "inside".
+      const isInDateRangePicker =
+        !!e.target.closest(".rdrCalendarWrapper") ||
+        !!e.target.closest(".rdrDateRangePicker") ||
+        !!e.target.closest(".rdrDateRangePickerWrapper") ||
+        !!e.target.closest(".rdrMonth") ||
+        !!e.target.closest(".rdrDay") ||
+        !!e.target.closest(".rdrDayNumber");
+
+      if (isInDateRangePicker) return;
+
+      // otherwise it's a genuine outside click -> close
+      setShowDatePicker(false);
+    }
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [showDatePicker]);
+
   const filteredBookings = details
     .filter((profile) => {
       if (statusFilter === "Paid" && profile.paymentStatus !== "CAPTURED")
         return false;
       if (statusFilter === "Pending" && profile.paymentStatus !== "PENDING")
         return false;
+      if (statusFilter === "N/A" &&
+        (profile.paymentStatus === "CAPTURED" || profile.paymentStatus === "PENDING"))
+        return false;
 
-      if (dateRange.startDate && dateRange.endDate) {
-        const bookingDate = new Date(profile.paymentCapturedAt);
-        const start = new Date(dateRange.startDate);
-        const end = new Date(dateRange.endDate);
-        return bookingDate >= start && bookingDate <= end;
+
+
+      if (appliedDateRange.startDate && appliedDateRange.endDate) {
+        const bookingDate = moment(profile.paymentCapturedAt).startOf("day");
+        const start = moment(appliedDateRange.startDate).startOf("day");
+        const end = moment(appliedDateRange.endDate).startOf("day");
+
+        // ✅ If start and end are the same day → match exactly that date
+        if (start.isSame(end, "day")) {
+          return bookingDate.isSame(start, "day");
+        }
+
+        // ✅ Normal range (inclusive)
+        return (
+          bookingDate.isSameOrAfter(start) && bookingDate.isSameOrBefore(end)
+        );
       }
+
 
       return true;
     })
@@ -107,13 +175,32 @@ const TransactionDetails = ({ token, setToken }) => {
       (a, b) => new Date(b.paymentCapturedAt) - new Date(a.paymentCapturedAt)
     );
 
+  // const filteredBookings = details
+  //   .filter((profile) => {
+  //     if (statusFilter === "Paid" && profile.paymentStatus !== "CAPTURED")
+  //       return false;
+  //     if (statusFilter === "Pending" && profile.paymentStatus !== "PENDING")
+  //       return false;
+
+  //     if (dateRange.startDate && dateRange.endDate) {
+  //       const bookingDate = new Date(profile.paymentCapturedAt);
+  //       const start = new Date(dateRange.startDate);
+  //       const end = new Date(dateRange.endDate);
+  //       return bookingDate >= start && bookingDate <= end;
+  //     }
+
+  //     return true;
+  //   })
+  //   .sort(
+  //     (a, b) => new Date(b.paymentCapturedAt) - new Date(a.paymentCapturedAt)
+  //   );
+
   const getDateRangeLabel = () => {
     if (!dateRange.startDate && !dateRange.endDate) {
       return "Select Date Range";
     }
-    return `${dateRange.startDate ? formatDate(dateRange.startDate) : ""} - ${
-      dateRange.endDate ? formatDate(dateRange.endDate) : ""
-    }`;
+    return `${dateRange.startDate ? formatDate(dateRange.startDate) : ""} - ${dateRange.endDate ? formatDate(dateRange.endDate) : ""
+      }`;
   };
 
   const handleUserSelect = (userId) => {
@@ -134,14 +221,24 @@ const TransactionDetails = ({ token, setToken }) => {
   };
 
   const applyDateFilter = () => {
+    // copy the currently selected calendar range into the *applied* range
+    setAppliedDateRange({
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate,
+    });
     setShowDatePicker(false);
   };
+
 
   const clearDateFilter = () => {
     setDateRange({
       startDate: null,
       endDate: null,
       key: "selection",
+    });
+    setAppliedDateRange({
+      startDate: null,
+      endDate: null,
     });
     setShowDatePicker(false);
   };
@@ -249,7 +346,7 @@ const TransactionDetails = ({ token, setToken }) => {
     <div>
       <Header />
 
-      <div className="container pt-5" style={{ paddingTop: "80px" }}>
+      <div className="container-fluid pt-5" style={{ paddingTop: "80px" }}>
         <div
           className="d-flex justify-content-between align-items-center mb-3 mt-5"
           style={{ marginRight: "25px" }}
@@ -264,15 +361,17 @@ const TransactionDetails = ({ token, setToken }) => {
             <div className="me-3 position-relative">
               <button
                 type="button"
-                className="btn btn-outline-secondary"
+                className="btn btn-outline-secondary "
                 onClick={() => setShowDatePicker(!showDatePicker)}
               >
                 {getDateRangeLabel()} <i className="bi bi-calendar"></i>
               </button>
               {showDatePicker && (
                 <div
-                  className="position-absolute bg-white p-3 border shadow rounded mt-1 z-3 position-fixed"
-                  style={{ marginLeft: "-70px" }}
+                  className="position-absolute bg-white p-3 border shadow rounded mt-1 z-3 "
+                  style={{ marginLeft: "-70px", position: "absolute" }}
+                  onMouseDown={(e) => e.stopPropagation()} // prevent flicker
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <DateRangePicker
                     ranges={[dateRange]}
@@ -282,13 +381,19 @@ const TransactionDetails = ({ token, setToken }) => {
                   <div className="d-flex justify-content-end mt-2">
                     <button
                       className="btn btn-sm btn-outline-secondary me-2"
-                      onClick={clearDateFilter}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        clearDateFilter();
+                      }}
                     >
                       Clear
                     </button>
                     <button
                       className="btn btn-sm "
-                      onClick={applyDateFilter}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        applyDateFilter();
+                      }}
                       style={{ backgroundColor: "#0076CE", color: "white" }}
                     >
                       Apply
@@ -301,15 +406,36 @@ const TransactionDetails = ({ token, setToken }) => {
             <PDFDownloadLink
               document={<TransactionPDFDocument />}
               fileName={`user-details-${moment().format("YYYY-MM-DD")}.pdf`}
-              className="btn text-light"
-              style={{
-                backgroundColor: "#0076CE",
-                pointerEvents: selectedUsers.length === 0 ? "none" : "auto",
-                opacity: selectedUsers.length === 0 ? 0.6 : 1,
-              }}
+              style={{ textDecoration: "none" }}
             >
-              {({ loading }) => (loading ? "Generating PDF..." : "Export")}
+              {({ loading }) => (
+                <button
+                  className="btn text-light d-flex align-items-center gap-2"
+                  style={{
+                    backgroundColor: "#0076CE",
+                    pointerEvents:
+                      selectedUsers.length === 0 || loading ? "none" : "auto",
+                    opacity: selectedUsers.length === 0 ? 0.6 : 1,
+                    width: "70px",
+                    height: "38px",
+                  }}
+                >
+                  {loading ? (
+                    <>
+                      <span
+                        className="spinner-border spinner-border-sm"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
+                    </>
+                  ) : (
+                    "Export"
+                  )}
+                </button>
+              )}
             </PDFDownloadLink>
+
+
           </div>
         </div>
         <div style={{ overflow: "hidden", padding: "10px 15px" }}>
@@ -393,6 +519,7 @@ const TransactionDetails = ({ token, setToken }) => {
                         <ul
                           className="dropdown-menu"
                           aria-labelledby="statusFilterDropdown"
+                        // style={{ maxHeight: "130px", overflowY: "auto" }}
                         >
                           <li>
                             <button
@@ -400,9 +527,9 @@ const TransactionDetails = ({ token, setToken }) => {
                               style={
                                 statusFilter === "All"
                                   ? {
-                                      backgroundColor: "#0076CE",
-                                      color: "white",
-                                    }
+                                    backgroundColor: "#0076CE",
+                                    color: "white",
+                                  }
                                   : {}
                               }
                               onClick={() => setStatusFilter("All")}
@@ -416,9 +543,9 @@ const TransactionDetails = ({ token, setToken }) => {
                               style={
                                 statusFilter === "Paid"
                                   ? {
-                                      backgroundColor: "#0076CE",
-                                      color: "white",
-                                    }
+                                    backgroundColor: "#0076CE",
+                                    color: "white",
+                                  }
                                   : {}
                               }
                               onClick={() => setStatusFilter("Paid")}
@@ -432,9 +559,9 @@ const TransactionDetails = ({ token, setToken }) => {
                               style={
                                 statusFilter === "Pending"
                                   ? {
-                                      backgroundColor: "#0076CE",
-                                      color: "white",
-                                    }
+                                    backgroundColor: "#0076CE",
+                                    color: "white",
+                                  }
                                   : {}
                               }
                               onClick={() => setStatusFilter("Pending")}
@@ -442,6 +569,20 @@ const TransactionDetails = ({ token, setToken }) => {
                               Pending
                             </button>
                           </li>
+                          <li>
+                            <button
+                              className="dropdown-item"
+                              style={
+                                statusFilter === "N/A"
+                                  ? { backgroundColor: "#0076CE", color: "white" }
+                                  : {}
+                              }
+                              onClick={() => setStatusFilter("N/A")}
+                            >
+                              N/A
+                            </button>
+                          </li>
+
                         </ul>
                       </div>
                     </th>
@@ -521,27 +662,37 @@ const TransactionDetails = ({ token, setToken }) => {
                               {booking.paymentStatus === "PENDING"
                                 ? "Pending"
                                 : booking.paymentStatus === "CAPTURED"
-                                ? "Paid"
-                                : "N/A"}
+                                  ? "Paid"
+                                  : "N/A"}
                             </span>
                           </td>
 
-                          <td className="p-2 pt-3 ps-3">
-                            <button  onClick={() =>
+                          <td>
+                            <button
+                              className="btn btn-link p-2"
+                              onClick={() =>
                                 navigate(`/transaction-details/${booking.id}`)
-                              }>
+                              }
+                              style={{ color: "#474444" }}
+                            >
                               <i className="bi bi-eye"></i>
-                             
                             </button>
                           </td>
+
+
                         </tr>
                       );
                     })
                   ) : (
                     <tr>
-                      <td colSpan="8" className="text-center py-5">
+                      <td
+                        colSpan="8"
+                        className="text-center"
+                        style={{ height: "150px", verticalAlign: "middle" }}
+                      >
                         No users found matching your criteria
                       </td>
+
                     </tr>
                   )}
                 </tbody>

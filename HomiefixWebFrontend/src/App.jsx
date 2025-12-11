@@ -28,7 +28,10 @@ import Enquiry from "./components/Enquiry"
 import Email from "./components/Email"
 import TransactionDetails from"./components/TransactionDetails"
 import Transaction from "./components/Transaction";
-
+import AddCategory from "./components/AddCategory"; // Add this import
+import AddService from "./components/AddService"; // Add this import
+import Coupon from "./components/Coupon"; 
+import Banner from "./components/Banner"; 
 
 const App = () => {
   const navigate = useNavigate();
@@ -62,6 +65,8 @@ const App = () => {
           <Route path="/worker-details/worker/edit/:id" element={<EditWorker />} />
           <Route path="/services" element={<Services />} />
           <Route path="/services/:productId" element={<Service />} />
+          <Route path="/services/add-category" element={<AddCategory />} /> {/* Fixed this line */}
+          <Route path="/services/add-service" element={<AddService />} />
           <Route path="/profile/:username" element={<Profile />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/customer-details" element={<UserDetails />} />
@@ -70,6 +75,8 @@ const App = () => {
           <Route path="/mail" element={<Email />} />
           <Route path="/transaction-details" element={<TransactionDetails/>}/>
           <Route path="/transaction-details/:id" element = {<Transaction/>} />
+          <Route path="/coupon" element={<Coupon />} />
+          <Route path="/banner" element={<Banner />} />
         </Route>
       </Route>
     </Routes>

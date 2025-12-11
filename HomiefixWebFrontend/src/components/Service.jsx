@@ -12,7 +12,8 @@ const Service = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const { productId } = useParams();
+  const { productId } = useParams();Z
+
 
   useEffect(() => {
     const fetchServiceData = async () => {

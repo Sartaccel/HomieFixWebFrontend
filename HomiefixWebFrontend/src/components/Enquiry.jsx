@@ -1,4 +1,3 @@
-// 
 import Header from "./Header";
 import api from "../api";
 import React, { useState, useEffect } from "react";
@@ -12,7 +11,6 @@ import { useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
-
 const Enquiry = () => {
   const [activeTab, setActiveTab] = useState("worker_request");
   const [workerRequests, setWorkerRequests] = useState([]);
@@ -24,31 +22,24 @@ const Enquiry = () => {
   const [existingWorkers, setExistingWorkers] = useState([]);
   const [approvedWorkers, setApprovedWorkers] = useState([]);
 
-
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
 
-
       try {
         const res = await api.get("/static/partner/all");
-
 
         const sortedRequests = res.data.sort((a, b) => {
           return new Date(b.partnerJdate) - new Date(a.partnerJdate);
         });
 
-
         setWorkerRequests(sortedRequests);
 
-
         const Sres = await api.get("/static/contact/all");
-
 
         const sortedTickets = Sres.data.sort((a, b) => {
           return new Date(b.issuedDate) - new Date(a.issuedDate);
         });
-
 
         setSupportTickets(sortedTickets);
       } catch (error) {
@@ -59,10 +50,8 @@ const Enquiry = () => {
       }
     };
 
-
     fetchData();
   }, [activeTab]);
-
 
   //format date
   const formatDate = (dateString) => {
@@ -71,13 +60,10 @@ const Enquiry = () => {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
 
-
     return `${day}-${month}-${year}`;
   };
 
-
   //For status update
-
 
   const handleStatusUpdate = async (id, newStatus, phoneNumber) => {
     try {
@@ -85,7 +71,6 @@ const Enquiry = () => {
         const alreadyExists = existingWorkers.some(
           (worker) => worker.contactNumber === phoneNumber
         );
-
 
         if (alreadyExists) {
           alert("Worker already exists!");
@@ -96,7 +81,6 @@ const Enquiry = () => {
                 : worker
             )
           );
-
 
           return;
         }
@@ -114,7 +98,6 @@ const Enquiry = () => {
     }
   };
 
-
   //fetch existing user
   useEffect(() => {
     const fetchExistingWorkers = async () => {
@@ -126,16 +109,13 @@ const Enquiry = () => {
       }
     };
 
-
     fetchExistingWorkers();
   }, []);
-
 
   // Check if worker already exists
   const checkWorkerExists = (phoneNumber) => {
     return existingWorkers.some((worker) => worker.contactNumber === phoneNumber);
   };
-
 
   const getStatusIcon = (status) => {
     if (status === "PENDING") {
@@ -148,7 +128,6 @@ const Enquiry = () => {
       return null;
     }
   };
-
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -312,7 +291,7 @@ const Enquiry = () => {
                     workerRequests.length > 0 ? (
                       workerRequests.map((worker) => {
                         const workerExists = checkWorkerExists(worker.phoneNumber);
-                       
+                        
                         return (
                           <tr key={worker.id}>
                             <td className="p-3 text-left align-middle">
@@ -412,7 +391,6 @@ const Enquiry = () => {
                                 </>
                               )}
 
-
                               {worker.joiningStatus === "REJECTED" && (
                                 <span>N/A</span>
                               )}
@@ -493,6 +471,4 @@ const Enquiry = () => {
   );
 };
 
-
 export default Enquiry;
-

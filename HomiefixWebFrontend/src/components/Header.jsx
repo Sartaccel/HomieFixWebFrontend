@@ -29,6 +29,8 @@ const Header = () => {
     if (location.pathname.startsWith("/profile")) return "Profile";
     if (location.pathname.startsWith("/enquiry")) return "Enquiry";
     if (location.pathname.startsWith("/mail")) return "Email";
+    if (location.pathname.startsWith("/coupon")) return "Coupons";
+    if (location.pathname.startsWith("/banner")) return "Banners"; 
 
 
     return "Dashboard";

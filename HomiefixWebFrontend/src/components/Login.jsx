@@ -17,7 +17,7 @@ const Login = ({ setToken }) => {
   const [focusedField, setFocusedField] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showLoading, setShowLoading] = useState(true);
-
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     setTimeout(() => setShowLoading(false), 3000); // Show loading for 3 seconds
@@ -109,7 +109,7 @@ const Login = ({ setToken }) => {
                   border: `2px solid ${
                     isInvalid
                       ? "#B8141A"
-                      : focusedField === "username"
+                      : focusedField === "username && password"
                       ? "#0076CE"
                       : "transparent"
                   }`,
@@ -181,8 +181,9 @@ const Login = ({ setToken }) => {
                     height="18"
                   />
                 </span>
+
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   className="form-control border-0 bg-transparent"
                   placeholder="Password"
                   value={password}
@@ -200,6 +201,23 @@ const Login = ({ setToken }) => {
                     boxShadow: "none",
                   }}
                 />
+
+                {/* 👁 Eye Icon Button */}
+                <span
+                  className="input-group-text border-0 bg-transparent"
+                  style={{
+                    cursor: "pointer",
+                    padding: "0 12px",
+                    userSelect: "none",
+                  }}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <i className="bi bi-eye-slash"></i>
+                  ) : (
+                    <i className="bi bi-eye"></i>
+                  )}
+                </span>
               </div>
             </div>
 
@@ -229,18 +247,16 @@ const Login = ({ setToken }) => {
                 color: "white",
                 border: "none",
                 borderRadius: "6px",
-                opacity: loading ? 1 : 1, // Force full opacity even when disabled
+                opacity: loading ? 1 : 1,
                 transition: "background-color 0.3s",
               }}
             >
               {loading ? (
-                <>
-                  <span
-                    className="spinner-border spinner-border-sm"
-                    role="status"
-                    aria-hidden="true"
-                  ></span>
-                </>
+                <span
+                  className="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
               ) : (
                 "Login"
               )}

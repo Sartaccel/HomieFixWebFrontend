@@ -181,7 +181,7 @@ const Dashboard = () => {
       );
       setProductStats(
         productRes.data[
-          `${mostBookingYear}-${mostBookingMonth.toString().padStart(2, "0")}`
+        `${mostBookingYear}-${mostBookingMonth.toString().padStart(2, "0")}`
         ]
       );
     } catch (error) {
@@ -280,8 +280,8 @@ const Dashboard = () => {
     // Get the months that actually have data
     const monthsWithData = monthlyStats?.monthlyStats
       ? Object.keys(monthlyStats.monthlyStats)
-          .filter((key) => key.startsWith(analyticsYear))
-          .map((key) => parseInt(key.split("-")[1]) - 1) // convert to 0-11 index
+        .filter((key) => key.startsWith(analyticsYear))
+        .map((key) => parseInt(key.split("-")[1]) - 1) // convert to 0-11 index
       : [];
 
     // Find the last month with data
@@ -422,7 +422,7 @@ const Dashboard = () => {
             </div>
           </div>
         ) : (
-          <div className="container p-5">
+          <div className="container-fluid pt-5 px-5">
             {/* ✅ Manage Service Header with Year Dropdown */}
             <div
               className="d-flex justify-content-between align-items-center mb-3"
@@ -446,52 +446,52 @@ const Dashboard = () => {
             <div className="row mb-0">
               {loadingStats
                 ? [...Array(4)].map((_, index) => (
-                    <div key={index} className="col-md-3">
-                      <CardSkeleton />
-                    </div>
-                  ))
+                  <div key={index} className="col-md-3">
+                    <CardSkeleton />
+                  </div>
+                ))
                 : stats.map((stat, index) => (
-                    <div key={index} className="col-md-3">
-                      <div
-                        className="card mb-2"
-                        style={{
-                          borderTop: `4px solid ${stat.borderColor}`,
-                          height: "140px",
-                        }}
-                      >
-                        <div className="card-body p-2">
-                          <div className="display-6 mb-1">{stat.icon}</div>
-                          {/* <h3 className="mb-1">
+                  <div key={index} className="col-md-3">
+                    <div
+                      className="card mb-2"
+                      style={{
+                        borderTop: `4px solid ${stat.borderColor}`,
+                        height: "140px",
+                      }}
+                    >
+                      <div className="card-body p-2">
+                        <div className="display-6 mb-1">{stat.icon}</div>
+                        {/* <h3 className="mb-1">
                          {stat.hasData && stat.count !== 0 ? stat.count : "-"}
                        </h3> */}
-                          <h3 className="mb-1">{stat.count}</h3>
-                          <div className="d-flex justify-content-between">
-                            <h6 className="card-title fw-normal">
-                              {stat.title}
-                            </h6>
-                            <div className="d-flex align-items-center gap-2">
-                              {stat.hasData && stat.showArrow ? (
-                                <img
-                                  className="mb-3"
-                                  src={stat.isUp ? uparrow : downarrow}
-                                  alt=""
-                                  height={15}
-                                  width={15}
-                                />
-                              ) : null}
-                              <p>
-                                {stat.hasData && stat.percentage !== 0
-                                  ? `${stat.percentage}%`
-                                  : stat.hasData && stat.showArrow
+                        <h3 className="mb-1">{stat.count}</h3>
+                        <div className="d-flex justify-content-between">
+                          <h6 className="card-title fw-normal">
+                            {stat.title}
+                          </h6>
+                          <div className="d-flex align-items-center gap-2">
+                            {stat.hasData && stat.showArrow ? (
+                              <img
+                                className="mb-3"
+                                src={stat.isUp ? uparrow : downarrow}
+                                alt=""
+                                height={15}
+                                width={15}
+                              />
+                            ) : null}
+                            <p>
+                              {stat.hasData && stat.percentage !== 0
+                                ? `${stat.percentage}%`
+                                : stat.hasData && stat.showArrow
                                   ? `${stat.percentage}%`
                                   : "-"}
-                              </p>
-                            </div>
+                            </p>
                           </div>
                         </div>
                       </div>
                     </div>
-                  ))}
+                  </div>
+                ))}
             </div>
 
             {/* ✅ Two Column Row: Analytics & Most Booking Services */}
@@ -528,11 +528,11 @@ const Dashboard = () => {
                               <strong>
                                 {
                                   months[
-                                    parseInt(
-                                      monthlyStats.highestBookingMonth.month.split(
-                                        "-"
-                                      )[1]
-                                    ) - 1
+                                  parseInt(
+                                    monthlyStats.highestBookingMonth.month.split(
+                                      "-"
+                                    )[1]
+                                  ) - 1
                                   ]
                                 }{" "}
                                 - {monthlyStats.highestBookingMonth.percentage}

@@ -13,7 +13,19 @@
  z-index: 10;
 }
 
-
+.navigation {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    padding-left: 40px;
+    gap: 15px;
+    background-color: #fff;
+    position: fixed;
+    top: 70px;
+    width: 100%;
+    /* z-index: none !important; */
+    border-bottom: 1px solid #ddd;
+}
 .card:hover {
  background-color: #FAFAFA;
 }
@@ -45,6 +57,10 @@
  background-color: #ddd;
  margin-left: 15px;
  border-radius: 4px;
+}
+
+.form-section{
+  margin-top: 10px;
 }
 
 

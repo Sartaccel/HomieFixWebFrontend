@@ -17,7 +17,6 @@ const WorkerDetails = ({ token, setToken }) => {
   const [error, setError] = useState(null);
   const [showToast, setShowToast] = useState(false);
 
-
   useEffect(() => {
     const fetchWorkers = async () => {
       try {
@@ -51,7 +50,10 @@ const WorkerDetails = ({ token, setToken }) => {
     };
     fetchWorkers();
   }, [token, setToken, navigate]);
-    useEffect(() => {
+
+
+  // Auto-hide toast after 3 seconds
+  useEffect(() => {
     if (showToast) {
       const timer = setTimeout(() => {
         setShowToast(false);
@@ -59,6 +61,8 @@ const WorkerDetails = ({ token, setToken }) => {
       return () => clearTimeout(timer);
     }
   }, [showToast]);
+
+
   const specifications = {
     "Home Appliances": [
       "AC",
@@ -157,22 +161,14 @@ const WorkerDetails = ({ token, setToken }) => {
     <div>
       <Header />
 
-      
-
-
-
-
-
-
-
- {/* Toast Notification */}
+      {/* Toast Notification */}
       {showToast && (
         <div
           className="alert alert-warning alert-dismissible fade show"
           style={{
             position: "fixed",
-            top: "75px",
-            right: "30px",
+            top: "70px",
+            right: "70px",
             zIndex: 9999,
             width: "350px",
             border: "none",
@@ -194,7 +190,7 @@ const WorkerDetails = ({ token, setToken }) => {
             ></i>
             <div>
               <h6 className="mb-1" style={{ fontWeight: "600", color: "#333" }}>
-                Please Select atleast one Service
+                Please select at least one service
               </h6>
             </div>
           </div>
@@ -204,14 +200,14 @@ const WorkerDetails = ({ token, setToken }) => {
             onClick={() => setShowToast(false)}
             style={{
               position: "absolute",
-              top: "5px",
+              top: "12px",
               right: "12px",
             }}
           ></button>
         </div>
       )}
 
-      <div className="container pt-5" style={{ paddingTop: "80px" }}>
+      <div className="container-fluid pt-5 px-4" style={{ paddingTop: "80px" }}>
         <div
           className="d-flex justify-content-between align-items-center mb-3 mt-5"
           style={{ marginRight: "25px" }}
@@ -303,7 +299,7 @@ const WorkerDetails = ({ token, setToken }) => {
                     style={{ backgroundColor: "#0076CE", color: "white" }}
                     onClick={() => {
                       if (selectedSpecifications.length === 0) {
-                         setShowToast(true);
+                        setShowToast(true);
                       } else {
                         setShowFilter(false);
                       }
@@ -322,6 +318,7 @@ const WorkerDetails = ({ token, setToken }) => {
               maxHeight: "75vh",
               overflowY: "auto",
               border: "1px solid #dee2e6",
+              width: "97%"
             }}
           >
             {error ? (
@@ -454,12 +451,25 @@ const WorkerDetails = ({ token, setToken }) => {
                             style={{ display: "flex", alignItems: "center" }}
                           >
                             <img
-                              src={worker.profilePicUrl || alenSamImg}
+                              src={
+                                worker.profilePicUrl
+                                  ? encodeURI(
+                                    worker.profilePicUrl
+                                      .trim()
+                                      .replace(/\\/g, "")
+                                  )
+                                  : alenSamImg
+                              }
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = alenSamImg;
+                              }}
                               alt={worker.name}
                               className="square-circle me-2"
                               width="40"
                               height="40"
                             />
+  
                             {worker.name}
                           </div>
                         </td>

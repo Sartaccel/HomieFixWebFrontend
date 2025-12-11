@@ -143,6 +143,56 @@
 }
 
 
+
+/* Marketing dropdown container */
+.dropdown-menu-item {
+  margin-top: 4px;
+}
+
+/* White rounded box behind Coupon / Banner */
+.dropdown-content {
+  margin: 4px 8px 0 8px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+/* Each row: icon + text */
+.dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.6rem 1rem;
+  font-size: 14px;
+  color: #1f2933;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* Divider between rows */
+.dropdown-link + .dropdown-link {
+  border-top: 1px solid #f3f4f6;
+}
+
+/* Hover state */
+.dropdown-link:hover {
+  background: #f5f7fb;
+  text-decoration: none;
+}
+
+/* Active (selected) item – dark blue background, white text */
+.dropdown-link.active {
+  background: #00233f; /* adjust to match your theme */
+  color: #ffffff;
+}
+
+/* Make sure icon is visible on dark background */
+.dropdown-link.active .menu-icon {
+  filter: brightness(10);
+}
+
+
 @media (min-width: 769px) {
     .sidebar {
         transform: translateX(0);
