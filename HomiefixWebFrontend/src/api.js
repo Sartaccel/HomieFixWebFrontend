@@ -1,8 +1,6 @@
 import axios from "axios";
 
-
 let globalNavigate = null;
-
 
 export const setGlobalNavigate = (navigate) => {
   globalNavigate = navigate;
@@ -14,6 +12,7 @@ export const setGlobalNavigate = (navigate) => {
 // http://localhost:1212
 const api = axios.create({
   baseURL: "http://localhost:1212",
+  // baseURL: "http://192.168.86.106:1212",
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json"

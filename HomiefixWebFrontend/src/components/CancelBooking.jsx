@@ -116,6 +116,7 @@ const CancelBooking = ({ id, booking, onClose, onCancelSuccess }) => {
               placeholder="Please specify the reason (required)"
               rows="6"
               value={otherReason}
+              maxLength={250}
               onChange={(e) => setOtherReason(e.target.value)}
               style={{
                 height: "200px",

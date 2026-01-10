@@ -653,29 +653,29 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
           <div className="d-flex flex-wrap gap-2">
             {loadingDates
               ? Array.from({ length: 5 }).map((_, index) => (
-                  <Skeleton key={index} width={100} height={50} />
-                ))
+                <Skeleton key={index} width={100} height={50} />
+              ))
               : availableDates.map((date, index) => (
-                  <button
-                    key={index}
-                    className={`btn btn-sm `}
-                    style={{
-                      fontSize: "15px",
-                      padding: "5px 10px",
-                      borderRadius: "5px",
-                      border:
-                        selectedDate === date
-                          ? "1px solid #0076CE"
-                          : "1px solid #D2D2D2",
-                      color: "#333",
-                      backgroundColor: "transparent",
-                      maxWidth: "93px",
-                    }}
-                    onClick={() => setSelectedDate(date)}
-                  >
-                    {formatDate(date)}
-                  </button>
-                ))}
+                <button
+                  key={index}
+                  className={`btn btn-sm `}
+                  style={{
+                    fontSize: "15px",
+                    padding: "5px 10px",
+                    borderRadius: "5px",
+                    border:
+                      selectedDate === date
+                        ? "1px solid #0076CE"
+                        : "1px solid #D2D2D2",
+                    color: "#333",
+                    backgroundColor: "transparent",
+                    maxWidth: "93px",
+                  }}
+                  onClick={() => setSelectedDate(date)}
+                >
+                  {formatDate(date)}
+                </button>
+              ))}
           </div>
         </div>
         <div
@@ -687,33 +687,33 @@ const ReAssign = ({ id, booking, onClose, onReAssignSuccess }) => {
           <div className="d-flex flex-wrap gap-2">
             {loadingTimes
               ? Array.from({ length: 5 }).map((_, index) => (
-                  <Skeleton key={index} width={80} height={30} />
-                ))
+                <Skeleton key={index} width={80} height={30} />
+              ))
               : availableTimes.map((time, index) => {
-                  const isExpired = isTimeSlotExpired(time);
-                  return (
-                    <button
-                      key={index}
-                      className={`btn btn-sm`}
-                      style={{
-                        fontSize: "15px",
-                        padding: "5px 10px",
-                        borderRadius: "5px",
-                        border:
-                          selectedTimeSlot === time
-                            ? "1px solid #0076CE"
-                            : "1px solid #D2D2D2",
-                        color: isExpired ? "#999" : "#333",
-                        backgroundColor: isExpired ? "#f5f5f5" : "transparent",
-                        cursor: isExpired ? "not-allowed" : "pointer",
-                      }}
-                      onClick={() => !isExpired && setSelectedTimeSlot(time)}
-                      disabled={isExpired}
-                    >
-                      {time}
-                    </button>
-                  );
-                })}
+                const isExpired = isTimeSlotExpired(time);
+                return (
+                  <button
+                    key={index}
+                    className={`btn btn-sm`}
+                    style={{
+                      fontSize: "15px",
+                      padding: "5px 10px",
+                      borderRadius: "5px",
+                      border:
+                        selectedTimeSlot === time
+                          ? "1px solid #0076CE"
+                          : "1px solid #D2D2D2",
+                      color: isExpired ? "#999" : "#333",
+                      backgroundColor: isExpired ? "#f5f5f5" : "transparent",
+                      cursor: isExpired ? "not-allowed" : "pointer",
+                    }}
+                    onClick={() => !isExpired && setSelectedTimeSlot(time)}
+                    disabled={isExpired}
+                  >
+                    {time}
+                  </button>
+                );
+              })}
           </div>
         </div>
         <div

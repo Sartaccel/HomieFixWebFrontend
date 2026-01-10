@@ -24,26 +24,24 @@ const Enquiry = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true); // Start loading
+      setIsLoading(true);
 
       try {
-       
-          const res = await api.get("/static/partner/all");
+        const res = await api.get("/static/partner/all");
 
-          const sortedRequests = res.data.sort((a, b) => {
-            return new Date(b.partnerJdate) - new Date(a.partnerJdate);
-          });
+        const sortedRequests = res.data.sort((a, b) => {
+          return new Date(b.partnerJdate) - new Date(a.partnerJdate);
+        });
 
-          setWorkerRequests(sortedRequests);
-        
-          const Sres = await api.get("/static/contact/all");
+        setWorkerRequests(sortedRequests);
 
-          const sortedTickets = Sres.data.sort((a, b) => {
-            return new Date(b.issuedDate) - new Date(a.issuedDate);
-          });
+        const Sres = await api.get("/static/contact/all");
 
-          setSupportTickets(sortedTickets);
-        
+        const sortedTickets = Sres.data.sort((a, b) => {
+          return new Date(b.issuedDate) - new Date(a.issuedDate);
+        });
+
+        setSupportTickets(sortedTickets);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -87,7 +85,9 @@ const Enquiry = () => {
           return;
         }
       }
-      await api.put(`/static/partner/status/${id}?status=${newStatus}&phoneNumber=${phoneNumber}`);
+      await api.put(
+        `/static/partner/status/${id}?status=${newStatus}&phoneNumber=${phoneNumber}`
+      );
       setWorkerRequests((prev) =>
         prev.map((worker) =>
           worker.id === id ? { ...worker, joiningStatus: newStatus } : worker
@@ -111,6 +111,11 @@ const Enquiry = () => {
 
     fetchExistingWorkers();
   }, []);
+
+  // Check if worker already exists
+  const checkWorkerExists = (phoneNumber) => {
+    return existingWorkers.some((worker) => worker.contactNumber === phoneNumber);
+  };
 
   const getStatusIcon = (status) => {
     if (status === "PENDING") {
@@ -224,7 +229,7 @@ const Enquiry = () => {
                         <th className="text-left align-middle">Contact</th>
                         <th className="text-left align-middle">Date</th>
                         <th className="text-left align-middle">Notes</th>
-                        <th className="text-left align-middle">Action</th>
+                        {/* <th className="text-left align-middle">Action</th> */}
                       </>
                     )}
                   </tr>
@@ -236,104 +241,163 @@ const Enquiry = () => {
                       <tr key={idx}>
                         {activeTab === "worker_request" ? (
                           <>
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={20} width={60} /></td>  
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} width={60} />
+                            </td>
                           </>
                         ) : (
                           <>
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={20} width={150} /></td>  
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={20} /></td>
-                            <td><Skeleton height={40} /></td>
-                            <td><Skeleton height={20} width={60}/></td>
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} width={150} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} />
+                            </td>
+                            <td>
+                              <Skeleton height={40} />
+                            </td>
+                            <td>
+                              <Skeleton height={20} width={60} />
+                            </td>
                           </>
                         )}
                       </tr>
                     ))
                   ) : activeTab === "worker_request" ? (
                     workerRequests.length > 0 ? (
-                      workerRequests.map((worker) => (
-                        <tr key={worker.id}>
-                          <td className="p-3 text-left align-middle">
-                            {worker.service}
-                          </td>
-                          <td className="p-3 text-left align-middle">
-                            {worker.fullName}
-                          </td>
-                          <td className="p-3 text-left align-middle">
-                            {worker.phoneNumber}
-                          </td>
-                          <td className="p-3 text-left align-middle">
-                            {formatDate(worker.partnerJdate || "—")}
-                          </td>
-                          <td className="p-3 text-left align-middle">
-                            {getStatusIcon(worker.joiningStatus)}
-                          </td>
-                          <td className="p-3 text-left align-middle">
-                            {worker.joiningStatus === "PENDING" && (
-                              <>
-                                <button
-                                  onClick={() =>
-                                    handleStatusUpdate(
-                                      worker.id,
-                                      "APPROVED",
-                                      worker.phoneNumber
-                                    )
-                                  }
-                                  style={{
-                                    background: "none",
-                                    border: "none",
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  <img src={tick} alt="Accept" width="25" />
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleStatusUpdate(
-                                      worker.id,
-                                      "REJECTED",
-                                      worker.phoneNumber
-                                    )
-                                  }
-                                  style={{
-                                    background: "none",
-                                    border: "none",
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  <img src={cross} alt="Reject" width="25" />
-                                </button>
-                              </>
-                            )}
-                            {worker.joiningStatus === "APPROVED" && (
-                              <button
-                                className="btn text-light me-2"
-                                onClick={() =>
-                                  navigate("/worker-details/add-worker")
-                                }
-                                style={{
-                                  backgroundColor: "#0076CE",
-                                  height: "32px",
-                                  fontSize: "12px",
-                                  padding: "5px 10px",
-                                }}
-                              >
-                                Add Worker
-                              </button>
-                            )}
-                            {worker.joiningStatus === "REJECTED" && (
-                              <span>N/A</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))
+                      workerRequests.map((worker) => {
+                        const workerExists = checkWorkerExists(worker.phoneNumber);
+                        
+                        return (
+                          <tr key={worker.id}>
+                            <td className="p-3 text-left align-middle">
+                              {worker.service}
+                            </td>
+                            <td className="p-3 text-left align-middle">
+                              {worker.fullName}
+                            </td>
+                            <td className="p-3 text-left align-middle">
+                              {worker.phoneNumber}
+                            </td>
+                            <td className="p-3 text-left align-middle">
+                              {formatDate(worker.partnerJdate || "—")}
+                            </td>
+                            <td className="p-3 text-left align-middle">
+                              {getStatusIcon(worker.joiningStatus)}
+                            </td>
+                            <td className="p-3 text-left align-middle">
+                              {worker.joiningStatus === "PENDING" && (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      handleStatusUpdate(
+                                        worker.id,
+                                        "APPROVED",
+                                        worker.phoneNumber
+                                      )
+                                    }
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    <img src={tick} alt="Accept" width="25" />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleStatusUpdate(
+                                        worker.id,
+                                        "REJECTED",
+                                        worker.phoneNumber
+                                      )
+                                    }
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    <img src={cross} alt="Reject" width="25" />
+                                  </button>
+                                </>
+                              )}
+                              {worker.joiningStatus === "APPROVED" && (
+                                <>
+                                  {workerExists ? (
+                                    <button
+                                      className="btn text-light me-2"
+                                      disabled
+                                      style={{
+                                        backgroundColor: "#0076CE",
+                                        height: "32px",
+                                        fontSize: "12px",
+                                        padding: "5px 10px",
+                                        cursor: "not-allowed",
+                                      }}
+                                    >
+                                      Worker Already Exists
+                                    </button>
+                                  ) : (
+                                    <button
+        className="btn text-light me-2"
+        onClick={() => {
+          // Pass worker data to the AddWorker page
+          navigate("/worker-details/add-worker", {
+            state: {
+              workerData: {
+                name: worker.fullName,
+                contactNumber: worker.phoneNumber,
+                service: worker.service,
+                // Add any other fields you want to pass
+              }
+            }
+          });
+        }}
+                                      style={{
+                                        backgroundColor: "#0076CE",
+                                        height: "32px",
+                                        fontSize: "12px",
+                                        padding: "5px 10px",
+                                      }}
+                                    >
+                                      Add Worker
+                                    </button>
+                                  )}
+                                </>
+                              )}
+
+                              {worker.joiningStatus === "REJECTED" && (
+                                <span>N/A</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       <tr>
                         <td colSpan="6" className="text-center text-muted">
@@ -383,11 +447,11 @@ const Enquiry = () => {
                             }}
                           />
                         </td>
-                        <td className="text-left align-middle">
-                          <button style={{marginLeft:"12px"}}>
+                        {/* <td className="text-left align-middle">
+                          <button style={{ marginLeft: "12px" }}>
                             <img src={mail} alt="Mail" />
                           </button>
-                        </td>
+                        </td> */}
                       </tr>
                     ))
                   ) : (

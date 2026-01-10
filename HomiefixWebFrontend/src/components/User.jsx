@@ -124,7 +124,7 @@ const User = () => {
           <button
             className="btn btn-light p-0"
             style={{ height: "50px", marginTop: "45px", width: "40px" }}
-            onClick={() => navigate(`/user-details`)}
+            onClick={() => navigate(`/customer-details`)}
           >
             <i
               className="bi bi-arrow-left"

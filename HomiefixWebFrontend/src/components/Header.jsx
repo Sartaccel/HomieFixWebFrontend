@@ -22,13 +22,15 @@ const Header = () => {
   const getHeading = () => {
     if (location.pathname.startsWith("/booking-details")) return "Booking Details";
     if (location.pathname.startsWith("/worker-details")) return "Worker Details";
-    if (location.pathname.startsWith("/user-details")) return "User Details";
-    if (location.pathname.startsWith("/services")) return "Services";
+    if (location.pathname.startsWith("/customer-details")) return "Customer Details";
+    if (location.pathname.startsWith("/services")) return "Service Details";
     if (location.pathname.startsWith("/reviews")) return "Reviews";
     if (location.pathname.startsWith("/transaction-details")) return "Transaction Details";
     if (location.pathname.startsWith("/profile")) return "Profile";
     if (location.pathname.startsWith("/enquiry")) return "Enquiry";
     if (location.pathname.startsWith("/mail")) return "Email";
+    if (location.pathname.startsWith("/coupon")) return "Coupons";
+    if (location.pathname.startsWith("/banner")) return "Banners";
 
 
     return "Dashboard";
@@ -119,7 +121,7 @@ const Header = () => {
     const handleClickOutside = (event) => {
       const popup = popupRef.current;
       const notiContainer = notificationRef.current;
- 
+
       if (
         popup &&
         !popup.contains(event.target) &&
@@ -129,26 +131,30 @@ const Header = () => {
         setShowNotifications(false);
       }
     };
- 
+
     if (showNotifications) {
       document.addEventListener("mousedown", handleClickOutside);
     }
- 
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showNotifications]);
- 
+
 
 
   return (
-    <header className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom w-100">
+    <header
+      className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom mx-auto"
+      style={{ width: "85%" }}
+    >
+
       <h2 className="heading align-items-center mb-0" style={{ marginLeft: "30px" }}>
         {getHeading()}
       </h2>
       <div className="header-right d-flex align-items-center gap-3" style={{ marginRight: "250px" }}>
         <SearchBar />
-       
+
         <div className="position-relative" ref={popupRef}>
           <img
             src={notification}

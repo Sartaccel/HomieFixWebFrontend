@@ -1,0 +1,26 @@
+.email-attachments-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 100%;
+}
+
+.email-attachment-chip {
+    width: calc((100% / 3) - 8px);
+    /* 3 items per row */
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    border-radius: 4px;
+    padding: 4px 6px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+    .email-attachment-chip {
+        width: calc((100% / 2) - 8px);
+        /* On mobile → 2 per row */
+    }
+}

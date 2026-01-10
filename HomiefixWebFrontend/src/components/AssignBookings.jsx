@@ -9,6 +9,9 @@ import "../styles/AssignBookings.css";
 import bookingDetails from "../assets/BookingDetails.png";
 import Header from "./Header";
 import api from "../api";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 const AssignBookings = () => {
   const { id } = useParams();
@@ -211,12 +214,14 @@ const AssignBookings = () => {
   // Assign worker to booking
   const assignWorker = async () => {
     if (isExpired) {
-      alert("Cannot assign worker to an expired booking");
+      toast.warning("Cannot assign worker to an expired booking");
+
       return;
     }
 
     if (!selectedWorkerId) {
-      alert("Please select a worker");
+      toast.info("Please select a worker");
+
       return;
     }
     setAssigningWorker(true);
@@ -234,17 +239,20 @@ const AssignBookings = () => {
         }
       );
       if (response.status === 200) {
-        alert("Worker assigned successfully");
+        toast.success("Worker assigned successfully");
+
         navigate(-1);
       } else {
-        alert("Failed to assign worker");
+        toast.error("Failed to assign worker");
+
       }
     } catch (error) {
       console.error("Error assigning worker:", error);
       if (error.response) {
         console.error("Server response:", error.response.data);
         if (error.response.status === 403) {
-          alert("You do not have permission to perform this action.");
+          toast.error("You do not have permission to perform this action.");
+
           navigate("/"); // Redirect to login page
         }
       }
@@ -258,7 +266,8 @@ const AssignBookings = () => {
     const trimmedNotes = notes.trim();
 
     if (!trimmedNotes) {
-      alert("Please enter some notes before saving");
+      toast.warning("Please enter some notes before saving");
+
       return;
     }
 
@@ -276,9 +285,11 @@ const AssignBookings = () => {
       );
 
       if (response.status === 200) {
-        alert("Notes saved successfully");
+        toast.success("Notes saved successfully");
+
       } else {
-        alert("Failed to save notes");
+        toast.error("Failed to save notes");
+
       }
     } catch (error) {
       console.error("Error saving notes:", error);
@@ -368,7 +379,8 @@ const AssignBookings = () => {
           return updatedHistory;
         });
 
-        alert("Rescheduling undone successfully");
+        toast.success("Rescheduling undone successfully");
+
       } else {
         console.error("Failed to undo rescheduling:", undoResponse.data);
         alert(`Failed to undo rescheduling: ${undoResponse.data}`);
@@ -386,7 +398,8 @@ const AssignBookings = () => {
           navigate("/"); // Redirect to login page
         }
       } else {
-        alert("An unexpected error occurred. Please try again.");
+        toast.error("An unexpected error occurred. Please try again.");
+
       }
     }
   };
@@ -541,20 +554,20 @@ const AssignBookings = () => {
                           style={{
                             backgroundColor:
                               localStorage.getItem("rescheduledDate") &&
-                              localStorage.getItem("rescheduledTimeSlot")
+                                localStorage.getItem("rescheduledTimeSlot")
                                 ? "#EDF3F7"
                                 : "transparent",
                             borderRadius: "5px",
                             display: "inline-block",
                             padding:
                               localStorage.getItem("rescheduledDate") &&
-                              localStorage.getItem("rescheduledTimeSlot")
+                                localStorage.getItem("rescheduledTimeSlot")
                                 ? "0px 10px 0px 0px"
                                 : "0",
                           }}
                         >
                           {localStorage.getItem("rescheduledDate") &&
-                          localStorage.getItem("rescheduledTimeSlot") ? (
+                            localStorage.getItem("rescheduledTimeSlot") ? (
                             <img
                               src={closeDate}
                               alt="Close"
@@ -614,6 +627,7 @@ const AssignBookings = () => {
                             boxSizing: "border-box",
                           }}
                           required
+                          maxLength={400}
                           onInvalid={(e) => {
                             e.target.setCustomValidity(
                               "Please enter some notes"
@@ -623,6 +637,15 @@ const AssignBookings = () => {
                             e.target.setCustomValidity("");
                           }}
                         ></textarea>
+                        <p
+                          style={{
+                            fontSize: "12px",
+                            color: "#6c757d",
+                            marginTop: "5px",
+                          }}
+                        >
+                          {notes.length}/400 characters
+                        </p>
                         <button
                           className="btn position-absolute"
                           onClick={(e) => {
@@ -636,7 +659,7 @@ const AssignBookings = () => {
                           onMouseLeave={() => setIsSaveHovered(false)}
                           disabled={isSaving}
                           style={{
-                            bottom: "10px",
+                            bottom: "30px",
                             right: "10px",
                             padding: "5px 10px",
                             borderRadius: "5px",
@@ -898,8 +921,8 @@ const AssignBookings = () => {
                             background: isExpired
                               ? "#CCCCCC"
                               : selectedWorkerId
-                              ? "#0076CE"
-                              : "#999999",
+                                ? "#0076CE"
+                                : "#999999",
                             color: "white",
                             width: "350px",
                             borderRadius: "14px",
@@ -944,6 +967,16 @@ const AssignBookings = () => {
               />
             )}
           </div>
+          <ToastContainer
+            position="top-right"
+            autoClose={1000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            pauseOnHover
+            draggable
+          />
+
         </main>
       </div>
     </div>

@@ -5,6 +5,7 @@
   position: relative;
   overflow: hidden;
 }
+
 .skeleton-card::after {
   content: "";
   position: absolute;
@@ -12,24 +13,25 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.5),
-    transparent
-  );
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.5),
+      transparent);
   animation: shimmer 1.5s infinite;
 }
+
 .skeleton-text {
   height: 12px;
   background: #e0e0e0;
   border-radius: 4px;
   margin-bottom: 8px;
 }
+
 .skeleton-text-sm {
   height: 10px;
   width: 50%;
 }
+
 .skeleton-icon {
   width: 24px;
   height: 24px;
@@ -37,6 +39,7 @@
   border-radius: 50%;
   margin-bottom: 12px;
 }
+
 .skeleton-chart {
   width: 100%;
   height: 280px;
@@ -44,6 +47,7 @@
   position: relative;
   overflow: hidden;
 }
+
 .skeleton-chart::after {
   content: "";
   position: absolute;
@@ -51,36 +55,40 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.5),
-    transparent
-  );
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.5),
+      transparent);
   animation: shimmer 1.5s infinite;
 }
+
 @keyframes shimmer {
   0% {
     transform: translateX(-100%);
   }
+
   100% {
     transform: translateX(100%);
   }
 }
+
 /* Header Styles */
 .header {
   height: 70px;
   position: fixed;
   z-index: 999;
 }
+
 .heading {
   font-size: 25px;
   font-weight: 500;
   text-align: left;
 }
+
 .header-right {
   margin-right: 300px;
 }
+
 .search-bar {
   display: flex;
   align-items: center;
@@ -90,15 +98,18 @@
   background: white;
   height: 40px;
 }
+
 .search-bar input {
   border: none;
   outline: none;
   font-size: 16px;
 }
+
 /* Table Styles */
 tr {
   font-size: 13.5px;
 }
+
 /* Tooltip Styles */
 .custom-tooltip {
   padding: 8px;
@@ -107,6 +118,7 @@ tr {
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   .header-right {

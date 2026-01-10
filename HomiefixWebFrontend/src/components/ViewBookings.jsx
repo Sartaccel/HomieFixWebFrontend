@@ -8,6 +8,9 @@ import ReAssign from "./ReAssign";
 import api from "../api";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 const ViewBookings = () => {
   const { id } = useParams();
@@ -35,6 +38,7 @@ const ViewBookings = () => {
   const [refresh, setRefresh] = useState(false);
   const [originalNotes, setOriginalNotes] = useState("");
 
+
   const formatDate = (dateString) => {
     if (!dateString) return "Not Assigned";
     const date = new Date(dateString);
@@ -45,21 +49,25 @@ const ViewBookings = () => {
     });
   };
 
+
   const handleReAssignSuccess = () => {
     setIsReAssignModalOpen(false);
     setRefresh(!refresh); // Trigger a refresh of booking data
   };
+
 
   // Update your reassign button click handler
   const handleReassignButtonClick = () => {
     setIsReAssignModalOpen(true);
   };
 
+
   const handleGoBack = () => {
     if (!booking) {
       navigate(-1); // Fallback if booking data isn't loaded
       return;
     }
+
 
     const previousTab =
       location.state?.previousTab ||
@@ -78,6 +86,7 @@ const ViewBookings = () => {
         }
       })();
 
+
     navigate(`/booking-details?tab=${previousTab}`);
   };
   const fetchAllWorkers = async () => {
@@ -89,11 +98,13 @@ const ViewBookings = () => {
     }
   };
 
+
   const fetchBookingDetails = async () => {
     try {
       const { data } = await api.get(`/booking/${id}`);
       setBooking(data);
       setNotes(data.notes || "");
+
 
       if (data.worker) {
         setWorker(data.worker);
@@ -117,6 +128,7 @@ const ViewBookings = () => {
         }
       }
 
+
       await fetchFeedback(data.id, data.bookedDate);
     } catch (err) {
       console.error("Error fetching booking details:", err);
@@ -125,6 +137,7 @@ const ViewBookings = () => {
       setLoading(false);
     }
   };
+
 
   const fetchFeedback = async (bookingId, bookingDate) => {
     try {
@@ -140,29 +153,37 @@ const ViewBookings = () => {
     }
   };
 
+
   const saveNotes = async () => {
     const trimmedNotes = notes.trim();
 
+
     if (trimmedNotes === "No additional notes provided." || !trimmedNotes) {
-      alert("Please enter valid notes before saving");
+      toast.warning("Please enter valid notes before saving");
+
       return;
     }
 
+
     setSaving(true);
+
 
     try {
       await api.patch(
         `/booking/update-notes/${id}?notes=${encodeURIComponent(trimmedNotes)}`
       );
-      alert("Notes saved successfully ✅");
+      toast.success("Notes saved successfully");
+
       setIsEditing(false);
     } catch (error) {
       console.error("Error saving notes:", error);
-      alert("An error occurred while saving ❌");
+      toast.error("An error occurred while saving ");
+
     } finally {
       setSaving(false);
     }
   };
+
 
   const handleStatusUpdate = async (
     newStatus,
@@ -181,11 +202,13 @@ const ViewBookings = () => {
         serviceCompletedTime: completedTime,
       };
 
+
       const response = await api.put(
         `/booking/update-status/${id}?status=${newStatus}` +
-          `&serviceStartedDate=${startedDate}&serviceStartedTime=${startedTime}` +
-          `&serviceCompletedDate=${completedDate}&serviceCompletedTime=${completedTime}`
+        `&serviceStartedDate=${startedDate}&serviceStartedTime=${startedTime}` +
+        `&serviceCompletedDate=${completedDate}&serviceCompletedTime=${completedTime}`
       );
+
 
       if (response.status === 200) {
         // Update local state with the new status and dates
@@ -198,6 +221,7 @@ const ViewBookings = () => {
           serviceCompletedTime: completedTime,
         }));
 
+
         // If status changed to COMPLETED and worker exists, increment their completed count
         if (newStatus === "COMPLETED" && worker) {
           setWorker((prev) => ({
@@ -205,6 +229,7 @@ const ViewBookings = () => {
             totalWorkAssigned: (prev.totalWorkAssigned || 0) + 1,
           }));
         }
+
 
         return true;
       }
@@ -215,44 +240,54 @@ const ViewBookings = () => {
     }
   };
 
+
   const handleRescheduleButtonClick = () => {
     setIsRescheduleModalOpen(true);
   };
 
+
   const closeRescheduleModal = () => {
     setIsRescheduleModalOpen(false);
   };
+
 
   const handleRescheduleSuccess = () => {
     closeRescheduleModal();
     setRefresh(!refresh); // Trigger a refresh of booking data
   };
 
+
   const handleCancelBookingButtonClick = () => {
     setShowCancelBookingModal(true);
   };
+
 
   const handleCancelBookingSuccess = () => {
     setShowCancelBookingModal(false);
     setRefresh(!refresh); // Trigger a refresh of booking data
   };
 
+
   const handleViewWorkerProfile = async (e, workerId) => {
     e.preventDefault();
     const workerExists = allWorkers.some((w) => w.id === workerId && w.active);
     if (!workerExists || workerError) {
-      alert("This worker profile is no longer available");
+      toast.info("This worker profile is no longer available");
+
     } else {
       navigate(`/worker-details/worker/${workerId}`);
     }
   };
+
 
   useEffect(() => {
     fetchAllWorkers();
     fetchBookingDetails();
   }, [id, refresh]);
 
+
   if (error) return <p className="text-danger">{error}</p>;
+
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -272,9 +307,8 @@ const ViewBookings = () => {
                 ></i>
               </button>
               <div
-                className={`section ${
-                  activeTab === "serviceDetails" ? "active" : ""
-                }`}
+                className={`section ${activeTab === "serviceDetails" ? "active" : ""
+                  }`}
                 onClick={() => setActiveTab("serviceDetails")}
               >
                 Service Details
@@ -375,6 +409,7 @@ const ViewBookings = () => {
                   )}
                 </div>
 
+
                 {/* Customer Details */}
                 <div className="mt-2">
                   <h6 className="fw-bold">Customer Details</h6>
@@ -398,13 +433,11 @@ const ViewBookings = () => {
                       <p className="mb-1">
                         <i className="bi bi-calendar-event me-2"></i>{" "}
                         {booking?.rescheduledDate &&
-                        booking?.rescheduledTimeSlot
-                          ? `${formatDate(booking.rescheduledDate)} | ${
-                              booking.rescheduledTimeSlot
-                            }`
-                          : `${formatDate(booking?.bookedDate)} | ${
-                              booking?.timeSlot
-                            }`}
+                          booking?.rescheduledTimeSlot
+                          ? `${formatDate(booking.rescheduledDate)} | ${booking.rescheduledTimeSlot
+                          }`
+                          : `${formatDate(booking?.bookedDate)} | ${booking?.timeSlot
+                          }`}
                       </p>
                       <p className="mb-1">
                         <i className="bi bi-geo-alt me-2"></i>
@@ -417,6 +450,7 @@ const ViewBookings = () => {
                     </>
                   )}
                 </div>
+
 
                 {/* Notes Section */}
                 <div
@@ -456,6 +490,7 @@ const ViewBookings = () => {
                           onChange={(e) => setNotes(e.target.value)}
                           readOnly={!isEditing}
                           required
+                          maxLength={150}
                           onInvalid={(e) => {
                             e.target.setCustomValidity(
                               "Please enter some notes"
@@ -493,9 +528,8 @@ const ViewBookings = () => {
                           ) : (
                             <a
                               href="#"
-                              className={`text-primary text-decoration-none ${
-                                saving ? "disabled" : ""
-                              }`}
+                              className={`text-primary text-decoration-none ${saving ? "disabled" : ""
+                                }`}
                               onClick={(e) => {
                                 e.preventDefault();
                                 if (!saving) {
@@ -523,6 +557,7 @@ const ViewBookings = () => {
                     </>
                   )}
                 </div>
+
 
                 {/* Worker Details */}
                 <div className="mt-1">
@@ -610,6 +645,7 @@ const ViewBookings = () => {
                   )}
                 </div>
 
+
                 {/* Customer Review */}
                 <div className="mt-1">
                   <h6>Customer Review</h6>
@@ -686,6 +722,7 @@ const ViewBookings = () => {
                   )}
                 </div>
 
+
                 {/* Full Comment Modal */}
                 {showFullComment && (
                   <div
@@ -735,6 +772,7 @@ const ViewBookings = () => {
                 )}
               </div>
 
+
               {/* Status Management */}
               <div className="col-6">
                 {loading ? (
@@ -769,6 +807,7 @@ const ViewBookings = () => {
               </div>
             </div>
 
+
             {/* Modals */}
             {isRescheduleModalOpen && (
               <Reschedule
@@ -795,10 +834,23 @@ const ViewBookings = () => {
               />
             )}
           </div>
+          <ToastContainer
+            position="top-right"
+            autoClose={1000}
+            hideProgressBar={false}
+            closeOnClick
+            pauseOnHover
+            draggable
+          />
+
         </main>
       </div>
     </div>
   );
 };
 
+
 export default ViewBookings;
+
+
+

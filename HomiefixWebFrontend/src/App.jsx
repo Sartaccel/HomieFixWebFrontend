@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import { setGlobalNavigate } from "./api";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Login from "./components/Login";
 import BookingDetails from "./components/BookingDetails";
 import Dashboard from "./components/Dashboard";
@@ -26,16 +28,18 @@ import UserDetails from "./components/UserDetails";
 import User from "./components/User"
 import Enquiry from "./components/Enquiry"
 import Email from "./components/Email"
-import TransactionDetails from"./components/TransactionDetails"
+import TransactionDetails from "./components/TransactionDetails"
 import Transaction from "./components/Transaction";
-
+import AddCategory from "./components/AddCategory";
+import EditCategory from "./components/EditCategory";
+import AddService from "./components/AddService";
+import Coupon from "./components/Coupon";
+import Banner from "./components/Banner";
 
 const App = () => {
   const navigate = useNavigate();
   setGlobalNavigate(navigate); // Set global navigate function
-
   const [token, setToken] = useState(localStorage.getItem("token") || "");
-
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     if (storedToken) setToken(storedToken);
@@ -44,7 +48,6 @@ const App = () => {
   return (
     <Routes>
       <Route path="/" element={<Login setToken={setToken} />} />
-
       <Route element={<ProtectedRoute token={token} />}>
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
@@ -62,23 +65,40 @@ const App = () => {
           <Route path="/worker-details/worker/edit/:id" element={<EditWorker />} />
           <Route path="/services" element={<Services />} />
           <Route path="/services/:productId" element={<Service />} />
+          <Route path="/services/add-category" element={<AddCategory />} />
+          <Route path="/services/add-service" element={<AddService />} />
           <Route path="/profile/:username" element={<Profile />} />
           <Route path="/notifications" element={<Notifications />} />
-          <Route path="/user-details" element={<UserDetails />} />
-          <Route path="/user-details/user/:id" element={<User />} />
+          <Route path="/customer-details" element={<UserDetails />} />
+          <Route path="/customer-details/user/:id" element={<User />} />
           <Route path="/enquiry" element={<Enquiry />} />
           <Route path="/mail" element={<Email />} />
-          <Route path="/transaction-details" element={<TransactionDetails/>}/>
-          <Route path="/transaction-details/:id" element = {<Transaction/>} />
+          <Route path="/transaction-details" element={<TransactionDetails />} />
+          <Route path="/transaction-details/:id" element={<Transaction />} />
+          <Route path="/coupon" element={<Coupon />} />
+          <Route path="/banner" element={<Banner />} />
+          <Route path="/services/edit-category" element={<EditCategory />} />
         </Route>
+
       </Route>
+
     </Routes>
+
   );
 };
 
 const Root = () => (
   <Router>
     <App />
+    <ToastContainer
+      position="top-right"
+      autoClose={2000}
+      closeOnClick
+      draggable={false}
+      pauseOnHover={false}
+      style={{ zIndex: 99999 }}
+    />
+
   </Router>
 );
 

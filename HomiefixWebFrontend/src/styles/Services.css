@@ -1,66 +1,185 @@
 .scrollable-container {
- max-height: 90vh;
- /* adjust based on your header height */
- overflow-y: auto;
+  height: calc(100vh - 70px);
+  /* header height */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
+
 
 
 .sticky-tabs {
- position: sticky;
- top: 60px;
- /* adjust if you have a fixed header */
- background-color: white;
- z-index: 10;
+  position: sticky;
+  top: 60px;
+  /* adjust if you have a fixed header */
+  background-color: white;
+  z-index: 10;
 }
 
+.scrollable-container {
+  overflow-x: hidden;
+}
+
+.navigation {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding-left: 40px;
+  gap: 15px;
+  background-color: #fff;
+  position: fixed;
+  top: 70px;
+  width: 100%;
+  z-index: 1000;
+  border-bottom: 1px solid #ddd;
+}
 
 .card:hover {
- background-color: #FAFAFA;
+  background-color: #FAFAFA;
 }
 
 
 .skeleton-card {
- background-color: #f0f0f0;
- border-radius: 5px;
- height: 90px;
- margin-bottom: 15px;
- display: flex;
- align-items: center;
- padding: 10px;
- animation: pulse 1.5s infinite ease-in-out;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  height: 90px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  animation: pulse 1.5s infinite ease-in-out;
 }
 
 
 .skeleton-image {
- width: 60px;
- height: 60px;
- background-color: #ddd;
- border-radius: 5px;
+  width: 60px;
+  height: 60px;
+  background-color: #ddd;
+  border-radius: 5px;
 }
 
 
 .skeleton-text {
- width: 70%;
- height: 15px;
- background-color: #ddd;
- margin-left: 15px;
- border-radius: 4px;
+  width: 70%;
+  height: 15px;
+  background-color: #ddd;
+  margin-left: 15px;
+  border-radius: 4px;
 }
 
+.form-section {
+  padding-top: 80px;
+}
+
+
+.form-section img {
+  position: relative;
+  z-index: 1;
+}
+
+/* Add Service button hover – same as btn-outline-primary */
+.action-outline-btn {
+  transition: all 0.15s ease-in-out;
+}
+
+.action-outline-btn:hover {
+  background-color: #0d6efd !important;
+  /* Bootstrap primary */
+  color: #ffffff !important;
+  border-color: #0d6efd;
+}
+
+
+.edit-actions {
+  /* position: absolute; */
+  top: 10px;
+  right: 10px;
+
+  display: flex;
+  gap: 6px;
+
+  justify-content: flex-end;
+  /* push icons to the right */
+  align-items: center;
+
+  z-index: 2;
+}
+
+/* ===== CENTER DELETE CONFIRM TOAST ===== */
+
+.Toastify__toast-container--top-center {
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+
+/* Center everything inside the toast body */
+.confirm-toast .Toastify__toast-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* horizontal center */
+  justify-content: center;
+  text-align: center;
+  /* text center */
+  margin: 0;
+  padding: 0;
+}
+
+body.toast-dim::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 9998;
+}
+
+
+/* Toast card */
+.confirm-toast {
+  background: #ffffff;
+  width: 300px;
+  /* max-width: 420px; */
+  align-items: center;
+  padding: 24px 26px;
+  border-radius: 14px;
+  margin-left: 0px !important;
+  text-align: center;
+
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+  z-index: 9999;
+}
+
+.confirm-toast p {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.confirm-toast .btn {
+  min-width: 90px;
+  padding: 6px 14px;
+}
+
+.confirm-toast .btn-danger {
+  background-color: #dc3545;
+}
+
+.confirm-toast .btn-secondary {
+  background-color: #6c757d;
+}
 
 @keyframes pulse {
- 0% {
-   background-color: #e0e0e0;
- }
+  0% {
+    background-color: #e0e0e0;
+  }
 
 
- 50% {
-   background-color: #f0f0f0;
- }
+  50% {
+    background-color: #f0f0f0;
+  }
 
 
- 100% {
-   background-color: #e0e0e0;
- }
+  100% {
+    background-color: #e0e0e0;
+  }
 }
-

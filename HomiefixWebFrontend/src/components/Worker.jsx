@@ -31,8 +31,9 @@ const Worker = () => {
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
 
-  // Fetch worker data
   useEffect(() => {
+    if (!id || id === "undefined") return;
+
     api
       .get(`/workers/view/${id}`)
       .then((response) => {
@@ -42,6 +43,7 @@ const Worker = () => {
         console.error("Error fetching worker data:", error);
       });
   }, [id]);
+
 
   // Function to fetch rating for a booking
   const fetchRating = async (bookingId) => {
@@ -59,7 +61,7 @@ const Worker = () => {
 
   // Fetch worker bookings and ratings
   useEffect(() => {
-    if (!workerData) return;
+    if (!id || !workerData) return;
 
     const fetchWorkerBookings = async () => {
       try {
@@ -149,6 +151,17 @@ const Worker = () => {
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    if (!id || id === "undefined") {
+      return (
+        <>
+          <Header />
+          <div className="text-center mt-5">
+            <p className="text-danger">Worker not assigned to this booking.</p>
+          </div>
+        </>
+      );
+    }
 
     return (
       <>
@@ -247,7 +260,7 @@ const Worker = () => {
                 <div className="d-flex justify-content-between">
                   <div className="d-flex flex-wrap">
                     <p>Role:</p>
-                    {workerData.role.split(",").map((role, index) => (
+                    {workerData?.role?.split(",")?.map((role, index) => (
                       <p
                         key={index}
                         className="border border-dark rounded-pill mx-1 px-2"
@@ -338,33 +351,30 @@ const Worker = () => {
             <div className="row">
               <div className="d-flex mt-3 pb-2">
                 <p
-                  className={`px-4 pb-2 ${
-                    activeTab === "serviceDetails"
-                      ? "border-bottom border-3 border-dark"
-                      : ""
-                  }`}
+                  className={`px-4 pb-2 ${activeTab === "serviceDetails"
+                    ? "border-bottom border-3 border-dark"
+                    : ""
+                    }`}
                   onClick={() => setActiveTab("serviceDetails")}
                   style={{ cursor: "pointer" }}
                 >
                   Service Details
                 </p>
                 <p
-                  className={`mx-1 px-4 pb-2 ${
-                    activeTab === "inProgress"
-                      ? "border-bottom border-3 border-dark"
-                      : ""
-                  }`}
+                  className={`mx-1 px-4 pb-2 ${activeTab === "inProgress"
+                    ? "border-bottom border-3 border-dark"
+                    : ""
+                    }`}
                   onClick={() => setActiveTab("inProgress")}
                   style={{ cursor: "pointer" }}
                 >
                   In Progress
                 </p>
                 <p
-                  className={`px-4 pb-2 ${
-                    activeTab === "reviews"
-                      ? "border-bottom border-3 border-dark"
-                      : ""
-                  }`}
+                  className={`px-4 pb-2 ${activeTab === "reviews"
+                    ? "border-bottom border-3 border-dark"
+                    : ""
+                    }`}
                   onClick={() => setActiveTab("reviews")}
                   style={{ cursor: "pointer" }}
                 >

@@ -430,7 +430,7 @@ const Transaction = () => {
                     <div className="px-2">
                       <p className="mb-2">
                         <i className="bi bi-person"></i>{" "}
-                        {bookingData?.worker?.name || "N/A"}{" "}
+                        {bookingData?.worker?.name || "Not assigned"}{" "}
                         <span className="bg-light p-1">
                           {" "}
                           {workerRating?.averageRating}
@@ -452,13 +452,16 @@ const Transaction = () => {
                         {bookingData?.worker?.state} -{" "}
                         {bookingData?.worker?.pincode}
                       </p>
-                      <Link
-                        to={`/worker-details/worker/${bookingData?.worker?.id}`}
-                        className="mx-4"
-                        style={{ color: "#0076CE", textDecoration: "none" }}
-                      >
-                        View Full Profile
-                      </Link>
+                      {bookingData?.worker?.id && (
+                        <Link
+                          to={`/worker-details/worker/${bookingData.worker.id}`}
+                          className="mx-4"
+                          style={{ color: "#0076CE", textDecoration: "none" }}
+                        >
+                          View Full Profile
+                        </Link>
+                      )}
+
                     </div>
                   </div>
                 </div>

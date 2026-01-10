@@ -14,7 +14,7 @@ const Profile = () => {
     name: "",
     email: "",
     contactNumber: "",
-    workExperience: "",
+    workExperience: "",      
     dateOfBirth: "",
     gender: "",
     houseNumber: "",
