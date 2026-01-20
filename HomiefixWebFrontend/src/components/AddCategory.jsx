@@ -24,7 +24,7 @@ const AddCategory = () => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value.replace(/^\s+/, "")
     }));
   };
 
@@ -93,7 +93,7 @@ const AddCategory = () => {
   //     // Create FormData object for file upload
   //     const submitData = new FormData();
   //     submitData.append("name", formData.categoryName);
-      
+
   //     // Append only category image to save in database
   //     if (formData.categoryPhoto) {
   //       submitData.append("image", formData.categoryPhoto);
@@ -130,63 +130,69 @@ const AddCategory = () => {
 
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
+    e.preventDefault();
 
-  try {
-    // Create FormData object for file upload
-    const submitData = new FormData();
-    submitData.append("name", formData.categoryName);
-    
-    // Append only category image to save in database
-    if (formData.categoryPhoto) {
-      submitData.append("image", formData.categoryPhoto);
+    // SPACE-ONLY VALIDATION (NO STANDARD CHANGE)
+    if (!formData.categoryName.trim()) {
+      alert("Category name cannot be empty or spaces only");
+      return;
     }
+    setLoading(true);
 
-    // Make API call to add category (only category image is sent)
-    const response = await api.post("/categories/add", submitData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    try {
+      // Create FormData object for file upload
+      const submitData = new FormData();
+      submitData.append("name", formData.categoryName);
 
-    if (response.status === 200) {
-      console.log("Category added successfully:", response.data);
-      
-      // Get the created category data from response
-      const createdCategory = response.data; // This is the created category object
-      
-      // Navigate to AddService page with category data
-      navigate("/services/add-service", { 
-        state: { 
-          categoryId: createdCategory.id,
-          categoryName: createdCategory.name,
-          // Pass the category image URL if you want to use it
-          categoryImage: createdCategory.categoryImage,
-          // Flag to indicate this is from AddCategory flow
-          fromAddCategory: true
-        }
+      // Append only category image to save in database
+      if (formData.categoryPhoto) {
+        submitData.append("image", formData.categoryPhoto);
+      }
+
+      // Make API call to add category (only category image is sent)
+      const response = await api.post("/categories/add", submitData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
+
+      if (response.status === 200) {
+        console.log("Category added successfully:", response.data);
+
+        // Get the created category data from response
+        const createdCategory = response.data; // This is the created category object
+
+        // Navigate to AddService page with category data
+        navigate("/services/add-service", {
+          state: {
+            categoryId: createdCategory.id,
+            categoryName: createdCategory.name,
+            // Pass the category image URL if you want to use it
+            categoryImage: createdCategory.categoryImage,
+            // Flag to indicate this is from AddCategory flow
+            fromAddCategory: true
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error adding category:", error);
+
+      // More detailed error message
+      if (error.response) {
+        console.error("Error response data:", error.response.data);
+        console.error("Error status:", error.response.status);
+        alert(`Error adding category: ${error.response.data?.message || "Please try again."}`);
+      } else if (error.request) {
+        console.error("No response received:", error.request);
+        alert("No response from server. Please check your connection.");
+      } else {
+        console.error("Error:", error.message);
+        alert("Error adding category. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error adding category:", error);
-    
-    // More detailed error message
-    if (error.response) {
-      console.error("Error response data:", error.response.data);
-      console.error("Error status:", error.response.status);
-      alert(`Error adding category: ${error.response.data?.message || "Please try again."}`);
-    } else if (error.request) {
-      console.error("No response received:", error.request);
-      alert("No response from server. Please check your connection.");
-    } else {
-      console.error("Error:", error.message);
-      alert("Error adding category. Please try again.");
-    }
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="container-fluid m-0 p-0 vh-100 w-100">
@@ -195,11 +201,11 @@ const AddCategory = () => {
         <div className="col-auto p-0 m-0">
           <Sidebar />
         </div>
-        
+
         {/* Main Content */}
         <main className="col p-0 m-0 d-flex flex-column">
           <Header />
-          
+
           {/* Navigation Bar */}
           <div className="navigation d-flex align-items-center py-2 px-4 bg-white border-bottom w-100 ">
             <div className="d-flex gap-2 align-items-center w-100">
@@ -218,7 +224,7 @@ const AddCategory = () => {
           </div>
 
           {/* Form Section */}
-          <div className="flex-grow-1 p-4 form-section"  style={{ marginTop:"120px" }}>
+          <div className="flex-grow-1 p-4 form-section" style={{ marginTop: "120px" }}>
             <form onSubmit={handleSubmit}>
               {/* Category Photos in Horizontal Row */}
               <div className="mb-4">
@@ -231,9 +237,9 @@ const AddCategory = () => {
                         src={previewImage}
                         alt="Category"
                         className="rounded"
-                        style={{ 
-                          width: "100px", 
-                          height: "100px", 
+                        style={{
+                          width: "100px",
+                          height: "100px",
                           objectFit: "cover",
                         }}
                       />
@@ -249,11 +255,11 @@ const AddCategory = () => {
                       <label
                         htmlFor="categoryPhoto1"
                         className="btn"
-                        style={{ 
-                          border: "1px solid #0076CE", 
+                        style={{
+                          border: "1px solid #0076CE",
                           color: "#0076CE",
                           backgroundColor: "transparent",
-                          marginTop:"50px"
+                          marginTop: "50px"
                         }}
                       >
                         Upload photo
@@ -315,8 +321,13 @@ const AddCategory = () => {
                     style={{ height: "45px" }}
                     value={formData.categoryName}
                     onChange={handleChange}
+                    maxLength={30}
                     required
                   />
+                  <small className="text-muted">
+                    {formData.categoryName.length}/30 characters
+                  </small>
+
                 </div>
                 {/* <div className="col-md-4">
                   <label className="form-label fw-semibold">Enter your service</label>
@@ -377,13 +388,13 @@ const AddCategory = () => {
                 <button
                   type="submit"
                   className="btn px-5"
-                  style={{ 
-                    backgroundColor: "#0076CE", 
+                  style={{
+                    backgroundColor: "#0076CE",
                     color: "white",
                     height: "45px",
                     minWidth: "150px",
-                    marginLeft:"1000px",
-                    marginTop:"200px"
+                    marginLeft: "1000px",
+                    marginTop: "200px"
                   }}
                   disabled={loading}
                 >

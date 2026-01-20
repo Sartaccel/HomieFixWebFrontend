@@ -318,7 +318,7 @@ const UserDetails = ({ token, setToken }) => {
                       backgroundColor: "#0076CE",
                       pointerEvents: selectedUsers.length === 0 || loading ? "none" : "auto",
                       opacity: selectedUsers.length === 0 ? 0.6 : 1,
-                      width: "70px",
+                      width: "80px",
                       height: "38px",
                     }}
                   >

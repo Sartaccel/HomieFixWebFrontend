@@ -18,6 +18,42 @@
     text-overflow: ellipsis;
 }
 
+.email-footer {
+    align-items: flex-end;
+    /* keeps buttons bottom-aligned */
+    gap: 12px;
+}
+
+.email-footer>div:first-child {
+    flex: 1;
+    /* attachment area grows */
+}
+
+.email-footer>div:last-child {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    /* space between Attach & Send */
+    white-space: nowrap;
+}
+
+/* Force Attach Files button content to stay horizontal */
+.email-footer label.btn {
+    display: inline-flex;
+    /* key fix */
+    align-items: center;
+    gap: 6px;
+    /* space between icon & text */
+    white-space: nowrap;
+}
+
+.email-footer label.btn img {
+    display: inline-block;
+    /* prevents vertical stacking */
+    vertical-align: middle;
+}
+
 @media (max-width: 768px) {
     .email-attachment-chip {
         width: calc((100% / 2) - 8px);

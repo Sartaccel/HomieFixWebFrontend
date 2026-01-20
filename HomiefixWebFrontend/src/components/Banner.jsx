@@ -5,7 +5,6 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
 const API_BASE_URL = "http://localhost:1212/banners";
 
 const Banner = () => {
@@ -15,6 +14,8 @@ const Banner = () => {
 
   // show / hide Add Banner popup
   const [showAddForm, setShowAddForm] = useState(false);
+  const today = new Date().toISOString().split("T")[0];
+  // const imageToastId = toast.warning("Please upload a banner image");
 
   // Add form state
   const [formData, setFormData] = useState({
@@ -114,7 +115,10 @@ const Banner = () => {
       toast.warning("Description cannot be empty ");
       return;
     }
-
+    if (!formData.image) {
+      toast.warning("Please upload a banner image");
+      return;
+    }
 
     // Validate dates
     if (formData.startDate && formData.endDate) {
@@ -146,7 +150,7 @@ const Banner = () => {
       });
 
       if (response.data.status === "success") {
-        toast.success("Banner added successfully!", { autoClose: 2500 });
+        toast.success("Banner added successfully!", { autoClose: 1500 });
 
         setShowAddForm(false);
         fetchBanners(); // Refresh the list
@@ -169,6 +173,7 @@ const Banner = () => {
       endDate: banner.endDate || "",
       active: banner.active || false,
       image: null, // Reset file input
+      existingImage: banner.bannerImage || null
     });
     setShowEditForm(true);
   };
@@ -244,14 +249,12 @@ const Banner = () => {
     } catch (error) {
       console.error("Error updating banner:", error);
       toast.error(error.response?.data?.message || "Failed to update banner");
-
     }
   };
 
   // Handle Status Update
   const handleStatusToggle = async (id, currentStatus) => {
     const newStatus = !currentStatus;
-
     try {
       const response = await axios.patch(
         `${API_BASE_URL}/${id}/status?active=${newStatus}`
@@ -368,11 +371,11 @@ const Banner = () => {
                   </button>
                 </div>
 
-                {/* First row: Banner title, Image, Redirect Link */}
+                {/* ROW 1: Title + Image + Start Date */}
                 <div className="row">
                   <div className="col-md-4 mb-3">
                     <label className="form-label banner-form-label">
-                      Banner title *
+                      Banner title
                     </label>
                     <input
                       type="text"
@@ -394,27 +397,50 @@ const Banner = () => {
                     <input
                       type="file"
                       className="form-control banner-form-input"
-                      accept="image/*"
+                      accept="image"
                       onChange={handleFileChange}
                     />
                   </div>
 
-                  {/* <div className="col-md-4 mb-3">
+                  <div className="col-md-4 mb-3">
                     <label className="form-label banner-form-label">
-                      Redirect Link (Optional)
+                      Start date
                     </label>
                     <input
-                      type="text"
+                      type="date"
                       className="form-control banner-form-input"
-                      value={formData.redirectLink}
-                      onChange={(e) => handleChange("redirectLink", e.target.value)}
+                      value={formData.startDate}
+                      min={today}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        handleChange("startDate", value);
+
+                        if (formData.endDate && value > formData.endDate) {
+                          handleChange("endDate", value);
+                        }
+                      }}
+                      required
                     />
-                  </div> */}
+                  </div>
                 </div>
 
-                {/* Second row: Description, Start date, End date */}
+                {/* ROW 2: End Date + Description */}
                 <div className="row">
                   <div className="col-md-4 mb-3">
+                    <label className="form-label banner-form-label">
+                      End date
+                    </label>
+                    <input
+                      type="date"
+                      className="form-control banner-form-input"
+                      value={formData.endDate}
+                      min={formData.startDate || today}
+                      onChange={(e) => handleChange("endDate", e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-8 mb-3">
                     <label className="form-label banner-form-label">
                       Description
                     </label>
@@ -429,35 +455,10 @@ const Banner = () => {
                       {formData.description.length}/{150} characters
                     </small>
                   </div>
-
-                  <div className="col-md-4 mb-3">
-                    <label className="form-label banner-form-label">
-                      Start date *
-                    </label>
-                    <input
-                      type="date"
-                      className="form-control banner-form-input"
-                      value={formData.startDate}
-                      min={new Date().toISOString().split("T")[0]}
-                      onChange={(e) => handleChange("startDate", e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="col-md-4 mb-3">
-                    <label className="form-label banner-form-label">
-                      End date *
-                    </label>
-                    <input
-                      type="date"
-                      className="form-control banner-form-input"
-                      value={formData.endDate}
-                      min={new Date().toISOString().split("T")[0]}
-                      onChange={(e) => handleChange("endDate", e.target.value)}
-                      required
-                    />
-                  </div>
                 </div>
+
+
+
 
                 {/* Active toggle + submit button */}
                 <div className="d-flex justify-content-between align-items-center mt-2">
@@ -503,7 +504,8 @@ const Banner = () => {
                   </button>
                 </div>
 
-                {/* ROW 1 */}
+
+                {/* ROW 1: Title + Image + Start Date */}
                 <div className="row">
                   <div className="col-md-4 mb-3">
                     <label className="form-label banner-form-label">
@@ -514,7 +516,9 @@ const Banner = () => {
                       className="form-control banner-form-input"
                       value={editData.title}
                       maxLength={50}
-                      onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                      onChange={(e) =>
+                        setEditData({ ...editData, title: e.target.value })
+                      }
                     />
                     <small className="text-muted">
                       {editData.title.length}/{50} characters
@@ -533,37 +537,6 @@ const Banner = () => {
                     />
                   </div>
 
-                  {/* <div className="col-md-4 mb-3">
-                    <label className="form-label banner-form-label">
-                      Redirect Link (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control banner-form-input"
-                      value={editData.redirectLink}
-                      onChange={(e) => setEditData({ ...editData, redirectLink: e.target.value })}
-                    />
-                  </div> */}
-                </div>
-
-                {/* ROW 2 */}
-                <div className="row">
-                  <div className="col-md-4 mb-3">
-                    <label className="form-label banner-form-label">
-                      Description
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control banner-form-input"
-                      value={editData.description}
-                      maxLength={150}
-                      onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                    />
-                    <small className="text-muted">
-                      {editData.description.length}/{150} characters
-                    </small>
-                  </div>
-
                   <div className="col-md-4 mb-3">
                     <label className="form-label banner-form-label">
                       Start date
@@ -572,10 +545,21 @@ const Banner = () => {
                       type="date"
                       className="form-control banner-form-input"
                       value={editData.startDate}
-                      onChange={(e) => setEditData({ ...editData, startDate: e.target.value })}
+                      min={today}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setEditData({ ...editData, startDate: value });
+
+                        if (editData.endDate && value > editData.endDate) {
+                          setEditData({ ...editData, startDate: value, endDate: value });
+                        }
+                      }}
                     />
                   </div>
+                </div>
 
+                {/* ROW 2: End Date + Description */}
+                <div className="row">
                   <div className="col-md-4 mb-3">
                     <label className="form-label banner-form-label">
                       End date
@@ -584,23 +568,45 @@ const Banner = () => {
                       type="date"
                       className="form-control banner-form-input"
                       value={editData.endDate}
-                      onChange={(e) => setEditData({ ...editData, endDate: e.target.value })}
+                      min={editData.startDate || today}
+                      onChange={(e) =>
+                        setEditData({ ...editData, endDate: e.target.value })
+                      }
                     />
                   </div>
+
+                  <div className="col-md-8 mb-3">
+                    <label className="form-label banner-form-label">
+                      Description
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control banner-form-input"
+                      value={editData.description}
+                      maxLength={150}
+                      onChange={(e) =>
+                        setEditData({ ...editData, description: e.target.value })
+                      }
+                    />
+                    <small className="text-muted">
+                      {editData.description.length}/{150} characters
+                    </small>
+                  </div>
                 </div>
+
 
                 {/* ACTIVE + BUTTON */}
                 <div className="d-flex justify-content-between align-items-center mt-2">
                   <div className="d-flex align-items-center">
                     <span className="me-3">Active</span>
-                    {/* <div className="form-check form-switch m-0">
+                    <div className="form-check form-switch m-0">
                       <input
                         className="form-check-input"
                         type="checkbox"
                         checked={editData.active}
                         onChange={(e) => setEditData({ ...editData, active: e.target.checked })}
                       />
-                    </div> */}
+                    </div>
                   </div>
 
                   <button
@@ -638,19 +644,42 @@ const Banner = () => {
                     <th >Start date</th>
                     <th >End date</th>
                     <th>
-                      <div className="d-flex align-items-center">
-                        Status:
-                        <select
-                          className="form-select form-select-sm w-auto border-0 p-0 ms-1 shadow-none no-arrow"
-                          value={statusFilter}
-                          onChange={(e) => setStatusFilter(e.target.value)}
+                      <div className="dropdown">
+                        <button
+                          className="btn btn-light btn-sm dropdown-toggle"
+                          type="button"
+                          id="bannerStatusDropdown"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            padding: "2px 8px",
+                          }}
                         >
-                          <option value="all">All</option>
-                          <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
-                        </select>
+                          Status: {statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
+
+                        </button>
+
+                        <ul
+                          className="dropdown-menu"
+                          aria-labelledby="bannerStatusDropdown"
+                        >
+                          {["all", "active", "inactive"].map((status) => (
+                            <li key={status}>
+                              <button
+                                className="dropdown-item text-capitalize"
+                                onClick={() => setStatusFilter(status)}
+                              >
+                                
+                                {status}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     </th>
+
 
                     <th >Actions</th>
                     {/* <th className="text-center">Delete</th> */}
@@ -696,21 +725,16 @@ const Banner = () => {
                       </td>
                       <td>
                         <i
-                          className="bi bi-pencil-square banner-action-icon"
+                          className="bi bi-pencil-square banner-action-icon me-2"
                           onClick={() => handleEditBanner(banner)}
                           title="Edit Banner"
                         />
 
-                      </td>
-
-                      {/* Delete Column */}
-                      <td >
                         <i
                           className="bi bi-trash banner-delete-icon"
                           onClick={() => handleDeleteBanner(banner.id)}
                           title="Delete Banner"
                         />
-
                       </td>
 
 
@@ -731,7 +755,7 @@ const Banner = () => {
         </div>
         <ToastContainer
           position="top-right"
-          closeOnClick={false}
+          closeOnClick={true}
           draggable={false}
         />
 

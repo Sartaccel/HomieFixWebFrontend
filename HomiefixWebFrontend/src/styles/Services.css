@@ -168,6 +168,73 @@ body.toast-dim::before {
   background-color: #6c757d;
 }
 
+/* Force text wrapping inside service cards */
+.card-text {
+  word-break: break-word;
+  /* breaks long continuous text */
+  overflow-wrap: anywhere;
+  /* modern wrap support */
+  white-space: normal;
+  /* allow wrapping */
+  max-width: 100%;
+}
+
+
+/* Allow text containers to shrink so wrapping can occur */
+.card-body>div,
+.card-body,
+.col,
+.col-4,
+.col-md-3,
+.col-md-4 {
+  min-width: 0;
+}
+
+/* Force wrapping everywhere text is shown */
+p,
+h5,
+h6,
+span,
+li,
+div {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.navigation h5 {
+  max-width: 80%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+/* Ensure flex children can shrink */
+.card-body {
+  min-width: 0;
+}
+
+/* Space for top-right icons inside grid card */
+.col-4.position-relative {
+  padding-top: 34px;
+  /* enough space for + and delete */
+}
+
+.grid-action-icons {
+  position: absolute;
+  top: -6px;
+  right: 10px;
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+}
+
+/* Move section title input slightly down */
+.col-4.position-relative>input.form-control {
+  margin-top: 28px;
+  /* adjust: 12–24px if needed */
+}
+
 @keyframes pulse {
   0% {
     background-color: #e0e0e0;

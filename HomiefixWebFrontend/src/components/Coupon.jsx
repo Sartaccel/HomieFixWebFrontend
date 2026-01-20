@@ -5,23 +5,18 @@ import api from "../api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
-// Utility: check empty or spaces-only
 const isBlank = (value) =>
   value === null ||
   value === undefined ||
   (typeof value === "string" && value.trim().length === 0);
 
-
 const Coupon = () => {
   const [coupons, setCoupons] = useState([]);
   const [statusFilter, setStatusFilter] = useState("all");
-
-
+  const today = new Date().toISOString().split("T")[0];
   const [showAddForm, setShowAddForm] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingCouponId, setEditingCouponId] = useState(null);
-
 
   const [formData, setFormData] = useState({
     title: "",
@@ -35,7 +30,7 @@ const Coupon = () => {
     active: true,
   });
 
-  // 🔹 NEW: Fetch coupons from backend on mount
+  //Fetch coupons from backend on mount
   useEffect(() => {
     fetchCoupons();
   }, []);
@@ -48,14 +43,14 @@ const Coupon = () => {
         id: c.id,
         title: c.title,
         code: c.code,
-        discount: c.discountValue, // raw value; you can format in UI if needed
-        minOrder: "-", // backend currently has no minOrder; keep layout
+        discount: c.discountValue,
+        minOrder: "-",
         startDate: c.startDate,
         validUntil: c.validUntil,
         couponType: c.couponType,
         status: c.active ? "active" : "inactive",
         active: c.active,
-        maxDiscount: "", // to keep the existing column
+        maxDiscount: "",
       }));
       setCoupons(mapped);
     } catch (error) {
@@ -69,22 +64,19 @@ const Coupon = () => {
       : coupons.filter((c) => c.status === statusFilter);
 
   const handleAddCoupon = () => {
-    // Add mode
     setIsEditMode(false);
 
-    // clear form (includes new fields)
     setFormData({
       title: "",
       code: "",
       discount: "",
       minOrder: "",
       // maxDiscount: "",
-      startDate: "",
-      validUntil: "",
+      startDate: today,
+      validUntil: today,
       couponType: "",
       active: true,
     });
-
     setShowAddForm(true);
   };
 
@@ -95,7 +87,6 @@ const Coupon = () => {
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
-
 
   const handleDeleteClick = (couponId) => {
     const toastId = toast.info(
@@ -142,6 +133,7 @@ const Coupon = () => {
       {
         closeOnClick: false,
         draggable: false,
+        autoClose: 1000,
       }
     );
   };
@@ -211,9 +203,8 @@ const Coupon = () => {
     }
 
     try {
-      // 🔹 EDIT MODE
+      //  EDIT MODE
       if (isEditMode && editingCouponId != null) {
-        // build payload expected by /coupons/edit (CouponUpdateRequestDTO)
         const updatePayload = {
           couponId: editingCouponId,
           title: formData.title,
@@ -268,13 +259,13 @@ const Coupon = () => {
           active: true,
         });
         toast.success("Coupon updated successfully", {
-          autoClose: 2000,
+          autoClose: 1000,
         });
 
         return;
       }
 
-      // 🔹 ADD MODE (your existing logic, unchanged)
+      // ADD MODE (your existing logic, unchanged)
       let endpoint = "";
       let params = {
         code: formData.code,
@@ -318,7 +309,7 @@ const Coupon = () => {
 
       setCoupons((prev) => [...prev, newCoupon]);
       toast.success("Coupon added successfully", {
-        autoClose: 2000,
+        autoClose: 1000,
       });
 
       setShowAddForm(false);
@@ -342,19 +333,17 @@ const Coupon = () => {
 
 
   const handleEditClick = (coupon) => {
-    // Edit mode
     setIsEditMode(true);
     setEditingCouponId(coupon.id);
 
-    // pre-fill form with row data (map new fields too)
     setFormData({
       title: coupon.title || "",
       code: coupon.code || "",
       discount: coupon.discount || "",
       minOrder: coupon.minOrder || "",
       // maxDiscount: coupon.maxDiscount || "",
-      startDate: coupon.startDate || "",
-      validUntil: coupon.validUntil || "",
+      startDate: coupon.startDate || today,
+      validUntil: coupon.validUntil || coupon.startDate || today,
       couponType:
         coupon.couponType === "PERCENTAGE"
           ? "percentage"
@@ -388,7 +377,7 @@ const Coupon = () => {
             <h5 className="mb-0">Coupons</h5>
           </div> */}
 
-          {/* 🔹 ADD-COUPON OVERLAY CARD */}
+          {/* ADD-COUPON OVERLAY CARD */}
           {showAddForm && (
             <div className="add-coupon-overlay">
               <form onSubmit={handleSubmit} className="add-coupon-card">
@@ -453,7 +442,12 @@ const Coupon = () => {
                     <select
                       className="form-select add-coupon-input coupon-type-select"
                       value={formData.couponType}
-                      onChange={(e) => handleChange("couponType", e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        handleChange("couponType", value);
+                        // auto-clear discount when switching type
+                        handleChange("discount", "");
+                      }}
                     >
                       <option value="" disabled>
                         Coupon type
@@ -471,8 +465,7 @@ const Coupon = () => {
                       className="form-select add-coupon-input"
                       value={formData.couponType}
                       onChange={(e) => handleChange("couponType", e.target.value)}
-                    >
-                     
+                    >                    
                       <option value="flat">Fixed Amount</option>
                       <option value="free_shipping">Percentage</option>
                     </select>
@@ -486,13 +479,16 @@ const Coupon = () => {
                       type="text"
                       className="form-control add-coupon-input"
                       value={formData.discount}
-                      maxLength={5}
+                      maxLength={formData.couponType === "percentage" ? 3 : 5}
+
                       onChange={(e) =>
                         handleChange("discount", e.target.value)
                       }
                     />
                     <small className="text-muted">
-                      {formData.discount.length}/5 characters
+                      {formData.discount.length}/
+                      {formData.couponType === "percentage" ? 3 : 5} characters
+
                     </small>
                   </div>
                 </div>
@@ -521,11 +517,18 @@ const Coupon = () => {
                       type="date"
                       className="form-control add-coupon-input"
                       value={formData.startDate}
-                      min={new Date().toISOString().split("T")[0]}
-                      onChange={(e) =>
-                        handleChange("startDate", e.target.value)
-                      }
+                      min={today}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        handleChange("startDate", value);
+
+                        // auto-fix validUntil if it becomes invalid
+                        if (formData.validUntil && value > formData.validUntil) {
+                          handleChange("validUntil", value);
+                        }
+                      }}
                     />
+
                   </div>
 
                   <div className="col-md-4 mb-3">
@@ -536,7 +539,7 @@ const Coupon = () => {
                       type="date"
                       className="form-control add-coupon-input"
                       value={formData.validUntil}
-                      min={new Date().toISOString().split("T")[0]}
+                      min={formData.startDate || today}
                       onChange={(e) =>
                         handleChange("validUntil", e.target.value)
                       }
@@ -603,27 +606,43 @@ const Coupon = () => {
                   <th>Start date</th>
                   <th>Valid Until</th>
                   <th>
-                    <div className="d-flex align-items-center gap-1">
-                      <span>Status:</span>
-                      <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="form-select form-select-sm shadow-none border-0 p-0"
+                    <div className="dropdown">
+                      <button
+                        className="btn btn-light btn-sm dropdown-toggle"
+                        type="button"
+                        id="couponStatusDropdown"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
                         style={{
-                          width: "90px",
                           background: "transparent",
+                          border: "none",
+                          padding: "2px 8px",
                           fontSize: "13px",
-                          cursor: "pointer",
                         }}
                       >
-                        <option value="all">All</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                      </select>
+                        Status: {statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
+                      </button>
+
+                      <ul
+                        className="dropdown-menu"
+                        aria-labelledby="couponStatusDropdown"
+                      >
+                        {["all", "active", "inactive"].map((status) => (
+                          <li key={status}>
+                            <button
+                              className="dropdown-item text-capitalize"
+                              onClick={() => setStatusFilter(status)}
+                            >
+                              {status}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </th>
+
                   <th className="text-center">Actions</th>
-                  <th className="text-center">Delete</th>
+                  {/* <th className="text-center">Delete</th> */}
                 </tr>
               </thead>
 
@@ -648,23 +667,21 @@ const Coupon = () => {
                     </td>
                     <td className="text-center">
                       <button
-                        className="btn btn-link p-0 border-0 shadow-none coupon-edit-btn"
+                        className="btn btn-link p-0 border-0 shadow-none coupon-edit-btn me-2"
                         onClick={() => handleEditClick(coupon)}
+                        title="Edit Coupon"
                       >
                         <i className="bi bi-pencil-square"></i>
                       </button>
-                    </td>
 
-                    <td className="text-center">
                       <button
                         className="btn btn-link p-0 border-0 shadow-none coupon-delete-btn"
                         onClick={() => handleDeleteClick(coupon.id)}
+                        title="Delete Coupon"
                       >
                         <i className="bi bi-trash3"></i>
                       </button>
                     </td>
-
-
                     {/* <td className="text-center"> */}
                     {/* <button
                         className="btn btn-link p-0 border-0 shadow-none coupon-edit-btn"
@@ -672,8 +689,6 @@ const Coupon = () => {
                       >
                         <i className="bi bi-pencil-square"></i>
                       </button> */}
-
-
                     {/* </td> */}
 
                   </tr>
@@ -691,8 +706,16 @@ const Coupon = () => {
           </div>
         </div>
       </div>
-      <ToastContainer />
-
+      <ToastContainer
+        position="top-right"
+        autoClose={1000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnFocusLoss={false}
+        pauseOnHover={false}
+        draggable
+      />
     </div>
   );
 };

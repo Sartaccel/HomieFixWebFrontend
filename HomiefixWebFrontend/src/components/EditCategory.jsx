@@ -45,6 +45,8 @@ const EditCategory = () => {
         setFormData(prev => ({
             ...prev,
             [name]: value
+              .replace(/\s+/g, " ")   
+            .replace(/^\s/, "") 
         }));
     };
 
@@ -108,6 +110,11 @@ const EditCategory = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        // SPACE-ONLY VALIDATION (NO STANDARD CHANGE)
+        if (!formData.categoryName.trim()) {
+            alert("Category name cannot be empty or spaces only");
+            return;
+        }
         setLoading(true);
 
         try {
@@ -136,7 +143,7 @@ const EditCategory = () => {
             console.error("Update category error:", error);
             toast.error(" Failed to update category", {
                 position: "top-right",
-                autoClose: 2000,
+                autoClose: 1000,
             });
 
         } finally {
@@ -231,8 +238,13 @@ const EditCategory = () => {
                                         style={{ height: "45px" }}
                                         value={formData.categoryName}
                                         onChange={handleChange}
+                                        maxLength={30}
                                         required
                                     />
+                                    <small className="text-muted">
+                                        {formData.categoryName.length}/30 characters
+                                    </small>
+
                                 </div>
                             </div>
 

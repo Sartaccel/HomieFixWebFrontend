@@ -1263,11 +1263,11 @@ const Email = () => {
                       </small>
 
                     </>
-                  )}
+                  )} c 
                 </div>
 
                 {/* Attachments and Send Button */}
-                <div className="d-flex justify-content-between align-items-start mt-3">
+                <div className="email-footer d-flex justify-content-between mt-3">
                   <div>
                     {loading ? (
                       <Skeleton width={150} height={30} />

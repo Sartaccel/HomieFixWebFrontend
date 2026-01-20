@@ -10,6 +10,17 @@ import api from "../api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+
+const sanitizeText = (value) => {
+  // Remove leading spaces
+  const noLeadingSpace = value.replace(/^\s+/, "");
+
+  // Prevent only-spaces value
+  if (noLeadingSpace.trim() === "") return "";
+
+  return noLeadingSpace;
+};
+
 const AddService = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,7 +47,10 @@ const AddService = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
+    if (name === "price") {
+      if (!/^\d*$/.test(value)) return; // blocks letters & symbols
+      if (value.length > 4) return;     // max 4 digits
+    }
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -50,8 +64,6 @@ const AddService = () => {
       }));
     }
   };
-
-
 
   const handleDescriptionChange = (index, value) => {
     const newDescriptions = [...formData.serviceDescription];
@@ -122,7 +134,7 @@ const AddService = () => {
       if (!formData.serviceName.trim()) {
         toast.error("Service name is required", {
           position: "top-right",
-          autoClose: 3000,
+          autoClose: 1000,
         });
         setLoading(false);
         return;
@@ -131,11 +143,40 @@ const AddService = () => {
       if (!formData.price) {
         toast.error("Price is required", {
           position: "top-right",
-          autoClose: 3000,
+          autoClose: 1000,
         });
         setLoading(false);
         return;
       }
+
+      if (formData.serviceName.trim().length < 3) {
+        toast.error("Service name must be at least 3 characters");
+        setLoading(false);
+        return;
+      }
+
+      if (formData.serviceName.length > 30) {
+        toast.error("Service name cannot exceed 30 characters");
+        setLoading(false);
+        return;
+      }
+
+      if (formData.serviceDescription.some(d => d.trim().length > 150)) {
+        toast.error("Each description must be under 150 characters");
+        setLoading(false);
+        return;
+      }
+
+
+      if (!/^\d{1,4}$/.test(formData.price)) {
+        toast.error("Price must be a 4-digit number only", {
+          position: "top-right",
+          autoClose: 1000,
+        });
+        setLoading(false);
+        return;
+      }
+
 
       // Create FormData for the product
       const productData = new FormData();
@@ -175,20 +216,20 @@ const AddService = () => {
       }
       toast.success("Service added successfully", {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 1000,
       });
 
       setTimeout(() => {
         navigate("/services", {
           state: { categoryAdded: true },
         });
-      }, 3000);
+      }, 1000);
 
     } catch (error) {
       console.error("Error adding service:", error);
       toast.error("Error adding service. Please try again.", {
         position: "top-right",
-        autoClose: 4000,
+        autoClose: 1000,
       });
 
     } finally {
@@ -197,13 +238,15 @@ const AddService = () => {
   };
   const updateSectionTitle = (index, value) => {
     const sections = [...serviceContent.sections];
-    sections[index].title = value;
+    sections[index].title = sanitizeText(value);
+
     setServiceContent({ ...serviceContent, sections });
   };
 
   const updateItem = (sIndex, iIndex, value) => {
     const sections = [...serviceContent.sections];
-    sections[sIndex].items[iIndex] = value;
+    sections[sIndex].items[iIndex] = sanitizeText(value);
+
     setServiceContent({ ...serviceContent, sections });
   };
 
@@ -313,7 +356,11 @@ const AddService = () => {
           <Header />
 
           {/* Navigation Bar */}
-          <div className="navigation d-flex align-items-center py-2 px-4 bg-white border-bottom w-100 ">
+          <div
+            className="navigation d-flex align-items-center py-2 px-4 bg-white border-bottom"
+            style={{ width: "87%", margin: "0 auto" }}
+          >
+
             <div className="d-flex gap-2 align-items-center w-100">
               <button
                 className="btn btn-light p-0"
@@ -421,12 +468,16 @@ const AddService = () => {
                     placeholder="Enter your service"
                     style={{ height: "45px" }}
                     required
+                    minLength={3}
+                    maxLength={30}
                   />
                 </div>
                 <div className="col-md-3">
                   <label className="form-label fw-semibold">Enter Price</label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     className="form-control"
                     name="price"
                     value={formData.price}
@@ -434,9 +485,8 @@ const AddService = () => {
                     placeholder="Eg: 1000"
                     style={{ height: "45px" }}
                     required
-                    min="0"
-                    step="0.01"
                   />
+
                 </div>
               </div>
 
@@ -456,6 +506,8 @@ const AddService = () => {
                           handleDescriptionChange(index, e.target.value)
                         }
                         placeholder="Describe what we do"
+                        maxLength={150}
+                        minLength={3}
                         style={{
                           fontSize: "14px",
                           boxShadow: "none",
@@ -509,7 +561,11 @@ const AddService = () => {
                     className="col-4 border p-3 position-relative"
                     style={{ minHeight: "210px" }}
                   >
-                    <div className="position-absolute" style={{ top: "6px", right: "6px" }}>
+                    <div
+                      className="position-absolute grid-action-icons"
+                      style={{ top: "6px", right: "6px" }}
+                    >
+
                       <button
                         className="btn btn-sm btn-light me-1"
                         onClick={() => addItem(index)}
@@ -530,18 +586,21 @@ const AddService = () => {
                       value={section.title}
                       onChange={(e) => updateSectionTitle(index, e.target.value)}
                       placeholder="Section title"
+                      maxLength={40}
+                      minLength={3}
                     />
 
                     <ul>
                       {section.items.map((item, i) => (
                         <li key={i} className="d-flex justify-content-between">
                           <input
-                            className="form-control border-0"
+                            className="form-control border-2"
                             value={item}
                             onChange={(e) =>
                               updateItem(index, i, e.target.value)
                             }
                             placeholder="Item"
+                            maxLength={60}
                           />
 
                           <button

@@ -13,6 +13,7 @@ const Services = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [networkError, setNetworkError] = useState(false);
+  const [ratings, setRatings] = useState({});
 
   const navigate = useNavigate();
 
@@ -24,6 +25,10 @@ const Services = () => {
     try {
       const response = await api.get("/categories/all");
       setCategories(response.data.data || []);
+      const allProducts = response.data.data.flatMap(
+        (cat) => cat.products || []
+      );
+      fetchAverageRatings(allProducts);
     } catch (err) {
       if (err.message === "Network Error") {
         setNetworkError(true);
@@ -40,6 +45,25 @@ const Services = () => {
     fetchCategoriesWithProducts();
   }, []);
 
+
+  const fetchAverageRatings = async (products) => {
+    try {
+      const ratingRequests = products.map((p) =>
+        api.get(`/products/${p.product_id}/average-rating`)
+      );
+
+      const responses = await Promise.all(ratingRequests);
+
+      const ratingMap = {};
+      responses.forEach((res) => {
+        ratingMap[res.data.productId] = res.data.averageRating;
+      });
+
+      setRatings(ratingMap);
+    } catch (error) {
+      console.error("Failed to fetch ratings", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -112,7 +136,7 @@ const Services = () => {
               } catch (error) {
                 toast.dismiss();
                 toast.error("Failed to delete category", {
-                  autoClose: 2000,
+                  autoClose: 1000,
                 });
               }
             }}
@@ -276,7 +300,8 @@ const Services = () => {
                               className="border rounded-2 px-1"
                               style={{ backgroundColor: "#EDF3F7" }}
                             >
-                              ⭐ 0.0
+                              ⭐ {ratings[service.product_id]?.toFixed(1) || "0.0"}
+
                             </span>
                           </p>
                         </div>

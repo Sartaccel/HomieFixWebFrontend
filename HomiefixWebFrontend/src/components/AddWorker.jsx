@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate, useLocation } from "react-router-dom";
-// import Swal from "sweetalert2";
+import Swal from "sweetalert2";
 import addWorker from "../assets/addWorker.jpg";
 import "../styles/AddWorker.css";
 import Header from "./Header";
@@ -64,7 +64,7 @@ const AddWorker = () => {
           `Worker data for ${workerDataFromEnquiry.name} has been auto-filled from enquiry.`
         ),
 
-        timer: 3000,
+        timer: 1000,
         showConfirmButton: false
       });
     }
@@ -678,7 +678,7 @@ const requiredFieldStyle = {
 return (
   <>
     <Header />
-    <ToastContainer position="top-right" autoClose={3000} />
+    <ToastContainer position="top-right" autoClose={1000} />
     <div className="container-fluid" style={{ paddingTop: "80px" }}>
       <div className="d-flex gap-4 mx-2 align-items-center">
         <button
@@ -758,9 +758,11 @@ return (
             />
             <label
               htmlFor="profilePic"
-              className="btn mx-5"
+              className="btn"
               style={{
-                marginTop: "63px",
+                display:"inline-block",
+                marginLeft:"105px",
+                marginTop: "-70px",
                 borderColor: "#0076CE",
                 color: "#0076CE",
               }}

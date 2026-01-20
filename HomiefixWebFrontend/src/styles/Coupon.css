@@ -113,9 +113,9 @@
   border-bottom: 1px solid #f1f5f9;
 }
 
-.coupon-card tbody tr:last-child {
-  border-bottom: none;
-}
+/* .coupon-card tbody tr:last-child {
+  border-bottom: 1px solid #0080ff;
+} */
 
 .coupon-card tbody tr:hover {
   background-color: #f9fafb;
@@ -248,6 +248,64 @@ body.modal-open {
   font-weight: 500;
 }
 
+
+.coupon-delete-btn i {
+  color: #dc2626;
+  /* red */
+  font-size: 16px;
+}
+
+.coupon-delete-btn:hover i {
+  color: #b91c1c;
+}
+
+/* Increase width for Coupon Title column */
+.coupon-card th:nth-child(1),
+.coupon-card td:nth-child(1) {
+  width: 25%;
+}
+
+.coupon-card th:nth-child(2),
+.coupon-card td:nth-child(2) {
+  width: 10%;
+}
+
+/* Coupon Discount */
+.coupon-card th:nth-child(3),
+.coupon-card td:nth-child(3) {
+  width: 10%;
+}
+
+/*  Coupon Type */
+.coupon-card th:nth-child(4),
+.coupon-card td:nth-child(4) {
+  width: 10%;
+}
+
+/* Start Date */
+.coupon-card th:nth-child(5),
+.coupon-card td:nth-child(5) {
+  width: 10%;
+}
+
+/*  Valid Until */
+.coupon-card th:nth-child(6),
+.coupon-card td:nth-child(6) {
+  width: 10%;
+}
+
+/*Status */
+.coupon-card th:nth-child(7),
+.coupon-card td:nth-child(7) {
+  width: 8%;
+}
+
+/* Actions (Edit + Delete) */
+.coupon-card th:nth-child(8),
+.coupon-card td:nth-child(8) {
+  width: 10%;
+}
+
 /* responsive */
 @media (max-width: 992px) {
   .add-coupon-overlay {
@@ -279,6 +337,45 @@ body.modal-open {
   .coupon-card {
     padding: 14px 12px;
   }
+}
+
+
+/* Coupon Status dropdown – same as Banner */
+#couponStatusDropdown {
+  font-size: 13px;
+  padding: 2px 6px !important;
+  line-height: 1.2;
+}
+
+#couponStatusDropdown+.dropdown-menu {
+  top: 140% !important;
+  /* ⬇️ moves dropdown down */
+  left: 0 !important;
+  transform: none !important;
+  /* 🔑 disable bootstrap translate */
+  margin-top: 6px !important;
+
+  /* Size control */
+  min-width: 80px !important;
+  max-width: 140px !important;
+
+  /* Height control */
+  max-height: 140px;
+  overflow-y: auto;
+
+  padding: 4px 0;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
+#couponStatusDropdown+.dropdown-menu .dropdown-item {
+  padding: 6px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+#couponStatusDropdown+.dropdown-menu .dropdown-item:hover {
+  background-color: #f3f4f6;
 }
 
 @media (max-width: 576px) {

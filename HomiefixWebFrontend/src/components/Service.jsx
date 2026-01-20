@@ -106,14 +106,14 @@ const Service = () => {
 
       toast.success(" Service updated successfully", {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 1000,
       });
 
     } catch (error) {
       console.error(error);
       toast.error(" Update failed", {
         position: "top-right",
-        autoClose: 4000,
+        autoClose: 1000,
       });
 
     }
@@ -149,17 +149,17 @@ const Service = () => {
 
                 toast.success("Service deleted successfully", {
                   position: "top-right",
-                  autoClose: 3000,
+                  autoClose: 1000,
                 });
 
-                setTimeout(() => navigate(-1), 2000);
+                setTimeout(() => navigate(-1), 1000);
               } catch (err) {
-                toast.dismiss();
+                toast.dismiss(); n,   
                 document.body.classList.remove("toast-dim");
 
                 toast.error("Failed to delete service", {
                   position: "top-right",
-                  autoClose: 4000,
+                  autoClose: 1000,
                 });
               }
             }}
