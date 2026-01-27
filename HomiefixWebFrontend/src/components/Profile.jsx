@@ -232,7 +232,7 @@ const Profile = () => {
         className="container"
         style={{
           height: "80vh",
-          overflowY: "hidden",
+          overflowY: "auto",
           overflowX: "hidden",
           marginTop: "20px",
         }}
@@ -268,12 +268,13 @@ const Profile = () => {
               />
               <label
                 htmlFor="profilePic"
-                className="btn mx-5"
+                className="btn"
                 style={{
-                  marginTop: "63px",
+                  display: "inline-block",
+                  marginLeft: "110px",
+                  marginTop: "-70px",
                   borderColor: "#0076CE",
                   color: "#0076CE",
-                  borderRadius: "2px",
                 }}
               >
                 Upload Photo

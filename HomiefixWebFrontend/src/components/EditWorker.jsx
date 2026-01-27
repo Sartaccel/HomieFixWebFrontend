@@ -172,14 +172,37 @@ const EditWorker = () => {
 
         // Initialize formData
         setFormData({
-          ...data,
-          role: data.role ? data.role.split(",") : [],
-          specification: data.specification
-            ? data.specification.split(",")
-            : [],
-          language: data.language ? data.language.split(",") : [],
+          name: data.name || "",
+          email: data.email || "",
+          contactNumber: data.contactNumber || "",
+          workExperience: data.workExperience || "",
+          dateOfBirth: data.dateOfBirth || "",
+          gender: data.gender || "",
+          houseNumber: data.houseNumber || "",
+          town: data.town || "",
+          pincode: data.pincode || "",
+          nearbyLandmark: data.nearbyLandmark || "",
+          district: data.district || "",
+          state: data.state || "",
+          aadharNumber: data.aadharNumber || "",
+          drivingLicenseNumber: data.drivingLicenseNumber || "",
+          joiningDate: data.joiningDate || "",
           econtactNumber: data.eContactNumber || "",
+          role: data.role ? data.role.split(",") : [],
+          specification: data.specification ? data.specification.split(",") : [],
+          language: data.language ? data.language.split(",") : [],
+          profilePic: null,
         });
+
+        // setFormData({
+        //   ...data,
+        //   role: data.role ? data.role.split(",") : [],
+        //   specification: data.specification
+        //     ? data.specification.split(",")
+        //     : [],
+        //   language: data.language ? data.language.split(",") : [],
+        //   econtactNumber: data.eContactNumber || "",
+        // });
 
         // Initialize clickedButtons based on specification
         const initialClickedButtons = {};
@@ -231,8 +254,8 @@ const EditWorker = () => {
 
     // Process the input value
     let processedValue = value;
-      processedValue = value.replace(/[^a-zA-Z0-9]/g, "");
-    
+    processedValue = value.replace(/[^a-zA-Z0-9]/g, "");
+
 
     // Limit to 15 characters after DL-
     if (processedValue.length > 15) {
@@ -512,70 +535,126 @@ const EditWorker = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Validate job titles first
-    if (formData.specification.length === 0) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Please select at least one job title before submitting.",
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    if (!validateForm()) {
-      setIsLoading(false);
-      return;
-    }
-
-    if (formData.contactNumber === formData.econtactNumber) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Contact Number and Emergency Contact Number cannot be the same.",
-      });
-      setIsLoading(false);
-      return;
-    }
-
     try {
       const formDataToSend = new FormData();
-      for (const key in formData) {
-        if (key === "specification" || key === "role") {
-          formDataToSend.append(key, formData[key].join(","));
-        } else if (key === "econtactNumber") {
-          formDataToSend.append("eContactNumber", formData[key]);
-        } else if (key === "language") {
-          formDataToSend.append("language", formData[key].join(","));
-        } else {
-          formDataToSend.append(key, formData[key]);
+
+      // Required CSV fields
+      formDataToSend.append("specification", formData.specification.join(","));
+      formDataToSend.append("role", formData.role.join(","));
+      formDataToSend.append("language", formData.language.join(","));
+      formDataToSend.append("eContactNumber", formData.econtactNumber);
+
+      // Optional fields
+      Object.entries(formData).forEach(([key, value]) => {
+        if (["specification", "role", "language", "econtactNumber"].includes(key))
+          return;
+
+        if (key === "profilePic" && value) {
+          formDataToSend.append("profilePic", value);
+        } else if (value !== "" && value !== null) {
+          formDataToSend.append(key, value);
         }
-      }
-
-      const response = await api.put(`/workers/update/${id}`, formDataToSend, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
       });
 
-      Swal.fire({
-        icon: "success",
-        title: "Success",
-        text: "Worker updated successfully!",
-      }).then(() => {
-        navigate(`/worker-details/worker/${id}`);
+      await api.put(`/workers/update/${id}`, formDataToSend, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-    } catch (error) {
-      console.error("Error:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Failed to update worker. Please try again.",
-      });
+
+      Swal.fire("Success", "Worker updated successfully", "success")
+        .then(() => navigate(`/worker-details/worker/${id}`));
+
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Update failed", "error");
     } finally {
       setIsLoading(false);
     }
   };
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+
+  //   // Validate job titles first
+  //   if (formData.specification.length === 0) {
+  //     Swal.fire({
+  //       icon: "error",
+  //       title: "Error",
+  //       text: "Please select at least one job title before submitting.",
+  //     });
+  //     setIsLoading(false);
+  //     return;
+  //   }
+
+  //   if (!validateForm()) {
+  //     setIsLoading(false);
+  //     return;
+  //   }
+
+  //   if (formData.contactNumber === formData.econtactNumber) {
+  //     Swal.fire({
+  //       icon: "error",
+  //       title: "Error",
+  //       text: "Contact Number and Emergency Contact Number cannot be the same.",
+  //     });
+  //     setIsLoading(false);
+  //     return;
+  //   }
+
+  //   try {
+
+  //     const formDataToSend = new FormData();
+
+  //     // mandatory multi-value fields
+  //     formDataToSend.append("specification", formData.specification.join(","));
+  //     formDataToSend.append("role", formData.role.join(","));
+  //     formDataToSend.append("language", formData.language.join(","));
+  //     formDataToSend.append("eContactNumber", formData.econtactNumber);
+
+  //     // append remaining fields safely
+  //     Object.keys(formData).forEach((key) => {
+  //       if (
+  //         ["specification", "role", "language", "econtactNumber"].includes(key)
+  //       ) return;
+
+  //       if (key === "profilePic") {
+  //         if (formData.profilePic) {
+  //           formDataToSend.append("profilePic", formData.profilePic);
+  //         }
+  //       }
+  //       else if (key === "workExperience" && formData[key] !== "") {
+  //         formDataToSend.append(key, Number(formData[key]));
+  //       }
+  //       else if (formData[key] !== "") {
+  //         formDataToSend.append(key, formData[key]);
+  //       }
+  //     });
+
+
+  //     const response = await api.put(`/workers/update/${id}`, formDataToSend, {
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //       },
+  //     });
+
+  //     Swal.fire({
+  //       icon: "success",
+  //       title: "Success",
+  //       text: "Worker updated successfully!",
+  //     }).then(() => {
+  //       navigate(`/worker-details/worker/${id}`);
+  //     });
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //     Swal.fire({
+  //       icon: "error",
+  //       title: "Error",
+  //       text: "Failed to update worker. Please try again.",
+  //     });
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   // Style for required field asterisk
   const requiredFieldStyle = {
@@ -628,8 +707,11 @@ const EditWorker = () => {
             className="container mt-4"
             style={{ marginLeft: "64px", maxWidth: "100%" }}
           >
-            <p>Profile Photo</p>
-            <div>
+            <p>
+              Profile Photo <span style={{ color: "#B8141A" }}>*</span>
+            </p>
+
+            <div className="d-flex align-items-center gap-3">
               <img
                 src={previewImage}
                 alt="profile"
@@ -637,12 +719,8 @@ const EditWorker = () => {
                 width={100}
                 className="rounded-4"
                 style={{ objectFit: "cover" }}
-                onError={(e) => {
-                  console.error("Image failed to load, using fallback");
-                  e.target.onerror = null;
-                  e.target.src = addWorker;
-                }}
               />
+
               <input
                 type="file"
                 id="profilePic"
@@ -651,24 +729,19 @@ const EditWorker = () => {
                 style={{ display: "none" }}
                 onChange={handleImageUpload}
               />
+
               <label
                 htmlFor="profilePic"
-                className="btn mx-5"
+                className="btn"
                 style={{
-                  marginTop: "63px",
                   borderColor: "#0076CE",
                   color: "#0076CE",
                 }}
               >
                 Upload Photo
               </label>
-              <div className="text-muted small mt-1">
-                Supported formats: JPG, PNG | Max size: 1MB
-              </div>
-              {errors.profilePic && (
-                <div className="text-danger small">{errors.profilePic}</div>
-              )}
             </div>
+
           </div>
 
           {/* Main container */}
@@ -684,9 +757,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${
-                    errors.name ? "is-invalid" : ""
-                  }`}
+                  className={`form-control shadow-none ${errors.name ? "is-invalid" : ""
+                    }`}
                   name="name"
                   id="name"
                   required
@@ -704,9 +776,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="email"
-                  className={`form-control  shadow-none${
-                    errors.email ? "is-invalid" : ""
-                  }`}
+                  className={`form-control  shadow-none${errors.email ? "is-invalid" : ""
+                    }`}
                   name="email"
                   id="email"
                   placeholder="Enter Email"
@@ -723,9 +794,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="tel"
-                  className={`form-control shadow-none ${
-                    errors.contactNumber ? "is-invalid" : ""
-                  }`}
+                  className={`form-control shadow-none ${errors.contactNumber ? "is-invalid" : ""
+                    }`}
                   name="contactNumber"
                   id="contactNumber"
                   required
@@ -744,9 +814,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="tel"
-                  className={`form-control shadow-none ${
-                    errors.econtactNumber ? "is-invalid" : ""
-                  }`}
+                  className={`form-control shadow-none ${errors.econtactNumber ? "is-invalid" : ""
+                    }`}
                   name="econtactNumber"
                   id="eContactNumber"
                   placeholder="Enter Emergency Contact Number"
@@ -771,9 +840,8 @@ const EditWorker = () => {
                 <Select
                   isMulti
                   options={languageOptions}
-                  className={`basic-multi-select ${
-                    errors.language ? "is-invalid" : ""
-                  }`}
+                  className={`basic-multi-select ${errors.language ? "is-invalid" : ""
+                    }`}
                   classNamePrefix="select"
                   onChange={handleLanguageChange}
                   value={languageOptions.filter((option) =>
@@ -790,9 +858,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${
-                    errors.workExperience ? "is-invalid" : ""
-                  }`}
+                  className={`form-control shadow-none ${errors.workExperience ? "is-invalid" : ""
+                    }`}
                   name="workExperience"
                   id="workExperience"
                   placeholder="Enter Work Experience"
@@ -811,9 +878,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control  shadow-none${
-                    errors.dateOfBirth ? "is-invalid" : ""
-                  }`}
+                  className={`form-control  shadow-none${errors.dateOfBirth ? "is-invalid" : ""
+                    }`}
                   name="dateOfBirth"
                   id="dateOfBirth"
                   onChange={handleChange}
@@ -902,9 +968,8 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${
-                      clickedButtons[item] ? "active" : ""
-                    }`}
+                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
+                      }`}
                     onClick={() => handleButtonClick(item, "Home Appliances")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -929,9 +994,8 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${
-                      clickedButtons[item] ? "active" : ""
-                    }`}
+                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
+                      }`}
                     onClick={() => handleButtonClick(item, "Electrician")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -957,9 +1021,8 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${
-                      clickedButtons[item] ? "active" : ""
-                    }`}
+                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
+                      }`}
                     onClick={() => handleButtonClick(item, "Carpentry")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -985,9 +1048,8 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${
-                      clickedButtons[item] ? "active" : ""
-                    }`}
+                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
+                      }`}
                     onClick={() => handleButtonClick(item, "Plumbing")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -1013,9 +1075,8 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${
-                      clickedButtons[item] ? "active" : ""
-                    }`}
+                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
+                      }`}
                     onClick={() => handleButtonClick(item, "Vehicle service")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -1040,9 +1101,8 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${
-                      clickedButtons[item] ? "active" : ""
-                    }`}
+                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
+                      }`}
                     onClick={() => handleButtonClick(item, "Care Taker")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -1061,9 +1121,8 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${
-                      clickedButtons[item] ? "active" : ""
-                    }`}
+                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
+                      }`}
                     onClick={() => handleButtonClick(item, "Cleaning")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -1082,9 +1141,8 @@ const EditWorker = () => {
                   <button
                     key={item}
                     type="button"
-                    className={`btn btn-outline-secondary ${
-                      clickedButtons[item] ? "active" : ""
-                    }`}
+                    className={`btn btn-outline-secondary ${clickedButtons[item] ? "active" : ""
+                      }`}
                     onClick={() => handleButtonClick(item, "CCTV")}
                   >
                     {item} {clickedButtons[item] && "✓"}
@@ -1105,9 +1163,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control  shadow-none ${
-                    errors.houseNumber ? "is-invalid" : ""
-                  }`}
+                  className={`form-control  shadow-none ${errors.houseNumber ? "is-invalid" : ""
+                    }`}
                   name="houseNumber"
                   id="houseNumber"
                   required
@@ -1125,9 +1182,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${
-                    errors.town ? "is-invalid" : ""
-                  }`}
+                  className={`form-control shadow-none ${errors.town ? "is-invalid" : ""
+                    }`}
                   name="town"
                   id="town"
                   required
@@ -1145,9 +1201,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control  shadow-none${
-                    errors.pincode ? "is-invalid" : ""
-                  }`}
+                  className={`form-control  shadow-none${errors.pincode ? "is-invalid" : ""
+                    }`}
                   name="pincode"
                   id="pincode"
                   required
@@ -1170,9 +1225,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${
-                    errors.nearbyLandmark ? "is-invalid" : ""
-                  }`}
+                  className={`form-control shadow-none ${errors.nearbyLandmark ? "is-invalid" : ""
+                    }`}
                   name="nearbyLandmark"
                   id="nearbyLandmark"
                   required
@@ -1192,9 +1246,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${
-                    errors.district ? "is-invalid" : ""
-                  }`}
+                  className={`form-control shadow-none ${errors.district ? "is-invalid" : ""
+                    }`}
                   name="district"
                   id="district"
                   required
@@ -1212,9 +1265,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${
-                    errors.state ? "is-invalid" : ""
-                  }`}
+                  className={`form-control shadow-none ${errors.state ? "is-invalid" : ""
+                    }`}
                   name="state"
                   id="state"
                   required
@@ -1239,9 +1291,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${
-                    errors.aadharNumber ? "is-invalid" : ""
-                  }`}
+                  className={`form-control shadow-none ${errors.aadharNumber ? "is-invalid" : ""
+                    }`}
                   name="aadharNumber"
                   id="aadharNumber"
                   required
@@ -1260,9 +1311,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="text"
-                  className={`form-control shadow-none ${
-                    errors.drivingLicenseNumber ? "is-invalid" : ""
-                  }`}
+                  className={`form-control shadow-none ${errors.drivingLicenseNumber ? "is-invalid" : ""
+                    }`}
                   name="drivingLicenseNumber"
                   id="drivingLicenseNumber"
                   placeholder="DL-XXXXXXXXXXXXXXX"
@@ -1284,9 +1334,8 @@ const EditWorker = () => {
                 </label>
                 <input
                   type="date"
-                  className={`form-control shadow-none ${
-                    errors.joiningDate ? "is-invalid" : ""
-                  }`}
+                  className={`form-control shadow-none ${errors.joiningDate ? "is-invalid" : ""
+                    }`}
                   name="joiningDate"
                   id="joiningDate"
                   required

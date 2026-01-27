@@ -133,7 +133,7 @@ const Coupon = () => {
       {
         closeOnClick: false,
         draggable: false,
-        autoClose: 1000,
+        autoClose: 3000,
       }
     );
   };

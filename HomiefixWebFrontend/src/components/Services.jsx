@@ -198,13 +198,17 @@ const Services = () => {
               style={{ marginTop: "-50px" }}
             >
               <div className="d-flex gap-4">
-                <button
-                  className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""
-                    }`}
+                <div
+                  className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
                   onClick={() => setActiveTab("recent")}
+                  style={{
+                    cursor: "default",
+                    userSelect: "none"
+                  }}
                 >
                   {category.category_name}
-                </button>
+                </div>
+
               </div>
 
               <div className="d-flex gap-2">

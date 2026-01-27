@@ -345,7 +345,7 @@ const AddCategory = () => {
                     className="form-control"
                     placeholder="1000"
                     style={{ height: "45px" }}
-                  />
+                  /> 
                 </div> */}
               </div>
 

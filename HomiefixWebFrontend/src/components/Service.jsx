@@ -154,8 +154,8 @@ const Service = () => {
 
                 setTimeout(() => navigate(-1), 1000);
               } catch (err) {
-                toast.dismiss(); n,   
-                document.body.classList.remove("toast-dim");
+                toast.dismiss(); n,
+                  document.body.classList.remove("toast-dim");
 
                 toast.error("Failed to delete service", {
                   position: "top-right",
@@ -323,12 +323,17 @@ const Service = () => {
                 }
               />
             ) : (
-              <button
+              <div
                 className={`tab-btn ${activeTab === "recent" ? "active-tab" : ""}`}
-                style={{ padding: "15px" }}
+                style={{
+                  padding: "15px",
+                  cursor: "default",
+                  userSelect: "none"
+                }}
               >
                 {serviceData.content.title || serviceData.name}
-              </button>
+              </div>
+
             )}
 
           </div>
@@ -358,9 +363,14 @@ const Service = () => {
         <div className="row px-4 mx-2">
           <div className="col-4">
             <div className="card mt-1 mb-3" style={{ border: "none" }}>
-              <div className="card-body d-flex">
+              <div
+                className="card-body d-flex align-items-start"
+                style={{ overflow: "hidden" }}
+              >
+
+
                 <div
-                  style={{ position: "relative", width: "60px", height: "60px" }}
+                  style={{ position: "relative", width: "60px", height: "60px", flexShrink: 0 }}
                 >
                   <img
                     src={
