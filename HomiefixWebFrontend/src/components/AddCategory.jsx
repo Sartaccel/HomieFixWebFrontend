@@ -4,12 +4,9 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import addWorker from "../assets/addWorker.jpg";
+import addcategory from "../assets/addcategory.svg";
 import "../styles/Services.css";
 import api from "../api";
-
-
-
 
 const AddCategory = () => {
   const removeEmojiAndSpecial = (text) => {
@@ -18,12 +15,12 @@ const AddCategory = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     categoryPhoto: null,
-    servicePhoto: null, // Added servicePhoto to state
+    servicePhoto: null,
     categoryName: "",
     serviceDescription: ["", "", ""],
   });
-  const [previewImage, setPreviewImage] = useState(addWorker);
-  const [servicePreviewImage, setServicePreviewImage] = useState(addWorker); // Separate preview for service
+  const [previewImage, setPreviewImage] = useState(addcategory);
+  const [servicePreviewImage, setServicePreviewImage] = useState(addcategory);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -74,7 +71,7 @@ const AddCategory = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleServiceImageUpload = (e) => { // Added service image upload handler
+  const handleServiceImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -98,48 +95,6 @@ const AddCategory = () => {
     reader.readAsDataURL(file);
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setLoading(true);
-
-  //   try {
-  //     // Create FormData object for file upload
-  //     const submitData = new FormData();
-  //     submitData.append("name", formData.categoryName);
-
-  //     // Append only category image to save in database
-  //     if (formData.categoryPhoto) {
-  //       submitData.append("image", formData.categoryPhoto);
-  //     }
-
-  //     // Service photo is uploaded but NOT sent to backend
-  //     // It's stored in frontend state only for display purposes
-
-  //     // Make API call to add category (only category image is sent)
-  //     const response = await api.post("/categories/add", submitData, {
-  //       headers: {
-  //         "Content-Type": "multipart/form-data",
-  //       },
-  //     });
-
-  //     // Navigate to AddService page with category data
-  //       navigate("/services/add-service", { 
-  //         state: { 
-  //           categoryId: createdCategory.id,
-  //           categoryName: createdCategory.name,
-  //           // Pass the category image URL if you want to use it
-  //           categoryImage: createdCategory.categoryImage,
-  //           // Flag to indicate this is from AddCategory flow
-  //           fromAddCategory: true
-  //         }
-  //       });
-  //   } catch (error) {
-  //     console.error("Error adding category:", error);
-  //     alert("Error adding category. Please try again.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
 
   const handleSubmit = async (e) => {
@@ -280,45 +235,7 @@ const AddCategory = () => {
                     </div>
                   </div>
 
-                  {/* Second Photo Upload - Service Photo */}
-                  {/* <div className="d-flex flex-column align-items-start gap-2 ms-5" style={{ marginTop: "-30px" }}>
-                    <label className="form-label fw-semibold mb-0">Service photo</label>
-                    <div className="d-flex align-items-center gap-4">
-                      <div className="position-relative">
-                        <img
-                          src={servicePreviewImage}
-                          alt="Service"
-                          className="rounded"
-                          style={{ 
-                            width: "100px", 
-                            height: "100px", 
-                            objectFit: "cover",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <input
-                          type="file"
-                          id="servicePhoto1"
-                          className="d-none"
-                          onChange={handleServiceImageUpload} // Fixed: changed to handleServiceImageUpload
-                          accept="image/jpeg, image/png"
-                        />
-                        <label
-                          htmlFor="servicePhoto1"
-                          className="btn"
-                          style={{ 
-                            border: "1px solid #0076CE", 
-                            color: "#0076CE",
-                            backgroundColor: "transparent",
-                            marginTop:"50px"
-                          }}
-                        >
-                          Upload photo
-                        </label>
-                      </div>
-                    </div>
-                  </div> */}
+
                 </div>
               </div>
 
@@ -342,59 +259,11 @@ const AddCategory = () => {
                   </small>
 
                 </div>
-                {/* <div className="col-md-4">
-                  <label className="form-label fw-semibold">Enter your service</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Enter your service"
-                    style={{ height: "45px" }}
-                  />
-                </div> */}
-                {/* <div className="col-md-4">
-                  <label className="form-label fw-semibold">Enter Price</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="1000"
-                    style={{ height: "45px" }}
-                  /> 
-                </div> */}
+
+
               </div>
 
-              {/* Please list what we do */}
-              {/* <div className="mb-4">
-                <label className="form-label fw-semibold">Please list what we do:</label>
-                <div className="border rounded p-3" style={{ width: "460px" }}>
-                  {formData.serviceDescription.map((description, index) => (
-                    <div key={index} className="d-flex align-items-start mb-3">
-                      <span className="me-2 mt-1">•</span>
-                      <textarea
-                        className="form-control border-0 bg-transparent p-2"
-                        value={description}
-                        onChange={(e) => handleDescriptionChange(index, e.target.value)}
-                        placeholder="We begin by conducting a detailed inspection of your AC unit, checking for any issues."
-                        style={{ 
-                          fontSize: "14px", 
-                          boxShadow: "none",
-                          resize: "none",
-                          minHeight: "40px",
-                          overflow: "visible",
-                          lineHeight: "1.2",
-                          width: "100%"
-                        }}
-                        rows={2}
-                        wrap="soft"
-                        onInput={(e) => {
-                          // Auto-resize height based on content
-                          e.target.style.height = 'auto';
-                          e.target.style.height = e.target.scrollHeight + 'px';
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div> */}
+
 
               {/* Submit Button */}
               <div className="d-flex justify-content-center mt-4">

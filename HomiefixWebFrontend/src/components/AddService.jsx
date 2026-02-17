@@ -4,7 +4,7 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import addWorker from "../assets/addWorker.jpg";
+import addcategory from "../assets/addcategory.svg";
 import "../styles/Services.css";
 import api from "../api";
 import { toast, ToastContainer } from "react-toastify";
@@ -45,7 +45,7 @@ const AddService = () => {
     price: "",
     serviceDescription: ["", ""],
   });
-  const [previewImage, setPreviewImage] = useState(addWorker);
+  const [previewImage, setPreviewImage] = useState(addcategory);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {

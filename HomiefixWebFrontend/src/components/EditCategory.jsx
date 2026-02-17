@@ -3,7 +3,7 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import addWorker from "../assets/addWorker.jpg";
+import addcategory from "../assets/addcategory.svg";
 import "../styles/Services.css";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
@@ -23,8 +23,8 @@ const EditCategory = () => {
         serviceDescription: ["", "", ""],
     });
 
-    const [previewImage, setPreviewImage] = useState(addWorker);
-    const [servicePreviewImage, setServicePreviewImage] = useState(addWorker); // Separate preview for service
+    const [previewImage, setPreviewImage] = useState(addcategory);
+    const [servicePreviewImage, setServicePreviewImage] = useState(addcategory); // Separate preview for service
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
