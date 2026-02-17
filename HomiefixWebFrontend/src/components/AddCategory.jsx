@@ -8,7 +8,13 @@ import addWorker from "../assets/addWorker.jpg";
 import "../styles/Services.css";
 import api from "../api";
 
+
+
+
 const AddCategory = () => {
+  const removeEmojiAndSpecial = (text) => {
+    return text.replace(/[^a-zA-Z0-9\s]/g, "");
+  };
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     categoryPhoto: null,
@@ -22,20 +28,27 @@ const AddCategory = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    const cleanValue = removeEmojiAndSpecial(value);
+
     setFormData(prev => ({
       ...prev,
-      [name]: value.replace(/^\s+/, "")
+      [name]: cleanValue.replace(/^\s+/, "")
     }));
   };
 
+
   const handleDescriptionChange = (index, value) => {
+    const cleanValue = removeEmojiAndSpecial(value);
+
     const newDescriptions = [...formData.serviceDescription];
-    newDescriptions[index] = value;
+    newDescriptions[index] = cleanValue;
+
     setFormData(prev => ({
       ...prev,
       serviceDescription: newDescriptions
     }));
   };
+
 
   const handleCategoryImageUpload = (e) => {
     const file = e.target.files[0];

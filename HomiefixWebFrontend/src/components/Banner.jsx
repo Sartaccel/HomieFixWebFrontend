@@ -44,6 +44,13 @@ const Banner = () => {
   // Utility: check empty or spaces-only text
   const isBlank = (value) => !value || value.trim().length === 0;
 
+  const sanitizeInput = (value) => {
+    return value
+      .replace(/^\s+/g, "")                 // remove starting spaces
+      .replace(/[^\w\s]/gi, "")            // remove special chars + emojis
+  };
+
+
   // Fetch banners on component mount
   useEffect(() => {
     fetchBanners();
@@ -104,63 +111,75 @@ const Banner = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validate title
+
+    let hasError = false;
+
+    // Title
     if (isBlank(formData.title)) {
-      toast.warning(" Banner title cannot be empty ");
-      return;
+      toast.warning("Banner title cannot be empty");
+      hasError = true;
     }
 
-    //  Validate description
+    // Description
     if (isBlank(formData.description)) {
-      toast.warning("Description cannot be empty ");
-      return;
+      toast.warning("Description cannot be empty");
+      hasError = true;
     }
+
+    // Image
     if (!formData.image) {
       toast.warning("Please upload a banner image");
-      return;
+      hasError = true;
     }
 
-    // Validate dates
+    // Start Date
+    if (!formData.startDate) {
+      toast.warning("Start date is required");
+      hasError = true;
+    }
+
+    // End Date
+    if (!formData.endDate) {
+      toast.warning("End date is required");
+      hasError = true;
+    }
+
+    // Date comparison
     if (formData.startDate && formData.endDate) {
       if (new Date(formData.endDate) < new Date(formData.startDate)) {
         toast.warning("End date cannot be before start date");
-
-        return;
+        hasError = true;
       }
     }
 
-    // Prepare form data for API
+    // Stop submit if ANY validation failed
+    if (hasError) return;
+
+    // -------- EXISTING API LOGIC BELOW (UNCHANGED) --------
+
     const formDataToSend = new FormData();
     formDataToSend.append("title", formData.title);
-    if (formData.description) {
-      formDataToSend.append("description", formData.description);
-    }
+    formDataToSend.append("description", formData.description);
     formDataToSend.append("startDate", formData.startDate);
     formDataToSend.append("endDate", formData.endDate);
     formDataToSend.append("active", formData.active);
-    if (formData.image) {
-      formDataToSend.append("image", formData.image);
-    }
+    formDataToSend.append("image", formData.image);
 
     try {
       const response = await axios.post(`${API_BASE_URL}/add`, formDataToSend, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       if (response.data.status === "success") {
         toast.success("Banner added successfully!", { autoClose: 1500 });
-
         setShowAddForm(false);
-        fetchBanners(); // Refresh the list
+        fetchBanners();
       }
     } catch (error) {
-      console.error("Error adding banner:", error);
-      toast.error(error.response?.data?.message || " Failed to add banner");
-
+      toast.error(error.response?.data?.message || "Failed to add banner");
     }
   };
+
 
   // Handle Edit Banner
   const handleEditBanner = (banner) => {
@@ -382,8 +401,11 @@ const Banner = () => {
                       className="form-control banner-form-input"
                       value={formData.title}
                       maxLength={50}
-                      onChange={(e) => handleChange("title", e.target.value)}
-                      required
+                      onChange={(e) =>
+                        handleChange("title", sanitizeInput(e.target.value))
+                      }
+
+                    // required
                     />
                     <small className="text-muted">
                       {formData.title.length}/{50} characters
@@ -419,7 +441,7 @@ const Banner = () => {
                           handleChange("endDate", value);
                         }
                       }}
-                      required
+                    // required
                     />
                   </div>
                 </div>
@@ -436,7 +458,7 @@ const Banner = () => {
                       value={formData.endDate}
                       min={formData.startDate || today}
                       onChange={(e) => handleChange("endDate", e.target.value)}
-                      required
+                    // required
                     />
                   </div>
 
@@ -449,7 +471,9 @@ const Banner = () => {
                       className="form-control banner-form-input"
                       value={formData.description}
                       maxLength={150}
-                      onChange={(e) => handleChange("description", e.target.value)}
+                      onChange={(e) =>
+                        handleChange("description", sanitizeInput(e.target.value))
+                      }
                     />
                     <small className="text-muted">
                       {formData.description.length}/{150} characters
@@ -517,8 +541,9 @@ const Banner = () => {
                       value={editData.title}
                       maxLength={50}
                       onChange={(e) =>
-                        setEditData({ ...editData, title: e.target.value })
+                        setEditData({ ...editData, title: sanitizeInput(e.target.value) })
                       }
+
                     />
                     <small className="text-muted">
                       {editData.title.length}/{50} characters
@@ -585,8 +610,9 @@ const Banner = () => {
                       value={editData.description}
                       maxLength={150}
                       onChange={(e) =>
-                        setEditData({ ...editData, description: e.target.value })
+                        setEditData({ ...editData, description: sanitizeInput(e.target.value) })
                       }
+
                     />
                     <small className="text-muted">
                       {editData.description.length}/{150} characters
@@ -671,7 +697,7 @@ const Banner = () => {
                                 className="dropdown-item text-capitalize"
                                 onClick={() => setStatusFilter(status)}
                               >
-                                
+
                                 {status}
                               </button>
                             </li>
@@ -755,6 +781,7 @@ const Banner = () => {
         </div>
         <ToastContainer
           position="top-right"
+          autoClose={1500}
           closeOnClick={true}
           draggable={false}
         />

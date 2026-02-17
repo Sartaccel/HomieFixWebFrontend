@@ -1,14 +1,14 @@
-.form-check-input{
+.form-check-input {
     border: 1px solid black;
 }
 
 .form-label {
     white-space: nowrap;
-  }
+}
 
 .form-label {
     white-space: nowrap;
-  }
+}
 
 
 .btn-outline-secondary {
@@ -33,4 +33,11 @@
 
 .btn-outline-secondary:active {
     transform: scale(0.95);
+}
+
+.navigation-barr {
+    width: 85% !important;
+    /* adjust: 95%, 85%, etc */
+    margin: 0 auto;
+    /* center it */
 }

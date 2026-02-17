@@ -106,7 +106,7 @@
 
 .coupon-card th {
   font-weight: 500;
-  color: #6b7280;
+  /* color: #6b7280; */
 }
 
 .coupon-card tbody tr {
@@ -304,6 +304,22 @@ body.modal-open {
 .coupon-card th:nth-child(8),
 .coupon-card td:nth-child(8) {
   width: 10%;
+}
+
+/* ===== Make coupon table scrollable ===== */
+.coupon-table-container {
+  max-height: calc(100vh - 260px);
+  /* adjusts to screen */
+  overflow-y: auto;
+}
+
+/* keep table header visible while scrolling */
+.coupon-table-container thead th {
+  position: sticky;
+  top: 0;
+  background: #ffffff;
+  z-index: 5;
+  box-shadow: 0 1px 0 #e5e7eb;
 }
 
 /* responsive */

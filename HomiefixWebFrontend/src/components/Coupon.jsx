@@ -5,6 +5,23 @@ import api from "../api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+
+const normalizeDate = (date) => {
+  if (!date) return "";
+
+  const str = String(date);
+
+  // already valid
+  if (str.includes("-")) return str;
+
+  // convert YYYYMMDD → YYYY-MM-DD
+  if (/^\d{8}$/.test(str)) {
+    return `${str.slice(0, 4)}-${str.slice(4, 6)}-${str.slice(6, 8)}`;
+  }
+
+  return "";
+};
+
 const isBlank = (value) =>
   value === null ||
   value === undefined ||
@@ -30,6 +47,13 @@ const Coupon = () => {
     active: true,
   });
 
+  const removeEmojiAndSpecial = (text) => {
+    return text
+      .replace(/^\s+/, "")              // remove leading spaces
+      .replace(/[^a-zA-Z0-9\s]/g, ""); // remove emoji & special chars
+  };
+
+
   //Fetch coupons from backend on mount
   useEffect(() => {
     fetchCoupons();
@@ -45,8 +69,9 @@ const Coupon = () => {
         code: c.code,
         discount: c.discountValue,
         minOrder: "-",
-        startDate: c.startDate,
-        validUntil: c.validUntil,
+        startDate: normalizeDate(c.startDate),
+        validUntil: normalizeDate(c.validUntil),
+
         couponType: c.couponType,
         status: c.active ? "active" : "inactive",
         active: c.active,
@@ -85,7 +110,14 @@ const Coupon = () => {
   };
 
   const handleChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    const cleanValue =
+      field === "startDate" || field === "validUntil"
+        ? value
+        : typeof value === "string"
+          ? removeEmojiAndSpecial(value)
+          : value;
+
+    setFormData((prev) => ({ ...prev, [field]: cleanValue }));
   };
 
   const handleDeleteClick = (couponId) => {
@@ -141,25 +173,39 @@ const Coupon = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    let hasError = false;
+
     if (isBlank(formData.title)) {
-      toast.warning("Coupon title cannot be empty");
-      return;
+      toast.warning("Coupon title cannot be empty",);
+      hasError = true;
     }
 
     if (isBlank(formData.code)) {
       toast.warning("Coupon code cannot be empty");
-      return;
+      hasError = true;
     }
 
     if (isBlank(formData.couponType)) {
       toast.warning("Please select a coupon type");
-      return;
+      hasError = true;
     }
 
     if (isBlank(formData.discount)) {
       toast.warning("Discount value is required");
-      return;
+      hasError = true;
     }
+
+    if (!formData.startDate) {
+      toast.warning("Start Date is required");
+      hasError = true;
+    }
+
+    if (!formData.validUntil) {
+      toast.warning("Valid Until is required");
+      hasError = true;
+    }
+
+    if (hasError) return;
 
     if (!/^\d+$/.test(formData.discount)) {
       toast.warning("Discount must contain only numbers");
@@ -182,90 +228,49 @@ const Coupon = () => {
       }
     }
 
-    if (!formData.startDate || !formData.validUntil) {
-      toast.warning("Please select Start Date and Valid Until");
-      return;
-    }
-
     if (new Date(formData.validUntil) < new Date(formData.startDate)) {
       toast.warning("Valid Until date cannot be before Start Date");
       return;
     }
 
-    if (!formData.code || !formData.discount || !formData.couponType) {
-      toast.warning("Please fill Code, Discount and Coupon Type");
-      return;
-    }
-
-    if (!formData.startDate || !formData.validUntil) {
-      toast.warning("Please select Start Date and Valid Until");
-      return;
-    }
-
     try {
-      //  EDIT MODE
       if (isEditMode && editingCouponId != null) {
         const updatePayload = {
           couponId: editingCouponId,
           title: formData.title,
           code: formData.code,
-          discountValue: Number(formData.discount),
+          discountValue,
           couponType:
             formData.couponType === "percentage"
               ? "PERCENTAGE"
               : "FIXED_AMOUNT",
-          startDate: formData.startDate,   // yyyy-MM-dd
-          validUntil: formData.validUntil, // yyyy-MM-dd
+          startDate: formData.startDate,
+          validUntil: formData.validUntil,
           active: formData.active,
         };
 
-        console.log("Update payload:", updatePayload);
         const response = await api.put("/coupons/edit", updatePayload);
-
-        // controller returns ApiResponse<Coupon>, so data may be inside .data
         const updated = response.data.data || response.data;
 
-        // map back into table shape
-        const updatedRow = {
-          id: updated.id,
-          title: updated.title,
-          code: updated.code,
-          discount: updated.discountValue,
-          minOrder: "-", // keep same layout
-          startDate: updated.startDate,
-          validUntil: updated.validUntil,
-          couponType: updated.couponType,
-          status: updated.active ? "active" : "inactive",
-          active: updated.active,
-          maxDiscount: "",
-        };
-
         setCoupons((prev) =>
-          prev.map((c) => (c.id === updatedRow.id ? updatedRow : c))
+          prev.map((c) =>
+            c.id === updated.id
+              ? {
+                ...c,
+                ...updated,
+                startDate: normalizeDate(updated.startDate),
+                validUntil: normalizeDate(updated.validUntil),
+              }
+              : c
+          )
         );
 
-        // reset edit state
-        setIsEditMode(false);
-        setEditingCouponId(null);
-        setShowAddForm(false);
-        setFormData({
-          title: "",
-          code: "",
-          discount: "",
-          minOrder: "",
-          startDate: "",
-          validUntil: "",
-          couponType: "",
-          active: true,
-        });
-        toast.success("Coupon updated successfully", {
-          autoClose: 1000,
-        });
 
+        toast.success("Coupon updated successfully", { autoClose: 1000 });
+        setShowAddForm(false);
         return;
       }
 
-      // ADD MODE (your existing logic, unchanged)
       let endpoint = "";
       let params = {
         code: formData.code,
@@ -278,56 +283,29 @@ const Coupon = () => {
       if (formData.couponType === "percentage") {
         endpoint = "/coupons/create/percentage";
         params.discountPercentage = formData.discount;
-      } else if (formData.couponType === "fixed") {
+      } else {
         endpoint = "/coupons/create/fixed";
         params.fixedAmount = formData.discount;
-      } else {
-        toast.warning("Invalid coupon type selected");
-
-        return;
       }
 
-      const response = await api.post(endpoint, null, {
-        params: params,
-      });
+      const response = await api.post(endpoint, null, { params });
 
-      const c = response.data;
+      setCoupons((prev) => [
+        ...prev,
+        {
+          ...response.data,
+          startDate: normalizeDate(response.data.startDate),
+          validUntil: normalizeDate(response.data.validUntil),
+        },
+      ]);
 
-      const newCoupon = {
-        id: c.id,
-        title: c.title,
-        code: c.code,
-        discount: c.discountValue,
-        minOrder: formData.minOrder || "-",
-        startDate: c.startDate,
-        validUntil: c.validUntil,
-        couponType: c.couponType,
-        status: c.active ? "active" : "inactive",
-        active: c.active,
-        maxDiscount: "",
-      };
 
-      setCoupons((prev) => [...prev, newCoupon]);
-      toast.success("Coupon added successfully", {
-        autoClose: 1000,
-      });
-
+      toast.success("Coupon added successfully", { autoClose: 1000 });
       setShowAddForm(false);
-      setFormData({
-        title: "",
-        code: "",
-        discount: "",
-        minOrder: "",
-        startDate: "",
-        validUntil: "",
-        couponType: "",
-        active: true,
-      });
 
     } catch (error) {
-      console.error("Error creating/updating coupon", error);
+      console.error(error);
       toast.error("Failed to save coupon");
-
     }
   };
 
@@ -342,8 +320,9 @@ const Coupon = () => {
       discount: coupon.discount || "",
       minOrder: coupon.minOrder || "",
       // maxDiscount: coupon.maxDiscount || "",
-      startDate: coupon.startDate || today,
-      validUntil: coupon.validUntil || coupon.startDate || today,
+      startDate: normalizeDate(coupon.startDate) || today,
+      validUntil: normalizeDate(coupon.validUntil) || normalizeDate(coupon.startDate) || today,
+
       couponType:
         coupon.couponType === "PERCENTAGE"
           ? "percentage"
@@ -481,9 +460,11 @@ const Coupon = () => {
                       value={formData.discount}
                       maxLength={formData.couponType === "percentage" ? 3 : 5}
 
-                      onChange={(e) =>
-                        handleChange("discount", e.target.value)
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "");
+                        handleChange("discount", value);
+                      }}
+
                     />
                     <small className="text-muted">
                       {formData.discount.length}/

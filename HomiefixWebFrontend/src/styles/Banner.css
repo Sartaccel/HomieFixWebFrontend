@@ -241,7 +241,7 @@
 .banner-card table thead tr th {
   font-size: 13px;
   font-weight: 500;
-  color: #6b7280;
+  /* color: #6b7280; */
   border-bottom: 1px solid #e5e7eb;
   background-color: #fafafa;
 }

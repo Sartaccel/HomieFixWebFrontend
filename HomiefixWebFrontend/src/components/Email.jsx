@@ -1223,7 +1223,7 @@ const Email = () => {
                       </span>
                       <input
                         type="text"
-                        className="border-0 w-100"
+                        className="border-0 flex-grow-1"
                         id="subject"
                         value={subject}
                         onChange={(e) => {
@@ -1263,7 +1263,7 @@ const Email = () => {
                       </small>
 
                     </>
-                  )} c 
+                  )} 
                 </div>
 
                 {/* Attachments and Send Button */}

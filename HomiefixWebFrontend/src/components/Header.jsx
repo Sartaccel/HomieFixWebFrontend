@@ -146,7 +146,7 @@ const Header = () => {
   return (
     <header
       className="header position-fixed d-flex justify-content-between align-items-center p-3 bg-white border-bottom mx-auto"
-      style={{ width: "87%" }}
+      style={{ width: "85%" }}
     >
 
       <h2 className="heading align-items-center mb-0" style={{ marginLeft: "30px" }}>

@@ -10,10 +10,13 @@ import api from "../api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
+ const removeEmojiAndSpecial = (text) => {
+    return text.replace(/[^a-zA-Z0-9\s]/g, "");
+  };
 const sanitizeText = (value) => {
   // Remove leading spaces
   const noLeadingSpace = value.replace(/^\s+/, "");
+ 
 
   // Prevent only-spaces value
   if (noLeadingSpace.trim() === "") return "";
@@ -47,27 +50,30 @@ const AddService = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    const cleanValue = removeEmojiAndSpecial(value);
+
     if (name === "price") {
-      if (!/^\d*$/.test(value)) return; // blocks letters & symbols
-      if (value.length > 4) return;     // max 4 digits
+      if (!/^\d*$/.test(cleanValue)) return;
+      if (cleanValue.length > 4) return;
     }
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: cleanValue,
     }));
-
-    // AUTO SET SERVICE CONTENT TITLE
     if (name === "serviceName") {
       setServiceContent((prev) => ({
         ...prev,
-        title: value ? `${value} Service` : "",
+        title: cleanValue ? `${cleanValue} Service` : "",
       }));
     }
   };
 
   const handleDescriptionChange = (index, value) => {
+    const cleanValue = removeEmojiAndSpecial(value);
+
     const newDescriptions = [...formData.serviceDescription];
-    newDescriptions[index] = value;
+    newDescriptions[index] = cleanValue;
+
     setFormData(prev => ({
       ...prev,
       serviceDescription: newDescriptions
@@ -238,14 +244,15 @@ const AddService = () => {
   };
   const updateSectionTitle = (index, value) => {
     const sections = [...serviceContent.sections];
-    sections[index].title = sanitizeText(value);
+    sections[index].title = sanitizeText(removeEmojiAndSpecial(value));
+
 
     setServiceContent({ ...serviceContent, sections });
   };
 
   const updateItem = (sIndex, iIndex, value) => {
     const sections = [...serviceContent.sections];
-    sections[sIndex].items[iIndex] = sanitizeText(value);
+    sections[sIndex].items[iIndex] = sanitizeText(removeEmojiAndSpecial(value));
 
     setServiceContent({ ...serviceContent, sections });
   };
