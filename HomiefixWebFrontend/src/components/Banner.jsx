@@ -5,7 +5,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const API_BASE_URL = "http://localhost:1212/banners";
+const API_BASE_URL = "https://admin.homiefix.in/api/banners";
 
 const Banner = () => {
   const [banners, setBanners] = useState([]);
