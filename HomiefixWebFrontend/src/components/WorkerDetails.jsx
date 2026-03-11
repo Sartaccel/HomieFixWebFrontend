@@ -263,19 +263,20 @@ const WorkerDetails = ({ token, setToken }) => {
                           </div>
                           <div className="card-body">
                             {specs.map((spec) => (
-                              <div key={spec} className="form-check">
+                              <div key={spec} className="form-check d-flex align-items-center mb-2">
                                 <input
                                   type="checkbox"
-                                  className="form-check-input"
+                                  className="form-check-input me-2"
                                   id={spec}
-                                  checked={selectedSpecifications.includes(
-                                    spec
-                                  )}
+                                  checked={selectedSpecifications.includes(spec)}
                                   onChange={() => handleFilterChange(spec)}
+                                  style={{ width: "16px", height: "16px", cursor: "pointer" }}
                                 />
+
                                 <label
                                   className="form-check-label"
                                   htmlFor={spec}
+                                  style={{ cursor: "pointer", fontSize: "14px" }}
                                 >
                                   {spec}
                                 </label>
