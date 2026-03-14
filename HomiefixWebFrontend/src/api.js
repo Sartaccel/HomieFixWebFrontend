@@ -6,19 +6,13 @@ export const setGlobalNavigate = (navigate) => {
   globalNavigate = navigate;
 };
 
-
-// https://admin.homiefix.in/api
-// https://devadmin.homiefix.in/api
-// http://localhost:1212
 const api = axios.create({
   baseURL: "https://admin.homiefix.in/api",
-  // baseURL: "http://localhost:1212",
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json"
   }
 });
-
 
 // Request interceptor
 api.interceptors.request.use(
@@ -32,30 +26,22 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-
 // Response interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized (token expired/invalid)
       localStorage.removeItem("token");
       localStorage.removeItem("username");
+
       if (globalNavigate) {
         globalNavigate("/", { replace: true });
       } else {
         window.location.href = "/";
       }
-    } else if (error.response?.status === 403) {
-      // Handle forbidden (permission denied)
-      // You can redirect or show a specific message
     }
     return Promise.reject(error);
   }
 );
 
-
 export default api;
-
-
-

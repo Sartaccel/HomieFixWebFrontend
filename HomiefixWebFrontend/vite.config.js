@@ -28,7 +28,7 @@ export default defineConfig({
   },
   server: {
     host: "0.0.0.0",     // enables network access
-    port: 5173,          // optional but recommended
+    // port: 5173,          // optional but recommended
     strictPort: true,    // avoids random port changes
   },
 });
